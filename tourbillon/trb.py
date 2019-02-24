@@ -26,7 +26,6 @@ def run():
 
     if sys.version_info[:3] < (2, 6, 0):
         logger.critical("Python 2.6 (ou supérieure) est requis pour ce programme")
-        sys.exit(1)
 
     if options.shell:
         from tourbillon.cli.app import TourBillonCLI
@@ -37,14 +36,12 @@ def run():
     else:
         try:
             import wx
-            version = tuple(map(int, wx.__version__.split('.')[:3]))
+            version = tuple([int(n) for n in wx.__version__.split('.')[:3]])
         except ImportError:
             logger.critical("wxPython est requis pour lancer ce programme en mode graphique")
-            sys.exit(1)
 
         if version < (2, 8, 0):
             logger.critical("wxPython >= 2.8 est requis (version actuelle: %s)" % version)
-            sys.exit(1)
 
         from tourbillon.gui.app import TourBillonGUI
         app = TourBillonGUI(config)

@@ -119,7 +119,7 @@ class DialogueAfficherTirage(wx.Dialog):
     def _maj(self, event):
         partie = tournoi.tournoi().partie(int(self.ctl_numero.GetStringSelection()))
         d = {}
-        for m in partie.tirage():
+        for m in partie.manches():
             piquet = tournoi.tournoi().equipe(m[0]).resultat(partie.numero).piquet
             d[piquet] = m
         self.grille.maj(d, [eq.numero for eq in partie.chapeaux()], tournoi.tournoi().statistiques(partie_limite=partie.numero - 1))
@@ -266,9 +266,9 @@ class ListeEquipesCtrl(wx.ListCtrl, listctrl.CheckListCtrlMixin):
             equipe = tournoi.tournoi().equipe(int(num))
             self.Append([unicode(equipe.numero),
                          u", ".join([unicode(joueur) for joueur in equipe.joueurs()]),
-                         unicode(equipe.total_victoires()),
-                         unicode(equipe.total_points()),
-                         unicode(equipe.total_chapeaux()),
+                         unicode(equipe.victoires()),
+                         unicode(equipe.points()),
+                         unicode(equipe.chapeaux()),
                          unicode(classement[equipe])])
             # Cocher si l'équipe étaient cochées avant effacement
             if int(num) in selection:

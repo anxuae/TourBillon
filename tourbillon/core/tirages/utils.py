@@ -2,37 +2,21 @@
 
 u"""Fonctions utiles à la création d'algorithmes de tirage."""
 
+from math import factorial
+from itertools import combinations as cnp
 from datetime import datetime, timedelta
 from threading import Thread, Event
 from tourbillon.core.exceptions import TirageError, StopTirageError, SolutionTirageError
 
 
-def Cnp(equipes, p, l=None, res=None):
+def len_cnp(n, p):
     """
-    Retourne les combinaisons (Cnp) possibles pour tirer 'p' équipes
-    parmis la liste 'equipes' sans répétition.
-
-    (ne pas renseigner 'l' et 'res' lors de l'appel.)
+    Retourne le nombre de combinaisons (cnp) possibles pour tirer 'p' équipes
+    parmis 'n' equipes sans répétition.
     """
-    equipes = list(equipes)
-    if l is None:
-        l = []
-    if res is None:
-        res = []
-
-    if p == 0:
-        res.append(l)
-        return
-    if len(equipes) == 0:
-        return
-
-    l1 = list(l)
-    l1.append(equipes.pop(len(equipes) - 1))
-    equipes_bis = list(equipes)
-    Cnp(equipes, p - 1, l1, res)
-    Cnp(equipes_bis, p, l, res)
-
-    return res
+    if isinstance(n, list) or isinstance(n, tuple):
+        n = len(n)
+    return factorial(n) / (factorial(p) * factorial(n - p))
 
 
 def tri_stat(statistiques, caracteristique):
@@ -106,12 +90,11 @@ def tirage_texte(statistiques, manches):
 
         # Calcul de la redondance (1 pour toute rencontrée + 1/n par semirencontre)
         # Une semirencontre est un jeu de 2 équipes. Une manche peut comporter
-        # plus de deux équipes donc il y a Cnp(manche, 2) posibilités.
-        l = Cnp(manche, 2)
+        # plus de deux équipes donc il y a cnp(manche, 2) posibilités.
         semirencontres = {}
         nrc = 0
-        for vu in l:
-            vu.sort()
+        for vu in cnp(manche, 2):
+            vu = sorted(vu)
             cle = "_".join([unicode(num) for num in vu])
             semirencontres[cle] = statistiques[vu[1]]['adversaires'].count(vu[0])
 
@@ -126,7 +109,7 @@ def tirage_texte(statistiques, manches):
 
         # Completer avec un un nombre < 1 pour les rencontres 2 à 2 effectuées
         # dans d'autres manches que celles redondantes
-        nrc += 1 - (1.0 * semirencontres.values().count(0) / len(l))
+        nrc += 1 - (1.0 * semirencontres.values().count(0) / len_cnp(manche, 2))
 
         texte.append(u"%-15s: diff points = %-5s, redondance = %-5s, disparité = %-5s" % (manche, dp, nrc, dv))
 
@@ -238,7 +221,7 @@ class BaseThreadTirage(Thread):
         # Parametres par défaut de l'algorithme
         self.configurer(**dict([(cle.lower(), valeur) for cle, valeur in self.DEFAUT.iteritems()]))
 
-    def __repr__(self):
+    def __str__(self):
         return "<generateur %s>" % self.NOM
 
     def _arret_utilisateur(self):
@@ -252,9 +235,11 @@ class BaseThreadTirage(Thread):
         self.config['arret_utilisateur'] = self._arret_utilisateur
         self.config['rapport'] = self.rapport
 
-    def start(self):
+    def start(self, join=False):
         self._stop.clear()
         Thread.start(self)
+        if join:
+            self.join(20 * 60)  # 20 min max
 
     def run(self):
         nb_eq = len(self.statistiques)
@@ -308,7 +293,7 @@ class BaseThreadTirage(Thread):
                 self.callback(self._progression, message, tps_restant)
         elif diff >= 5 or valeur == 100:
             self._progression = int(valeur)
-            tps_restant = ((self._chrono - self._debut) / self._progression) * (100 - self._progression)
+            tps_restant = (((self._chrono - self._debut) * 100) / self._progression) - (self._chrono - self._debut)
             if self.callback:
                 self.callback(self._progression, message, tps_restant)
 

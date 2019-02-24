@@ -4,7 +4,7 @@
 #--- Import --------------------------------------------------------------------
 
 import wx
-from  wx.lib import scrolledpanel as scrolled
+from wx.lib import scrolledpanel as scrolled
 
 from tourbillon.gui import dlgequipe as dlgeq
 from tourbillon.core import tournoi
@@ -15,6 +15,7 @@ from tourbillon.core import constantes as cst
 
 
 class EntrerScore(wx.Panel):
+
     def __init__(self, parent, choix=[]):
         wx.Panel.__init__(self, parent, wx.ID_ANY)
 
@@ -63,6 +64,7 @@ class EntrerScore(wx.Panel):
 
 
 class DialogueResultat(wx.Dialog):
+
     def __init__(self, parent, numero_partie, numero_affiche=1):
         wx.Dialog.__init__(self, parent, wx.ID_ANY, title=u"Resultats", style=wx.DEFAULT_DIALOG_STYLE | wx.CENTER_ON_SCREEN | wx.RESIZE_BORDER)
         self.SetMinSize(wx.Size(280, 170))
@@ -72,7 +74,7 @@ class DialogueResultat(wx.Dialog):
 
         self.entrees = []
         self.numero_partie = numero_partie
-        self.tirage = tournoi.tournoi().partie(self.numero_partie).tirage()
+        self.tirage = tournoi.tournoi().partie(self.numero_partie).manches()
 
         # Numero de piquet
         self.lbl_piquet = wx.StaticText(self, wx.ID_ANY, u"", style=wx.ALIGN_CENTER)
@@ -121,7 +123,7 @@ class DialogueResultat(wx.Dialog):
         self.verifier(None)
 
         hauteur_necessaire = 10 + self.lbl_piquet.GetSizeTuple()[1] + \
-                            (self.entrees[0].GetSize()[1] + 15) * len(self.entrees) + 110
+            (self.entrees[0].GetSize()[1] + 15) * len(self.entrees) + 110
         if hauteur_necessaire < wx.GetDisplaySize()[1]:
             self.SetSize(wx.Size(280, hauteur_necessaire))
         else:

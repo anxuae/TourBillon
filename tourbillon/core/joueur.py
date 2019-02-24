@@ -125,7 +125,7 @@ class Joueur(object):
         self.data = [creer_id(prenom, nom), prenom, nom, age]
         self._enregistrer(kwrd.get('date_ajout'))
 
-    def __repr__(self):
+    def __str__(self):
         return "%s %s" % (self.data[1], self.data[2])
 
     def __eq__(self, other):

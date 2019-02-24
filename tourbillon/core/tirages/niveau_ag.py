@@ -5,8 +5,8 @@ u"""Algorithme génétique pour la selection des équipes en fonction de leur ni
 import random
 from tourbillon.core.constantes import MINIMISE
 from tourbillon.core.tirages.utils import (BaseThreadTirage, nb_chapeaux_necessaires, tri_stat,
-                                           Cnp, creer_manches, NV, NV_REDONDANCE, NV_DISPARITE,
-                                           tirage_texte, dernieres_equipes)
+                                           creer_manches, NV, NV_REDONDANCE, NV_DISPARITE,
+                                           tirage_texte, dernieres_equipes, cnp, len_cnp)
 from tourbillon.core.exceptions import SolutionTirageError
 
 
@@ -34,7 +34,7 @@ class Individu(object):
         self.chromosome = chromosome
         self.score = None  # set during evaluation
 
-    def __repr__(self):
+    def __str__(self):
         return '<%s chromosome= %s score= %s>' % \
                (self.__class__.__name__, self.chromosome, self.score)
 
@@ -248,8 +248,7 @@ def select_chapeau(parametres, statistiques):
 
 
 def cle_manche(manche):
-    manche.sort()
-    cle = "_".join([unicode(num) for num in manche])
+    cle = "_".join([unicode(num) for num in sorted(manche)])
     return cle
 
 
@@ -287,10 +286,9 @@ def comanche(parametres, statistiques, manche):
     valeur = dp + parametres['ponderation_victoires'] * dv
 
     # Terme des rencontres
-    l = Cnp(manche, 2)
     rencontres = {}
     nrc = 0
-    for vu in l:
+    for vu in cnp(manche, 2):
         parametres['arret_utilisateur']()
         rencontres[cle_manche(vu)] = statistiques[vu[1]]['adversaires'].count(vu[0])
 
@@ -306,7 +304,7 @@ def comanche(parametres, statistiques, manche):
 
     # Completer avec un un nombre < 1 pour les rencontres 2 à 2 effectuées
     # dans d'autres manches que celles redondantes
-    nrc += 1 - (1.0 * rencontres.values().count(0) / len(l))
+    nrc += 1 - (1.0 * rencontres.values().count(0) / len_cnp(manche, 2))
 
     valeur += parametres['ponderation_victoires'] * nrc
 

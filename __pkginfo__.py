@@ -35,5 +35,5 @@ dependences = [  # dist_name + contrainte version
     "pyyaml>=3.0"]
 
 ressources = [  # (source, cible, pattern)
-    ('', '', ["LICENSE", "README.rst"]),
+    ('', '', ["LICENSE.rst", "LISEZMOI.rst"]),
     ('tourbillon/images', 'images', ["*.png", "*.txt", "*.jpg", "fond/*.png", "fond/*.jpg"])]

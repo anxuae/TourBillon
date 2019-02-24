@@ -1,0 +1,4723 @@
+#        oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
+#        o ---------------------------------------------------------------------------- o
+#        o |                                                                          | o
+#        o |    oTTTo                                                                 | o
+#        o    oTTTo                                                                   | o
+#           oTTTo#&  ////                                                             | o
+#         oTTTo& #&//////                     BBBBBBB                                 | o
+#       oTTTo #& //////                       BB     BB       LL  LL                  | o
+#          #& #&/////                         BB      BB      LL  LL                  | o
+#          #&/#&//&                           BB      BB      LL  LL                  | o
+#         /#&/#& #&                           BB     BB   OO  LL  LL                  | o
+#       ///#& #& #&                           BBBBBBBB        LL  LL                  | o
+#     ///  #& #& #&   OOOO   UU  UU  RR RRR   BB     BB   II  LL  LL   OOOO   N NNNN  | o
+#   //     #& #& #&  OO  OO  UU  UU  RRR  RR  BB      BB  II  LL  LL  OO  OO  NNN NN  | o
+#  o       #& #& #&  OO  OO  UU  UU  RR       BB      BB  II  LL  LL  OO  OO  NN  NN  | o
+#          #& #& #&  OO  OO  UU  UU  RR       BB     BB   II  LL  LL  OO  OO  NN  NN  | o
+#          #& #& #&   OOOO    UUUU   RR       BBBBBBB     II  LL  LL   OOOO   NN  NN  | o
+#          #& #&                                                                      | o
+#          #& #&    ------------------------------------------------------------------- o
+#          #&     ooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
+#          #&                                              Version 5.0.5 © La Billonnière
+
+enregistrement: 2014-05-04 17:48:27.921609
+tournoi:
+  debut: 2014-05-04 14:16:06.506908
+  equipes_par_manche: 4
+  joueurs_par_equipe: 1
+  points_par_manche: 7
+inscription:
+  1:
+  - - !!python/unicode 'Yann'
+    - !!python/unicode 'Rara'
+    - ''
+  2:
+  - - !!python/unicode 'Manon'
+    - !!python/unicode 'Rara'
+    - ''
+  3:
+  - - !!python/unicode 'Louis'
+    - !!python/unicode 'Rara'
+    - ''
+  4:
+  - - "Mil\xE8ne"
+    - !!python/unicode 'Rara'
+    - ''
+  5:
+  - - !!python/unicode 'Corine'
+    - !!python/unicode 'Leflef'
+    - ''
+  6:
+  - - !!python/unicode 'Didier'
+    - !!python/unicode 'Leflef'
+    - ''
+  7:
+  - - !!python/unicode 'Thomas'
+    - !!python/unicode 'Lele'
+    - ''
+  8:
+  - - !!python/unicode 'Florian'
+    - !!python/unicode 'Lele'
+    - ''
+  9:
+  - - !!python/unicode 'Clement'
+    - !!python/unicode 'Lele'
+    - ''
+  10:
+  - - "Aur\xE9lien"
+    - !!python/unicode 'Lele'
+    - ''
+  11:
+  - - !!python/unicode 'Arnaud'
+    - !!python/unicode 'Hehe'
+    - ''
+  12:
+  - - !!python/unicode 'Alain'
+    - !!python/unicode 'Boubou'
+    - ''
+  13:
+  - - !!python/unicode 'Virgil'
+    - !!python/unicode 'Leflef'
+    - ''
+  14:
+  - - !!python/unicode 'Alain'
+    - !!python/unicode 'Foufou'
+    - ''
+  15:
+  - - "J\xE9rome"
+    - !!python/unicode 'Huhu'
+    - ''
+  16:
+  - - "Andr\xE9"
+    - !!python/unicode 'Lala'
+    - ''
+  17:
+  - - !!python/unicode 'Jean-Luc'
+    - !!python/unicode 'Anan'
+    - ''
+  18:
+  - - !!python/unicode 'Jacques'
+    - !!python/unicode 'Bebe'
+    - ''
+  19:
+  - - !!python/unicode 'Ryan'
+    - !!python/unicode 'Pripri'
+    - ''
+  20:
+  - - !!python/unicode 'Gaston'
+    - !!python/unicode 'Erer'
+    - ''
+  21:
+  - - !!python/unicode 'Jean-Philippe'
+    - !!python/unicode 'Rourou'
+    - ''
+  22:
+  - - !!python/unicode 'Ludivine'
+    - !!python/unicode 'Leclec'
+    - ''
+  23:
+  - - !!python/unicode 'Kevin'
+    - !!python/unicode 'Hoho'
+    - ''
+  24:
+  - - !!python/unicode 'Camille'
+    - !!python/unicode 'Ryry'
+    - ''
+  25:
+  - - !!python/unicode 'Etienne'
+    - !!python/unicode 'Dede'
+    - ''
+  26:
+  - - "Fr\xE9d\xE9ric"
+    - !!python/unicode 'Lala'
+    - ''
+  27:
+  - - !!python/unicode 'Frafra'
+    - !!python/unicode 'Koko'
+    - ''
+  28:
+  - - !!python/unicode 'Jacques'
+    - !!python/unicode 'Fofo'
+    - ''
+  29:
+  - - !!python/unicode 'Jeoffrey'
+    - !!python/unicode 'Hehe'
+    - ''
+  30:
+  - - !!python/unicode 'Gaetan'
+    - !!python/unicode 'Deldel'
+    - ''
+  31:
+  - - !!python/unicode 'Jean-Yves'
+    - !!python/unicode 'Bebe'
+    - ''
+  32:
+  - - !!python/unicode 'Steve'
+    - !!python/unicode 'Devdev'
+    - ''
+  33:
+  - - !!python/unicode 'Jean-Jacques'
+    - !!python/unicode 'Bebe'
+    - ''
+  34:
+  - - !!python/unicode 'Alain'
+    - !!python/unicode 'Sasa'
+    - ''
+  35:
+  - - "B\xE9atrice"
+    - !!python/unicode 'Sasa'
+    - ''
+  36:
+  - - !!python/unicode 'loic'
+    - !!python/unicode 'Sasa'
+    - ''
+  37:
+  - - !!python/unicode 'Mickael'
+    - !!python/unicode 'Degdeg'
+    - ''
+  38:
+  - - !!python/unicode 'Stephane'
+    - !!python/unicode 'Clecle'
+    - ''
+  39:
+  - - !!python/unicode 'Michel'
+    - !!python/unicode 'Frafra'
+    - ''
+  40:
+  - - !!python/unicode 'Christophe'
+    - !!python/unicode 'Dudu'
+    - ''
+  41:
+  - - !!python/unicode 'Loevig'
+    - !!python/unicode 'Dudu'
+    - ''
+  42:
+  - - !!python/unicode 'Thierry'
+    - !!python/unicode 'Guegue'
+    - ''
+  43:
+  - - !!python/unicode 'Korentin'
+    - !!python/unicode 'Guegue'
+    - ''
+  44:
+  - - !!python/unicode 'Kisiel'
+    - "Mama"
+    - ''
+  45:
+  - - !!python/unicode 'Maarten'
+    - !!python/unicode 'Ovov'
+    - ''
+  46:
+  - - !!python/unicode 'Yanny'
+    - !!python/unicode 'Ovov'
+    - ''
+  47:
+  - - !!python/unicode 'Laurence'
+    - !!python/unicode 'Boubou'
+    - ''
+  48:
+  - - !!python/unicode 'Cedric'
+    - !!python/unicode 'Gaga'
+    - ''
+  49:
+  - - "Jean-Fran\xE7ois"
+    - !!python/unicode 'Deldel'
+    - ''
+  50:
+  - - !!python/unicode 'Antoine'
+    - !!python/unicode 'Gege'
+    - ''
+  51:
+  - - "Fran\xE7ois"
+    - !!python/unicode 'Lala'
+    - ''
+  52:
+  - - "Fran\xE7ois"
+    - !!python/unicode 'Gege'
+    - ''
+  53:
+  - - !!python/unicode 'Daniel'
+    - !!python/unicode 'Deqdeq'
+    - ''
+  54:
+  - - !!python/unicode 'Guillaume'
+    - !!python/unicode 'Deqdeq'
+    - ''
+  55:
+  - - !!python/unicode 'Antoine'
+    - !!python/unicode 'Bebe'
+    - ''
+  56:
+  - - !!python/unicode 'loic'
+    - !!python/unicode 'Berber'
+    - ''
+  57:
+  - - "Aur\xE9lien"
+    - !!python/unicode 'Bebe'
+    - ''
+  58:
+  - - !!python/unicode 'Patrice'
+    - !!python/unicode 'Momo'
+    - ''
+  59:
+  - - !!python/unicode 'Arthur'
+    - !!python/unicode 'Denden'
+    - ''
+  60:
+  - - "S\xE9bastien"
+    - !!python/unicode 'Papa'
+    - ''
+  61:
+  - - !!python/unicode 'David'
+    - !!python/unicode 'Papa'
+    - ''
+  62:
+  - - !!python/unicode 'Paul'
+    - !!python/unicode 'Momo'
+    - ''
+  63:
+  - - !!python/unicode 'Didier'
+    - !!python/unicode 'Hoho'
+    - ''
+  64:
+  - - !!python/unicode 'Gilbert'
+    - !!python/unicode 'Titi'
+    - ''
+  65:
+  - - !!python/unicode 'Jean-Claude'
+    - !!python/unicode 'Fafa'
+    - ''
+  66:
+  - - !!python/unicode 'Thierry'
+    - !!python/unicode 'Fafa'
+    - ''
+  67:
+  - - !!python/unicode 'Pascal'
+    - !!python/unicode 'Hehe'
+    - ''
+  68:
+  - - !!python/unicode 'Valentin'
+    - !!python/unicode 'Foufou'
+    - ''
+  69:
+  - - "Fran\xE7ois"
+    - !!python/unicode 'Eded'
+    - ''
+  70:
+  - - !!python/unicode 'Alexandra'
+    - !!python/unicode 'Eded'
+    - ''
+  71:
+  - - !!python/unicode 'Jeanne'
+    - !!python/unicode 'Eded'
+    - ''
+  72:
+  - - !!python/unicode 'Emma'
+    - !!python/unicode 'Eded'
+    - ''
+  73:
+  - - !!python/unicode 'Florian'
+    - !!python/unicode 'Gaga'
+    - ''
+  74:
+  - - !!python/unicode 'Remy'
+    - !!python/unicode 'Boubou'
+    - ''
+  75:
+  - - !!python/unicode 'Yannick'
+    - !!python/unicode 'Gaga'
+    - ''
+  76:
+  - - !!python/unicode 'Maxence'
+    - !!python/unicode 'Gaga'
+    - ''
+  77:
+  - - !!python/unicode 'Nicolas'
+    - !!python/unicode 'Bebe'
+    - ''
+  78:
+  - - !!python/unicode 'Michel'
+    - !!python/unicode 'Papa'
+    - ''
+  79:
+  - - !!python/unicode 'Monique'
+    - !!python/unicode 'Papa'
+    - ''
+  80:
+  - - !!python/unicode 'Muse'
+    - !!python/unicode '-'
+    - ''
+  81:
+  - - !!python/unicode 'Yoann'
+    - !!python/unicode 'Hehe'
+    - ''
+  82:
+  - - !!python/unicode 'Corentin'
+    - !!python/unicode 'Guigui'
+    - ''
+  83:
+  - - !!python/unicode 'Christelle'
+    - !!python/unicode 'Popo'
+    - ''
+  84:
+  - - !!python/unicode 'Gege'
+    - !!python/unicode 'Evev'
+    - ''
+  85:
+  - - !!python/unicode 'Manuel'
+    - !!python/unicode 'Dada'
+    - ''
+  86:
+  - - !!python/unicode 'Leo'
+    - !!python/unicode 'Vivi'
+    - ''
+  87:
+  - - !!python/unicode 'Jacques'
+    - !!python/unicode 'Lala'
+    - ''
+  88:
+  - - "Jos\xE9"
+    - !!python/unicode 'Dada'
+    - ''
+  89:
+  - - !!python/unicode 'Roger'
+    - !!python/unicode 'Rourou'
+    - ''
+  90:
+  - - !!python/unicode 'Benoit'
+    - !!python/unicode 'Guigui'
+    - ''
+  91:
+  - - !!python/unicode 'Christian'
+    - !!python/unicode 'Hehe'
+    - ''
+  92:
+  - - !!python/unicode 'Yves'
+    - !!python/unicode 'Gaga'
+    - ''
+jokers:
+  1: 61
+  2: 36
+  3: 48
+  4: 81
+  5: 37
+  6: 59
+  7: 89
+  8: 20
+  9: 63
+  10: 22
+  11: 67
+  12: 39
+  13: 5
+  14: 23
+  15: 3
+  16: 56
+  17: 6
+  18: 33
+  19: 11
+  20: 78
+  21: 84
+  22: 55
+  23: 94
+  24: 76
+  25: 87
+  26: 17
+  27: 43
+  28: 35
+  29: 65
+  30: 70
+  31: 72
+  32: 42
+  33: 52
+  34: 74
+  35: 80
+  36: 28
+  37: 16
+  38: 85
+  39: 21
+  40: 60
+  41: 58
+  42: 31
+  43: 99
+  44: 99
+  45: 66
+  46: 66
+  47: 9
+  48: 15
+  49: 24
+  50: 103
+  51: 1
+  52: 45
+  53: 106
+  54: 53
+  55: 19
+  56: 38
+  57: 95
+  58: 26
+  59: 90
+  60: 29
+  61: 32
+  62: 30
+  63: 104
+  64: 8
+  65: 69
+  66: 7
+  67: 79
+  68: 96
+  69: 4
+  70: 88
+  71: 100
+  72: 27
+  73: 47
+  74: 82
+  75: 13
+  76: 77
+  77: 71
+  78: 102
+  79: 46
+  80: 25
+  81: 105
+  82: 91
+  83: 34
+  84: 44
+  85: 101
+  86: 10
+  87: 2
+  88: 98
+  89: 83
+  90: 73
+  91: 40
+  92: 93
+parties:
+  1:
+  - adversaires:
+    - 53
+    - 60
+    - 52
+    debut: &id001 2014-05-04 15:13:06.196820
+    etat: !!python/unicode 'perdu'
+    fin: &id093 2014-05-04 15:38:48.881217
+    piquet: 13
+    points: 4
+  - adversaires:
+    - 50
+    - 14
+    - 5
+    debut: &id002 2014-05-04 15:42:00.912491
+    etat: !!python/unicode 'perdu'
+    fin: &id007 2014-05-04 16:02:40.830097
+    piquet: 8
+    points: 5
+  - adversaires:
+    - 48
+    - 49
+    - 28
+    debut: &id003 2014-05-04 16:11:39.987671
+    etat: !!python/unicode 'perdu'
+    fin: &id046 2014-05-04 16:38:16.362724
+    piquet: 2
+    points: 3
+  - adversaires:
+    - 56
+    - 45
+    - 24
+    debut: &id004 2014-05-04 16:43:48.700401
+    etat: "gagn\xE9"
+    fin: &id040 2014-05-04 17:01:24.254019
+    piquet: 7
+    points: 7
+  - adversaires:
+    - 66
+    - 18
+    - 82
+    debut: &id005 2014-05-04 17:15:59.023657
+    etat: !!python/unicode 'perdu'
+    fin: &id026 2014-05-04 17:38:57.992967
+    piquet: 3
+    points: 5
+  2:
+  - adversaires:
+    - 46
+    - 59
+    - 4
+    debut: *id001
+    etat: !!python/unicode 'perdu'
+    fin: &id006 2014-05-04 15:39:34.024864
+    piquet: 15
+    points: 3
+  - adversaires:
+    - 43
+    - 85
+    - 56
+    debut: *id002
+    etat: !!python/unicode 'perdu'
+    fin: &id077 2014-05-04 16:05:51.172953
+    piquet: 14
+    points: 2
+  - adversaires:
+    - 19
+    - 44
+    - 24
+    debut: *id003
+    etat: !!python/unicode 'perdu'
+    fin: &id027 2014-05-04 16:33:00.373624
+    piquet: 5
+    points: 2
+  - adversaires:
+    - 19
+    - 86
+    - 31
+    debut: *id004
+    etat: !!python/unicode 'perdu'
+    fin: &id028 2014-05-04 17:00:06.553955
+    piquet: 23
+    points: 0
+  - adversaires:
+    - 19
+    - 86
+    - 68
+    debut: *id005
+    etat: !!python/unicode 'perdu'
+    fin: &id029 2014-05-04 17:35:42.176479
+    piquet: 18
+    points: 2
+  3:
+  - adversaires:
+    - 79
+    - 27
+    - 17
+    debut: *id001
+    etat: "gagn\xE9"
+    fin: &id020 2014-05-04 15:34:04.984837
+    piquet: 1
+    points: 7
+  - adversaires:
+    - 7
+    - 18
+    - 58
+    debut: *id002
+    etat: "gagn\xE9"
+    fin: &id008 2014-05-04 16:03:22.523568
+    piquet: 2
+    points: 7
+  - adversaires:
+    - 32
+    - 40
+    - 21
+    debut: *id003
+    etat: !!python/unicode 'perdu'
+    fin: &id033 2014-05-04 16:31:29.940695
+    piquet: 8
+    points: 4
+  - adversaires:
+    - 87
+    - 14
+    - 8
+    debut: *id004
+    etat: "gagn\xE9"
+    fin: &id009 2014-05-04 17:08:15.172017
+    piquet: 4
+    points: 7
+  - adversaires:
+    - 21
+    - 87
+    - 13
+    debut: *id005
+    etat: !!python/unicode 'perdu'
+    fin: &id017 2014-05-04 17:35:03.609459
+    piquet: 7
+    points: 4
+  4:
+  - adversaires:
+    - 46
+    - 59
+    - 2
+    debut: *id001
+    etat: "gagn\xE9"
+    fin: *id006
+    piquet: 15
+    points: 7
+  - adversaires:
+    - 20
+    - 52
+    - 91
+    debut: *id002
+    etat: !!python/unicode 'perdu'
+    fin: &id030 2014-05-04 16:02:10.907151
+    piquet: 10
+    points: 3
+  - adversaires:
+    - 55
+    - 82
+    - 38
+    debut: *id003
+    etat: !!python/unicode 'perdu'
+    fin: &id070 2014-05-04 16:33:35.515808
+    piquet: 19
+    points: 2
+  - adversaires:
+    - 18
+    - 26
+    - 33
+    debut: *id004
+    etat: !!python/unicode 'perdu'
+    fin: &id025 2014-05-04 17:06:27.061398
+    piquet: 2
+    points: 4
+  - adversaires:
+    - 54
+    - 61
+    - 25
+    debut: *id005
+    etat: !!python/unicode 'perdu'
+    fin: &id043 2014-05-04 17:36:59.174274
+    piquet: 8
+    points: 2
+  5:
+  - adversaires:
+    - 81
+    - 73
+    - 89
+    debut: *id001
+    etat: !!python/unicode 'perdu'
+    fin: &id113 2014-05-04 15:31:57.766747
+    piquet: 14
+    points: 4
+  - adversaires:
+    - 50
+    - 14
+    - 1
+    debut: *id002
+    etat: !!python/unicode 'perdu'
+    fin: *id007
+    piquet: 8
+    points: 4
+  - adversaires:
+    - 30
+    - 79
+    - 74
+    debut: *id003
+    etat: !!python/unicode 'perdu'
+    fin: &id050 2014-05-04 16:35:49.399214
+    piquet: 22
+    points: 5
+  - adversaires:
+    - 59
+    - 48
+    - 57
+    debut: *id004
+    etat: "gagn\xE9"
+    fin: &id085 2014-05-04 17:06:43.135756
+    piquet: 16
+    points: 7
+  - adversaires:
+    - 90
+    - 47
+    - 10
+    debut: *id005
+    etat: "gagn\xE9"
+    fin: &id013 2014-05-04 17:38:14.152376
+    piquet: 2
+    points: 7
+  6:
+  - adversaires:
+    - 41
+    - 78
+    - 9
+    debut: *id001
+    etat: !!python/unicode 'perdu'
+    fin: &id010 2014-05-04 15:34:25.405709
+    piquet: 2
+    points: 6
+  - adversaires:
+    - 27
+    - 23
+    - 53
+    debut: *id002
+    etat: !!python/unicode 'perdu'
+    fin: &id037 2014-05-04 16:03:41.391819
+    piquet: 12
+    points: 6
+  - adversaires:
+    - 69
+    - 64
+    - 17
+    debut: *id003
+    etat: !!python/unicode 'perdu'
+    fin: &id022 2014-05-04 16:34:21.092799
+    piquet: 3
+    points: 6
+  - adversaires:
+    - 17
+    - 64
+    - 41
+    debut: *id004
+    etat: "gagn\xE9"
+    fin: &id023 2014-05-04 17:04:46.887706
+    piquet: 3
+    points: 7
+  - adversaires:
+    - 34
+    - 75
+    - 67
+    debut: *id005
+    etat: !!python/unicode 'perdu'
+    fin: &id061 2014-05-04 17:36:37.640270
+    piquet: 1
+    points: 6
+  7:
+  - adversaires:
+    - 74
+    - 23
+    - 13
+    debut: *id001
+    etat: "gagn\xE9"
+    fin: &id014 2014-05-04 15:36:00.147573
+    piquet: 21
+    points: 7
+  - adversaires:
+    - 18
+    - 3
+    - 58
+    debut: *id002
+    etat: !!python/unicode 'perdu'
+    fin: *id008
+    piquet: 2
+    points: 6
+  - adversaires:
+    - 42
+    - 9
+    - 91
+    debut: *id003
+    etat: !!python/unicode 'perdu'
+    fin: &id011 2014-05-04 16:31:02.467976
+    piquet: 11
+    points: 5
+  - adversaires:
+    - 34
+    - 75
+    - 69
+    debut: *id004
+    etat: !!python/unicode 'perdu'
+    fin: &id060 2014-05-04 17:05:05.379034
+    piquet: 19
+    points: 4
+  - adversaires:
+    - 80
+    - 27
+    - 16
+    debut: *id005
+    etat: "gagn\xE9"
+    fin: &id019 2014-05-04 17:33:15.882668
+    piquet: 19
+    points: 7
+  8:
+  - adversaires:
+    - 69
+    - 24
+    - 63
+    debut: *id001
+    etat: "gagn\xE9"
+    fin: &id038 2014-05-04 15:29:55.854834
+    piquet: 8
+    points: 7
+  - adversaires:
+    - 21
+    - 83
+    - 60
+    debut: *id002
+    etat: !!python/unicode 'perdu'
+    fin: &id032 2014-05-04 16:05:21.607717
+    piquet: 23
+    points: 5
+  - adversaires:
+    - 27
+    - 13
+    - 29
+    debut: *id003
+    etat: "gagn\xE9"
+    fin: &id016 2014-05-04 16:29:56.572232
+    piquet: 12
+    points: 7
+  - adversaires:
+    - 87
+    - 3
+    - 14
+    debut: *id004
+    etat: "gagn\xE9"
+    fin: *id009
+    piquet: 4
+    points: 7
+  - adversaires:
+    - 9
+    - 40
+    - 77
+    debut: *id005
+    etat: "gagn\xE9"
+    fin: &id012 2014-05-04 17:32:22.743372
+    piquet: 17
+    points: 7
+  9:
+  - adversaires:
+    - 6
+    - 41
+    - 78
+    debut: *id001
+    etat: "gagn\xE9"
+    fin: *id010
+    piquet: 2
+    points: 7
+  - adversaires:
+    - 88
+    - 33
+    - 65
+    debut: *id002
+    etat: "gagn\xE9"
+    fin: &id057 2014-05-04 16:00:15.887830
+    piquet: 15
+    points: 7
+  - adversaires:
+    - 42
+    - 91
+    - 7
+    debut: *id003
+    etat: "gagn\xE9"
+    fin: *id011
+    piquet: 11
+    points: 7
+  - adversaires:
+    - 21
+    - 77
+    - 32
+    debut: *id004
+    etat: "gagn\xE9"
+    fin: &id034 2014-05-04 17:04:17.980966
+    piquet: 5
+    points: 7
+  - adversaires:
+    - 8
+    - 40
+    - 77
+    debut: *id005
+    etat: !!python/unicode 'perdu'
+    fin: *id012
+    piquet: 17
+    points: 6
+  10:
+  - adversaires:
+    - 25
+    - 32
+    - 30
+    debut: *id001
+    etat: !!python/unicode 'perdu'
+    fin: &id042 2014-05-04 15:35:40.143963
+    piquet: 22
+    points: 2
+  - adversaires:
+    - 37
+    - 68
+    - 57
+    debut: *id002
+    etat: "gagn\xE9"
+    fin: &id066 2014-05-04 16:03:08.718454
+    piquet: 20
+    points: 7
+  - adversaires:
+    - 58
+    - 54
+    - 33
+    debut: *id003
+    etat: !!python/unicode 'perdu'
+    fin: &id058 2014-05-04 16:34:37.800503
+    piquet: 1
+    points: 6
+  - adversaires:
+    - 53
+    - 42
+    - 28
+    debut: *id004
+    etat: !!python/unicode 'perdu'
+    fin: &id047 2014-05-04 17:07:44.399310
+    piquet: 18
+    points: 5
+  - adversaires:
+    - 90
+    - 47
+    - 5
+    debut: *id005
+    etat: "gagn\xE9"
+    fin: *id013
+    piquet: 2
+    points: 7
+  11:
+  - adversaires:
+    - 22
+    - 18
+    - 85
+    debut: *id001
+    etat: !!python/unicode 'perdu'
+    fin: &id024 2014-05-04 15:39:19.918567
+    piquet: 5
+    points: 5
+  - adversaires:
+    - 13
+    - 69
+    - 76
+    debut: *id002
+    etat: !!python/unicode 'perdu'
+    fin: &id015 2014-05-04 16:06:28.202265
+    piquet: 5
+    points: 6
+  - adversaires:
+    - 23
+    - 41
+    - 16
+    debut: *id003
+    etat: !!python/unicode 'perdu'
+    fin: &id018 2014-05-04 16:33:15.072660
+    piquet: 4
+    points: 2
+  - adversaires:
+    - 49
+    - 30
+    - 46
+    debut: *id004
+    etat: !!python/unicode 'perdu'
+    fin: &id051 2014-05-04 17:05:36.951128
+    piquet: 9
+    points: 4
+  - adversaires:
+    - 36
+    - 45
+    - 70
+    debut: *id005
+    etat: !!python/unicode 'perdu'
+    fin: &id065 2014-05-04 17:37:27.627817
+    piquet: 16
+    points: 2
+  12:
+  - adversaires:
+    - 92
+    - 50
+    - 47
+    debut: *id001
+    etat: !!python/unicode 'perdu'
+    fin: &id081 2014-05-04 15:34:40.113426
+    piquet: 16
+    points: 4
+  - adversaires:
+    - 90
+    - 28
+    - 55
+    debut: *id002
+    etat: !!python/unicode 'perdu'
+    fin: &id045 2014-05-04 16:05:34.309318
+    piquet: 22
+    points: 6
+  - adversaires:
+    - 22
+    - 73
+    - 76
+    debut: *id003
+    etat: !!python/unicode 'perdu'
+    fin: &id035 2014-05-04 16:39:28.073037
+    piquet: 20
+    points: 2
+  - adversaires:
+    - 36
+    - 70
+    - 78
+    debut: *id004
+    etat: !!python/unicode 'perdu'
+    fin: &id064 2014-05-04 17:03:11.223366
+    piquet: 15
+    points: 4
+  - adversaires:
+    - 71
+    - 24
+    - 39
+    debut: *id005
+    etat: !!python/unicode 'perdu'
+    fin: &id041 2014-05-04 17:38:38.834250
+    piquet: 9
+    points: 6
+  13:
+  - adversaires:
+    - 74
+    - 23
+    - 7
+    debut: *id001
+    etat: !!python/unicode 'perdu'
+    fin: *id014
+    piquet: 21
+    points: 5
+  - adversaires:
+    - 11
+    - 69
+    - 76
+    debut: *id002
+    etat: "gagn\xE9"
+    fin: *id015
+    piquet: 5
+    points: 7
+  - adversaires:
+    - 27
+    - 8
+    - 29
+    debut: *id003
+    etat: !!python/unicode 'perdu'
+    fin: *id016
+    piquet: 12
+    points: 6
+  - adversaires:
+    - 58
+    - 65
+    - 89
+    debut: *id004
+    etat: "gagn\xE9"
+    fin: &id101 2014-05-04 17:00:40.958822
+    piquet: 22
+    points: 7
+  - adversaires:
+    - 21
+    - 87
+    - 3
+    debut: *id005
+    etat: !!python/unicode 'perdu'
+    fin: *id017
+    piquet: 7
+    points: 5
+  14:
+  - adversaires:
+    - 64
+    - 31
+    - 34
+    debut: *id001
+    etat: !!python/unicode 'perdu'
+    fin: &id052 2014-05-04 15:32:43.959608
+    piquet: 11
+    points: 4
+  - adversaires:
+    - 50
+    - 5
+    - 1
+    debut: *id002
+    etat: "gagn\xE9"
+    fin: *id007
+    piquet: 8
+    points: 7
+  - adversaires:
+    - 92
+    - 60
+    - 84
+    debut: *id003
+    etat: "gagn\xE9"
+    fin: &id103 2014-05-04 16:37:34.525456
+    piquet: 23
+    points: 7
+  - adversaires:
+    - 87
+    - 3
+    - 8
+    debut: *id004
+    etat: !!python/unicode 'perdu'
+    fin: *id009
+    piquet: 4
+    points: 5
+  - adversaires:
+    - 58
+    - 73
+    - 55
+    debut: *id005
+    etat: !!python/unicode 'perdu'
+    fin: &id099 2014-05-04 17:36:12.849863
+    piquet: 6
+    points: 5
+  15:
+  - adversaires:
+    - 35
+    - 37
+    - 58
+    debut: *id001
+    etat: !!python/unicode 'perdu'
+    fin: &id062 2014-05-04 15:35:25.590535
+    piquet: 20
+    points: 0
+  - adversaires:
+    - 24
+    - 31
+    - 25
+    debut: *id002
+    etat: !!python/unicode 'perdu'
+    fin: &id039 2014-05-04 16:07:28.141420
+    piquet: 3
+    points: 5
+  - adversaires:
+    - 72
+    - 68
+    - 71
+    debut: *id003
+    etat: !!python/unicode 'perdu'
+    fin: &id111 2014-05-04 16:38:36.697468
+    piquet: 16
+    points: 4
+  - adversaires:
+    - 68
+    - 79
+    - 61
+    debut: *id004
+    etat: !!python/unicode 'perdu'
+    fin: &id105 2014-05-04 17:06:09.501574
+    piquet: 1
+    points: 2
+  - adversaires:
+    - 22
+    - 30
+    - 59
+    debut: *id005
+    etat: "gagn\xE9"
+    fin: &id036 2014-05-04 17:46:56.658463
+    piquet: 23
+    points: 7
+  16:
+  - adversaires:
+    - 33
+    - 56
+    - 86
+    debut: *id001
+    etat: !!python/unicode 'perdu'
+    fin: &id056 2014-05-04 15:31:27.270905
+    piquet: 7
+    points: 6
+  - adversaires:
+    - 77
+    - 59
+    - 17
+    debut: *id002
+    etat: !!python/unicode 'perdu'
+    fin: &id021 2014-05-04 16:09:08.479906
+    piquet: 4
+    points: 4
+  - adversaires:
+    - 23
+    - 41
+    - 11
+    debut: *id003
+    etat: "gagn\xE9"
+    fin: *id018
+    piquet: 4
+    points: 7
+  - adversaires:
+    - 91
+    - 67
+    - 29
+    debut: *id004
+    etat: !!python/unicode 'perdu'
+    fin: &id048 2014-05-04 17:07:28.747689
+    piquet: 21
+    points: 6
+  - adversaires:
+    - 7
+    - 80
+    - 27
+    debut: *id005
+    etat: !!python/unicode 'perdu'
+    fin: *id019
+    piquet: 19
+    points: 4
+  17:
+  - adversaires:
+    - 3
+    - 79
+    - 27
+    debut: *id001
+    etat: !!python/unicode 'perdu'
+    fin: *id020
+    piquet: 1
+    points: 6
+  - adversaires:
+    - 77
+    - 16
+    - 59
+    debut: *id002
+    etat: !!python/unicode 'perdu'
+    fin: *id021
+    piquet: 4
+    points: 5
+  - adversaires:
+    - 6
+    - 69
+    - 64
+    debut: *id003
+    etat: !!python/unicode 'perdu'
+    fin: *id022
+    piquet: 3
+    points: 6
+  - adversaires:
+    - 6
+    - 64
+    - 41
+    debut: *id004
+    etat: !!python/unicode 'perdu'
+    fin: *id023
+    piquet: 3
+    points: 5
+  - adversaires:
+    - 64
+    - 60
+    - 50
+    debut: *id005
+    etat: !!python/unicode 'perdu'
+    fin: &id090 2014-05-04 17:32:51.937377
+    piquet: 12
+    points: 5
+  18:
+  - adversaires:
+    - 22
+    - 11
+    - 85
+    debut: *id001
+    etat: "gagn\xE9"
+    fin: *id024
+    piquet: 5
+    points: 7
+  - adversaires:
+    - 7
+    - 3
+    - 58
+    debut: *id002
+    etat: !!python/unicode 'perdu'
+    fin: *id008
+    piquet: 2
+    points: 4
+  - adversaires:
+    - 83
+    - 89
+    - 20
+    debut: *id003
+    etat: !!python/unicode 'perdu'
+    fin: &id031 2014-05-04 16:36:22.544468
+    piquet: 21
+    points: 3
+  - adversaires:
+    - 26
+    - 4
+    - 33
+    debut: *id004
+    etat: !!python/unicode 'perdu'
+    fin: *id025
+    piquet: 2
+    points: 4
+  - adversaires:
+    - 66
+    - 1
+    - 82
+    debut: *id005
+    etat: !!python/unicode 'perdu'
+    fin: *id026
+    piquet: 3
+    points: 6
+  19:
+  - adversaires:
+    - 26
+    - 75
+    - 71
+    debut: *id001
+    etat: !!python/unicode 'perdu'
+    fin: &id044 2014-05-04 15:35:12.144298
+    piquet: 4
+    points: 1
+  - adversaires:
+    - 54
+    - 86
+    - 72
+    debut: *id002
+    etat: !!python/unicode 'perdu'
+    fin: &id096 2014-05-04 16:05:07.744765
+    piquet: 16
+    points: 4
+  - adversaires:
+    - 44
+    - 2
+    - 24
+    debut: *id003
+    etat: !!python/unicode 'perdu'
+    fin: *id027
+    piquet: 5
+    points: 1
+  - adversaires:
+    - 2
+    - 86
+    - 31
+    debut: *id004
+    etat: !!python/unicode 'perdu'
+    fin: *id028
+    piquet: 23
+    points: 0
+  - adversaires:
+    - 2
+    - 86
+    - 68
+    debut: *id005
+    etat: !!python/unicode 'perdu'
+    fin: *id029
+    piquet: 18
+    points: 5
+  20:
+  - adversaires:
+    - 76
+    - 48
+    - 51
+    debut: *id001
+    etat: "gagn\xE9"
+    fin: &id084 2014-05-04 15:37:13.855341
+    piquet: 10
+    points: 7
+  - adversaires:
+    - 4
+    - 52
+    - 91
+    debut: *id002
+    etat: !!python/unicode 'perdu'
+    fin: *id030
+    piquet: 10
+    points: 4
+  - adversaires:
+    - 83
+    - 18
+    - 89
+    debut: *id003
+    etat: !!python/unicode 'perdu'
+    fin: *id031
+    piquet: 21
+    points: 1
+  - adversaires:
+    - 44
+    - 38
+    - 90
+    debut: *id004
+    etat: !!python/unicode 'perdu'
+    fin: &id071 2014-05-04 17:04:32.865796
+    piquet: 10
+    points: 4
+  - adversaires:
+    - 37
+    - 79
+    - 43
+    debut: *id005
+    etat: "gagn\xE9"
+    fin: &id068 2014-05-04 17:34:14.918749
+    piquet: 11
+    points: 7
+  21:
+  - adversaires:
+    - 70
+    - 49
+    - 90
+    debut: *id001
+    etat: "gagn\xE9"
+    fin: &id086 2014-05-04 15:36:38.729063
+    piquet: 23
+    points: 7
+  - adversaires:
+    - 8
+    - 83
+    - 60
+    debut: *id002
+    etat: "gagn\xE9"
+    fin: *id032
+    piquet: 23
+    points: 7
+  - adversaires:
+    - 32
+    - 40
+    - 3
+    debut: *id003
+    etat: !!python/unicode 'perdu'
+    fin: *id033
+    piquet: 8
+    points: 6
+  - adversaires:
+    - 77
+    - 32
+    - 9
+    debut: *id004
+    etat: "gagn\xE9"
+    fin: *id034
+    piquet: 5
+    points: 7
+  - adversaires:
+    - 87
+    - 13
+    - 3
+    debut: *id005
+    etat: "gagn\xE9"
+    fin: *id017
+    piquet: 7
+    points: 7
+  22:
+  - adversaires:
+    - 18
+    - 11
+    - 85
+    debut: *id001
+    etat: !!python/unicode 'perdu'
+    fin: *id024
+    piquet: 5
+    points: 3
+  - adversaires:
+    - 45
+    - 51
+    - 79
+    debut: *id002
+    etat: !!python/unicode 'perdu'
+    fin: &id080 2014-05-04 16:06:09.115682
+    piquet: 13
+    points: 6
+  - adversaires:
+    - 73
+    - 76
+    - 12
+    debut: *id003
+    etat: !!python/unicode 'perdu'
+    fin: *id035
+    piquet: 20
+    points: 2
+  - adversaires:
+    - 72
+    - 47
+    - 39
+    debut: *id004
+    etat: !!python/unicode 'perdu'
+    fin: &id073 2014-05-04 17:05:20.231588
+    piquet: 11
+    points: 2
+  - adversaires:
+    - 30
+    - 15
+    - 59
+    debut: *id005
+    etat: !!python/unicode 'perdu'
+    fin: *id036
+    piquet: 23
+    points: 5
+  23:
+  - adversaires:
+    - 74
+    - 7
+    - 13
+    debut: *id001
+    etat: !!python/unicode 'perdu'
+    fin: *id014
+    piquet: 21
+    points: 6
+  - adversaires:
+    - 27
+    - 53
+    - 6
+    debut: *id002
+    etat: !!python/unicode 'perdu'
+    fin: *id037
+    piquet: 12
+    points: 6
+  - adversaires:
+    - 41
+    - 16
+    - 11
+    debut: *id003
+    etat: !!python/unicode 'perdu'
+    fin: *id018
+    piquet: 4
+    points: 3
+  - adversaires:
+    - 50
+    - 52
+    - 76
+    debut: *id004
+    etat: "gagn\xE9"
+    fin: &id089 2014-05-04 17:06:58.125817
+    piquet: 20
+    points: 7
+  - adversaires:
+    - 46
+    - 29
+    - 42
+    debut: *id005
+    etat: !!python/unicode 'perdu'
+    fin: &id049 2014-05-04 17:31:44.108577
+    piquet: 10
+    points: 4
+  24:
+  - adversaires:
+    - 69
+    - 8
+    - 63
+    debut: *id001
+    etat: !!python/unicode 'perdu'
+    fin: *id038
+    piquet: 8
+    points: 1
+  - adversaires:
+    - 15
+    - 31
+    - 25
+    debut: *id002
+    etat: !!python/unicode 'perdu'
+    fin: *id039
+    piquet: 3
+    points: 5
+  - adversaires:
+    - 19
+    - 44
+    - 2
+    debut: *id003
+    etat: !!python/unicode 'perdu'
+    fin: *id027
+    piquet: 5
+    points: 6
+  - adversaires:
+    - 56
+    - 45
+    - 1
+    debut: *id004
+    etat: !!python/unicode 'perdu'
+    fin: *id040
+    piquet: 7
+    points: 4
+  - adversaires:
+    - 71
+    - 39
+    - 12
+    debut: *id005
+    etat: "gagn\xE9"
+    fin: *id041
+    piquet: 9
+    points: 7
+  25:
+  - adversaires:
+    - 32
+    - 30
+    - 10
+    debut: *id001
+    etat: !!python/unicode 'perdu'
+    fin: *id042
+    piquet: 22
+    points: 1
+  - adversaires:
+    - 24
+    - 15
+    - 31
+    debut: *id002
+    etat: "gagn\xE9"
+    fin: *id039
+    piquet: 3
+    points: 7
+  - adversaires:
+    - 65
+    - 37
+    - 70
+    debut: *id003
+    etat: !!python/unicode 'perdu'
+    fin: &id067 2014-05-04 16:37:03.074308
+    piquet: 7
+    points: 0
+  - adversaires:
+    - 71
+    - 54
+    - 43
+    debut: *id004
+    etat: !!python/unicode 'perdu'
+    fin: &id079 2014-05-04 17:07:12.842959
+    piquet: 8
+    points: 5
+  - adversaires:
+    - 54
+    - 4
+    - 61
+    debut: *id005
+    etat: "gagn\xE9"
+    fin: *id043
+    piquet: 8
+    points: 7
+  26:
+  - adversaires:
+    - 19
+    - 75
+    - 71
+    debut: *id001
+    etat: !!python/unicode 'perdu'
+    fin: *id044
+    piquet: 4
+    points: 4
+  - adversaires:
+    - 70
+    - 47
+    - 80
+    debut: *id002
+    etat: !!python/unicode 'perdu'
+    fin: &id082 2014-05-04 16:04:18.088745
+    piquet: 11
+    points: 3
+  - adversaires:
+    - 45
+    - 57
+    - 31
+    debut: *id003
+    etat: "gagn\xE9"
+    fin: &id053 2014-05-04 16:31:49.019011
+    piquet: 10
+    points: 7
+  - adversaires:
+    - 18
+    - 4
+    - 33
+    debut: *id004
+    etat: "gagn\xE9"
+    fin: *id025
+    piquet: 2
+    points: 7
+  - adversaires:
+    - 62
+    - 32
+    - 65
+    debut: *id005
+    etat: "gagn\xE9"
+    fin: &id055 2014-05-04 17:35:22.580007
+    piquet: 14
+    points: 7
+  27:
+  - adversaires:
+    - 3
+    - 79
+    - 17
+    debut: *id001
+    etat: !!python/unicode 'perdu'
+    fin: *id020
+    piquet: 1
+    points: 5
+  - adversaires:
+    - 23
+    - 53
+    - 6
+    debut: *id002
+    etat: "gagn\xE9"
+    fin: *id037
+    piquet: 12
+    points: 7
+  - adversaires:
+    - 8
+    - 13
+    - 29
+    debut: *id003
+    etat: !!python/unicode 'perdu'
+    fin: *id016
+    piquet: 12
+    points: 5
+  - adversaires:
+    - 80
+    - 73
+    - 92
+    debut: *id004
+    etat: !!python/unicode 'perdu'
+    fin: &id114 2014-05-04 17:02:08.503753
+    piquet: 6
+    points: 5
+  - adversaires:
+    - 7
+    - 80
+    - 16
+    debut: *id005
+    etat: !!python/unicode 'perdu'
+    fin: *id019
+    piquet: 19
+    points: 4
+  28:
+  - adversaires:
+    - 80
+    - 38
+    - 39
+    debut: *id001
+    etat: !!python/unicode 'perdu'
+    fin: &id069 2014-05-04 15:37:57.653755
+    piquet: 18
+    points: 4
+  - adversaires:
+    - 90
+    - 55
+    - 12
+    debut: *id002
+    etat: !!python/unicode 'perdu'
+    fin: *id045
+    piquet: 22
+    points: 4
+  - adversaires:
+    - 48
+    - 49
+    - 1
+    debut: *id003
+    etat: "gagn\xE9"
+    fin: *id046
+    piquet: 2
+    points: 7
+  - adversaires:
+    - 53
+    - 10
+    - 42
+    debut: *id004
+    etat: "gagn\xE9"
+    fin: *id047
+    piquet: 18
+    points: 7
+  - adversaires:
+    - 81
+    - 51
+    - 84
+    debut: *id005
+    etat: !!python/unicode 'perdu'
+    fin: &id092 2014-05-04 17:34:42.102397
+    piquet: 15
+    points: 6
+  29:
+  - adversaires:
+    - 87
+    - 68
+    - 43
+    debut: *id001
+    etat: "gagn\xE9"
+    fin: &id076 2014-05-04 15:34:54.670186
+    piquet: 6
+    points: 7
+  - adversaires:
+    - 38
+    - 32
+    - 34
+    debut: *id002
+    etat: !!python/unicode 'perdu'
+    fin: &id054 2014-05-04 15:59:49.569535
+    piquet: 7
+    points: 5
+  - adversaires:
+    - 27
+    - 8
+    - 13
+    debut: *id003
+    etat: !!python/unicode 'perdu'
+    fin: *id016
+    piquet: 12
+    points: 5
+  - adversaires:
+    - 16
+    - 91
+    - 67
+    debut: *id004
+    etat: !!python/unicode 'perdu'
+    fin: *id048
+    piquet: 21
+    points: 5
+  - adversaires:
+    - 23
+    - 46
+    - 42
+    debut: *id005
+    etat: "gagn\xE9"
+    fin: *id049
+    piquet: 10
+    points: 7
+  30:
+  - adversaires:
+    - 25
+    - 32
+    - 10
+    debut: *id001
+    etat: !!python/unicode 'perdu'
+    fin: *id042
+    piquet: 22
+    points: 3
+  - adversaires:
+    - 84
+    - 48
+    - 39
+    debut: *id002
+    etat: !!python/unicode 'perdu'
+    fin: &id072 2014-05-04 16:04:35.862476
+    piquet: 6
+    points: 5
+  - adversaires:
+    - 5
+    - 79
+    - 74
+    debut: *id003
+    etat: !!python/unicode 'perdu'
+    fin: *id050
+    piquet: 22
+    points: 5
+  - adversaires:
+    - 49
+    - 46
+    - 11
+    debut: *id004
+    etat: !!python/unicode 'perdu'
+    fin: *id051
+    piquet: 9
+    points: 1
+  - adversaires:
+    - 22
+    - 15
+    - 59
+    debut: *id005
+    etat: !!python/unicode 'perdu'
+    fin: *id036
+    piquet: 23
+    points: 3
+  31:
+  - adversaires:
+    - 64
+    - 34
+    - 14
+    debut: *id001
+    etat: !!python/unicode 'perdu'
+    fin: *id052
+    piquet: 11
+    points: 1
+  - adversaires:
+    - 24
+    - 15
+    - 25
+    debut: *id002
+    etat: !!python/unicode 'perdu'
+    fin: *id039
+    piquet: 3
+    points: 5
+  - adversaires:
+    - 45
+    - 26
+    - 57
+    debut: *id003
+    etat: !!python/unicode 'perdu'
+    fin: *id053
+    piquet: 10
+    points: 1
+  - adversaires:
+    - 2
+    - 19
+    - 86
+    debut: *id004
+    etat: "gagn\xE9"
+    fin: *id028
+    piquet: 23
+    points: 7
+  - adversaires:
+    - 35
+    - 33
+    - 44
+    debut: *id005
+    etat: !!python/unicode 'perdu'
+    fin: &id059 2014-05-04 17:39:40.351801
+    piquet: 21
+    points: 3
+  32:
+  - adversaires:
+    - 25
+    - 30
+    - 10
+    debut: *id001
+    etat: "gagn\xE9"
+    fin: *id042
+    piquet: 22
+    points: 7
+  - adversaires:
+    - 38
+    - 29
+    - 34
+    debut: *id002
+    etat: "gagn\xE9"
+    fin: *id054
+    piquet: 7
+    points: 7
+  - adversaires:
+    - 40
+    - 21
+    - 3
+    debut: *id003
+    etat: "gagn\xE9"
+    fin: *id033
+    piquet: 8
+    points: 7
+  - adversaires:
+    - 21
+    - 77
+    - 9
+    debut: *id004
+    etat: !!python/unicode 'perdu'
+    fin: *id034
+    piquet: 5
+    points: 5
+  - adversaires:
+    - 62
+    - 26
+    - 65
+    debut: *id005
+    etat: !!python/unicode 'perdu'
+    fin: *id055
+    piquet: 14
+    points: 6
+  33:
+  - adversaires:
+    - 56
+    - 86
+    - 16
+    debut: *id001
+    etat: "gagn\xE9"
+    fin: *id056
+    piquet: 7
+    points: 7
+  - adversaires:
+    - 88
+    - 9
+    - 65
+    debut: *id002
+    etat: !!python/unicode 'perdu'
+    fin: *id057
+    piquet: 15
+    points: 2
+  - adversaires:
+    - 10
+    - 58
+    - 54
+    debut: *id003
+    etat: !!python/unicode 'perdu'
+    fin: *id058
+    piquet: 1
+    points: 4
+  - adversaires:
+    - 18
+    - 26
+    - 4
+    debut: *id004
+    etat: !!python/unicode 'perdu'
+    fin: *id025
+    piquet: 2
+    points: 1
+  - adversaires:
+    - 35
+    - 31
+    - 44
+    debut: *id005
+    etat: !!python/unicode 'perdu'
+    fin: *id059
+    piquet: 21
+    points: 6
+  34:
+  - adversaires:
+    - 64
+    - 31
+    - 14
+    debut: *id001
+    etat: "gagn\xE9"
+    fin: *id052
+    piquet: 11
+    points: 7
+  - adversaires:
+    - 38
+    - 29
+    - 32
+    debut: *id002
+    etat: !!python/unicode 'perdu'
+    fin: *id054
+    piquet: 7
+    points: 6
+  - adversaires:
+    - 75
+    - 77
+    - 62
+    debut: *id003
+    etat: !!python/unicode 'perdu'
+    fin: &id107 2014-05-04 16:37:49.844163
+    piquet: 6
+    points: 6
+  - adversaires:
+    - 75
+    - 7
+    - 69
+    debut: *id004
+    etat: !!python/unicode 'perdu'
+    fin: *id060
+    piquet: 19
+    points: 6
+  - adversaires:
+    - 75
+    - 6
+    - 67
+    debut: *id005
+    etat: "gagn\xE9"
+    fin: *id061
+    piquet: 1
+    points: 7
+  35:
+  - adversaires:
+    - 15
+    - 37
+    - 58
+    debut: *id001
+    etat: !!python/unicode 'perdu'
+    fin: *id062
+    piquet: 20
+    points: 4
+  - adversaires:
+    - 67
+    - 71
+    - 36
+    debut: *id002
+    etat: !!python/unicode 'perdu'
+    fin: &id063 2014-05-04 16:02:53.503719
+    piquet: 19
+    points: 3
+  - adversaires:
+    - 78
+    - 59
+    - 61
+    debut: *id003
+    etat: "gagn\xE9"
+    fin: &id102 2014-05-04 16:37:19.838418
+    piquet: 17
+    points: 7
+  - adversaires:
+    - 82
+    - 51
+    - 83
+    debut: *id004
+    etat: !!python/unicode 'perdu'
+    fin: &id091 2014-05-04 17:05:55.010278
+    piquet: 17
+    points: 3
+  - adversaires:
+    - 31
+    - 33
+    - 44
+    debut: *id005
+    etat: !!python/unicode 'perdu'
+    fin: *id059
+    piquet: 21
+    points: 5
+  36:
+  - adversaires:
+    - 83
+    - 62
+    - 42
+    debut: *id001
+    etat: !!python/unicode 'perdu'
+    fin: &id074 2014-05-04 15:37:41.551865
+    piquet: 19
+    points: 4
+  - adversaires:
+    - 67
+    - 71
+    - 35
+    debut: *id002
+    etat: !!python/unicode 'perdu'
+    fin: *id063
+    piquet: 19
+    points: 4
+  - adversaires:
+    - 81
+    - 47
+    - 52
+    debut: *id003
+    etat: !!python/unicode 'perdu'
+    fin: &id083 2014-05-04 16:30:15.710720
+    piquet: 18
+    points: 3
+  - adversaires:
+    - 12
+    - 70
+    - 78
+    debut: *id004
+    etat: !!python/unicode 'perdu'
+    fin: *id064
+    piquet: 15
+    points: 5
+  - adversaires:
+    - 45
+    - 11
+    - 70
+    debut: *id005
+    etat: !!python/unicode 'perdu'
+    fin: *id065
+    piquet: 16
+    points: 1
+  37:
+  - adversaires:
+    - 15
+    - 35
+    - 58
+    debut: *id001
+    etat: !!python/unicode 'perdu'
+    fin: *id062
+    piquet: 20
+    points: 2
+  - adversaires:
+    - 10
+    - 68
+    - 57
+    debut: *id002
+    etat: "gagn\xE9"
+    fin: *id066
+    piquet: 20
+    points: 7
+  - adversaires:
+    - 25
+    - 65
+    - 70
+    debut: *id003
+    etat: !!python/unicode 'perdu'
+    fin: *id067
+    piquet: 7
+    points: 5
+  - adversaires:
+    - 66
+    - 85
+    - 84
+    debut: *id004
+    etat: !!python/unicode 'perdu'
+    fin: &id110 2014-05-04 17:01:48.104941
+    piquet: 12
+    points: 2
+  - adversaires:
+    - 79
+    - 20
+    - 43
+    debut: *id005
+    etat: !!python/unicode 'perdu'
+    fin: *id068
+    piquet: 11
+    points: 5
+  38:
+  - adversaires:
+    - 80
+    - 28
+    - 39
+    debut: *id001
+    etat: "gagn\xE9"
+    fin: *id069
+    piquet: 18
+    points: 7
+  - adversaires:
+    - 29
+    - 32
+    - 34
+    debut: *id002
+    etat: !!python/unicode 'perdu'
+    fin: *id054
+    piquet: 7
+    points: 4
+  - adversaires:
+    - 55
+    - 82
+    - 4
+    debut: *id003
+    etat: !!python/unicode 'perdu'
+    fin: *id070
+    piquet: 19
+    points: 1
+  - adversaires:
+    - 44
+    - 20
+    - 90
+    debut: *id004
+    etat: "gagn\xE9"
+    fin: *id071
+    piquet: 10
+    points: 7
+  - adversaires:
+    - 78
+    - 83
+    - 85
+    debut: *id005
+    etat: "gagn\xE9"
+    fin: &id118 2014-05-04 17:39:11.374849
+    piquet: 13
+    points: 7
+  39:
+  - adversaires:
+    - 80
+    - 28
+    - 38
+    debut: *id001
+    etat: !!python/unicode 'perdu'
+    fin: *id069
+    piquet: 18
+    points: 3
+  - adversaires:
+    - 84
+    - 48
+    - 30
+    debut: *id002
+    etat: !!python/unicode 'perdu'
+    fin: *id072
+    piquet: 6
+    points: 3
+  - adversaires:
+    - 86
+    - 90
+    - 43
+    debut: *id003
+    etat: !!python/unicode 'perdu'
+    fin: &id078 2014-05-04 16:35:03.193390
+    piquet: 9
+    points: 5
+  - adversaires:
+    - 72
+    - 22
+    - 47
+    debut: *id004
+    etat: !!python/unicode 'perdu'
+    fin: *id073
+    piquet: 11
+    points: 4
+  - adversaires:
+    - 71
+    - 24
+    - 12
+    debut: *id005
+    etat: !!python/unicode 'perdu'
+    fin: *id041
+    piquet: 9
+    points: 5
+  40:
+  - adversaires:
+    - 57
+    - 72
+    - 67
+    debut: *id001
+    etat: "gagn\xE9"
+    fin: &id100 2014-05-04 15:30:17.220101
+    piquet: 17
+    points: 7
+  - adversaires:
+    - 92
+    - 82
+    - 89
+    debut: *id002
+    etat: "gagn\xE9"
+    fin: &id119 2014-05-04 15:59:02.710535
+    piquet: 21
+    points: 7
+  - adversaires:
+    - 32
+    - 21
+    - 3
+    debut: *id003
+    etat: !!python/unicode 'perdu'
+    fin: *id033
+    piquet: 8
+    points: 6
+  - adversaires:
+    - 55
+    - 62
+    - 63
+    debut: *id004
+    etat: !!python/unicode 'perdu'
+    fin: &id098 2014-05-04 17:07:57.656042
+    piquet: 14
+    points: 6
+  - adversaires:
+    - 9
+    - 8
+    - 77
+    debut: *id005
+    etat: !!python/unicode 'perdu'
+    fin: *id012
+    piquet: 17
+    points: 6
+  41:
+  - adversaires:
+    - 6
+    - 78
+    - 9
+    debut: *id001
+    etat: !!python/unicode 'perdu'
+    fin: *id010
+    piquet: 2
+    points: 6
+  - adversaires:
+    - 42
+    - 75
+    - 87
+    debut: *id002
+    etat: !!python/unicode 'perdu'
+    fin: &id075 2014-05-04 16:04:53.270097
+    piquet: 1
+    points: 6
+  - adversaires:
+    - 23
+    - 16
+    - 11
+    debut: *id003
+    etat: !!python/unicode 'perdu'
+    fin: *id018
+    piquet: 4
+    points: 3
+  - adversaires:
+    - 17
+    - 6
+    - 64
+    debut: *id004
+    etat: !!python/unicode 'perdu'
+    fin: *id023
+    piquet: 3
+    points: 2
+  - adversaires:
+    - 57
+    - 49
+    - 76
+    debut: *id005
+    etat: !!python/unicode 'perdu'
+    fin: &id087 2014-05-04 17:41:50.026348
+    piquet: 5
+    points: 4
+  42:
+  - adversaires:
+    - 36
+    - 83
+    - 62
+    debut: *id001
+    etat: !!python/unicode 'perdu'
+    fin: *id074
+    piquet: 19
+    points: 6
+  - adversaires:
+    - 41
+    - 75
+    - 87
+    debut: *id002
+    etat: "gagn\xE9"
+    fin: *id075
+    piquet: 1
+    points: 7
+  - adversaires:
+    - 9
+    - 91
+    - 7
+    debut: *id003
+    etat: !!python/unicode 'perdu'
+    fin: *id011
+    piquet: 11
+    points: 3
+  - adversaires:
+    - 53
+    - 10
+    - 28
+    debut: *id004
+    etat: !!python/unicode 'perdu'
+    fin: *id047
+    piquet: 18
+    points: 5
+  - adversaires:
+    - 23
+    - 46
+    - 29
+    debut: *id005
+    etat: !!python/unicode 'perdu'
+    fin: *id049
+    piquet: 10
+    points: 2
+  43:
+  - adversaires:
+    - 29
+    - 87
+    - 68
+    debut: *id001
+    etat: !!python/unicode 'perdu'
+    fin: *id076
+    piquet: 6
+    points: 2
+  - adversaires:
+    - 85
+    - 2
+    - 56
+    debut: *id002
+    etat: !!python/unicode 'perdu'
+    fin: *id077
+    piquet: 14
+    points: 1
+  - adversaires:
+    - 86
+    - 90
+    - 39
+    debut: *id003
+    etat: !!python/unicode 'perdu'
+    fin: *id078
+    piquet: 9
+    points: 6
+  - adversaires:
+    - 25
+    - 71
+    - 54
+    debut: *id004
+    etat: "gagn\xE9"
+    fin: *id079
+    piquet: 8
+    points: 7
+  - adversaires:
+    - 37
+    - 79
+    - 20
+    debut: *id005
+    etat: !!python/unicode 'perdu'
+    fin: *id068
+    piquet: 11
+    points: 4
+  44:
+  - adversaires:
+    - 54
+    - 65
+    - 84
+    debut: *id001
+    etat: !!python/unicode 'perdu'
+    fin: &id095 2014-05-04 15:32:24.528657
+    piquet: 3
+    points: 5
+  - adversaires:
+    - 78
+    - 63
+    - 64
+    debut: *id002
+    etat: !!python/unicode 'perdu'
+    fin: &id108 2014-05-04 16:01:23.412091
+    piquet: 17
+    points: 1
+  - adversaires:
+    - 19
+    - 2
+    - 24
+    debut: *id003
+    etat: "gagn\xE9"
+    fin: *id027
+    piquet: 5
+    points: 7
+  - adversaires:
+    - 38
+    - 20
+    - 90
+    debut: *id004
+    etat: !!python/unicode 'perdu'
+    fin: *id071
+    piquet: 10
+    points: 4
+  - adversaires:
+    - 35
+    - 31
+    - 33
+    debut: *id005
+    etat: "gagn\xE9"
+    fin: *id059
+    piquet: 21
+    points: 7
+  45:
+  - adversaires:
+    - 55
+    - 88
+    - 66
+    debut: *id001
+    etat: !!python/unicode 'perdu'
+    fin: &id097 2014-05-04 15:36:17.969651
+    piquet: 9
+    points: 3
+  - adversaires:
+    - 51
+    - 79
+    - 22
+    debut: *id002
+    etat: !!python/unicode 'perdu'
+    fin: *id080
+    piquet: 13
+    points: 4
+  - adversaires:
+    - 26
+    - 57
+    - 31
+    debut: *id003
+    etat: !!python/unicode 'perdu'
+    fin: *id053
+    piquet: 10
+    points: 5
+  - adversaires:
+    - 56
+    - 1
+    - 24
+    debut: *id004
+    etat: !!python/unicode 'perdu'
+    fin: *id040
+    piquet: 7
+    points: 6
+  - adversaires:
+    - 36
+    - 11
+    - 70
+    debut: *id005
+    etat: "gagn\xE9"
+    fin: *id065
+    piquet: 16
+    points: 7
+  46:
+  - adversaires:
+    - 59
+    - 4
+    - 2
+    debut: *id001
+    etat: !!python/unicode 'perdu'
+    fin: *id006
+    piquet: 15
+    points: 6
+  - adversaires:
+    - 74
+    - 73
+    - 62
+    debut: *id002
+    etat: !!python/unicode 'perdu'
+    fin: &id106 2014-05-04 16:00:54.987492
+    piquet: 9
+    points: 2
+  - adversaires:
+    - 53
+    - 56
+    - 50
+    debut: *id003
+    etat: !!python/unicode 'perdu'
+    fin: &id088 2014-05-04 16:36:45.814862
+    piquet: 13
+    points: 6
+  - adversaires:
+    - 49
+    - 30
+    - 11
+    debut: *id004
+    etat: "gagn\xE9"
+    fin: *id051
+    piquet: 9
+    points: 7
+  - adversaires:
+    - 23
+    - 29
+    - 42
+    debut: *id005
+    etat: !!python/unicode 'perdu'
+    fin: *id049
+    piquet: 10
+    points: 5
+  47:
+  - adversaires:
+    - 12
+    - 92
+    - 50
+    debut: *id001
+    etat: !!python/unicode 'perdu'
+    fin: *id081
+    piquet: 16
+    points: 4
+  - adversaires:
+    - 70
+    - 80
+    - 26
+    debut: *id002
+    etat: !!python/unicode 'perdu'
+    fin: *id082
+    piquet: 11
+    points: 4
+  - adversaires:
+    - 81
+    - 36
+    - 52
+    debut: *id003
+    etat: !!python/unicode 'perdu'
+    fin: *id083
+    piquet: 18
+    points: 3
+  - adversaires:
+    - 72
+    - 22
+    - 39
+    debut: *id004
+    etat: "gagn\xE9"
+    fin: *id073
+    piquet: 11
+    points: 7
+  - adversaires:
+    - 90
+    - 10
+    - 5
+    debut: *id005
+    etat: !!python/unicode 'perdu'
+    fin: *id013
+    piquet: 2
+    points: 6
+  48:
+  - adversaires:
+    - 20
+    - 76
+    - 51
+    debut: *id001
+    etat: !!python/unicode 'perdu'
+    fin: *id084
+    piquet: 10
+    points: 3
+  - adversaires:
+    - 84
+    - 39
+    - 30
+    debut: *id002
+    etat: !!python/unicode 'perdu'
+    fin: *id072
+    piquet: 6
+    points: 5
+  - adversaires:
+    - 49
+    - 28
+    - 1
+    debut: *id003
+    etat: !!python/unicode 'perdu'
+    fin: *id046
+    piquet: 2
+    points: 5
+  - adversaires:
+    - 5
+    - 59
+    - 57
+    debut: *id004
+    etat: !!python/unicode 'perdu'
+    fin: *id085
+    piquet: 16
+    points: 2
+  - adversaires:
+    - 52
+    - 72
+    - 56
+    debut: *id005
+    etat: !!python/unicode 'perdu'
+    fin: &id094 2014-05-04 17:44:29.442174
+    piquet: 4
+    points: 2
+  49:
+  - adversaires:
+    - 70
+    - 21
+    - 90
+    debut: *id001
+    etat: !!python/unicode 'perdu'
+    fin: *id086
+    piquet: 23
+    points: 5
+  - adversaires:
+    - 81
+    - 66
+    - 61
+    debut: *id002
+    etat: !!python/unicode 'perdu'
+    fin: &id104 2014-05-04 16:04:00.475735
+    piquet: 18
+    points: 4
+  - adversaires:
+    - 48
+    - 28
+    - 1
+    debut: *id003
+    etat: !!python/unicode 'perdu'
+    fin: *id046
+    piquet: 2
+    points: 4
+  - adversaires:
+    - 30
+    - 46
+    - 11
+    debut: *id004
+    etat: !!python/unicode 'perdu'
+    fin: *id051
+    piquet: 9
+    points: 6
+  - adversaires:
+    - 57
+    - 41
+    - 76
+    debut: *id005
+    etat: "gagn\xE9"
+    fin: *id087
+    piquet: 5
+    points: 7
+  50:
+  - adversaires:
+    - 12
+    - 92
+    - 47
+    debut: *id001
+    etat: !!python/unicode 'perdu'
+    fin: *id081
+    piquet: 16
+    points: 4
+  - adversaires:
+    - 14
+    - 5
+    - 1
+    debut: *id002
+    etat: !!python/unicode 'perdu'
+    fin: *id007
+    piquet: 8
+    points: 5
+  - adversaires:
+    - 53
+    - 56
+    - 46
+    debut: *id003
+    etat: !!python/unicode 'perdu'
+    fin: *id088
+    piquet: 13
+    points: 5
+  - adversaires:
+    - 52
+    - 76
+    - 23
+    debut: *id004
+    etat: !!python/unicode 'perdu'
+    fin: *id089
+    piquet: 20
+    points: 6
+  - adversaires:
+    - 64
+    - 60
+    - 17
+    debut: *id005
+    etat: "gagn\xE9"
+    fin: *id090
+    piquet: 12
+    points: 7
+  51:
+  - adversaires:
+    - 20
+    - 76
+    - 48
+    debut: *id001
+    etat: !!python/unicode 'perdu'
+    fin: *id084
+    piquet: 10
+    points: 3
+  - adversaires:
+    - 45
+    - 79
+    - 22
+    debut: *id002
+    etat: "gagn\xE9"
+    fin: *id080
+    piquet: 13
+    points: 7
+  - adversaires:
+    - 88
+    - 87
+    - 85
+    debut: *id003
+    etat: !!python/unicode 'perdu'
+    fin: &id120 2014-05-04 16:41:04.727122
+    piquet: 15
+    points: 4
+  - adversaires:
+    - 35
+    - 82
+    - 83
+    debut: *id004
+    etat: "gagn\xE9"
+    fin: *id091
+    piquet: 17
+    points: 7
+  - adversaires:
+    - 28
+    - 81
+    - 84
+    debut: *id005
+    etat: !!python/unicode 'perdu'
+    fin: *id092
+    piquet: 15
+    points: 6
+  52:
+  - adversaires:
+    - 53
+    - 60
+    - 1
+    debut: *id001
+    etat: !!python/unicode 'perdu'
+    fin: *id093
+    piquet: 13
+    points: 6
+  - adversaires:
+    - 20
+    - 4
+    - 91
+    debut: *id002
+    etat: !!python/unicode 'perdu'
+    fin: *id030
+    piquet: 10
+    points: 2
+  - adversaires:
+    - 81
+    - 47
+    - 36
+    debut: *id003
+    etat: !!python/unicode 'perdu'
+    fin: *id083
+    piquet: 18
+    points: 6
+  - adversaires:
+    - 50
+    - 76
+    - 23
+    debut: *id004
+    etat: !!python/unicode 'perdu'
+    fin: *id089
+    piquet: 20
+    points: 1
+  - adversaires:
+    - 48
+    - 72
+    - 56
+    debut: *id005
+    etat: "gagn\xE9"
+    fin: *id094
+    piquet: 4
+    points: 7
+  53:
+  - adversaires:
+    - 60
+    - 1
+    - 52
+    debut: *id001
+    etat: !!python/unicode 'perdu'
+    fin: *id093
+    piquet: 13
+    points: 5
+  - adversaires:
+    - 27
+    - 23
+    - 6
+    debut: *id002
+    etat: !!python/unicode 'perdu'
+    fin: *id037
+    piquet: 12
+    points: 4
+  - adversaires:
+    - 56
+    - 50
+    - 46
+    debut: *id003
+    etat: "gagn\xE9"
+    fin: *id088
+    piquet: 13
+    points: 7
+  - adversaires:
+    - 10
+    - 42
+    - 28
+    debut: *id004
+    etat: !!python/unicode 'perdu'
+    fin: *id047
+    piquet: 18
+    points: 5
+  - adversaires:
+    - 88
+    - 92
+    - 74
+    debut: *id005
+    etat: !!python/unicode 'perdu'
+    fin: &id116 2014-05-04 17:33:42.704967
+    piquet: 22
+    points: 3
+  54:
+  - adversaires:
+    - 65
+    - 44
+    - 84
+    debut: *id001
+    etat: !!python/unicode 'perdu'
+    fin: *id095
+    piquet: 3
+    points: 2
+  - adversaires:
+    - 19
+    - 86
+    - 72
+    debut: *id002
+    etat: "gagn\xE9"
+    fin: *id096
+    piquet: 16
+    points: 7
+  - adversaires:
+    - 10
+    - 58
+    - 33
+    debut: *id003
+    etat: !!python/unicode 'perdu'
+    fin: *id058
+    piquet: 1
+    points: 2
+  - adversaires:
+    - 25
+    - 71
+    - 43
+    debut: *id004
+    etat: !!python/unicode 'perdu'
+    fin: *id079
+    piquet: 8
+    points: 2
+  - adversaires:
+    - 4
+    - 61
+    - 25
+    debut: *id005
+    etat: !!python/unicode 'perdu'
+    fin: *id043
+    piquet: 8
+    points: 4
+  55:
+  - adversaires:
+    - 45
+    - 88
+    - 66
+    debut: *id001
+    etat: !!python/unicode 'perdu'
+    fin: *id097
+    piquet: 9
+    points: 4
+  - adversaires:
+    - 90
+    - 28
+    - 12
+    debut: *id002
+    etat: "gagn\xE9"
+    fin: *id045
+    piquet: 22
+    points: 7
+  - adversaires:
+    - 82
+    - 4
+    - 38
+    debut: *id003
+    etat: "gagn\xE9"
+    fin: *id070
+    piquet: 19
+    points: 7
+  - adversaires:
+    - 40
+    - 62
+    - 63
+    debut: *id004
+    etat: !!python/unicode 'perdu'
+    fin: *id098
+    piquet: 14
+    points: 6
+  - adversaires:
+    - 58
+    - 14
+    - 73
+    debut: *id005
+    etat: !!python/unicode 'perdu'
+    fin: *id099
+    piquet: 6
+    points: 2
+  56:
+  - adversaires:
+    - 33
+    - 86
+    - 16
+    debut: *id001
+    etat: !!python/unicode 'perdu'
+    fin: *id056
+    piquet: 7
+    points: 3
+  - adversaires:
+    - 43
+    - 85
+    - 2
+    debut: *id002
+    etat: !!python/unicode 'perdu'
+    fin: *id077
+    piquet: 14
+    points: 4
+  - adversaires:
+    - 53
+    - 50
+    - 46
+    debut: *id003
+    etat: !!python/unicode 'perdu'
+    fin: *id088
+    piquet: 13
+    points: 5
+  - adversaires:
+    - 45
+    - 1
+    - 24
+    debut: *id004
+    etat: !!python/unicode 'perdu'
+    fin: *id040
+    piquet: 7
+    points: 3
+  - adversaires:
+    - 52
+    - 48
+    - 72
+    debut: *id005
+    etat: "gagn\xE9"
+    fin: *id094
+    piquet: 4
+    points: 7
+  57:
+  - adversaires:
+    - 72
+    - 40
+    - 67
+    debut: *id001
+    etat: !!python/unicode 'perdu'
+    fin: *id100
+    piquet: 17
+    points: 2
+  - adversaires:
+    - 10
+    - 37
+    - 68
+    debut: *id002
+    etat: !!python/unicode 'perdu'
+    fin: *id066
+    piquet: 20
+    points: 5
+  - adversaires:
+    - 45
+    - 26
+    - 31
+    debut: *id003
+    etat: !!python/unicode 'perdu'
+    fin: *id053
+    piquet: 10
+    points: 6
+  - adversaires:
+    - 5
+    - 59
+    - 48
+    debut: *id004
+    etat: !!python/unicode 'perdu'
+    fin: *id085
+    piquet: 16
+    points: 6
+  - adversaires:
+    - 41
+    - 49
+    - 76
+    debut: *id005
+    etat: "gagn\xE9"
+    fin: *id087
+    piquet: 5
+    points: 7
+  58:
+  - adversaires:
+    - 15
+    - 35
+    - 37
+    debut: *id001
+    etat: "gagn\xE9"
+    fin: *id062
+    piquet: 20
+    points: 7
+  - adversaires:
+    - 7
+    - 18
+    - 3
+    debut: *id002
+    etat: !!python/unicode 'perdu'
+    fin: *id008
+    piquet: 2
+    points: 3
+  - adversaires:
+    - 10
+    - 54
+    - 33
+    debut: *id003
+    etat: "gagn\xE9"
+    fin: *id058
+    piquet: 1
+    points: 7
+  - adversaires:
+    - 65
+    - 89
+    - 13
+    debut: *id004
+    etat: !!python/unicode 'perdu'
+    fin: *id101
+    piquet: 22
+    points: 5
+  - adversaires:
+    - 14
+    - 73
+    - 55
+    debut: *id005
+    etat: !!python/unicode 'perdu'
+    fin: *id099
+    piquet: 6
+    points: 3
+  59:
+  - adversaires:
+    - 46
+    - 4
+    - 2
+    debut: *id001
+    etat: !!python/unicode 'perdu'
+    fin: *id006
+    piquet: 15
+    points: 6
+  - adversaires:
+    - 77
+    - 16
+    - 17
+    debut: *id002
+    etat: !!python/unicode 'perdu'
+    fin: *id021
+    piquet: 4
+    points: 1
+  - adversaires:
+    - 78
+    - 61
+    - 35
+    debut: *id003
+    etat: !!python/unicode 'perdu'
+    fin: *id102
+    piquet: 17
+    points: 6
+  - adversaires:
+    - 5
+    - 48
+    - 57
+    debut: *id004
+    etat: !!python/unicode 'perdu'
+    fin: *id085
+    piquet: 16
+    points: 1
+  - adversaires:
+    - 22
+    - 30
+    - 15
+    debut: *id005
+    etat: !!python/unicode 'perdu'
+    fin: *id036
+    piquet: 23
+    points: 3
+  60:
+  - adversaires:
+    - 53
+    - 1
+    - 52
+    debut: *id001
+    etat: "gagn\xE9"
+    fin: *id093
+    piquet: 13
+    points: 7
+  - adversaires:
+    - 21
+    - 8
+    - 83
+    debut: *id002
+    etat: !!python/unicode 'perdu'
+    fin: *id032
+    piquet: 23
+    points: 3
+  - adversaires:
+    - 92
+    - 14
+    - 84
+    debut: *id003
+    etat: !!python/unicode 'perdu'
+    fin: *id103
+    piquet: 23
+    points: 5
+  - adversaires:
+    - 74
+    - 88
+    - 81
+    debut: *id004
+    etat: !!python/unicode 'perdu'
+    fin: &id115 2014-05-04 17:02:37.637038
+    piquet: 13
+    points: 6
+  - adversaires:
+    - 64
+    - 17
+    - 50
+    debut: *id005
+    etat: !!python/unicode 'perdu'
+    fin: *id090
+    piquet: 12
+    points: 1
+  61:
+  - adversaires:
+    - 77
+    - 91
+    - 82
+    debut: *id001
+    etat: !!python/unicode 'perdu'
+    fin: &id117 2014-05-04 15:36:55.162332
+    piquet: 12
+    points: 5
+  - adversaires:
+    - 81
+    - 66
+    - 49
+    debut: *id002
+    etat: !!python/unicode 'perdu'
+    fin: *id104
+    piquet: 18
+    points: 2
+  - adversaires:
+    - 78
+    - 59
+    - 35
+    debut: *id003
+    etat: !!python/unicode 'perdu'
+    fin: *id102
+    piquet: 17
+    points: 2
+  - adversaires:
+    - 68
+    - 79
+    - 15
+    debut: *id004
+    etat: "gagn\xE9"
+    fin: *id105
+    piquet: 1
+    points: 7
+  - adversaires:
+    - 54
+    - 4
+    - 25
+    debut: *id005
+    etat: !!python/unicode 'perdu'
+    fin: *id043
+    piquet: 8
+    points: 5
+  62:
+  - adversaires:
+    - 36
+    - 83
+    - 42
+    debut: *id001
+    etat: !!python/unicode 'perdu'
+    fin: *id074
+    piquet: 19
+    points: 6
+  - adversaires:
+    - 74
+    - 46
+    - 73
+    debut: *id002
+    etat: "gagn\xE9"
+    fin: *id106
+    piquet: 9
+    points: 7
+  - adversaires:
+    - 75
+    - 34
+    - 77
+    debut: *id003
+    etat: "gagn\xE9"
+    fin: *id107
+    piquet: 6
+    points: 7
+  - adversaires:
+    - 55
+    - 40
+    - 63
+    debut: *id004
+    etat: "gagn\xE9"
+    fin: *id098
+    piquet: 14
+    points: 7
+  - adversaires:
+    - 32
+    - 26
+    - 65
+    debut: *id005
+    etat: !!python/unicode 'perdu'
+    fin: *id055
+    piquet: 14
+    points: 5
+  63:
+  - adversaires:
+    - 69
+    - 24
+    - 8
+    debut: *id001
+    etat: !!python/unicode 'perdu'
+    fin: *id038
+    piquet: 8
+    points: 5
+  - adversaires:
+    - 78
+    - 64
+    - 44
+    debut: *id002
+    etat: "gagn\xE9"
+    fin: *id108
+    piquet: 17
+    points: 7
+  - adversaires:
+    - 66
+    - 80
+    - 67
+    debut: *id003
+    etat: "gagn\xE9"
+    fin: &id109 2014-05-04 16:30:41.294402
+    piquet: 14
+    points: 7
+  - adversaires:
+    - 55
+    - 40
+    - 62
+    debut: *id004
+    etat: !!python/unicode 'perdu'
+    fin: *id098
+    piquet: 14
+    points: 6
+  - adversaires:
+    - 69
+    - 89
+    - 91
+    debut: *id005
+    etat: "gagn\xE9"
+    fin: &id112 2014-05-04 17:39:22.212106
+    piquet: 20
+    points: 7
+  64:
+  - adversaires:
+    - 31
+    - 34
+    - 14
+    debut: *id001
+    etat: !!python/unicode 'perdu'
+    fin: *id052
+    piquet: 11
+    points: 5
+  - adversaires:
+    - 78
+    - 63
+    - 44
+    debut: *id002
+    etat: !!python/unicode 'perdu'
+    fin: *id108
+    piquet: 17
+    points: 6
+  - adversaires:
+    - 6
+    - 69
+    - 17
+    debut: *id003
+    etat: !!python/unicode 'perdu'
+    fin: *id022
+    piquet: 3
+    points: 6
+  - adversaires:
+    - 17
+    - 6
+    - 41
+    debut: *id004
+    etat: !!python/unicode 'perdu'
+    fin: *id023
+    piquet: 3
+    points: 6
+  - adversaires:
+    - 60
+    - 17
+    - 50
+    debut: *id005
+    etat: !!python/unicode 'perdu'
+    fin: *id090
+    piquet: 12
+    points: 2
+  65:
+  - adversaires:
+    - 54
+    - 44
+    - 84
+    debut: *id001
+    etat: "gagn\xE9"
+    fin: *id095
+    piquet: 3
+    points: 7
+  - adversaires:
+    - 88
+    - 33
+    - 9
+    debut: *id002
+    etat: !!python/unicode 'perdu'
+    fin: *id057
+    piquet: 15
+    points: 2
+  - adversaires:
+    - 25
+    - 37
+    - 70
+    debut: *id003
+    etat: "gagn\xE9"
+    fin: *id067
+    piquet: 7
+    points: 7
+  - adversaires:
+    - 58
+    - 89
+    - 13
+    debut: *id004
+    etat: !!python/unicode 'perdu'
+    fin: *id101
+    piquet: 22
+    points: 5
+  - adversaires:
+    - 62
+    - 32
+    - 26
+    debut: *id005
+    etat: !!python/unicode 'perdu'
+    fin: *id055
+    piquet: 14
+    points: 4
+  66:
+  - adversaires:
+    - 45
+    - 55
+    - 88
+    debut: *id001
+    etat: !!python/unicode 'perdu'
+    fin: *id097
+    piquet: 9
+    points: 5
+  - adversaires:
+    - 81
+    - 61
+    - 49
+    debut: *id002
+    etat: "gagn\xE9"
+    fin: *id104
+    piquet: 18
+    points: 7
+  - adversaires:
+    - 80
+    - 67
+    - 63
+    debut: *id003
+    etat: !!python/unicode 'perdu'
+    fin: *id109
+    piquet: 14
+    points: 3
+  - adversaires:
+    - 85
+    - 37
+    - 84
+    debut: *id004
+    etat: !!python/unicode 'perdu'
+    fin: *id110
+    piquet: 12
+    points: 4
+  - adversaires:
+    - 1
+    - 18
+    - 82
+    debut: *id005
+    etat: !!python/unicode 'perdu'
+    fin: *id026
+    piquet: 3
+    points: 5
+  67:
+  - adversaires:
+    - 57
+    - 72
+    - 40
+    debut: *id001
+    etat: !!python/unicode 'perdu'
+    fin: *id100
+    piquet: 17
+    points: 4
+  - adversaires:
+    - 71
+    - 36
+    - 35
+    debut: *id002
+    etat: "gagn\xE9"
+    fin: *id063
+    piquet: 19
+    points: 7
+  - adversaires:
+    - 66
+    - 80
+    - 63
+    debut: *id003
+    etat: !!python/unicode 'perdu'
+    fin: *id109
+    piquet: 14
+    points: 6
+  - adversaires:
+    - 16
+    - 91
+    - 29
+    debut: *id004
+    etat: !!python/unicode 'perdu'
+    fin: *id048
+    piquet: 21
+    points: 6
+  - adversaires:
+    - 34
+    - 75
+    - 6
+    debut: *id005
+    etat: !!python/unicode 'perdu'
+    fin: *id061
+    piquet: 1
+    points: 5
+  68:
+  - adversaires:
+    - 29
+    - 87
+    - 43
+    debut: *id001
+    etat: !!python/unicode 'perdu'
+    fin: *id076
+    piquet: 6
+    points: 2
+  - adversaires:
+    - 10
+    - 37
+    - 57
+    debut: *id002
+    etat: !!python/unicode 'perdu'
+    fin: *id066
+    piquet: 20
+    points: 3
+  - adversaires:
+    - 15
+    - 72
+    - 71
+    debut: *id003
+    etat: !!python/unicode 'perdu'
+    fin: *id111
+    piquet: 16
+    points: 3
+  - adversaires:
+    - 79
+    - 61
+    - 15
+    debut: *id004
+    etat: !!python/unicode 'perdu'
+    fin: *id105
+    piquet: 1
+    points: 3
+  - adversaires:
+    - 2
+    - 19
+    - 86
+    debut: *id005
+    etat: "gagn\xE9"
+    fin: *id029
+    piquet: 18
+    points: 7
+  69:
+  - adversaires:
+    - 24
+    - 8
+    - 63
+    debut: *id001
+    etat: !!python/unicode 'perdu'
+    fin: *id038
+    piquet: 8
+    points: 5
+  - adversaires:
+    - 13
+    - 11
+    - 76
+    debut: *id002
+    etat: !!python/unicode 'perdu'
+    fin: *id015
+    piquet: 5
+    points: 6
+  - adversaires:
+    - 6
+    - 64
+    - 17
+    debut: *id003
+    etat: "gagn\xE9"
+    fin: *id022
+    piquet: 3
+    points: 7
+  - adversaires:
+    - 34
+    - 75
+    - 7
+    debut: *id004
+    etat: "gagn\xE9"
+    fin: *id060
+    piquet: 19
+    points: 7
+  - adversaires:
+    - 89
+    - 63
+    - 91
+    debut: *id005
+    etat: !!python/unicode 'perdu'
+    fin: *id112
+    piquet: 20
+    points: 5
+  70:
+  - adversaires:
+    - 49
+    - 21
+    - 90
+    debut: *id001
+    etat: !!python/unicode 'perdu'
+    fin: *id086
+    piquet: 23
+    points: 5
+  - adversaires:
+    - 47
+    - 80
+    - 26
+    debut: *id002
+    etat: !!python/unicode 'perdu'
+    fin: *id082
+    piquet: 11
+    points: 4
+  - adversaires:
+    - 25
+    - 65
+    - 37
+    debut: *id003
+    etat: !!python/unicode 'perdu'
+    fin: *id067
+    piquet: 7
+    points: 3
+  - adversaires:
+    - 36
+    - 12
+    - 78
+    debut: *id004
+    etat: !!python/unicode 'perdu'
+    fin: *id064
+    piquet: 15
+    points: 4
+  - adversaires:
+    - 36
+    - 45
+    - 11
+    debut: *id005
+    etat: !!python/unicode 'perdu'
+    fin: *id065
+    piquet: 16
+    points: 5
+  71:
+  - adversaires:
+    - 19
+    - 26
+    - 75
+    debut: *id001
+    etat: !!python/unicode 'perdu'
+    fin: *id044
+    piquet: 4
+    points: 4
+  - adversaires:
+    - 67
+    - 36
+    - 35
+    debut: *id002
+    etat: !!python/unicode 'perdu'
+    fin: *id063
+    piquet: 19
+    points: 1
+  - adversaires:
+    - 15
+    - 72
+    - 68
+    debut: *id003
+    etat: "gagn\xE9"
+    fin: *id111
+    piquet: 16
+    points: 7
+  - adversaires:
+    - 25
+    - 54
+    - 43
+    debut: *id004
+    etat: !!python/unicode 'perdu'
+    fin: *id079
+    piquet: 8
+    points: 3
+  - adversaires:
+    - 24
+    - 39
+    - 12
+    debut: *id005
+    etat: !!python/unicode 'perdu'
+    fin: *id041
+    piquet: 9
+    points: 5
+  72:
+  - adversaires:
+    - 57
+    - 40
+    - 67
+    debut: *id001
+    etat: !!python/unicode 'perdu'
+    fin: *id100
+    piquet: 17
+    points: 1
+  - adversaires:
+    - 54
+    - 19
+    - 86
+    debut: *id002
+    etat: !!python/unicode 'perdu'
+    fin: *id096
+    piquet: 16
+    points: 4
+  - adversaires:
+    - 15
+    - 68
+    - 71
+    debut: *id003
+    etat: !!python/unicode 'perdu'
+    fin: *id111
+    piquet: 16
+    points: 5
+  - adversaires:
+    - 22
+    - 47
+    - 39
+    debut: *id004
+    etat: !!python/unicode 'perdu'
+    fin: *id073
+    piquet: 11
+    points: 4
+  - adversaires:
+    - 52
+    - 48
+    - 56
+    debut: *id005
+    etat: !!python/unicode 'perdu'
+    fin: *id094
+    piquet: 4
+    points: 3
+  73:
+  - adversaires:
+    - 5
+    - 81
+    - 89
+    debut: *id001
+    etat: !!python/unicode 'perdu'
+    fin: *id113
+    piquet: 14
+    points: 5
+  - adversaires:
+    - 74
+    - 46
+    - 62
+    debut: *id002
+    etat: !!python/unicode 'perdu'
+    fin: *id106
+    piquet: 9
+    points: 5
+  - adversaires:
+    - 22
+    - 76
+    - 12
+    debut: *id003
+    etat: "gagn\xE9"
+    fin: *id035
+    piquet: 20
+    points: 7
+  - adversaires:
+    - 27
+    - 80
+    - 92
+    debut: *id004
+    etat: "gagn\xE9"
+    fin: *id114
+    piquet: 6
+    points: 7
+  - adversaires:
+    - 58
+    - 14
+    - 55
+    debut: *id005
+    etat: "gagn\xE9"
+    fin: *id099
+    piquet: 6
+    points: 7
+  74:
+  - adversaires:
+    - 23
+    - 7
+    - 13
+    debut: *id001
+    etat: !!python/unicode 'perdu'
+    fin: *id014
+    piquet: 21
+    points: 5
+  - adversaires:
+    - 46
+    - 73
+    - 62
+    debut: *id002
+    etat: !!python/unicode 'perdu'
+    fin: *id106
+    piquet: 9
+    points: 3
+  - adversaires:
+    - 30
+    - 5
+    - 79
+    debut: *id003
+    etat: "gagn\xE9"
+    fin: *id050
+    piquet: 22
+    points: 7
+  - adversaires:
+    - 60
+    - 88
+    - 81
+    debut: *id004
+    etat: !!python/unicode 'perdu'
+    fin: *id115
+    piquet: 13
+    points: 6
+  - adversaires:
+    - 88
+    - 92
+    - 53
+    debut: *id005
+    etat: !!python/unicode 'perdu'
+    fin: *id116
+    piquet: 22
+    points: 2
+  75:
+  - adversaires:
+    - 19
+    - 26
+    - 71
+    debut: *id001
+    etat: "gagn\xE9"
+    fin: *id044
+    piquet: 4
+    points: 7
+  - adversaires:
+    - 41
+    - 42
+    - 87
+    debut: *id002
+    etat: !!python/unicode 'perdu'
+    fin: *id075
+    piquet: 1
+    points: 6
+  - adversaires:
+    - 34
+    - 77
+    - 62
+    debut: *id003
+    etat: !!python/unicode 'perdu'
+    fin: *id107
+    piquet: 6
+    points: 6
+  - adversaires:
+    - 34
+    - 7
+    - 69
+    debut: *id004
+    etat: !!python/unicode 'perdu'
+    fin: *id060
+    piquet: 19
+    points: 6
+  - adversaires:
+    - 34
+    - 6
+    - 67
+    debut: *id005
+    etat: !!python/unicode 'perdu'
+    fin: *id061
+    piquet: 1
+    points: 2
+  76:
+  - adversaires:
+    - 20
+    - 48
+    - 51
+    debut: *id001
+    etat: !!python/unicode 'perdu'
+    fin: *id084
+    piquet: 10
+    points: 5
+  - adversaires:
+    - 13
+    - 11
+    - 69
+    debut: *id002
+    etat: !!python/unicode 'perdu'
+    fin: *id015
+    piquet: 5
+    points: 5
+  - adversaires:
+    - 22
+    - 73
+    - 12
+    debut: *id003
+    etat: !!python/unicode 'perdu'
+    fin: *id035
+    piquet: 20
+    points: 4
+  - adversaires:
+    - 50
+    - 52
+    - 23
+    debut: *id004
+    etat: !!python/unicode 'perdu'
+    fin: *id089
+    piquet: 20
+    points: 4
+  - adversaires:
+    - 57
+    - 41
+    - 49
+    debut: *id005
+    etat: "gagn\xE9"
+    fin: *id087
+    piquet: 5
+    points: 7
+  77:
+  - adversaires:
+    - 91
+    - 82
+    - 61
+    debut: *id001
+    etat: !!python/unicode 'perdu'
+    fin: *id117
+    piquet: 12
+    points: 6
+  - adversaires:
+    - 16
+    - 59
+    - 17
+    debut: *id002
+    etat: "gagn\xE9"
+    fin: *id021
+    piquet: 4
+    points: 7
+  - adversaires:
+    - 75
+    - 34
+    - 62
+    debut: *id003
+    etat: "gagn\xE9"
+    fin: *id107
+    piquet: 6
+    points: 7
+  - adversaires:
+    - 21
+    - 32
+    - 9
+    debut: *id004
+    etat: !!python/unicode 'perdu'
+    fin: *id034
+    piquet: 5
+    points: 6
+  - adversaires:
+    - 9
+    - 8
+    - 40
+    debut: *id005
+    etat: !!python/unicode 'perdu'
+    fin: *id012
+    piquet: 17
+    points: 6
+  78:
+  - adversaires:
+    - 6
+    - 41
+    - 9
+    debut: *id001
+    etat: !!python/unicode 'perdu'
+    fin: *id010
+    piquet: 2
+    points: 5
+  - adversaires:
+    - 63
+    - 64
+    - 44
+    debut: *id002
+    etat: !!python/unicode 'perdu'
+    fin: *id108
+    piquet: 17
+    points: 2
+  - adversaires:
+    - 59
+    - 61
+    - 35
+    debut: *id003
+    etat: !!python/unicode 'perdu'
+    fin: *id102
+    piquet: 17
+    points: 4
+  - adversaires:
+    - 36
+    - 12
+    - 70
+    debut: *id004
+    etat: "gagn\xE9"
+    fin: *id064
+    piquet: 15
+    points: 7
+  - adversaires:
+    - 38
+    - 83
+    - 85
+    debut: *id005
+    etat: !!python/unicode 'perdu'
+    fin: *id118
+    piquet: 13
+    points: 6
+  79:
+  - adversaires:
+    - 3
+    - 27
+    - 17
+    debut: *id001
+    etat: !!python/unicode 'perdu'
+    fin: *id020
+    piquet: 1
+    points: 3
+  - adversaires:
+    - 45
+    - 51
+    - 22
+    debut: *id002
+    etat: !!python/unicode 'perdu'
+    fin: *id080
+    piquet: 13
+    points: 5
+  - adversaires:
+    - 30
+    - 5
+    - 74
+    debut: *id003
+    etat: !!python/unicode 'perdu'
+    fin: *id050
+    piquet: 22
+    points: 1
+  - adversaires:
+    - 68
+    - 61
+    - 15
+    debut: *id004
+    etat: "gagn\xE9"
+    fin: *id105
+    piquet: 1
+    points: 7
+  - adversaires:
+    - 37
+    - 20
+    - 43
+    debut: *id005
+    etat: !!python/unicode 'perdu'
+    fin: *id068
+    piquet: 11
+    points: 4
+  80:
+  - adversaires:
+    - 28
+    - 38
+    - 39
+    debut: *id001
+    etat: !!python/unicode 'perdu'
+    fin: *id069
+    piquet: 18
+    points: 4
+  - adversaires:
+    - 70
+    - 47
+    - 26
+    debut: *id002
+    etat: "gagn\xE9"
+    fin: *id082
+    piquet: 11
+    points: 7
+  - adversaires:
+    - 66
+    - 67
+    - 63
+    debut: *id003
+    etat: !!python/unicode 'perdu'
+    fin: *id109
+    piquet: 14
+    points: 6
+  - adversaires:
+    - 27
+    - 73
+    - 92
+    debut: *id004
+    etat: !!python/unicode 'perdu'
+    fin: *id114
+    piquet: 6
+    points: 6
+  - adversaires:
+    - 7
+    - 27
+    - 16
+    debut: *id005
+    etat: !!python/unicode 'perdu'
+    fin: *id019
+    piquet: 19
+    points: 5
+  81:
+  - adversaires:
+    - 5
+    - 73
+    - 89
+    debut: *id001
+    etat: !!python/unicode 'perdu'
+    fin: *id113
+    piquet: 14
+    points: 5
+  - adversaires:
+    - 66
+    - 61
+    - 49
+    debut: *id002
+    etat: !!python/unicode 'perdu'
+    fin: *id104
+    piquet: 18
+    points: 3
+  - adversaires:
+    - 47
+    - 36
+    - 52
+    debut: *id003
+    etat: "gagn\xE9"
+    fin: *id083
+    piquet: 18
+    points: 7
+  - adversaires:
+    - 60
+    - 74
+    - 88
+    debut: *id004
+    etat: "gagn\xE9"
+    fin: *id115
+    piquet: 13
+    points: 7
+  - adversaires:
+    - 28
+    - 51
+    - 84
+    debut: *id005
+    etat: "gagn\xE9"
+    fin: *id092
+    piquet: 15
+    points: 7
+  82:
+  - adversaires:
+    - 77
+    - 91
+    - 61
+    debut: *id001
+    etat: "gagn\xE9"
+    fin: *id117
+    piquet: 12
+    points: 7
+  - adversaires:
+    - 92
+    - 40
+    - 89
+    debut: *id002
+    etat: !!python/unicode 'perdu'
+    fin: *id119
+    piquet: 21
+    points: 3
+  - adversaires:
+    - 55
+    - 4
+    - 38
+    debut: *id003
+    etat: !!python/unicode 'perdu'
+    fin: *id070
+    piquet: 19
+    points: 3
+  - adversaires:
+    - 35
+    - 51
+    - 83
+    debut: *id004
+    etat: !!python/unicode 'perdu'
+    fin: *id091
+    piquet: 17
+    points: 6
+  - adversaires:
+    - 66
+    - 1
+    - 18
+    debut: *id005
+    etat: "gagn\xE9"
+    fin: *id026
+    piquet: 3
+    points: 7
+  83:
+  - adversaires:
+    - 36
+    - 62
+    - 42
+    debut: *id001
+    etat: "gagn\xE9"
+    fin: *id074
+    piquet: 19
+    points: 7
+  - adversaires:
+    - 21
+    - 8
+    - 60
+    debut: *id002
+    etat: !!python/unicode 'perdu'
+    fin: *id032
+    piquet: 23
+    points: 4
+  - adversaires:
+    - 18
+    - 89
+    - 20
+    debut: *id003
+    etat: !!python/unicode 'perdu'
+    fin: *id031
+    piquet: 21
+    points: 3
+  - adversaires:
+    - 35
+    - 82
+    - 51
+    debut: *id004
+    etat: !!python/unicode 'perdu'
+    fin: *id091
+    piquet: 17
+    points: 4
+  - adversaires:
+    - 38
+    - 78
+    - 85
+    debut: *id005
+    etat: !!python/unicode 'perdu'
+    fin: *id118
+    piquet: 13
+    points: 6
+  84:
+  - adversaires:
+    - 54
+    - 65
+    - 44
+    debut: *id001
+    etat: !!python/unicode 'perdu'
+    fin: *id095
+    piquet: 3
+    points: 3
+  - adversaires:
+    - 48
+    - 39
+    - 30
+    debut: *id002
+    etat: "gagn\xE9"
+    fin: *id072
+    piquet: 6
+    points: 7
+  - adversaires:
+    - 92
+    - 60
+    - 14
+    debut: *id003
+    etat: !!python/unicode 'perdu'
+    fin: *id103
+    piquet: 23
+    points: 4
+  - adversaires:
+    - 66
+    - 85
+    - 37
+    debut: *id004
+    etat: "gagn\xE9"
+    fin: *id110
+    piquet: 12
+    points: 7
+  - adversaires:
+    - 28
+    - 81
+    - 51
+    debut: *id005
+    etat: !!python/unicode 'perdu'
+    fin: *id092
+    piquet: 15
+    points: 2
+  85:
+  - adversaires:
+    - 22
+    - 18
+    - 11
+    debut: *id001
+    etat: !!python/unicode 'perdu'
+    fin: *id024
+    piquet: 5
+    points: 3
+  - adversaires:
+    - 43
+    - 2
+    - 56
+    debut: *id002
+    etat: "gagn\xE9"
+    fin: *id077
+    piquet: 14
+    points: 7
+  - adversaires:
+    - 88
+    - 87
+    - 51
+    debut: *id003
+    etat: !!python/unicode 'perdu'
+    fin: *id120
+    piquet: 15
+    points: 5
+  - adversaires:
+    - 66
+    - 37
+    - 84
+    debut: *id004
+    etat: !!python/unicode 'perdu'
+    fin: *id110
+    piquet: 12
+    points: 4
+  - adversaires:
+    - 38
+    - 78
+    - 83
+    debut: *id005
+    etat: !!python/unicode 'perdu'
+    fin: *id118
+    piquet: 13
+    points: 6
+  86:
+  - adversaires:
+    - 33
+    - 56
+    - 16
+    debut: *id001
+    etat: !!python/unicode 'perdu'
+    fin: *id056
+    piquet: 7
+    points: 1
+  - adversaires:
+    - 54
+    - 19
+    - 72
+    debut: *id002
+    etat: !!python/unicode 'perdu'
+    fin: *id096
+    piquet: 16
+    points: 2
+  - adversaires:
+    - 90
+    - 39
+    - 43
+    debut: *id003
+    etat: !!python/unicode 'perdu'
+    fin: *id078
+    piquet: 9
+    points: 1
+  - adversaires:
+    - 2
+    - 19
+    - 31
+    debut: *id004
+    etat: !!python/unicode 'perdu'
+    fin: *id028
+    piquet: 23
+    points: 1
+  - adversaires:
+    - 2
+    - 19
+    - 68
+    debut: *id005
+    etat: !!python/unicode 'perdu'
+    fin: *id029
+    piquet: 18
+    points: 3
+  87:
+  - adversaires:
+    - 29
+    - 68
+    - 43
+    debut: *id001
+    etat: "gagn\xE9"
+    fin: *id076
+    piquet: 6
+    points: 7
+  - adversaires:
+    - 41
+    - 42
+    - 75
+    debut: *id002
+    etat: !!python/unicode 'perdu'
+    fin: *id075
+    piquet: 1
+    points: 4
+  - adversaires:
+    - 88
+    - 85
+    - 51
+    debut: *id003
+    etat: "gagn\xE9"
+    fin: *id120
+    piquet: 15
+    points: 7
+  - adversaires:
+    - 3
+    - 14
+    - 8
+    debut: *id004
+    etat: "gagn\xE9"
+    fin: *id009
+    piquet: 4
+    points: 7
+  - adversaires:
+    - 21
+    - 13
+    - 3
+    debut: *id005
+    etat: !!python/unicode 'perdu'
+    fin: *id017
+    piquet: 7
+    points: 3
+  88:
+  - adversaires:
+    - 45
+    - 55
+    - 66
+    debut: *id001
+    etat: "gagn\xE9"
+    fin: *id097
+    piquet: 9
+    points: 7
+  - adversaires:
+    - 33
+    - 9
+    - 65
+    debut: *id002
+    etat: !!python/unicode 'perdu'
+    fin: *id057
+    piquet: 15
+    points: 4
+  - adversaires:
+    - 87
+    - 85
+    - 51
+    debut: *id003
+    etat: !!python/unicode 'perdu'
+    fin: *id120
+    piquet: 15
+    points: 4
+  - adversaires:
+    - 60
+    - 74
+    - 81
+    debut: *id004
+    etat: !!python/unicode 'perdu'
+    fin: *id115
+    piquet: 13
+    points: 6
+  - adversaires:
+    - 92
+    - 74
+    - 53
+    debut: *id005
+    etat: "gagn\xE9"
+    fin: *id116
+    piquet: 22
+    points: 7
+  89:
+  - adversaires:
+    - 5
+    - 81
+    - 73
+    debut: *id001
+    etat: "gagn\xE9"
+    fin: *id113
+    piquet: 14
+    points: 7
+  - adversaires:
+    - 92
+    - 40
+    - 82
+    debut: *id002
+    etat: !!python/unicode 'perdu'
+    fin: *id119
+    piquet: 21
+    points: 4
+  - adversaires:
+    - 83
+    - 18
+    - 20
+    debut: *id003
+    etat: "gagn\xE9"
+    fin: *id031
+    piquet: 21
+    points: 7
+  - adversaires:
+    - 58
+    - 65
+    - 13
+    debut: *id004
+    etat: !!python/unicode 'perdu'
+    fin: *id101
+    piquet: 22
+    points: 6
+  - adversaires:
+    - 69
+    - 63
+    - 91
+    debut: *id005
+    etat: !!python/unicode 'perdu'
+    fin: *id112
+    piquet: 20
+    points: 3
+  90:
+  - adversaires:
+    - 70
+    - 49
+    - 21
+    debut: *id001
+    etat: !!python/unicode 'perdu'
+    fin: *id086
+    piquet: 23
+    points: 4
+  - adversaires:
+    - 28
+    - 55
+    - 12
+    debut: *id002
+    etat: !!python/unicode 'perdu'
+    fin: *id045
+    piquet: 22
+    points: 2
+  - adversaires:
+    - 86
+    - 39
+    - 43
+    debut: *id003
+    etat: "gagn\xE9"
+    fin: *id078
+    piquet: 9
+    points: 7
+  - adversaires:
+    - 44
+    - 38
+    - 20
+    debut: *id004
+    etat: !!python/unicode 'perdu'
+    fin: *id071
+    piquet: 10
+    points: 4
+  - adversaires:
+    - 47
+    - 10
+    - 5
+    debut: *id005
+    etat: !!python/unicode 'perdu'
+    fin: *id013
+    piquet: 2
+    points: 5
+  91:
+  - adversaires:
+    - 77
+    - 82
+    - 61
+    debut: *id001
+    etat: !!python/unicode 'perdu'
+    fin: *id117
+    piquet: 12
+    points: 6
+  - adversaires:
+    - 20
+    - 4
+    - 52
+    debut: *id002
+    etat: "gagn\xE9"
+    fin: *id030
+    piquet: 10
+    points: 7
+  - adversaires:
+    - 42
+    - 9
+    - 7
+    debut: *id003
+    etat: !!python/unicode 'perdu'
+    fin: *id011
+    piquet: 11
+    points: 5
+  - adversaires:
+    - 16
+    - 67
+    - 29
+    debut: *id004
+    etat: "gagn\xE9"
+    fin: *id048
+    piquet: 21
+    points: 7
+  - adversaires:
+    - 69
+    - 89
+    - 63
+    debut: *id005
+    etat: !!python/unicode 'perdu'
+    fin: *id112
+    piquet: 20
+    points: 4
+  92:
+  - adversaires:
+    - 12
+    - 50
+    - 47
+    debut: *id001
+    etat: "gagn\xE9"
+    fin: *id081
+    piquet: 16
+    points: 7
+  - adversaires:
+    - 40
+    - 82
+    - 89
+    debut: *id002
+    etat: !!python/unicode 'perdu'
+    fin: *id119
+    piquet: 21
+    points: 4
+  - adversaires:
+    - 60
+    - 14
+    - 84
+    debut: *id003
+    etat: !!python/unicode 'perdu'
+    fin: *id103
+    piquet: 23
+    points: 6
+  - adversaires:
+    - 27
+    - 80
+    - 73
+    debut: *id004
+    etat: !!python/unicode 'perdu'
+    fin: *id114
+    piquet: 6
+    points: 3
+  - adversaires:
+    - 88
+    - 74
+    - 53
+    debut: *id005
+    etat: !!python/unicode 'perdu'
+    fin: *id116
+    piquet: 22
+    points: 5

@@ -15,22 +15,23 @@ _logger = logging.getLogger(tourbillon.__nom__)
 
 class LoggerHandler(logging.StreamHandler):
 
+    counters = {'errors': 0, 'warnings': 0, 'infos': 0}
+
     def __init__(self):
         logging.StreamHandler.__init__(self)
-        _logger.counters = {'errors': 0, 'warnings': 0, 'infos': 0}
 
     def emit(self, record):
         if record.levelname == 'WARNING':
-            _logger.counters['warnings'] += 1
+            self.counters['warnings'] += 1
             self.stream = sys.stderr
         elif record.levelname == 'ERROR' or record.levelname == 'CRITICAL':
-            _logger.counters['errors'] += 1
+            self.counters['errors'] += 1
             self.stream = sys.stderr
         elif record.levelname == 'INFO':
-            _logger.counters['infos'] += 1
+            self.counters['infos'] += 1
             self.stream = sys.stdout
         elif record.levelname == 'DEBUG' and _logger.getEffectiveLevel() == logging.DEBUG:
-            _logger.counters['infos'] += 1
+            self.counters['infos'] += 1
             self.stream = sys.stdout
 
         self.format(record)
@@ -41,7 +42,7 @@ class LoggerHandler(logging.StreamHandler):
 
     def bilan(self):
         print "*" * 80
-        print "Résumé de l'éxécution: {errors} error(s), {warnings} warning(s), {infos} info(s)".format(**_logger.counters)
+        print "Résumé de l'éxécution: {errors} error(s), {warnings} warning(s), {infos} info(s)".format(**self.counters)
         print "*" * 80
 
 
@@ -96,15 +97,16 @@ DEBUG = logging.DEBUG
 def critical(msg):
     tb = traceback.format_exc()
     if tb:
-        _logger.critical("%s:\n%s" % (msg, tb))
+        _logger.critical("%s:\n%s", msg, tb)
     else:
         _logger.critical(msg)
+    sys.exit(1)
 
 
 def error(msg):
     tb = traceback.format_exc()
     if tb:
-        _logger.error("%s:\n%s" % (msg, tb))
+        _logger.error("%s:\n%s", msg, tb)
     else:
         _logger.error(msg)
 

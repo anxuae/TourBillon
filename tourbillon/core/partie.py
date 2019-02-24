@@ -12,15 +12,13 @@ from tourbillon.core import constantes as cst
 class Partie(object):
     """
     Représente une partie. Cette classe manipule les données des équipes,
-    elle ne conserve aucunes données.
+    elle ne conserve aucunes données (C'est un proxy!).
     """
 
     def __init__(self, parent):
         self.tournoi = parent
-        self.numero_erreur_debut = True
-        self.numero_erreur_resultat = True
 
-    def __repr__(self):
+    def __str__(self):
         texte = """
         Partie n°%s:
             Joueurs   : %s
@@ -105,7 +103,7 @@ class Partie(object):
 
         return nb
 
-    def tirage(self):
+    def manches(self):
         """
         Retourne les manches de cette partie sous forme
         de liste de numéro d'équipes. (Les chapeaux ne sont
@@ -224,7 +222,6 @@ class Partie(object):
             if equipe.numero not in l:
                 equipe._ajout_partie(debut, etat=cst.FORFAIT)
 
-        self._demarre = True
         self.tournoi.modifie = True
 
     def ajout_equipe(self, equipe, etat, creer_manche_si_possible=True, piquet=None):
@@ -244,14 +241,14 @@ class Partie(object):
         if etat not in [cst.FORFAIT, cst.CHAPEAU]:
             raise ResultatError(u"Cette fonction ne peut être utilisée que pour ajouter un CHAPEAU ou un FORFAIT.")
         if creer_manche_si_possible and not piquet:
-            raise NumeroError(u"Un numéro de piquet est nécessaire")
+            piquet = self.piquets()[-1] + 1
 
         if self.tournoi.nb_parties() != 1:
             # Vérification que toutes les parties précédentes on été complétées
             for num in range(1, self.numero):
                 equipe.resultat(num)
 
-        if self.statut == cst.P_EN_COURS:
+        if self.statut in [cst.P_EN_COURS, cst.P_COMPLETE]:
             if etat == cst.CHAPEAU:
                 nouv_nb_chapeaux = len(self.chapeaux()) + 1
                 if nouv_nb_chapeaux % self.tournoi.equipes_par_manche == 0 and creer_manche_si_possible:
@@ -285,7 +282,7 @@ class Partie(object):
         manche = resultat_manche.keys()
         manche.sort()
 
-        if manche not in self.tirage():
+        if manche not in self.manches():
             raise ResultatError(u"La manche '%s' n'existe pas." % (manche))
 
         # Verification pas une manche chapeau

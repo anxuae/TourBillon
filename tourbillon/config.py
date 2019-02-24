@@ -135,7 +135,7 @@ def literal_eval(node_or_string):
             if node.name in _safe_names:
                 return _safe_names[node.name]
         elif isinstance(node, ast.UnarySub):
-            return -_convert(node.expr)
+            return - _convert(node.expr)
         raise ValueError('malformed string')
     return _convert(node_or_string)
 
@@ -161,15 +161,13 @@ def parse_options():
                      help=u"démarrer TourBillon en ligne de commandes")
     group.add_option("-b", "--backend", action='store_true', default=False,
                      help=u"démarrer TourBillon en tant que serveur HTTP REST (backend)")
-    group.add_option("-w", "--web", action='store_true', default=False,
-                     help=u"démarrer TourBillon en tant qu'application web (frontend)")
     parser.add_option_group(group)
     Option.ALWAYS_TYPED_ACTIONS = ('store', 'append')
 
     options, args = parser.parse_args()
 
-    if [options.shell, options.backend, options.web].count(True) > 1:
-        parser.error("Les options `--backend`, `--shell` and `--web` sont mutuellement exclusives")
+    if [options.shell, options.backend].count(True) > 1:
+        parser.error("Les options `--backend` et `--shell` sont mutuellement exclusives")
 
     return options, args
 

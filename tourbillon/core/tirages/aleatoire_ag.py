@@ -4,7 +4,7 @@ u"""Algorithme génétique pseudo aléatoire (choix de la redondance possible)."
 
 import random
 from tourbillon.core.tirages.utils import (BaseThreadTirage, nb_chapeaux_necessaires,
-                                           tri_stat, Cnp, creer_manches, tirage_texte)
+                                           tri_stat, creer_manches, tirage_texte, cnp, len_cnp)
 from tourbillon.core.tirages.niveau_ag import Tirage as NvTirage, Environement, genese
 from tourbillon.core.exceptions import SolutionTirageError
 
@@ -34,22 +34,22 @@ def comanche(parametres, statistiques, manche):
     """
     Fonction de coût attribuant une performance à la manche:
 
-            f(manche) = nb_vu / len( Cnp(Manche) )
+            f(manche) = nb_vu / len( cnp(manche) )
 
     Avec:
          nb_vu       : nombre de couples qui se sont déjà vu
-         Cnp(Manche) : ensemble des couples (de 2) pouvant s'être rencontrés
+         cnp(manche) : ensemble des couples (de 2) pouvant s'être rencontrés
     """
-    manches2a2 = Cnp(manche, 2)
     vu = 0
-    for manche in manches2a2:
+    total = len_cnp(len(manche), 2)
+    for manche in cnp(manche, 2):
         if statistiques[manche[1]]['adversaires'].count(manche[0]) > 0:
             vu += 1
 
-    if vu == len(manches2a2):
+    if vu == total:
         return 1
     else:
-        return vu * 1.0 / len(manches2a2)
+        return vu * 1.0 / total
 
 
 class Tirage(NvTirage):
@@ -144,9 +144,8 @@ class ThreadTirage(BaseThreadTirage):
             args = []
             for manche in creer_manches(self._env.elite.chromosome, self.equipes_par_manche):
                 nb_vu = 0
-                l = Cnp(manche, 2)
-                for vu in l:
+                for vu in cnp(manche, 2):
                     nb_vu += self.statistiques[vu[1]]['adversaires'].count(vu[0])
-                if nb_vu >= len(l):
+                if nb_vu >= len_cnp(manche, 2):
                     args.append(manche)
             raise SolutionTirageError(151, args)

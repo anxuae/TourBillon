@@ -14,7 +14,7 @@ import tourbillon
 from tourbillon import images, logger
 from tourbillon.config import systeme_config, configdir
 from tourbillon.core import constantes as cst
-from tourbillon.core import tournoi, tirages
+from tourbillon.core import tournoi
 from tourbillon.core import exceptions as expt
 
 from tourbillon.gui import barres
@@ -76,13 +76,13 @@ class FenetrePrincipale(wx.Frame):
         self._mgr.AddPane(self.grille, aui.AuiPaneInfo().Name("grille").CenterPane())
 
         # Creation d'un shell Python (utile pour le debug)
-        panel = Shell(self, introText='',
-                      locals={'win': self, 'trb': tournoi.tournoi(), 'creer_generateur': tirages.creer_generateur, 'cst': cst},
-                      InterpClass=None,
-                      startupScript=None,
-                      execStartupScript=True)
-        panel.SetSize((600, 200))
-        self._mgr.AddPane(panel, aui.AuiPaneInfo().
+        self.shell = Shell(self, introText='',
+                           locals={'intf': self, 'trb': tournoi.tournoi(), 'cfg': self.config, 'cst': cst},
+                           InterpClass=None,
+                           startupScript=None,
+                           execStartupScript=True)
+        self.shell.SetSize((600, 200))
+        self._mgr.AddPane(self.shell, aui.AuiPaneInfo().
                           Name('shell').Caption("Python Shell").
                           Bottom().CloseButton(True).MaximizeButton(True).Hide())
         self.barre_menu.FindItemById(barres.ID_SHELL).Check(self.config.get_typed('INTERFACE', 'afficher_shell'))
@@ -276,9 +276,10 @@ class FenetrePrincipale(wx.Frame):
                 ret = wx.ID_OK
 
             if ret == wx.ID_OK:
-                tournoi.nouveau_tournoi(self.config.get_typed("TOURNOI", "EQUIPES_PAR_MANCHE"),
-                                        self.config.get_typed("TOURNOI", "POINTS_PAR_MANCHE"),
-                                        self.config.get_typed("TOURNOI", "JOUEURS_PAR_EQUIPE"))
+                self.shell.interp.locals['trb'] = tournoi.nouveau_tournoi(self.config.get_typed("TOURNOI", "EQUIPES_PAR_MANCHE"),
+                                                                          self.config.get_typed(
+                                                                              "TOURNOI", "POINTS_PAR_MANCHE"),
+                                                                          self.config.get_typed("TOURNOI", "JOUEURS_PAR_EQUIPE"))
 
                 # Rafraichir
                 self.grille.effacer()
@@ -312,7 +313,7 @@ class FenetrePrincipale(wx.Frame):
             dlg.Destroy()
 
     def ouvrir(self, fichier):
-        tournoi.charger_tournoi(fichier)
+        self.shell.interp.locals['trb'] = tournoi.charger_tournoi(fichier)
 
         # Rafraichir
         self.barre_bouton.chg_partie(tournoi.tournoi().nb_parties())
@@ -519,7 +520,7 @@ class FenetrePrincipale(wx.Frame):
 
                     logger.info(u"Mini holà à l'équipe n°%s.\nHoooollaaaa...!!" % (equipe.numero))
 
-                elif tournoi.tournoi().statut == cst.T_PARTIE_EN_COURS:
+                elif tournoi.tournoi().statut in [cst.T_PARTIE_EN_COURS]:
                     p = tournoi.tournoi().piquets()[-1] + 1
                     # Une partie est en cours: choix etat pour la partie en cours
                     dlg = dlgeq.DialogueMessageEquipe(self, info['numero'])
@@ -565,9 +566,8 @@ cliquez sur ANNULER si vous ne voulez pas ajouter cette nouvelle équipe."
 
     def modifier_equipe(self, event):
         num = self.grille.selection()
-
-        dlg = dlgeq.DialogueEquipe(self, dlgeq.STYLE_MOFIFIER, choix=map(int, tournoi.tournoi().equipes(
-        )), numero_affiche=num, completion=self.config.get_typed('TOURNOI', 'joueur_completion'))
+        dlg = dlgeq.DialogueEquipe(self, dlgeq.STYLE_MOFIFIER, choix=[int(e) for e in tournoi.tournoi().equipes()],
+                                   numero_affiche=num, completion=self.config.get_typed('TOURNOI', 'joueur_completion'))
         ret = dlg.ShowModal()
 
         if ret == wx.ID_OK:

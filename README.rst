@@ -38,7 +38,6 @@ Dépendances
 
 * Python 2.7 (requis)
 * PyYaml version 3.10 (requis)
-* Sqlite3 version 3.8.5 (requis)
 * WxPython version 2.8 (optionel: mode "standalone")
 * Flask version 0.10.1 + flask-restful (optionel: mode "serveur")
 * Pyreadline version 1.7 (optionel: mode "shell")

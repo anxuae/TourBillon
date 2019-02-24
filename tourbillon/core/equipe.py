@@ -20,7 +20,7 @@ class Equipe(object):
         self._liste_joueurs = []
         self._resultats = []
 
-    def __repr__(self):
+    def __str__(self):
         texte = """
         Equipe n°%s
             Noms      : %s
@@ -32,9 +32,9 @@ class Equipe(object):
         """
         noms = " / ".join([" ".join([joueur.prenom, joueur.nom]) for joueur in self._liste_joueurs])
         return texte % (self.numero, noms,
-                        self.total_points(),
-                        self.total_victoires(),
-                        self.total_chapeaux(),
+                        self.points(),
+                        self.victoires(),
+                        self.chapeaux(),
                         self.statut)
 
     def __int__(self):
@@ -192,7 +192,7 @@ class Equipe(object):
         Suppression de tous les joueurs de l'équipe.
         """
         for joueur in self._liste_joueurs:
-            HISTORIQUE.pop(joueur.id, None)
+            HISTORIQUE.pop(joueur.cle(), None)
         self._liste_joueurs = []
         self.tournoi.modifie = True
 
@@ -258,35 +258,35 @@ class Equipe(object):
 
         return l
 
-    def total_points(self, partie_limite=None):
+    def points(self, partie_limite=None):
         if partie_limite is None:
             partie_limite = len(self._resultats)
 
         l = [m.points for m in self._resultats[:partie_limite]]
         return sum(l)
 
-    def total_victoires(self, partie_limite=None):
+    def victoires(self, partie_limite=None):
         if partie_limite is None:
             partie_limite = len(self._resultats)
 
         l = [m.etat for m in self._resultats[:partie_limite] if m.etat == GAGNE]
         return len(l)
 
-    def total_forfaits(self, partie_limite=None):
+    def forfaits(self, partie_limite=None):
         if partie_limite is None:
             partie_limite = len(self._resultats)
 
         l = [m.etat for m in self._resultats[:partie_limite] if m.etat == FORFAIT]
         return len(l)
 
-    def total_chapeaux(self, partie_limite=None):
+    def chapeaux(self, partie_limite=None):
         if partie_limite is None:
             partie_limite = len(self._resultats)
 
         l = [m.etat for m in self._resultats[:partie_limite] if m.etat == CHAPEAU]
         return len(l)
 
-    def total_parties(self, partie_limite=None):
+    def parties(self, partie_limite=None):
         if partie_limite is None:
             partie_limite = len(self._resultats)
 
@@ -297,7 +297,7 @@ class Equipe(object):
     def moyenne_billon(self, partie_limite=None):
         if partie_limite is None:
             partie_limite = len(self._resultats)
-        pts = self.total_points(partie_limite)
+        pts = self.points(partie_limite)
 
         # Résultat des parties FORFAIT et de la partie incompléte ne sont pas pris en compte
         parties = len([m.etat for m in self._resultats[:partie_limite] if m.statut != M_EN_COURS and m.etat != FORFAIT])

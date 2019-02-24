@@ -4,7 +4,7 @@
 #--- Import -------------------------------------------------------------------
 
 import wx
-import wx.lib.printout as  printout
+import wx.lib.printout as printout
 
 from tourbillon.core import tournoi
 from tourbillon.gui import grille as grl
@@ -26,6 +26,7 @@ TITRES = [(u"Place", 0.5),
 
 
 class DialogueImprimerTirage(printout.PrintTable):
+
     def __init__(self, parent, num_partie, grille):
         printout.PrintTable.__init__(self, parent)
         self.data = []
@@ -57,11 +58,12 @@ class DialogueImprimerTirage(printout.PrintTable):
         self.SetRowSpacing(5, 5)
         self.text_font = {"Name": "Arial", "Size": 14, "Colour": [0, 0, 0], "Attr": [1, 0, 0]}
         self.SetHeader(u"Tournoi de Billon du %s - Partie n°%s" % (tournoi.tournoi().debut.strftime('%d/%m/%Y'), num_partie), colour=wx.NamedColour('BLACK'))
-        self.SetHeader(u"Imprimé le : ", type="Date & Time", align=wx.ALIGN_RIGHT, indent= -0.5, colour=wx.NamedColour('BLUE'))
+        self.SetHeader(u"Imprimé le : ", type="Date & Time", align=wx.ALIGN_RIGHT, indent=-0.5, colour=wx.NamedColour('BLUE'))
         self.SetFooter(u"Page ", colour=wx.NamedColour('BLACK'), type="Num")
 
 
 class DialogueImprimer(printout.PrintTable):
+
     def __init__(self, parent, classement):
         printout.PrintTable.__init__(self, parent)
         self.data = []
@@ -70,9 +72,9 @@ class DialogueImprimer(printout.PrintTable):
             self.data.append([place,
                               equipe.numero,
                               " / ".join([unicode(joueur) for joueur in equipe.joueurs()]),
-                              equipe.total_victoires(),
-                              equipe.total_points(),
-                              equipe.total_chapeaux(),
+                              equipe.victoires(),
+                              equipe.points(),
+                              equipe.chapeaux(),
                               equipe.min_billon(),
                               equipe.max_billon(),
                               equipe.moyenne_billon(),
@@ -101,5 +103,5 @@ class DialogueImprimer(printout.PrintTable):
 
         self.SetHeader(u"Tournoi de Billon du %s" % tournoi.tournoi().debut.strftime('%d/%m/%Y'), colour=wx.NamedColour('BLACK'))
 
-        self.SetHeader(u"Imprimé le : ", type="Date & Time", align=wx.ALIGN_RIGHT, indent= -0.5, colour=wx.NamedColour('BLUE'))
+        self.SetHeader(u"Imprimé le : ", type="Date & Time", align=wx.ALIGN_RIGHT, indent=-0.5, colour=wx.NamedColour('BLUE'))
         self.SetFooter(u"Page ", colour=wx.NamedColour('BLACK'), type="Num")

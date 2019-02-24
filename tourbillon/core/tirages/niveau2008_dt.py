@@ -3,9 +3,9 @@
 u"""Algorithme déterministe créé en 2008."""
 
 import random
-from tourbillon.core.tirages.utils import (BaseThreadTirage, nb_chapeaux_necessaires, tri_stat, Cnp,
+from tourbillon.core.tirages.utils import (BaseThreadTirage, nb_chapeaux_necessaires, tri_stat,
                                            creer_liste, NV, NV_REDONDANCE, NV_DISPARITE,
-                                           tirage_texte, dernieres_equipes)
+                                           tirage_texte, dernieres_equipes, cnp, len_cnp)
 from tourbillon.core.exceptions import SolutionTirageError
 from tourbillon.core import constantes as cst
 
@@ -17,8 +17,7 @@ CNP_CACHE = []
 
 
 def cle_matrice(manche):
-    manche.sort()
-    cle = "_".join([unicode(num) for num in manche])
+    cle = "_".join([unicode(num) for num in sorted(manche)])
     return cle
 
 
@@ -53,9 +52,10 @@ def creer_matrices(parametres, statistiques):
     """
     global MC_CACHE, MR_CACHE, CNP_CACHE
 
+    total = len_cnp(statistiques.keys(), parametres['equipes_par_manche'])
     parametres['rapport'](message=u"Création des matrices de coût, de rencontre et de disparité.")
-    CNP_CACHE = Cnp(statistiques.keys(), parametres['equipes_par_manche'])
-    map(list.sort, CNP_CACHE)
+    for manche in cnp(statistiques.keys(), parametres['equipes_par_manche']):
+        CNP_CACHE.append(sorted(manche))
 
     compteur = 0
     for manche in CNP_CACHE:
@@ -80,10 +80,9 @@ def creer_matrices(parametres, statistiques):
         MD_CACHE[cle] = max_vic - min_vic
 
         # Completer la matrice de rencontres
-        l = Cnp(manche, 2)
         rencontres = {}
         nb_vu = 0
-        for vu in l:
+        for vu in cnp(manche, 2):
             parametres['arret_utilisateur']()
             rencontres[cle_matrice(vu)] = statistiques[vu[1]][cst.STAT_ADVERSAIRES].count(vu[0])
 
@@ -99,14 +98,14 @@ def creer_matrices(parametres, statistiques):
 
         # Completer avec un un nombre < 1 pour les rencontres 2 à 2 effectuées
         # dans d'autres manches que celles redondantes
-        nb_vu += 1 - (1.0 * rencontres.values().count(0) / len(l))
+        nb_vu += 1 - (1.0 * rencontres.values().count(0) / len_cnp(manche, 2))
         MR_CACHE[cle] = nb_vu
 
         # Avancement du calcul (affichage jusque 99% pour éviter d'indiquer la fin de l'algorithme)
         compteur += 1
-        s = u"%-" + str(len(str(len(CNP_CACHE)))) + u"s/%s manches évaluées"
+        s = u"%-" + str(len(str(total))) + u"s/%s manches évaluées"
         # 70% du temps attribué à la creation des matrices
-        parametres['rapport'](((compteur * 70.0) / len(CNP_CACHE)) - 1, s % (compteur, len(CNP_CACHE)))
+        parametres['rapport'](((compteur * 70.0) / total) - 1, s % (compteur, total))
 
     parametres['rapport'](message="")
 

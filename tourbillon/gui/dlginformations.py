@@ -28,9 +28,9 @@ VARIABLES = {'date': '',
 
 def tournoi_factice(equipes_par_manche, joueurs_par_equipe, nombre_equipes):
     prenoms = ['Antoine', 'Aurelien', 'Christophe', 'Corentin', 'Corinne', 'Eric', 'Florian', 'Gabriel',
-             'Guillaume', 'Isabelle', 'Julien', 'Justine', 'Laetitia', 'Laurent', 'louis', 'Ludivine',
-             'Marc', 'Mathieu', 'Nicolas', 'Olivier', 'Pascal', 'Pascaline', 'Philippe', 'Pierre', 'Quentin',
-             'Richard', 'Samantha', 'Samuel', 'Thierry', 'Thomas', 'Valerie', 'Xavier', 'Yannick', 'Yohann']
+               'Guillaume', 'Isabelle', 'Julien', 'Justine', 'Laetitia', 'Laurent', 'louis', 'Ludivine',
+               'Marc', 'Mathieu', 'Nicolas', 'Olivier', 'Pascal', 'Pascaline', 'Philippe', 'Pierre', 'Quentin',
+               'Richard', 'Samantha', 'Samuel', 'Thierry', 'Thomas', 'Valerie', 'Xavier', 'Yannick', 'Yohann']
 
     noms = ['Alpha', 'Beta', 'Gamma', 'Delta', 'Epsilon', 'Zeta', 'Eta', 'Theta', 'Iota', 'Kappa', 'Lamda', 'Mu',
             'Nu', 'Xi', 'Omicron', 'Pi', 'Rho', 'Sigma', 'Thau', 'Upsilon', 'Phi', 'Chi', 'Psi', 'Omega']
@@ -91,6 +91,7 @@ def string_en_wxFont(texte):
 
 
 class ListeCyclique(object):
+
     def __init__(self, liste, nombre):
         if type(liste) == ListeCyclique:
             self._liste = liste._liste
@@ -101,7 +102,7 @@ class ListeCyclique(object):
             self._index = 0
             self._nombre = nombre
 
-    def __repr__(self):
+    def __str__(self):
         return "ListeCyclique%s" % unicode(tuple(self._liste))
 
     def __eq__(self, other):
@@ -127,6 +128,7 @@ class ListeCyclique(object):
 
 
 class Grille(grid.Grid):
+
     def __init__(self, parent, lignes=1, colonnes=1):
         grid.Grid.__init__(self, parent, wx.ID_ANY)
         self.CreateGrid(1 + (lignes * 2), colonnes)
@@ -209,6 +211,7 @@ class Grille(grid.Grid):
 
 
 class GrilleTirage(Grille):
+
     def __init__(self, parent):
         Grille.__init__(self, parent, 1, 4)
 
@@ -354,6 +357,7 @@ class DoubleGrilleTirage(wx.BoxSizer):
     BoxSizer contenant les deux grilles utilisées pour afficher
     les tirages de la partie en cours.
     """
+
     def __init__(self, parent):
         wx.BoxSizer.__init__(self, wx.HORIZONTAL)
         self.grilles = [GrilleTirage(parent), GrilleTirage(parent)]
@@ -433,6 +437,7 @@ class DoubleGrilleTirage(wx.BoxSizer):
 
 
 class GrilleResultats(Grille):
+
     def __init__(self, parent):
         Grille.__init__(self, parent, 2, 6)
 
@@ -493,7 +498,7 @@ class GrilleResultats(Grille):
                         self.SetCellValue(i, 3, unicode(equipe.resultat(self.tournoi.partie_courante().numero).points))
                         self.SetCellTextColour(i, 3, wx.Colour(0, 0, 255))
                         # Nombre de victoires
-                        self.SetCellValue(i, 5, unicode(equipe.total_victoires()))
+                        self.SetCellValue(i, 5, unicode(equipe.victoires()))
                     else:
                         self.SetCellValue(i, 0, u"")
                         self.SetCellValue(i, 1, u"")
@@ -577,7 +582,7 @@ class GrilleResultats(Grille):
                     self.SetCellValue(i, 3, unicode(equipe.resultat(self.tournoi.partie_courante().numero).points))
                     self.SetCellTextColour(i, 3, wx.Colour(0, 0, 255))
                     # Nombre de victoires
-                    self.SetCellValue(i, 5, unicode(equipe.total_victoires()))
+                    self.SetCellValue(i, 5, unicode(equipe.victoires()))
 
                 i += 1
 
@@ -619,6 +624,7 @@ class GrilleResultats(Grille):
 
 
 class DialogueInformations(wx.Dialog):
+
     def __init__(self, parent, config):
         wx.Dialog.__init__(self, parent, wx.ID_ANY, title=u"Informations", style=wx.DEFAULT_FRAME_STYLE, pos=wx.DefaultPosition)
         w, h = wx.ScreenDC().GetSizeTuple()
@@ -785,8 +791,8 @@ class DialogueInformations(wx.Dialog):
     def test(self, suivant=False):
         courant = tournoi.tournoi()
         tournoi.TOURNOI = tournoi_factice(self.config.get_typed("TOURNOI", "EQUIPES_PAR_MANCHE"),
-                                         self.config.get_typed("TOURNOI", "JOUEURS_PAR_EQUIPE"),
-                                         self.grille_lignes * 2 + self.config.get_typed("TOURNOI", "EQUIPES_PAR_MANCHE"))
+                                          self.config.get_typed("TOURNOI", "JOUEURS_PAR_EQUIPE"),
+                                          self.grille_lignes * 2 + self.config.get_typed("TOURNOI", "EQUIPES_PAR_MANCHE"))
         if suivant:
             if self._test_statut == "test inscription":
                 # Afficher texte tirage en cours

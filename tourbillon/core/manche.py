@@ -20,7 +20,7 @@ class Manche(object):
                      'adversaires': adversaires,
                      'piquet': None}
 
-    def __repr__(self):
+    def __str__(self):
         texte = """
         Manche
             debut        : %s

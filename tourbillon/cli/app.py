@@ -60,6 +60,9 @@ class Alias(object):
     def __init__(self):
         __builtin__.exit = self.alias_quitter
         __builtin__.quit = self.alias_quitter
+        self._quitter = False
+        self.config = None
+        self.locals = {}
 
     def liste_alias(self):
         """
@@ -77,8 +80,8 @@ class Alias(object):
         inst_alias = lambda fn: fn.startswith('alias_') and \
             callable(self.__dict__[fn])
 
-        aliases = filter(class_alias, Alias.__dict__.keys()) + \
-            filter(inst_alias, self.__dict__.keys())
+        aliases = [cle for cle in Alias.__dict__.keys() if class_alias(cle)] + \
+                  [cle for cle in self.__dict__.keys() if inst_alias(cle)]
 
         out = []
         for fn in set(aliases):
@@ -95,11 +98,10 @@ class Alias(object):
         if nom_alias not in self.liste_alias():
             return None
 
-        cmd = '%s.alias_%s(%s)' % (self.nom, nom_alias,
-                                   normalise_chaine(args_s))
+        cmd = 'intf.alias_%s(%s)' % (nom_alias, normalise_chaine(args_s))
         return cmd
 
-    def alias_licence(self, args_s=''):
+    def alias_licence(self, _args_s=''):
         u"""Afficher la licence GPL.
 
         Retrouver la licence dans sa version complète sur http://www.gnu.org/licenses/gpl.html
@@ -144,7 +146,7 @@ class Alias(object):
         try:
             if args_s.split()[0] == 'bref':
                 mode = 'bref'
-        except:
+        except Exception:
             pass
 
         alias_doc = []
@@ -200,7 +202,7 @@ Le système d'alias est composé des fonctions suivantes:\n"""
 
         print outmsg
 
-    def alias_nouveau(self, args_s=''):
+    def alias_nouveau(self, _args_s=''):
         u"""
         Commencer un nouveau tournoi.
 
@@ -231,9 +233,11 @@ Le système d'alias est composé des fonctions suivantes:\n"""
             "TOURNOI", "joueurs_par_equipe")
         points_par_manche = self.config.getint("TOURNOI", "points_par_manche")
 
-        self._inter_environ['trb'] = tournoi.nouveau_tournoi(
+        self.locals['trb'] = tournoi.nouveau_tournoi(
             equipes_par_manche, points_par_manche, joueurs_par_equipe)
-        return tournoi.tournoi()
+
+        print tournoi.tournoi()
+        print "NOTE: vous pouvez acceder au tournoi via la variable 'trb'"
 
     def alias_ouvrir(self, args_s=''):
         u"""
@@ -247,8 +251,9 @@ Le système d'alias est composé des fonctions suivantes:\n"""
             args_s = question(u"Fichier: ", False)
 
         if args_s != '':
-            self._inter_environ['trb'] = tournoi.charger_tournoi(args_s)
-            return tournoi.tournoi()
+            self.locals['trb'] = tournoi.charger_tournoi(args_s)
+            print tournoi.tournoi()
+            print "NOTE: vous pouvez acceder au tournoi via la variable 'trb'"
 
     def alias_enregistrer(self, args_s=''):
         u"""
@@ -279,7 +284,7 @@ Le système d'alias est composé des fonctions suivantes:\n"""
         if args_s != '':
             print u"Enregistré (%s)" % args_s
 
-    def alias_tirage(self, args_s=''):
+    def alias_tirage(self, _args_s=''):
         u"""
         Créer un nouveau tirage pas à pas:
             1. entrer le type de tirage
@@ -297,7 +302,8 @@ Le système d'alias est composé des fonctions suivantes:\n"""
             return
 
         choix = tirages.TIRAGES.keys()
-        algo = question(u"Catégorie %s ([ENTRE] pour %s): " % (choix, choix[0]))
+        algo = question(
+            u"Catégorie %s ([ENTRE] pour %s): " % (choix, choix[0]))
         if not algo:
             algo = choix[0]
         if algo not in tirages.TIRAGES:
@@ -319,7 +325,7 @@ Le système d'alias est composé des fonctions suivantes:\n"""
 
         p = progression.BarreProgression('blue', largeur=60, vide='_')
 
-        def printResulat(progression, message, tps_restant):
+        def printResulat(progression, message, _tps_restant):
             if generateur.erreur is None and message is not None:
                 p.afficher(
                     progression, '\n' + message + u"\n\nTapez sur [ENTRER] pour arrêter.")
@@ -331,9 +337,9 @@ Le système d'alias est composé des fonctions suivantes:\n"""
                 print u"Chapeaux: ", generateur.chapeaux
                 print u"Validé  : ", generateur.erreur or 'ok'
 
-        generateur = tirages.creer_generateur(algo, tournoi.tournoi().equipes_par_manche, stat, chap, printResulat)
-        if algo in [u"aleatoire_ag", u"niveau_ag"]:
-            generateur.configurer(optimum=0)
+        generateur = tirages.creer_generateur(
+            algo, tournoi.tournoi().equipes_par_manche, stat, chap, printResulat)
+        generateur.configurer(**self.config.get_options(algo))
 
         print  # Pour passer une ligne
         generateur.start()
@@ -341,23 +347,25 @@ Le système d'alias est composé des fonctions suivantes:\n"""
         generateur.stop()
         generateur.join()
 
-        self._inter_environ['tir'] = generateur
-        return generateur
+        self.locals['tir'] = generateur
+        print generateur
+        print "NOTE: vous pouvez acceder au tirage via la variable 'tir'"
 
-    def alias_demarrer(self, args_s=''):
+    def alias_demarrer(self, _args_s=''):
         u"""
         Démarrer une nouvelle partie avec le tirage précédement fait.
         """
-        tirage = self._inter_environ.get('tir')
+        tirage = self.locals.get('tir')
         if not tirage:
             print u"Pas de tirage réalisé."
             return
 
         partie = tournoi.tournoi().ajout_partie()
-        partie.demarrer(dict((i, tirage.tirage[i]) for i in range(len(tirage.tirage))), tirage.chapeaux)
-        self._inter_environ.pop('tir')
+        partie.demarrer(dict((i, tirage.tirage[i]) for i in range(
+            len(tirage.tirage))), tirage.chapeaux)
+        self.locals.pop('tir')
 
-    def alias_resultat(self, args_s=''):
+    def alias_resultat(self, _args_s=''):
         u"""
         Entrer les résultats d'une équipe (ex: 4 g 12 False)
             Le 4ème argument indique qu'il ne faut pas enregistrer
@@ -377,8 +385,7 @@ Le système d'alias est composé des fonctions suivantes:\n"""
             pts = int(float(r[1]))
             d[num] = pts
 
-            manche = tournoi.tournoi().equipe(num).resultat(
-                tournoi.tournoi().partie_courante().numero).adversaires
+            manche = tournoi.tournoi().equipe(num).resultat(tournoi.tournoi().partie_courante().numero).adversaires
             for num in manche:
                 r = question(u"Points équipe n°%s: " % num)
                 r = r.strip()
@@ -396,7 +403,7 @@ Le système d'alias est composé des fonctions suivantes:\n"""
 
             tournoi.tournoi().partie_courante().resultat(d, fin)
 
-    def alias_quitter(self, args_s=''):
+    def alias_quitter(self, _args_s=''):
         u"""
         Quitter TourBillon
         """
@@ -412,9 +419,9 @@ class TourBillonCLI(Alias):
         Alias.__init__(self)
         self.config = config
         self.nom = '__cli__'
-        self._quitter = False
-        self._inter_environ = {self.nom: self, '__trn__': tournoi, '__cfg__': config}
-        self._inter = Interpreteur(self, self._inter_environ)
+        self.locals = {'intf': self, 'trb': tournoi.tournoi(),
+                       'cfg': config, 'cst': cst}
+        self._inter = Interpreteur(self, self.locals)
         self._inter.charger_historique(config.get('INTERFACE', 'historique'))
         joueur.charger_historique(config.get('TOURNOI', 'historique'))
 
@@ -458,7 +465,7 @@ type `%licence' for details.
                     try:
                         cmd = self.commande(
                             ligne.split()[0], ' '.join(ligne.split()[1:]))
-                    except:
+                    except Exception:
                         cmd = None
 
                     if cmd is not None:
@@ -474,5 +481,5 @@ type `%licence' for details.
 
     def ouvrir(self, fichier):
         tournoi.charger_tournoi(fichier)
-        self._inter_environ['trb'] = tournoi.tournoi()
+        self.locals['trb'] = tournoi.tournoi()
         print tournoi.tournoi()

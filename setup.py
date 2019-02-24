@@ -17,7 +17,7 @@ SETUPTOOLS = False
 try:
     from setuptools import setup, find_packages, Command
     SETUPTOOLS = True
-except:
+except Exception:
     from distutils.core import setup, Command
 
     def find_packages(path, base="", exclude=[]):

@@ -483,9 +483,9 @@ class GrillePanel(scrolled.ScrolledPanel):
             self.grille.SetCellValue(ligne, 5, texte)
 
             # Victoires
-            self.grille.SetCellValue(ligne, 6, (equipe.total_victoires(partie_limite) + equipe.total_chapeaux(partie_limite)))
+            self.grille.SetCellValue(ligne, 6, (equipe.victoires(partie_limite) + equipe.chapeaux(partie_limite)))
             # Points
-            self.grille.SetCellValue(ligne, 7, equipe.total_points(partie_limite))
+            self.grille.SetCellValue(ligne, 7, equipe.points(partie_limite))
             # Statistiques
             self.grille.SetCellValue(ligne, 9, equipe.min_billon(partie_limite))
             self.grille.SetCellValue(ligne, 10, equipe.max_billon(partie_limite))

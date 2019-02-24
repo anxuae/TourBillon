@@ -60,7 +60,7 @@ class FentetreSplash(aspl.AdvancedSplash):
         # Afficher la version
         try:
             self.SetText("version %s.%s.%s" % tourbillon.__version__)
-            self.SetTextFont(wx.Font(18, wx.ROMAN, wx.NORMAL, wx.NORMAL))
+            self.SetTextFont(wx.Font(16, wx.ROMAN, wx.NORMAL, wx.NORMAL))
             self.SetTextPosition((385, 245))
         except:
             pass

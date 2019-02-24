@@ -169,7 +169,7 @@ class Tournoi(object):
         self._liste_equipes = {}
         self._liste_parties = []
 
-    def __repr__(self):
+    def __str__(self):
         texte = """
         Tournoi de Billon:
             Date                : %s
@@ -182,7 +182,7 @@ class Tournoi(object):
             Statut              : %s
         """
         return texte % (self.debut,
-                        len(self._liste_parties),
+                        len(self.parties()),
                         len(self._liste_equipes),
                         self.equipes_par_manche,
                         self.points_par_manche,
@@ -229,9 +229,9 @@ class Tournoi(object):
         for equipe in self.equipes():
             if equipe not in equipes_exclue:
 
-                stat[equipe.numero] = {cst.STAT_POINTS: equipe.total_points(partie_limite),
-                                       cst.STAT_VICTOIRES: equipe.total_victoires(partie_limite),
-                                       cst.STAT_CHAPEAUX: equipe.total_chapeaux(partie_limite),
+                stat[equipe.numero] = {cst.STAT_POINTS: equipe.points(partie_limite),
+                                       cst.STAT_VICTOIRES: equipe.victoires(partie_limite),
+                                       cst.STAT_CHAPEAUX: equipe.chapeaux(partie_limite),
                                        cst.STAT_ADVERSAIRES: equipe.adversaires(partie_limite),
                                        cst.STAT_MANCHES: equipe.manches(partie_limite),
                                        cst.STAT_PLACE: classement[equipe]}
@@ -309,13 +309,16 @@ class Tournoi(object):
                 choix.remove(equipe.joker)
         return random.choice(choix)
 
-    def ajout_equipe(self, numero, joker=0):
+    def ajout_equipe(self, numero=None, joker=0):
         """
         Ajoute et retourne une nouvelle équipe avec le
-        numéro spécifié.
+        numéro spécifié. Si pas de numéro donné, le plus petit numéro
+        disponible est choisi.
 
         numero (int)
         """
+        if numero is None:
+            numero = self.generer_numero_equipe()
         if numero in self._liste_equipes:
             raise NumeroError(u"L'équipe n°%s existe déjà." % numero)
 
@@ -359,7 +362,7 @@ class Tournoi(object):
         """
         Retourne le nombre de parties.
         """
-        return len(self._liste_parties)
+        return len(self.parties())
 
     def partie(self, numero):
         """
@@ -369,17 +372,17 @@ class Tournoi(object):
         """
         if type(numero) == Partie:
             return numero
-        elif numero not in range(1, len(self._liste_parties) + 1):
+        elif numero not in range(1, len(self.parties()) + 1):
             raise NumeroError(u"La partie n°%s n'existe pas." % numero)
         else:
-            return self._liste_parties[numero - 1]
+            return self.parties()[numero - 1]
 
     def partie_courante(self):
         """
         Retourne la dernière partie du tournoi.
         """
-        if len(self._liste_parties) != 0:
-            return self._liste_parties[-1]
+        if len(self.parties()) != 0:
+            return self.parties()[-1]
         else:
             return None
 
@@ -399,7 +402,7 @@ class Tournoi(object):
             raise StatutError(u"Impossible de créer une nouvelle partie (partie courante: %s)." % (self.partie_courante().statut))
 
         partie = Partie(self)
-        self._liste_parties.append(partie)
+        self.parties().append(partie)
         self.modifie = True
         return partie
 
@@ -409,12 +412,24 @@ class Tournoi(object):
 
         numero (int)
         """
-        if numero > len(self._liste_parties) or numero < 1:
+        if numero > len(self.parties()) or numero < 1:
             raise NumeroError(u"La partie n°%s n'existe pas." % numero)
         else:
             self.partie(numero).raz()
-            self._liste_parties.pop(numero - 1)
+            self.parties().pop(numero - 1)
             self.modifie = True
+
+    def manches(self):
+        """
+        Retourne la liste des manches qui ont déjà eu lieu durant le tournoi.
+        (Les chapeaux et les forfaits sont exclus des manches, voir la définition
+        des manches d'une partie)
+        """
+        manches = []
+        for partie in self.parties():
+            for manche in partie.manches():
+                manches.append(manche)
+        return manches
 
     def comparer(self, equipe1, equipe2, partie_limite=None):
         """
@@ -430,7 +445,7 @@ class Tournoi(object):
             raise TypeError(u"Une équipe doit être comparée à une autre.")
 
         # priorité 1: comparaison des victoires
-        vic = equipe1.total_victoires(partie_limite) + equipe1.total_chapeaux(partie_limite) - equipe2.total_victoires(partie_limite) - equipe2.total_chapeaux(partie_limite)
+        vic = equipe1.victoires(partie_limite) + equipe1.chapeaux(partie_limite) - equipe2.victoires(partie_limite) - equipe2.chapeaux(partie_limite)
         if vic > 0:
             vic = 1
         elif vic < 0:
@@ -440,7 +455,7 @@ class Tournoi(object):
             return vic
 
         # priorité 2: comparaison des points
-        pts = equipe1.total_points(partie_limite) - equipe2.total_points(partie_limite)
+        pts = equipe1.points(partie_limite) - equipe2.points(partie_limite)
         if pts > 0:
             pts = 1
         elif pts < 0:
