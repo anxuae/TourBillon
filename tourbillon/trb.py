@@ -1,63 +1,59 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
 
-"""Module principale de TourBillon"""
+"""Module principal de TourBillon"""
 
-#--- Import --------------------------------------------------------------------
+import sys
 
-import sys, os
-
-try:
-    import tourbillon
-except ImportError:
-    # Ajouter le package dans sys.path (ici l'utilisation du module inspect
-    # et plus robuste que la variable __file__ qui n'est pas toujours définie:
-    # par exemple lorqu'on execute le programme avec 'execfile(...)' )
-    import inspect
-    ce_fichier = inspect.currentframe().f_code.co_filename
-    sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(ce_fichier)), '..'))
-
-from tourbillon.configuration import charger_config, parse_options
-
-try:
-# Cela prendra 1 minute ; si psyco n’est pas installé, ça ne changera rien; et si
-# psyco est installé, on peut obtenir des gains de performance très considérable
-# (probablement de l’ordre de 3-4 fois plus vite – voire 10 ou même plus !)
-    import psyco
-    psyco.full()
-except ImportError:
-    pass
-
-#--- Charger la configuration --------------------------------------------------
-
-
-CONFIG = charger_config()
+from tourbillon.config import charger_config, parse_options
+from tourbillon import logger
 
 
 def run():
-    OPTIONS, ARGS = parse_options()
+    config = charger_config()
+    options, args = parse_options()
 
-    if not OPTIONS.gui_active:
-        from tourbillon.trb_cli.interface import TourBillonCLI
-        app = TourBillonCLI(CONFIG)
+    # Niveau de log
+    verbose = options.verbose
+    if verbose is None:
+        verbose = config.get_typed('INTERFACE', 'BAVARDE')
+    if verbose is True:
+        logger.creer_logger(logger.DEBUG)
+    elif verbose is False:
+        logger.creer_logger(logger.WARNING)
+    else:
+        logger.creer_logger(logger.INFO)
+
+    if sys.version_info[:3] < (2, 6, 0):
+        logger.critical("Python 2.6 (ou supérieure) est requis pour ce programme")
+        sys.exit(1)
+
+    if options.shell:
+        from tourbillon.cli.app import TourBillonCLI
+        app = TourBillonCLI(config)
+    elif options.backend:
+        from tourbillon.server.app import TourBillonServer
+        app = TourBillonServer(config)
     else:
         try:
             import wx
             version = tuple(map(int, wx.__version__.split('.')[:3]))
-            if  version < (2, 8, 0):
-                raise RuntimeError
-        except RuntimeError, e:
-            sys.exit("wxPython 2.8 (ou supérieur) est requis pour lancer ce programme en mode graphique.")
+        except ImportError:
+            logger.critical("wxPython est requis pour lancer ce programme en mode graphique")
+            sys.exit(1)
 
-        from tourbillon.trb_gui.interface import TourBillonGUI
-        app = TourBillonGUI(CONFIG)
+        if version < (2, 8, 0):
+            logger.critical("wxPython >= 2.8 est requis (version actuelle: %s)" % version)
+            sys.exit(1)
 
-    if len(ARGS) > 0:
-        app.ouvrir(ARGS[0])
+        from tourbillon.gui.app import TourBillonGUI
+        app = TourBillonGUI(config)
 
-    app.MainLoop()
+    if len(args) > 0:
+        app.ouvrir(args[0])
 
-#--- Lancer l'interface utilisateur --------------------------------------------
+    app.run()
+
 
 if __name__ == '__main__':
     run()

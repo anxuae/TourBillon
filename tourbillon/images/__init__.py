@@ -1,22 +1,18 @@
-#!/usr/bin/env python
 # -*- coding: UTF-8 -*-
-
-#--- Import --------------------------------------------------------------------
 
 import os
 import glob
 import imp
 import codecs
 import tourbillon
-from tourbillon.trb_core import constantes as cst
-from tourbillon.trb_cli import terminal
+from tourbillon.core import constantes as cst
+from tourbillon.cli.terminal import TERM
 from tourbillon.images.splash import splash
 try:
     import wx
 except ImportError, e:
+    # TourBillon est utilisé en mode console
     wx = None
-
-#--- Variables globales --------------------------------------------------------
 
 IMAGES_REP = [os.path.dirname(os.path.abspath(__file__))]
 
@@ -42,16 +38,16 @@ if images_rc is not None:
     for rep in reps:
         IMAGES_REP.append(os.path.join(base, rep.strip()))
 
-#--- Entete (CLI ou Fichier texte)----------------------------------------------
+# --- Entete (CLI ou Fichier texte)--------------------------------------------
 
-ENTETE_AVEC_COULEURS = {'CADRE': terminal.RED,
-                        'FOND': terminal.NORMAL,
-                        'CHAPEAU': terminal.NORMAL + terminal.BLUE,
-                        'PIQUET': terminal.NORMAL + terminal.BG_BLUE,
-                        'BILLON': terminal.NORMAL + terminal.YELLOW,
-                        'LB': terminal.BG_GREEN,
-                        'TEXTE': terminal.BG_GREEN,
-                        'NORMAL': terminal.NORMAL,
+ENTETE_AVEC_COULEURS = {'CADRE': TERM.RED,
+                        'FOND': TERM.NORMAL,
+                        'CHAPEAU': TERM.NORMAL + TERM.BLUE,
+                        'PIQUET': TERM.NORMAL + TERM.BG_BLUE,
+                        'BILLON': TERM.NORMAL + TERM.YELLOW,
+                        'LB': TERM.BG_GREEN,
+                        'TEXTE': TERM.BG_GREEN,
+                        'NORMAL': TERM.NORMAL,
                         'VERSION': "%s.%s.%s" % tourbillon.__version__}
 
 ENTETE_SANS_COULEURS = {}
@@ -65,40 +61,44 @@ for p in ENTETE_AVEC_COULEURS:
 
 def entete(terminal=False):
     """
-    Retourne l'entête. Si terminal == True, l'entête sera formaté pour
+    Retourne l'entête. Si terminal == True, l'entête sera formatée pour
     être affichée dans le terminal.
     """
     f = codecs.open(chemin('entete.txt'), 'r', 'utf-8')
-    if terminal == False:
+    if not terminal:
         lignes = f.readlines()
         f.close()
         texte = u"#" + u"#".join(lignes)
-        return unicode(texte) % ENTETE_SANS_COULEURS
+        return unicode(texte).format(**ENTETE_SANS_COULEURS)
     else:
         texte = f.read()
         f.close()
-        return unicode(texte) % ENTETE_AVEC_COULEURS
+        return unicode(texte).format(**ENTETE_AVEC_COULEURS)
 
 
-#--- Images (GUI) --------------------------------------------------------------
+# --- Images (GUI) ------------------------------------------------------------
 
 
-def chemin(nom):
+def chemin(*nom):
     for chem in IMAGES_REP:
-        c = os.path.normpath(os.path.join(chem, nom))
+        c = os.path.normpath(os.path.join(chem, *nom))
         if os.path.exists(c):
             return c
     raise IOError("No such file or directory: '%s'" % c)
 
 
 def scale_bitmap(bitmap, largeur, hauteur):
+    if bitmap == wx.NullBitmap:
+        return wx.NullBitmap
     image = wx.ImageFromBitmap(bitmap)
     image = image.Scale(largeur, hauteur, wx.IMAGE_QUALITY_HIGH)
     result = wx.BitmapFromImage(image)
     return result
 
 
-def bitmap(nom, force_alpha=False, scale= -1):
+def bitmap(nom, force_alpha=False, scale=-1):
+    if not nom:
+        return wx.NullBitmap
     _, ext = os.path.splitext(nom)
     if ext in ['.png']:
         t = wx.BITMAP_TYPE_PNG
@@ -108,6 +108,10 @@ def bitmap(nom, force_alpha=False, scale= -1):
         t = wx.BITMAP_TYPE_ANY
 
     bp = wx.Bitmap(chemin(nom), t)
+    if not bp.IsOk():
+        # Le fichier n'est pas valide
+        return wx.NullBitmap
+
     image = bp.ConvertToImage()
     if force_alpha:
         image.ConvertAlphaToMask(threshold=128)
@@ -123,7 +127,7 @@ def TourBillon_icon():
     return icon
 
 
-#--- Styles (GUI) --------------------------------------------------------------
+# --- Styles (GUI) ------------------------------------------------------------
 
 
 STYLES = {'texte': (255, 255, 255),
@@ -137,14 +141,14 @@ STYLES = {'texte': (255, 255, 255),
           'grille_paire': (226, 244, 215),
           'grille_impaire': (255, 255, 255),
           'piquet': (200, 200, 200),
-           cst.GAGNE: (0, 255, 0),
-           cst.PERDU: (255, 0, 0),
-           cst.CHAPEAU: (253, 183, 75),
-           cst.FORFAIT: (0, 0, 0)}
+          cst.GAGNE: (0, 255, 0),
+          cst.PERDU: (255, 0, 0),
+          cst.CHAPEAU: (253, 183, 75),
+          cst.FORFAIT: (0, 0, 0)}
 
 
 def couleur(stl=None):
-    if stl == None:
-        return wx.NullColor
+    if stl is None:
+        return wx.NullColour
 
     return wx.Colour(*STYLES[stl])

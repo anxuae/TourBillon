@@ -1,49 +1,52 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
 
-u"Setup file used by `setuptools` to build the installation packages."
-
-#--- Import ---------------------------------------------------------------
-
 import sys
 import os
-import imp
 import glob
-import inspect
 from os import path as osp
 from distutils.command.build import build as _build_orig
 
-uses_setuptools = False
+import __pkginfo__
+
+
+# --- Classes et fonctions utitlitaires ---------------------------------------
+
+
+SETUPTOOLS = False
 try:
     from setuptools import setup, find_packages, Command
-    print "Info: setuptools detected"
-    uses_setuptools = True
+    SETUPTOOLS = True
 except:
     from distutils.core import setup, Command
-
-    def is_package(path):
-        return (
-            os.path.isdir(path) and
-            os.path.isfile(os.path.join(path, '__init__.py'))
-        )
 
     def find_packages(path, base="", exclude=[]):
         """
         Find all packages in path
         """
-        packages = {}
+        pkg = {}
         for item in os.listdir(path):
-            dir = os.path.join(path, item)
-            if is_package(dir):
+            dossier = osp.join(path, item)
+            if osp.isdir(dossier) and osp.isfile(osp.join(dossier, '__init__.py')):
                 if base:
                     module_name = "%(base)s.%(item)s" % vars()
                 else:
                     module_name = item
 
-                if len([txt for txt in exclude if dir in glob.glob(os.path.join(path, txt))]) == 0:
-                    packages[module_name] = dir
-                    packages.update(find_packages(dir, module_name, exclude))
-        return packages
+                if len([txt for txt in exclude if dossier in glob.glob(osp.join(path, txt))]) == 0:
+                    pkg[module_name] = dossier
+                    pkg.update(find_packages(dossier, module_name, exclude))
+        return pkg
+
+
+def bootscript():
+    nom = 'sitecustomize.py'
+    with open(nom, 'w') as fp:
+        fp.write("# -*- coding: UTF-8 -*-\n\n")
+        fp.write("import sys\n")
+        fp.write("sys.setdefaultencoding('utf-8')\n")
+        fp.write("del sys\n")
+    return nom
 
 
 def find_data_files(package_data):
@@ -63,130 +66,18 @@ def find_data_files(package_data):
             raise ValueError("Magic not allowed in src, target")
         match = {}
         for pattern in patterns:
-            pattern = os.path.join(source, pattern)
+            pattern = osp.join(source, pattern)
             for filename in glob.glob(pattern):
-                if os.path.isfile(filename):
-                    targetpath = os.path.join(target, os.path.relpath(filename, source))
-                    path = os.path.dirname(targetpath)
+                if osp.isfile(filename):
+                    targetpath = osp.join(target, osp.relpath(filename, source))
+                    path = osp.dirname(targetpath)
                     match.setdefault(path, []).append(filename)
         ret += sorted(match.items())
 
     return ret
 
-#--- Informations -------------------------------------------------------------
 
-python_module_name = "tourbillon"
-
-dist_package_name = "TourBillon"
-
-short_desc = u"TourBillon - by La Billionnière"
-
-long_desc = \
-    u"""TourBillon, est le progromme officile de la Billonnière, utilisé
-lors des tournois de billon de printemps (Mai) et d'été (Août).
-
-Ce programme permet de gerer un nombre variable d'équipes lors d'
-un tournoi de billon. Deux interfaces sont incluses dans le
-package, une interface en ligne de commande et une interface
-graphique"""
-
-ce_fichier = inspect.currentframe().f_code.co_filename
-chemin_init_ = os.path.join(os.path.dirname(os.path.abspath(ce_fichier)), 'tourbillon/__init__.py')
-num_version = imp.load_source('tourbillon', chemin_init_).__version__
-
-version = '.'.join([str(num) for num in num_version])
-
-entry_scripts = [  # (script après install, chemin, fonction to be called)
-    ("trb", "tourbillon/trb.py", "run"), ]
-
-required_dependencies = [  # dist_name + version constraint
-    "wxpython>=2.8",
-    "pyyaml>=3.0"]
-
-packages = [pkg for pkg in find_packages(".", exclude=["test", "test.*", ".*test", ".*test.*", "*test"])]
-
-packages_data_files = [  # (source, target, pattern)
-    ('', '', ["license.txt"]),
-    ('tourbillon/images', 'skin', ["*.png", "*.txt", "*.jpg"])]
-
-packages_data = {}
-for source, target, patterns in packages_data_files:
-    packages_data[source.replace(osp.sep, '.')] = patterns
-
-#--- Définition des options du Setup ------------------------------------------
-
-# Options génériques pour la création de bdist (built distribution) et sdist (source distribution)
-options = {'name':              dist_package_name,
-           'version':           version,
-           'description':       short_desc,
-           'long_description':  long_desc,
-           'license':           "GNU GPL",
-           'author':            "La Billonnière",
-           'author_email':      "labillonniere@gmail.fr",
-           'url':               'https://www.facebook.com/labillonniere',
-           'packages':          packages,
-           'package_data':      packages_data,  # ressources ajoutées à bdist et py2app
-           'install_requires':  required_dependencies,
-           'zip_safe':          False,
-           'platforms':         ["linux", "darwin", "win32"],
-           }
-
-if uses_setuptools:
-    options['entry_points'] = {'console_scripts': ["%s = %s:%s" % (target, os.path.splitext(source)[0].replace('/', '.'), fonction)
-                                                   for target, source, fonction in entry_scripts]}
-else:
-    options['scripts'] = [source for target, source, fonction in entry_scripts]
-
-# Options spécifiques à la compilation d'executable Windows
-if len(sys.argv) >= 2 and sys.argv[1] == 'py2exe':
-    try:
-        import py2exe
-    except ImportError:
-        print 'Imporatation erreur: py2exe.   Windows exe ne peut pas être généré.'
-        sys.exit(1)
-
-    options['platforms'] = ["win32"]
-    # site-packages étant zippé dans les distributions binaire les ressources
-    # doivent êtres externalisées
-    options['data_files'] = find_data_files(packages_data_files)
-    options['windows'] = [{
-        'script':            'tourbillon/trb.py',
-        'dest_base':         'TourBillon',
-        'icon_resources':    [(1, 'tourbillon/images/icon.ico')],
-    }]
-    options['options'] = {
-        'py2exe':            {'packages': ['tourbillon'],
-                              'custom_boot_script': 'sitecustomize.py'
-                              }
-    }
-
-# Options spécifiques à la compilation d'executable Mac OSX
-if len(sys.argv) >= 2 and sys.argv[1] == 'py2app':
-    try:
-        import py2app
-    except ImportError:
-        print 'Imporatation erreur: py2app.   Mac app ne peut pas être généré.'
-        sys.exit(1)
-
-    options['platforms'] = ["darwin"]
-    # site-packages étant zippé dans les distributions binaire les ressources
-    # doivent êtres externalisées
-    options['data_files'] = find_data_files(packages_data_files)
-    options['app'] = ['tourbillon/trb.py']
-    options['options'] = {
-        'py2app':         {'site_packages': True,
-                           'argv_emulation': True,
-                           'iconfile': 'tourbillon/images/icon.icns',
-                           }
-    }
-    # Pas de possibilité d'inclure 'sitecustomize.py' avec py2app, mais si il est
-    # installé sur la machine de developpement, l'encodage sera correct dans
-    # le package généré
-
-#--- Ajout d'action avant le build --------------------------------------------
-
-
-class build_rc(Command):
+class Buildrc(Command):
     description = "build resources file (images_rc)"
     user_options = []
 
@@ -197,12 +88,12 @@ class build_rc(Command):
         pass
 
     def run(self):
-        chemin_rc = os.path.join(self.build_dir, 'images_rc')
+        chemin_rc = osp.join(self.build_dir, 'images_rc')
 
         if self.distribution.data_files:
             # Creation du script de liaison:
             f = open(chemin_rc, 'w')
-            for dest, res_liste in self.distribution.data_files:
+            for dest, _res_liste in self.distribution.data_files:
                 f.write(u"%s\n" % dest)
             f.close()
 
@@ -215,13 +106,93 @@ class build_rc(Command):
             self.distribution.data_files = packages_data.items()
 
 
-class build(_build_orig):
+class Build(_build_orig):
     sub_commands = _build_orig.sub_commands + [('build_rc', None), ]
 
-cmdclass = {'build': build,
-            'build_rc': build_rc}
+
+# --- Options génériques du setup ---------------------------------------------
 
 
-#--- Execution du Setup -------------------------------------------------------
+packages = [pkg for pkg in find_packages(".", exclude=["test", "test.*", ".*test", ".*test.*", "*test"])]
 
-setup(cmdclass=cmdclass, **options)
+packages_data = {}
+for source, target, patterns in __pkginfo__.ressources:
+    packages_data[source.replace(osp.sep, '.')] = patterns
+
+# Options génériques pour executer les commandes:
+#  - bdist (built distribution)
+#  - sdist (source distribution)
+
+options = {'name': __pkginfo__.nom_dist_package,
+           'version': __pkginfo__.version,
+           'description': __pkginfo__.desc_courte,
+           'long_description': __pkginfo__.desc_longue,
+           'license': __pkginfo__.licence,
+           'author': __pkginfo__.auteur,
+           'author_email': __pkginfo__.email,
+           'url': __pkginfo__.site,
+           'packages': packages,
+           'package_data': packages_data,  # utilisé par bdist
+           'install_requires': __pkginfo__.dependences,
+           'zip_safe': False,
+           'platforms': ["linux", "darwin", "win32"],
+           }
+
+if SETUPTOOLS:
+    options['entry_points'] = {'console_scripts': ["%s = %s:%s" % (target, osp.splitext(source)[0].replace('/', '.'), fonction)
+                                                   for target, source, fonction in __pkginfo__.scripts]}
+else:
+    options['scripts'] = []
+    if not osp.isdir('scripts'):
+        os.makedirs('scripts')
+    for target, source, fonction in __pkginfo__.scripts:
+        target = osp.join('scripts', target)
+        with open(target, 'w') as fp:
+            fp.write(open(source).read())
+        options['scripts'].append(target)
+
+
+# --- Options spécifiques à Windows (py2exe) ----------------------------------
+
+
+if len(sys.argv) >= 2 and sys.argv[1] == 'py2exe':
+    import py2exe
+    options['platforms'] = ["win32"]
+    # site-packages étant zippé dans les distributions binaire les ressources
+    # doivent êtres externalisées
+    options.pop('package_data')
+    options['data_files'] = find_data_files(__pkginfo__.ressources)
+    options['windows'] = [{
+        'script': __pkginfo__.scripts[0][1],
+        'dest_base': __pkginfo__.nom_dist_package,
+        'icon_resources': [(1, osp.join(__pkginfo__.nom_python_module, 'images', 'icon.ico'))],
+    }]
+    options['options'] = {
+        'py2exe': {'packages': [__pkginfo__.nom_python_module],
+                   'custom_boot_script': bootscript(),
+                   'dll_excludes': ['MSVCP90.dll']}
+    }
+
+
+# --- Options spécifiques à Mac OSX (py2app) ----------------------------------
+
+
+if len(sys.argv) >= 2 and sys.argv[1] == 'py2app':
+    import py2app
+    options['platforms'] = ["darwin"]
+    # site-packages étant zippé dans les distributions binaire les ressources
+    # doivent êtres externalisées
+    options.pop('package_data')
+    options['data_files'] = find_data_files(__pkginfo__.ressources)
+    options['app'] = [__pkginfo__.scripts[0][1]]
+    options['options'] = {
+        'py2app': {'site_packages': False,
+                   'argv_emulation': True,
+                   'iconfile': osp.join(__pkginfo__.nom_python_module, 'images', 'icon.icns'),
+                   'extra_scripts': bootscript()}
+    }
+
+
+if __name__ == '__main__':
+    # Execution
+    setup(cmdclass={'build': Build, 'build_rc': Buildrc}, **options)
