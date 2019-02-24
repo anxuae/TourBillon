@@ -169,6 +169,12 @@ class FenetrePrincipale(wx.Frame):
     def rafraichir(self, event):
         t = tournoi.tournoi()
 
+        # Titre
+        if tournoi.FICHIER_TOURNOI is not None:
+            self.SetTitle("%s - %s" % (tourbillon.__nom__, tournoi.FICHIER_TOURNOI))
+        else:
+            self.SetTitle(tourbillon.__nom__)
+
         # Barre de menu
         if event.quoi == 'menu' or event.quoi == 'tout':
             if t is None:
@@ -201,25 +207,31 @@ class FenetrePrincipale(wx.Frame):
                 self.barre_etat._rafraichir(t.debut.strftime('%Hh%M'), t.nb_parties(), t.nb_equipes(),
                                             nb_incompletes / tournoi.tournoi().equipes_par_manche, t.modifie)
 
-        # Equipes
         p = self.barre_bouton.numero()
+
+        # Limite de raffraichissement
+        limite = None
+        if self.config.get_typed('INTERFACE', 'CUMULE_STATISTIQUES') == 1:
+            limite = p
+
+        # Equipes
         if event.quoi == 'tout':
             if tournoi.tournoi() is None:
                 self.grille._rafraichir()
             else:
                 for equipe in tournoi.tournoi().equipes():
-                    self.grille._rafraichir(equipe=equipe, partie=p)
+                    self.grille._rafraichir(equipe=equipe, partie=p, partie_limite=limite)
 
         elif event.quoi.startswith('equipe'):
             num = int(event.quoi.split('_')[1])
-            self.grille._rafraichir(equipe=tournoi.tournoi().equipe(num), partie=p)
+            self.grille._rafraichir(equipe=tournoi.tournoi().equipe(num), partie=p, partie_limite=limite)
 
         # Classement
         if event.quoi == 'classement' or event.quoi == 'tout':
             if tournoi.tournoi() is not None:
                 avec_victoires = self.config.get_typed('TOURNOI', 'CLASSEMENT_VICTOIRES')
                 avec_duree = self.config.get_typed('TOURNOI', 'CLASSEMENT_DUREE')
-                self.grille._rafraichir(classement=tournoi.tournoi().classement(avec_victoires, avec_duree))
+                self.grille._rafraichir(classement=tournoi.tournoi().classement(avec_victoires, avec_duree, limite))
             else:
                 self.grille._rafraichir(classement={})
 
@@ -306,6 +318,7 @@ class FenetrePrincipale(wx.Frame):
                     self.grille.ajout_equipe(equipe)
                 wx.PostEvent(self, evt.RafraichirEvent(self.GetId()))
 
+                self.SetTitle("%s - %s" % (tourbillon.__nom__, fichier))
                 self.info(u"Chargé, prêt à jouer mon commandant!")
 
             dlg.Destroy()
@@ -723,7 +736,7 @@ class TourBillonGUI(wx.App):
         Afficher la fenetre splash et la fenêtre principale.
         """
         wx.InitAllImageHandlers()
-        spl = FentetreSplash(None, wx.ID_ANY, 1000)
+        spl = FentetreSplash(None, wx.ID_ANY, 5000)
 
         self.fenetre = FenetrePrincipale(self.config)
         self.fenetre.Show()
@@ -732,7 +745,7 @@ class TourBillonGUI(wx.App):
 
     def BringWindowToFront(self):
         """
-        Il est possible que cet événement survinne quand la denière
+        Il est possible que cet événement survienne quand la denière
         fenêtre est fermée.
         """
         try:

@@ -201,7 +201,7 @@ class Equipe(object):
         """
         Retourne True si une manche est définie pour la partie
         spécifiée. Sauf cas exceptionel (ajout d'équipes lorsqu'un
-        tournoi est déjà commancé), une manche est toujours définie
+        tournoi est déjà commencé), une manche est toujours définie
         pour chaque partie.
         
         num_partie (int)

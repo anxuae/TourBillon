@@ -162,6 +162,13 @@ class GeneralPage(wx.Panel):
         self.cbx_bavarde = wx.CheckBox(self, wx.ID_ANY, u"Interface bavarde")
         self.cbx_bavarde.SetValue(config.get_typed(self.section, 'BAVARDE'))
 
+        # Statistiques: cumule des données
+        txt_stat_cumule = wx.StaticText(self, wx.ID_ANY, u'Le panneau "Statistiques du tournoi" affiche le cumule')
+        self.rdb_stat_cumule = wx.RadioBox(self, wx.ID_ANY, u"", choices=[u"de toutes les parties",
+                                                                          u"jusqu'à la partie affichée"],
+                                           majorDimension=2, style=wx.RA_VERTICAL)
+        self.rdb_stat_cumule.SetSelection(config.get_typed(self.section, 'CUMULE_STATISTIQUES'))
+
         # image de fond
         txt_chemin_fond = wx.StaticText(self, wx.ID_ANY, u"Image de fond : ")
         self.ctl_chemin_fond = wx.TextCtrl(self, wx.ID_ANY, u"")
@@ -189,12 +196,17 @@ class GeneralPage(wx.Panel):
         boit3.Add(self.ctl_chemin_fond, 1, wx.ALIGN_CENTER_VERTICAL | wx.LEFT, 5)
         boit3.Add(btn_parcourir_fond, 0, wx.ALIGN_CENTER_VERTICAL | wx.LEFT, 5)
 
-        boit4 = wx.StaticBoxSizer(box3, wx.VERTICAL)
-        boit4.AddSizer(boit3, 0, wx.EXPAND | wx.ALL, 5)
-        boit4.Add(self.cbx_plein_ecran, 0, wx.ALL, 5)
-        boit4.Add(self.cbx_bavarde, 0, wx.ALL, 5)
-        boit4.Add(self.cbx_nouveau_affiche_preferences, 0, wx.ALL, 5)
-        sizer.Add(boit4, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, 10)
+        boit4 = wx.BoxSizer(wx.HORIZONTAL)
+        boit4.Add(txt_stat_cumule, 1, wx.ALIGN_CENTER_VERTICAL, 0)
+        boit4.Add(self.rdb_stat_cumule, 0, wx.ALIGN_CENTER_VERTICAL | wx.LEFT, 5)
+
+        boit5 = wx.StaticBoxSizer(box3, wx.VERTICAL)
+        boit5.AddSizer(boit3, 0, wx.EXPAND | wx.ALL, 5)
+        boit5.Add(self.cbx_plein_ecran, 0, wx.ALL, 5)
+        boit5.Add(self.cbx_bavarde, 0, wx.ALL, 5)
+        boit5.Add(self.cbx_nouveau_affiche_preferences, 0, wx.ALL, 5)
+        boit5.AddSizer(boit4, 0, wx.EXPAND | wx.ALL, 5)
+        sizer.Add(boit5, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, 10)
 
         self.SetSizer(sizer)
         self.Layout()
@@ -242,7 +254,8 @@ class GeneralPage(wx.Panel):
                 'PLEIN_ECRAN':self.cbx_plein_ecran.GetValue(),
                 'BAVARDE':self.cbx_bavarde.GetValue(),
                 'NOUVEAU_AFFICHE_PREFERENCES':self.cbx_nouveau_affiche_preferences.GetValue(),
-                'IMAGE':destination}
+                'IMAGE':destination,
+                'CUMULE_STATISTIQUES':self.rdb_stat_cumule.GetSelection()}
 
     def defaut(self):
         """
@@ -254,6 +267,7 @@ class GeneralPage(wx.Panel):
         self.cbx_bavarde.SetValue(cfg.DEFAUT[self.section]['BAVARDE'])
         self.cbx_nouveau_affiche_preferences.SetValue(cfg.DEFAUT[self.section]['NOUVEAU_AFFICHE_PREFERENCES'])
         self.ctl_chemin_fond.SetValue(cfg.DEFAUT[self.section]['IMAGE'])
+        self.rdb_stat_cumule.SetSelection(cfg.DEFAUT[self.section]['CUMULE_STATISTIQUES'])
 
 class TournoiPage(wx.Panel):
     def __init__(self, parent, section, config):

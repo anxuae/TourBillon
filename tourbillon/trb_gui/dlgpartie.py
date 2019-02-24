@@ -95,7 +95,7 @@ class DialogueAfficherTirage(wx.Dialog):
         box_chx.Add(self.ctl_numero, 0, wx.ALIGN_CENTER_VERTICAL)
 
         # Grille
-        self.grille = GrilleManchesCtrl(self, [], chapeaux=[])
+        self.grille = GrilleManchesCtrl(self, {}, chapeaux=[])
 
         # Boutons
         self.btn_ok = wx.Button(self, id=wx.ID_OK, label=u"Fermer", size=(100, -1))
@@ -119,7 +119,11 @@ class DialogueAfficherTirage(wx.Dialog):
 
     def _maj(self, event):
         partie = tournoi.tournoi().partie(int(self.ctl_numero.GetStringSelection()))
-        self.grille.maj(partie.tirage(), [eq.numero for eq in partie.chapeaux()], tournoi.tournoi().statistiques(partie_limite=partie.numero - 1))
+        d = {}
+        for m in partie.tirage():
+            piquet = tournoi.tournoi().equipe(m[0]).resultat(partie.numero).piquet
+            d[piquet] = m
+        self.grille.maj(d, [eq.numero for eq in partie.chapeaux()], tournoi.tournoi().statistiques(partie_limite=partie.numero - 1))
 
         for i in range(self.grille.GetNumberRows()):
             self.grille.verifier_ligne(i)
@@ -354,9 +358,8 @@ class GrilleManchesCtrl(grid.Grid):
             i += 1
 
         # Afficher les manches
-        piquets = tournoi.tournoi().piquets()
-        for m in manches:
-            self.SetCellValue(i, 0, unicode(piquets.pop(0)))
+        for piquet, m in manches.items():
+            self.SetCellValue(i, 0, unicode(piquet))
             j = 1
             for e in m:
                 self.SetCellValue(i, j, unicode(e))
@@ -725,7 +728,7 @@ class LancerTiragePage(wiz.PyWizardPage):
 
     def progression_event(self, *args, **kwrds):
         """
-        Méthode appelée par le thread à chaque nouvelle progression de l'algorithme.
+        Méthode appelée par le thread du tirage à chaque nouvelle progression de l'algorithme.
         """
         event = evt.ProgressionTirageEvent(-1, *args, **kwrds)
         wx.PostEvent(self, event)
@@ -881,7 +884,12 @@ class ConfirmerTiragePage(wiz.PyWizardPage):
     def chg_tirage(self, tirage, chapeaux=[]):
         if self.grille is not None:
             self.sizer.Remove(self.grille)
-        self.grille = GrilleManchesCtrl(self, tirage, chapeaux)
+
+        d = {}
+        piquets = tournoi.tournoi().piquets()
+        for m in tirage:
+            d[piquets.pop(0)] = m
+        self.grille = GrilleManchesCtrl(self, d, chapeaux)
         self.Bind(grid.EVT_GRID_CELL_LEFT_CLICK, self.verifier)
         self.sizer.Insert(3, self.grille, 1, wx.EXPAND | wx.ALL, 5)
         self.Layout()

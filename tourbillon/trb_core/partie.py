@@ -18,11 +18,8 @@ from tourbillon.trb_core.tirages.utile import creer_liste
 
 class Partie(object):
     """
-    Représente une partie.
-    
-    Note: pour toutes les méthodes de cette class qui manipulent les équipes:
-    
-        - les valeurs retournées sont les numéros d'équipes
+    Représente une partie. Cette classe manipule les données des équipes,
+    elle ne conserve aucunes données.
     """
     def __init__(self, parent):
         self.tournoi = parent

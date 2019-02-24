@@ -168,7 +168,7 @@ class Manche(object):
                 raise TypeError, u"Les adversaires sont donnés sous forme de liste d'entiers."
             for num in valeur:
                 if type(num) != int:
-                    raise TypeError, u"Les adversaires sont donnés sous forme de liste d'entiers."
+                    raise TypeError, u"'%s' n'est pas un entier." % num
             if self.data['etat']  in [CHAPEAU, FORFAIT]:
                 raise ValueError, u"Il n'y a pas d'adversaires pour une manche CHAPEAU ou FORFAIT."
             self.data['adversaires'] = valeur

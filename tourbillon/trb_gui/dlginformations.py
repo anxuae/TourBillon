@@ -361,6 +361,9 @@ class DoubleGrilleTirage(wx.BoxSizer):
         self.Add(self.grilles[1])
         self.AddSpacer((50, 10), 1, wx.EXPAND)
 
+        self.nombre_lignes_max = 30
+        self._liste = ListeCyclique([], self.nombre_lignes_max)
+
     def Show(self, value=True):
         """
         Afficher les éléments en fonction de la taille
@@ -410,13 +413,16 @@ class DoubleGrilleTirage(wx.BoxSizer):
             grille.redim(largeur, hauteur, redim_police)
 
     def maj_grille(self, liste, nombre_lignes, font, defilement_vertical):
+        self.nombre_lignes_max = 2 * nombre_lignes
+        self._liste = ListeCyclique(liste, self.nombre_lignes_max)
         l0, l1 = self.split_liste(liste, nombre_lignes, defilement_vertical)
         self.grilles[0].maj_grille(l0, nombre_lignes, font)
         self.grilles[1].maj_grille(l1, nombre_lignes, font)
 
-    def changer(self, *args, **kwrds):
-        for grille in self.grilles:
-            grille.changer(*args, **kwrds)
+    def changer(self, temps_defilement=0, forcer=False):
+        if forcer or len(self._liste) > self.nombre_lignes_max:
+            for grille in self.grilles:
+                grille.changer(temps_defilement, forcer)
 
 class GrilleResultats(Grille):
     def __init__(self, parent):

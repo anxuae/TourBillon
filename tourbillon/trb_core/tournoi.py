@@ -9,6 +9,7 @@ import sys, os
 import codecs
 from datetime import datetime, timedelta
 import yaml
+from functools import partial
 
 from tourbillon.images import entete
 from tourbillon.trb_core.exceptions import FichierError, NumeroError, StatutError, IncoherenceError
@@ -406,7 +407,7 @@ class Tournoi(object):
             self._liste_parties.pop(numero - 1)
             self.modifie = True
 
-    def comparer(self, equipe1, equipe2):
+    def comparer(self, equipe1, equipe2, partie_limite=None):
         """
         Comparer la force de deux équipes. La comparaison se fait en fonction du
         nombre de victoires (si activé), du nombre de points enfin de la durée
@@ -414,12 +415,13 @@ class Tournoi(object):
         
         equipe1 (Equipe instance)
         equipe2 (Equipe instance)
+        partie_limite (int) limite pour le calcul du classement
         """
         if type(equipe1) != Equipe or type(equipe2) != Equipe:
             raise TypeError, u"Une équipe doit être comparée à une autre."
 
         # priorité 1: comparaison des victoires
-        vic = equipe1.total_victoires() + equipe1.total_chapeaux() - equipe2.total_victoires() - equipe2.total_chapeaux()
+        vic = equipe1.total_victoires(partie_limite) + equipe1.total_chapeaux(partie_limite) - equipe2.total_victoires(partie_limite) - equipe2.total_chapeaux(partie_limite)
         if vic > 0 :
             vic = 1
         elif vic < 0 :
@@ -429,7 +431,7 @@ class Tournoi(object):
             return vic
 
         # priorité 2: comparaison des points
-        pts = equipe1.total_points() - equipe2.total_points()
+        pts = equipe1.total_points(partie_limite) - equipe2.total_points(partie_limite)
         if pts > 0 :
             pts = 1
         elif pts < 0 :
@@ -440,11 +442,11 @@ class Tournoi(object):
 
         # priorité 3: comparaison des durées moyennes
         # (equipe superieure si durée mini)
-        if equipe1.moyenne_duree() < equipe2.moyenne_duree() :
+        if equipe1.moyenne_duree(partie_limite) < equipe2.moyenne_duree(partie_limite) :
             dur = 1
-        elif equipe1.moyenne_duree() == equipe2.moyenne_duree():
+        elif equipe1.moyenne_duree(partie_limite) == equipe2.moyenne_duree(partie_limite):
             dur = 0
-        elif equipe1.moyenne_duree() > equipe2.moyenne_duree() :
+        elif equipe1.moyenne_duree(partie_limite) > equipe2.moyenne_duree(partie_limite) :
             dur = -1
 
         if self.cmp_avec_duree and dur != 0:
@@ -452,7 +454,7 @@ class Tournoi(object):
 
         return 0
 
-    def classement(self, avec_victoires=True, avec_duree=True):
+    def classement(self, avec_victoires=True, avec_duree=True, partie_limite=None):
         """
         Retourne une liste de tuple indiquant l'équipe et sa place
         dans le classement. En cas d'égalité, la ou les places
@@ -469,7 +471,7 @@ class Tournoi(object):
         """
         self.cmp_avec_victoires = avec_victoires
         self.cmp_avec_duree = avec_duree
-        l = sorted(self.equipes(), cmp=self.comparer, reverse=True)
+        l = sorted(self.equipes(), cmp=partial(self.comparer, partie_limite=partie_limite), reverse=True)
 
         classement = []
 

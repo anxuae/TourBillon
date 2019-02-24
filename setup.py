@@ -7,21 +7,19 @@ __doc__ = "Setup file used by `setuptools` to build the installation packages."
 
 import sys
 import os
-import re
 import imp
 import glob
 import inspect
 from os import path as osp
 from distutils.command.build import build as _build_orig
-from distutils.util import convert_path
 
 uses_setuptools = False
 try:
-    from setuptools import setup, find_packages, Extension, Command
+    from setuptools import setup, find_packages, Command
     print "Info: setuptools detected"
     uses_setuptools = True
 except:
-    from distutils.core import setup, Extension, Command
+    from distutils.core import setup, Command
 
     def is_package(path):
         return (

@@ -100,7 +100,7 @@ class Grille(wx.BoxSizer):
         self._grille_partie.nom = 'partie'
         self.Add(self._grille_partie)
 
-        # Espace entre grille
+        # Espace entre grilles
         self.AddSpacer((50, 50), 1)
 
         # Initialisation de la grille des statistiques du tournoi
@@ -419,7 +419,7 @@ class GrillePanel(scrolled.ScrolledPanel):
         self.SetFocus()
         event.Skip()
 
-    def _rafraichir(self, partie=None, equipe=None, classement=None):
+    def _rafraichir(self, partie=None, equipe=None, classement=None, partie_limite=None):
         """
         NE PAS UTILISER !!!!! (Manipulé par la fenêtre principale)
         """
@@ -472,17 +472,18 @@ class GrillePanel(scrolled.ScrolledPanel):
             else:
                 texte = ''
             self.grille.SetCellValue(ligne, 4, texte)
+
             # Victoires
-            self.grille.SetCellValue(ligne, 5, (equipe.total_victoires() + equipe.total_chapeaux()))
+            self.grille.SetCellValue(ligne, 5, (equipe.total_victoires(partie_limite) + equipe.total_chapeaux(partie_limite)))
             # Points
-            self.grille.SetCellValue(ligne, 6, equipe.total_points())
+            self.grille.SetCellValue(ligne, 6, equipe.total_points(partie_limite))
             # Statistiques
-            self.grille.SetCellValue(ligne, 8, equipe.min_billon())
-            self.grille.SetCellValue(ligne, 9, equipe.max_billon())
-            self.grille.SetCellValue(ligne, 10, equipe.moyenne_billon())
-            self.grille.SetCellValue(ligne, 11, equipe.min_duree())
-            self.grille.SetCellValue(ligne, 12, equipe.max_duree())
-            self.grille.SetCellValue(ligne, 13, equipe.moyenne_duree())
+            self.grille.SetCellValue(ligne, 8, equipe.min_billon(partie_limite))
+            self.grille.SetCellValue(ligne, 9, equipe.max_billon(partie_limite))
+            self.grille.SetCellValue(ligne, 10, equipe.moyenne_billon(partie_limite))
+            self.grille.SetCellValue(ligne, 11, equipe.min_duree(partie_limite))
+            self.grille.SetCellValue(ligne, 12, equipe.max_duree(partie_limite))
+            self.grille.SetCellValue(ligne, 13, equipe.moyenne_duree(partie_limite))
 
         self.grille.Thaw()
 

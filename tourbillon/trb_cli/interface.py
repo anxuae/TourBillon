@@ -100,9 +100,12 @@ class Alias(object):
         return cmd
 
     def alias_licence(self, args_s=''):
-        u"""
-        Afficher la licence GPL.
+        u"""Afficher la licence GPL.
         
+        Retrouver la licence dans sa version complète sur http://www.gnu.org/licenses/gpl.html
+        """
+
+        print u"""
         TourBillon est un logiciel libre distribué sous licence GPL, aussi appelée
         en français Licence Publique Générale GNU. Cette licence vous garantit les
         libertés suivantes :
@@ -127,7 +130,6 @@ class Alias(object):
         qui contredirait la licence GPL (par exemple, qui ne donnerait plus le droit à
         autrui de modifier le code source ou de redistribuer le code source modifié).
         """
-        print "Retrouver la licence dans sa version complète sur http://www.gnu.org/licenses/gpl.html"
 
     def alias_alias(self, args_s=''):
         u"""
@@ -248,7 +250,7 @@ Le système d'alias est composé des fonctions suivantes:\n"""
         
         Les données d'un tournoi sont enregistées dans un fichier texte au format
         YAML ce qui permet une lecture et modification aisée. Cependant la modification
-        manuelle de ces fichiers est à eviter au risque de corrompre les donn�es.
+        manuelle de ces fichiers est à eviter au risque de corrompre les données.
         
         Si le nom du fichier n'est pas donné et qu'un tournoi est en cours, le fichier
         d'enregistrement courant sera écrasé (si il existe).

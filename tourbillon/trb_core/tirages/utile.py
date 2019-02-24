@@ -68,6 +68,9 @@ def dernieres_equipes(statistiques, n=1):
     return r[-6:]
 
 def creer_manches(liste_equipes, equipes_par_manche):
+    """
+    Création d'un tirage à partir d'une liste d'équipes.
+    """
     i = 1
     tirage = []
     manche = liste_equipes[0: equipes_par_manche]
@@ -78,6 +81,9 @@ def creer_manches(liste_equipes, equipes_par_manche):
     return tirage
 
 def creer_liste(tirage):
+    """
+    Creation d'une liste d'équipes à partir d'un tirage.
+    """
     liste_equipes = []
     for manche in tirage:
         for equipe in manche:
@@ -249,12 +255,12 @@ class BaseThreadTirage(Thread):
     def rapport(self, valeur= -1, message=None, resultat={'tirage':[], 'chapeaux':[]}, erreur=None):
         """
         Cette methode est utilisée pour afficher la progression d'un tirage.
-        Le pourcentage est affiché tous les 10%
+        Le pourcentage est affiché tous les 5%
         """
         if valeur == -1:
             if self.callback:
                 self.callback(valeur, message, resultat, erreur)
-        if abs(valeur - self._progression) > 10 or  valeur == 100:
+        if abs(valeur - self._progression) > 5 or  valeur == 100:
             self._progression = valeur
             if self.callback:
                 self.callback(valeur, message, resultat, erreur)

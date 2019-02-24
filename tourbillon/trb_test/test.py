@@ -18,8 +18,8 @@ TESTS = [t_equipe.TestEquipeVide,
          t_tournoi.TestChargerTournoi,
          t_4eq_par_manche.TestCreerTournoi,
          t_4eq_par_manche.TestAjoutParie1,
-#         t_4eq_par_manche.TestAjoutParie2,
-#         t_4eq_par_manche.TestAjoutParie3,
+         t_4eq_par_manche.TestAjoutParie2,
+         t_4eq_par_manche.TestAjoutParie3,
          t_tournoi.TestEnregistrerTournoi]
 
 
