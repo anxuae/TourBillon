@@ -109,7 +109,7 @@ packages = [pkg for pkg in find_packages(".", exclude=["test", "test.*", ".*test
 
 packages_data_files = [  # (source, target, pattern)
     ('', '', ["license.txt"]),
-    ('tourbillon/images', 'skin', ["*.png", "*.txt"])]
+    ('tourbillon/images', 'skin', ["*.png", "*.txt", "*.jpg"])]
 
 packages_data = {}
 for source, target, patterns in packages_data_files:
@@ -186,7 +186,7 @@ if len(sys.argv) >= 2 and sys.argv[1] == 'py2app':
 
 
 class build_rc(Command):
-    description = "build PyQt GUIs (.ui) and resources (.qrc)"
+    description = "build resources file (images_rc)"
     user_options = []
 
     def initialize_options(self):

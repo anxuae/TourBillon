@@ -30,7 +30,9 @@ DEFAUT = {'INTERFACE':{ 'GEOMETRIE'             : (0, 0, 1000, 600),
                         'ENREGISTREMENT'        : u"~/",
                         'ENREGISTREMENT_AUTO'   : False,
                         'NOUVEAU_AFFICHE_PREFERENCES': True,
-                        'BAVARDE'               : True},
+                        'AFFICHER_STATISTIQUES' : False,
+                        'BAVARDE'               : True,
+                        'IMAGE'                 : u""},
 
           'AFFICHAGE':{ 'DIMENSION_AUTO'        : True,
                         'MESSAGE'               : u"Tournoi de Billon - %(date)s",
@@ -47,7 +49,8 @@ DEFAUT = {'INTERFACE':{ 'GEOMETRIE'             : (0, 0, 1000, 600),
                         'GRILLE_LIGNES'         : 15,
                         'GRILLE_POLICE'         : u"12;90;90;90;0;Times New Roman;-1",
                         'GRILLE_DUREE_AFFICHAGE': 20000,
-                        'GRILLE_TEMPS_DEFILEMENT': 100},
+                        'GRILLE_TEMPS_DEFILEMENT': 100,
+                        'GRILLE_DEFILEMENT_VERTICAL':True},
 
           'TOURNOI':{   'HISTORIQUE'            : u"~/.trb/hist_jrs",
                         'JOUEUR_COMPLETION'     : True,
@@ -88,7 +91,7 @@ def literal_eval(node_or_string):
            if node.name in _safe_names:
               return _safe_names[node.name]
         elif isinstance(node, UnarySub):
-           return - _convert(node.expr)
+           return -_convert(node.expr)
         raise ValueError('malformed string')
     return _convert(node_or_string)
 

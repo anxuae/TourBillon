@@ -68,7 +68,7 @@ def creer_matrices(parametres, statistiques):
     """
     global MC_CACHE, MR_CACHE, CNP_CACHE
 
-    parametres['rapport'](1, u"Création des matrices de coût, de rencontre et de disparité.")
+    parametres['rapport'](message=u"Création des matrices de coût, de rencontre et de disparité.")
     CNP_CACHE = Cnp(statistiques.keys(), parametres['equipes_par_manche'])
     map(list.sort, CNP_CACHE)
 
@@ -120,9 +120,9 @@ def creer_matrices(parametres, statistiques):
         # Avancement du calcul (affichage jusque 99% pour éviter d'indiquer la fin de l'algorithme)
         compteur += 1
         s = u"%-" + str(len(str(len(CNP_CACHE)))) + u"s/%s manches évaluées"
-        parametres['rapport'](((compteur * 100) / len(CNP_CACHE)) - 1, s % (compteur, len(CNP_CACHE)))
+        parametres['rapport'](((compteur * 100.0) / len(CNP_CACHE)) - 1, s % (compteur, len(CNP_CACHE)))
 
-    parametres['rapport'](0, "")
+    parametres['rapport'](message="")
 
 def fonction_cout(parametres, manche, redondance=False, disparite=False):
     """
@@ -303,6 +303,9 @@ class ThreadTirage(BaseThreadTirage):
         BaseThreadTirage.__init__(self, equipes_par_manche, statistiques, chapeaux, rapport)
         self.categorie = u"niveau2008_dt"
 
+        # Parametres par défaut de l'algorithme
+        self.configurer(**dict([(cle.lower(), valeur) for cle, valeur in DEFAUT.iteritems()]))
+
     def demarrer(self):
         nb_eq = len(self.statistiques)
         nb_chapeaux = nb_chapeaux_necessaires(nb_eq, self.equipes_par_manche)
@@ -347,7 +350,7 @@ class ThreadTirage(BaseThreadTirage):
                     ponderation += (self.statistiques[equipe]['points'] * 1.0) / parties
 
             self.config['ponderation_victoires'] = ponderation / len(self.statistiques)
-            self.rapport(0, u"Coefficient de pondération des victoires: %s" % self.config['ponderation_victoires'])
+            self.rapport(message=u"Coefficient de pondération des victoires: %s" % self.config['ponderation_victoires'])
 
         # Création de la matrice de cout
         creer_matrices(self.config, self.statistiques)
@@ -405,5 +408,5 @@ class ThreadTirage(BaseThreadTirage):
             self.config['arret_utilisateur']()
             self.tirage.append(manche)
 
-        self.rapport(99, tirage_texte(self.statistiques, self.tirage))
+        self.rapport(message=tirage_texte(self.statistiques, self.tirage))
 

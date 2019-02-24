@@ -193,22 +193,20 @@ class BaseThreadTirage(Thread):
     """
     Base de la classe ThreadTirage.
     """
-    def __init__(self, equipes_par_manche, statistiques, chapeaux=[], rapport=None):
+    def __init__(self, equipes_par_manche, statistiques, chapeaux=[], callback=None):
         Thread.__init__(self)
         if self.__class__ == BaseThreadTirage:
             raise NotImplemented, u"Classe abstraite"
 
         self._stop = Event()
+        self._progression = 0
         self.config = {}
         self.equipes_par_manche = equipes_par_manche
         self.statistiques = statistiques
         self.erreur = None
         self.tirage = []
         self.chapeaux = chapeaux
-
-        # Surcharge du rapport
-        if rapport is not None:
-            self.rapport = rapport
+        self.callback = callback
 
         self.configurer()
 
@@ -248,12 +246,18 @@ class BaseThreadTirage(Thread):
         """
         pass
 
-    def rapport(self, valeur=0, message=None, resultat={'tirage':[], 'chapeaux':[]}, erreur=None):
+    def rapport(self, valeur= -1, message=None, resultat={'tirage':[], 'chapeaux':[]}, erreur=None):
         """
-        Cette methode peut être surchargée pour l'affichage d'un rapport
-        de progression.
+        Cette methode est utilisée pour afficher la progression d'un tirage.
+        Le pourcentage est affiché tous les 10%
         """
-        pass
+        if valeur == -1:
+            if self.callback:
+                self.callback(valeur, message, resultat, erreur)
+        if abs(valeur - self._progression) > 10 or  valeur == 100:
+            self._progression = valeur
+            if self.callback:
+                self.callback(valeur, message, resultat, erreur)
 
     def stop(self):
         self._stop.set()
@@ -381,7 +385,7 @@ class Environement(object):
         self.generation = 0
         # Execute le fonction à chaque nouvelle génération
         self.rapport = rapport
-        self.message = u"Génération %-" + str(len(str(max_generations))) + u"s - score : %-8.5g (objectif: %s)"
+        self.message = u"Génération %-" + str(len(str(max_generations))) + u"s - score : %-8.5g"
 
     def run(self):
         while not self._but():
@@ -402,7 +406,7 @@ class Environement(object):
         """
         if callable(self.rapport):
             evolution = self.generation * 100 / self.max_generations
-            self.rapport(evolution, self.message % (self.generation, self.elite.score, self.optimum))
+            self.rapport(evolution, self.message % (self.generation, self.elite.score))
 
     def _croiser(self, individu1, individu2):
         if random.random() < self.taux_croiser:

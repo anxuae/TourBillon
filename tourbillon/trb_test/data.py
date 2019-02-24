@@ -1,8 +1,15 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
 
+import os
 from datetime import datetime, timedelta
 from tourbillon.trb_core.constantes import (CHAPEAU, GAGNE, PERDU, FORFAIT)
+from tourbillon.trb_core.tournoi import charger_tournoi
+
+#--- Tournoi pour extraction de donnée ----------------------------------------
+
+REF_TOURNOI = charger_tournoi(os.path.join(os.path.dirname(__file__), 'data.trb'))
+
 
 EQUIPES_PAR_MANCHE = 2
 POINTS_PAR_MANCHE = 12

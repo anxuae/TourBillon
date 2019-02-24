@@ -87,8 +87,22 @@ def chemin(nom):
             return c
     raise IOError, "No such file or directory: '%s'" % c
 
+def scale_bitmap(bitmap, largeur, hauteur):
+    image = wx.ImageFromBitmap(bitmap)
+    image = image.Scale(largeur, hauteur, wx.IMAGE_QUALITY_HIGH)
+    result = wx.BitmapFromImage(image)
+    return result
+
 def bitmap(nom, force_alpha=False):
-    bp = wx.Bitmap(chemin(nom), wx.BITMAP_TYPE_PNG)
+    _, ext = os.path.splitext(nom)
+    if ext in ['.png']:
+        t = wx.BITMAP_TYPE_PNG
+    elif ext in ['.jpg' , '.jpeg']:
+        t = wx.BITMAP_TYPE_JPEG
+    else:
+        t = wx.BITMAP_TYPE_ANY
+
+    bp = wx.Bitmap(chemin(nom), t)
     if force_alpha:
         image = bp.ConvertToImage()
         image.ConvertAlphaToMask(threshold=128)
@@ -113,6 +127,7 @@ STYLES = {'texte':(255, 255, 255),
           'grille':(234, 232, 227),
           'grille_paire':(226, 244, 215),
           'grille_impaire':(255, 255, 255),
+          'piquet': (200, 200, 200),
            cst.GAGNE:(0, 255, 0),
            cst.PERDU:(255, 0, 0),
            cst.CHAPEAU:(253, 183, 75),

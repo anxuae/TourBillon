@@ -14,7 +14,7 @@ from wx.lib.agw import toasterbox as toast
 
 import tourbillon
 from tourbillon.trb_core import constantes as cst
-from tourbillon.trb_core import tournois, joueurs
+from tourbillon.trb_core import tournoi, joueur
 from tourbillon.trb_core import exceptions as expt
 
 from tourbillon import images
@@ -66,7 +66,7 @@ class FenetrePrincipale(wx.Frame):
             geo = self.config.get_typed('INTERFACE', 'geometrie')
             self.SetPosition(geo[:2])
             self.SetSize(geo[2:])
-        joueurs.charger_historique(config.get_typed('TOURNOI', 'historique'))
+        joueur.charger_historique(config.get_typed('TOURNOI', 'historique'))
 
         # Fenêtre informations montrée
         self.fenetre_affichage = dlginfo.DialogueInformations(self, self.config)
@@ -88,6 +88,7 @@ class FenetrePrincipale(wx.Frame):
         self.Bind(wx.EVT_MENU, self.imprimer, id=wx.ID_PRINT)
         self.Bind(wx.EVT_MENU, self.quitter, id=wx.ID_EXIT)
 
+        self.Bind(wx.EVT_MENU, self.afficher_statistiques, id=barres.ID_STATISTIQUES)
         self.Bind(wx.EVT_MENU, self.afficher_info, id=barres.ID_INFO)
         self.Bind(wx.EVT_MENU, self.afficher_tirage, id=barres.ID_TIRAGE)
 
@@ -107,7 +108,13 @@ class FenetrePrincipale(wx.Frame):
         self.SetStatusBar(self.barre_etat)
 
         # Créer la grille
-        self.grille = grl.GrillePanel(self)
+        chemin_image = self.config.get_typed('INTERFACE', 'image')
+        if not chemin_image:
+            chemin_image = 'fond.jpg'
+        self.grille = grl.GrillePanel(self, images.bitmap(chemin_image))
+        self.barre_menu.FindItemById(barres.ID_STATISTIQUES).Check(
+            self.config.get_typed('INTERFACE', 'afficher_statistiques'))
+        self.afficher_statistiques(False)
 
         # Créer la barre des boutons (pas la guerre)
         self.barre_bouton = barres.BarreBouton(self)
@@ -130,7 +137,6 @@ class FenetrePrincipale(wx.Frame):
         # Position des widgets
         box = wx.BoxSizer(wx.VERTICAL)
         box.Add(self.barre_bouton, 0, wx.EXPAND)
-        box.Add((20, 20))
         box.Add(self.grille, 1, wx.EXPAND)
         self.SetSizer(box)
 
@@ -152,16 +158,16 @@ class FenetrePrincipale(wx.Frame):
             event.Skip()
 
     def grille_double_click(self, event):
-        if tournois.tournoi() is not None:
+        if tournoi.tournoi() is not None:
             if self.grille.selection() is not None:
-                statut = tournois.tournoi().statut
-                if statut == cst.T_INSCRIPTION or (statut == cst.T_ATTEND_TIRAGE and tournois.tournoi().nb_parties() == 0):
+                statut = tournoi.tournoi().statut
+                if statut == cst.T_INSCRIPTION or (statut == cst.T_ATTEND_TIRAGE and tournoi.tournoi().nb_parties() == 0):
                     self.modifier_equipe(event)
                 else:
                     self.entrer_resultats(event)
 
     def rafraichir(self, event):
-        t = tournois.tournoi()
+        t = tournoi.tournoi()
 
         # Barre de menu
         if event.quoi == 'menu' or event.quoi == 'tout':
@@ -183,29 +189,37 @@ class FenetrePrincipale(wx.Frame):
         # Barre d'état
         if event.quoi == 'etat' or event.quoi == 'tout':
             if t is None:
-                self.barre_etat._rafraichir('', 0, 0, False)
+                self.barre_etat._rafraichir('', 0, 0, 0, False)
             else:
-                self.barre_etat._rafraichir(t.debut.strftime('%Hh%M'), t.nb_equipes(), t.nb_parties(), t.modifie)
+                # Indication équipe incomplète
+                nb_incompletes = 0
+                num_partie = self.barre_bouton.numero()
+                if self.barre_bouton.numero() > 0:
+                    for equipe in tournoi.tournoi().partie(num_partie).equipes():
+                        if equipe.resultat(num_partie).etat is None:
+                            nb_incompletes += 1
+                self.barre_etat._rafraichir(t.debut.strftime('%Hh%M'), t.nb_parties(), t.nb_equipes(),
+                                            nb_incompletes / tournoi.tournoi().equipes_par_manche, t.modifie)
 
         # Equipes
-        p = self.barre_bouton.partie()
+        p = self.barre_bouton.numero()
         if event.quoi == 'tout':
-            if tournois.tournoi() is None:
+            if tournoi.tournoi() is None:
                 self.grille._rafraichir()
             else:
-                for equipe in tournois.tournoi().equipes():
+                for equipe in tournoi.tournoi().equipes():
                     self.grille._rafraichir(equipe=equipe, partie=p)
 
         elif event.quoi.startswith('equipe'):
             num = int(event.quoi.split('_')[1])
-            self.grille._rafraichir(equipe=tournois.tournoi().equipe(num), partie=p)
+            self.grille._rafraichir(equipe=tournoi.tournoi().equipe(num), partie=p)
 
         # Classement
         if event.quoi == 'classement' or event.quoi == 'tout':
-            if tournois.tournoi() is not None:
+            if tournoi.tournoi() is not None:
                 avec_victoires = self.config.get_typed('TOURNOI', 'CLASSEMENT_VICTOIRES')
                 avec_duree = self.config.get_typed('TOURNOI', 'CLASSEMENT_DUREE')
-                self.grille._rafraichir(classement=tournois.tournoi().classement(avec_victoires, avec_duree))
+                self.grille._rafraichir(classement=tournoi.tournoi().classement(avec_victoires, avec_duree))
             else:
                 self.grille._rafraichir(classement={})
 
@@ -213,20 +227,12 @@ class FenetrePrincipale(wx.Frame):
         if t is not None:
             self.fenetre_affichage._rafraichir(t.statut)
 
-    def demande_enregistrement(self):
-        continuer = wx.ID_YES
-        if tournois.tournoi() is not None:
-            if tournois.tournoi().modifie:
-                dlg = wx.MessageDialog(self, u"Le tournoi en cours n'est pas enregistré, si vous cliquez sur NON, les données seront perdues.",
-                                       caption=u"Voulez-vous enregistrer le tournoi en cours?", style=wx.CANCEL | wx.YES | wx.NO | wx.ICON_QUESTION)
-                ret = dlg.ShowModal()
-                dlg.Destroy()
-                if ret == wx.ID_YES:
-                    self.enregistrer_sous(None)
-                elif ret == wx.ID_CANCEL:
-                    continuer = wx.ID_CANCEL
-
-        return continuer
+        # fond
+        if event.quoi == 'fond':
+            chemin_image = self.config.get_typed('INTERFACE', 'image')
+            if not chemin_image:
+                chemin_image = 'fond.jpg'
+            self.grille.chg_fond(images.bitmap(chemin_image))
 
     def info(self, texte):
         if self.config.get_typed('INTERFACE', 'BAVARDE'):
@@ -262,23 +268,23 @@ class FenetrePrincipale(wx.Frame):
                 ret = wx.ID_OK
 
             if ret == wx.ID_OK:
-                tournois.nouveau_tournoi(self.config.get_typed("TOURNOI", "EQUIPES_PAR_MANCHE"),
-                                         self.config.get_typed("TOURNOI", "POINTS_PAR_MANCHE"),
-                                         self.config.get_typed("TOURNOI", "JOUEURS_PAR_EQUIPE"))
+                tournoi.nouveau_tournoi(self.config.get_typed("TOURNOI", "EQUIPES_PAR_MANCHE"),
+                                        self.config.get_typed("TOURNOI", "POINTS_PAR_MANCHE"),
+                                        self.config.get_typed("TOURNOI", "JOUEURS_PAR_EQUIPE"))
 
                 # Rafraichir
                 self.grille.effacer()
                 self.barre_bouton.chg_partie()
                 wx.PostEvent(self, evt.RafraichirEvent(self.GetId()))
 
-                self.info(u"Il est %s, un nouveau tournoi commence..." % tournois.tournoi().debut.strftime('%Hh%M'))
+                self.info(u"Il est %s, un nouveau tournoi commence..." % tournoi.tournoi().debut.strftime('%Hh%M'))
 
     def ouvrir(self, event):
         ret = self.demande_enregistrement()
 
         if ret != wx.ID_CANCEL:
-            if tournois.FICHIER_TOURNOI is not None:
-                l = os.path.split(tournois.FICHIER_TOURNOI)
+            if tournoi.FICHIER_TOURNOI is not None:
+                l = os.path.split(tournoi.FICHIER_TOURNOI)
                 d = l[0]
                 f = l[1]
             else:
@@ -291,12 +297,12 @@ class FenetrePrincipale(wx.Frame):
 
             if ret == wx.ID_OK:
                 fichier = dlg.GetPath()
-                tournois.charger_tournoi(fichier)
+                tournoi.charger_tournoi(fichier)
 
                 # Rafraichir
-                self.barre_bouton.chg_partie(tournois.tournoi().nb_parties())
+                self.barre_bouton.chg_partie(tournoi.tournoi().nb_parties())
                 self.grille.effacer()
-                for equipe in tournois.tournoi().equipes():
+                for equipe in tournoi.tournoi().equipes():
                     self.grille.ajout_equipe(equipe)
                 wx.PostEvent(self, evt.RafraichirEvent(self.GetId()))
 
@@ -304,24 +310,39 @@ class FenetrePrincipale(wx.Frame):
 
             dlg.Destroy()
 
+    def demande_enregistrement(self):
+        continuer = wx.ID_OK
+        if tournoi.tournoi() is not None:
+            if tournoi.tournoi().modifie:
+                dlg = wx.MessageDialog(self, u"Le tournoi en cours n'est pas enregistré, si vous cliquez sur NON, les données seront perdues.",
+                                       caption=u"Voulez-vous enregistrer le tournoi en cours?", style=wx.CANCEL | wx.YES | wx.NO | wx.ICON_QUESTION)
+                ret = dlg.ShowModal()
+                dlg.Destroy()
+                if ret == wx.ID_YES:
+                    continuer = self.enregistrer_sous(None)
+                elif ret == wx.ID_CANCEL:
+                    continuer = wx.ID_CANCEL
+
+        return continuer
+
     def enregistrer(self, event):
-        if tournois.FICHIER_TOURNOI is None:
+        if tournoi.FICHIER_TOURNOI is None:
             self.enregistrer_sous(event)
         else:
-            tournois.enregistrer_tournoi()
+            tournoi.enregistrer_tournoi()
 
         # Enregistrer l'historique joueurs
-        joueurs.enregistrer_historique()
+        joueur.enregistrer_historique()
         # Rafraichir
         wx.PostEvent(self, evt.RafraichirEvent(self.GetId(), 'etat'))
 
     def enregistrer_auto(self):
-        if self.config.get_typed('INTERFACE', 'ENREGISTREMENT_AUTO') and tournois.FICHIER_TOURNOI is not None:
+        if self.config.get_typed('INTERFACE', 'ENREGISTREMENT_AUTO') and tournoi.FICHIER_TOURNOI is not None:
             self.enregistrer(None)
 
     def enregistrer_sous(self, event):
-        if tournois.FICHIER_TOURNOI is not None:
-            l = os.path.split(tournois.FICHIER_TOURNOI)
+        if tournoi.FICHIER_TOURNOI is not None:
+            l = os.path.split(tournoi.FICHIER_TOURNOI)
             d = l[0]
             f = l[1]
         else:
@@ -333,24 +354,28 @@ class FenetrePrincipale(wx.Frame):
 
         if ret == wx.ID_OK:
             fichier = dlg.GetPath()
-            tournois.enregistrer_tournoi(fichier)
+            p, ext = os.path.splitext(fichier)
+            if ext != '.trb':
+                fichier += '.trb'
+            tournoi.enregistrer_tournoi(fichier)
 
             # Rafraichir
             wx.PostEvent(self, evt.RafraichirEvent(self.GetId(), 'etat'))
             self.info(u"C'est dans la boîte.")
 
         dlg.Destroy()
+        return ret
 
     def apercu_avant_impression(self, event):
         avec_victoires = self.config.get_typed('TOURNOI', 'CLASSEMENT_VICTOIRES')
         avec_duree = self.config.get_typed('TOURNOI', 'CLASSEMENT_DUREE')
-        dlg = dlgim.DialogueImprimer(self, tournois.tournoi().classement(avec_victoires, avec_duree))
+        dlg = dlgim.DialogueImprimer(self, tournoi.tournoi().classement(avec_victoires, avec_duree))
         dlg.Preview()
 
     def imprimer(self, event):
         avec_victoires = self.config.get_typed('TOURNOI', 'CLASSEMENT_VICTOIRES')
         avec_duree = self.config.get_typed('TOURNOI', 'CLASSEMENT_DUREE')
-        dlg = dlgim.DialogueImprimer(self, tournois.tournoi().classement(avec_victoires, avec_duree))
+        dlg = dlgim.DialogueImprimer(self, tournoi.tournoi().classement(avec_victoires, avec_duree))
         dlg.Print()
 
     def quitter(self, event):
@@ -363,9 +388,19 @@ class FenetrePrincipale(wx.Frame):
             else:
                 self.config.set('INTERFACE', 'MAXIMISER', 'False')
                 self.config.set('INTERFACE', 'GEOMETRIE', str(self.GetPositionTuple() + self.GetSizeTuple()))
+            self.config.set('INTERFACE', 'afficher_statistiques', str(
+                self.barre_menu.FindItemById(barres.ID_STATISTIQUES).IsChecked()))
 
             self.Destroy()
             event.Skip()
+
+    def afficher_statistiques(self, event):
+        """
+        Affiche la grille des statistiques du
+        tournoi en cours.
+        """
+        valeur = self.barre_menu.FindItemById(barres.ID_STATISTIQUES).IsChecked()
+        self.grille.afficher_statistiques(valeur)
 
     def afficher_info(self, event):
         self.affichage_visible = not self.affichage_visible
@@ -386,18 +421,18 @@ class FenetrePrincipale(wx.Frame):
         event.Skip()
 
     def afficher_tirage(self, event):
-        num = self.barre_bouton.partie()
+        num = self.barre_bouton.numero()
 
         dlg = dlgpa.DialogueAfficherTirage(self, num)
         ret = dlg.Show()
 
     def afficher_partie_prec(self, event):
-        if tournois.tournoi() is None:
+        if tournoi.tournoi() is None:
             self.barre_bouton.chg_partie()
         else:
             try:
-                tournois.tournoi().partie(self.barre_bouton.partie() - 1)
-                self.barre_bouton.chg_partie(self.barre_bouton.partie() - 1)
+                tournoi.tournoi().partie(self.barre_bouton.numero() - 1)
+                self.barre_bouton.chg_partie(self.barre_bouton.numero() - 1)
             except expt.NumeroError, e:
                 self.barre_etat.SetStatusText(unicode(e))
 
@@ -405,12 +440,12 @@ class FenetrePrincipale(wx.Frame):
             wx.PostEvent(self, evt.RafraichirEvent(self.GetId()))
 
     def afficher_partie_suiv(self, event):
-        if tournois.tournoi() is None:
+        if tournoi.tournoi() is None:
             self.barre_bouton.chg_partie()
         else:
             try:
-                tournois.tournoi().partie(self.barre_bouton.partie() + 1)
-                self.barre_bouton.chg_partie(self.barre_bouton.partie() + 1)
+                tournoi.tournoi().partie(self.barre_bouton.numero() + 1)
+                self.barre_bouton.chg_partie(self.barre_bouton.numero() + 1)
             except expt.NumeroError, e:
                 self.barre_etat.SetStatusText(unicode(e))
 
@@ -421,13 +456,13 @@ class FenetrePrincipale(wx.Frame):
         ret = wx.ID_OK
 
         def creer(info):
-            equipe = tournois.tournoi().ajout_equipe(info['numero'])
+            equipe = tournoi.tournoi().ajout_equipe(info['numero'])
             for joueur in info['joueurs']:
                 equipe.ajout_joueur(joueur[0], joueur[1], joueur[2])
             return equipe
 
         while ret == wx.ID_OK:
-            dlg = dlgeq.DialogueEquipe(self, dlgeq.STYLE_AJOUTER, numero_affiche=tournois.tournoi(
+            dlg = dlgeq.DialogueEquipe(self, dlgeq.STYLE_AJOUTER, numero_affiche=tournoi.tournoi(
             ).nouveau_numero_equipe(), completion=self.config.get_typed('TOURNOI', 'joueur_completion'))
             ret = dlg.ShowModal()
             info = dlg.donnees()
@@ -435,7 +470,7 @@ class FenetrePrincipale(wx.Frame):
 
             if ret == wx.ID_OK:
 
-                if tournois.tournoi().nb_parties() == 0:
+                if tournoi.tournoi().nb_parties() == 0:
                     # Le tournoi n'est pas commencé
                     equipe = creer(info)
 
@@ -446,29 +481,31 @@ class FenetrePrincipale(wx.Frame):
 
                     self.info(u"Mini holà à l'équipe n°%s.\nHoooollaaaa...!!" % (equipe.numero))
 
-                elif tournois.tournoi().statut == cst.T_PARTIE_EN_COURS:
+                elif tournoi.tournoi().statut == cst.T_PARTIE_EN_COURS:
+                    p = tournoi.tournoi().piquets()[-1] + 1
                     # Une partie est en cours: choix etat pour la partie en cours
                     dlg = dlgeq.DialogueMessageEquipe(self, info['numero'])
                     ret = dlg.ShowModal()
                     if ret == wx.ID_OK:
                         equipe = creer(info)
-                        for partie in tournois.tournoi().parties():
-                            if partie != tournois.tournoi().partie_courante():
+                        for partie in tournoi.tournoi().parties():
+                            if partie != tournoi.tournoi().partie_courante():
                                 # L'équipe est FORFAIT pour les autres parties.
-                                partie.ajout_equipe(equipe, cst.FORFAIT)
+                                partie.ajout_equipe(equipe, cst.FORFAIT, piquet=p)
                             else:
-                                partie.ajout_equipe(equipe, dlg.etat(), dlg.creer_manche())
+                                partie.ajout_equipe(equipe, dlg.etat(), dlg.creer_manche(), piquet=p)
 
                         # Rafraichir
                         self.grille.ajout_equipe(equipe)
                         self.enregistrer_auto()
                         wx.PostEvent(self, evt.RafraichirEvent(self.GetId()))
 
-                        self.info(u"Un peu tard, mais ça passe..." % (equipe.numero))
+                        self.info(u"Un peu tard pour %s, mais ça passe..." % (equipe.numero))
 
                     dlg.Destroy()
 
                 else:
+                    p = tournoi.tournoi().piquets()[-1] + 1
                     # Les parties sont toutes terminées
                     texte = u"L'équipe sera considérée comme forfait pour toutes les parties déjà jouées,\
 cliquez sur ANNULER si vous ne voulez pas ajouter cette nouvelle équipe."
@@ -478,8 +515,8 @@ cliquez sur ANNULER si vous ne voulez pas ajouter cette nouvelle équipe."
                     dlg.Destroy()
                     if ret == wx.ID_OK:
                         equipe = creer(info)
-                        for partie in tournois.tournoi().parties():
-                            partie.ajout_equipe(equipe, cst.FORFAIT)
+                        for partie in tournoi.tournoi().parties():
+                            partie.ajout_equipe(equipe, cst.FORFAIT, piquet=p)
 
                         # Rafraichir
                         self.grille.ajout_equipe(equipe)
@@ -490,16 +527,14 @@ cliquez sur ANNULER si vous ne voulez pas ajouter cette nouvelle équipe."
 
     def modifier_equipe(self, event):
         num = self.grille.selection()
-        if num is None:
-            num = self.grille.equipe(2)
 
-        dlg = dlgeq.DialogueEquipe(self, dlgeq.STYLE_MOFIFIER, choix=map(int, tournois.tournoi().equipes(
+        dlg = dlgeq.DialogueEquipe(self, dlgeq.STYLE_MOFIFIER, choix=map(int, tournoi.tournoi().equipes(
         )), numero_affiche=num, completion=self.config.get_typed('TOURNOI', 'joueur_completion'))
         ret = dlg.ShowModal()
 
         if ret == wx.ID_OK:
             info = dlg.donnees()
-            equipe = tournois.tournoi().equipe(info['numero'])
+            equipe = tournoi.tournoi().equipe(info['numero'])
             equipe.suppr_joueurs()
             for joueur in info['joueurs']:
                 equipe.ajout_joueur(joueur[0], joueur[1], joueur[2])
@@ -513,22 +548,20 @@ cliquez sur ANNULER si vous ne voulez pas ajouter cette nouvelle équipe."
 
     def supprimer_equipe(self, event):
         num = self.grille.selection()
-        if num is None:
-            num = self.grille.equipe(2)
 
         dlg = dlgeq.DialogueEquipe(self, dlgeq.STYLE_SUPPRIMER, choix=map(
-            int, tournois.tournoi().equipes()), numero_affiche=num)
+            int, tournoi.tournoi().equipes()), numero_affiche=num)
         ret = dlg.ShowModal()
 
         if ret == wx.ID_OK:
             info = dlg.donnees()
 
-            equipe = tournois.tournoi().equipe(info['numero'])
+            equipe = tournoi.tournoi().equipe(info['numero'])
             self.info(u"En ce jour exceptionel, l'équipe n°%s nous quitte." % (equipe.numero))
 
             # Rafraichir
             self.grille.suppr_equipe(equipe)
-            tournois.tournoi().suppr_equipe(equipe.numero)
+            tournoi.tournoi().suppr_equipe(equipe.numero)
             self.enregistrer_auto()
             wx.PostEvent(self, evt.RafraichirEvent(self.GetId()))
 
@@ -540,7 +573,7 @@ cliquez sur ANNULER si vous ne voulez pas ajouter cette nouvelle équipe."
         ret = dlg.ShowModal()
 
         if ret == True:
-            partie = tournois.tournoi().ajout_partie()
+            partie = tournoi.tournoi().ajout_partie()
             partie.demarrer(dlg.tirage(), dlg.chapeaux())
 
             # Rafraichir
@@ -553,19 +586,19 @@ cliquez sur ANNULER si vous ne voulez pas ajouter cette nouvelle équipe."
         dlg.Destroy()
 
     def supprimer_partie(self, event):
-        num = self.barre_bouton.partie()
+        num = self.barre_bouton.numero()
 
-        dlg = dlgpa.DialogueSupprimerPartie(self, map(int, tournois.tournoi().parties()), num)
+        dlg = dlgpa.DialogueSupprimerPartie(self, map(int, tournoi.tournoi().parties()), num)
         ret = dlg.ShowModal()
 
         if ret == wx.ID_OK:
-            tournois.tournoi().suppr_partie(int(dlg.numero()))
-            if tournois.tournoi().nb_parties() == 0:
+            tournoi.tournoi().suppr_partie(int(dlg.numero()))
+            if tournoi.tournoi().nb_parties() == 0:
                 self.barre_bouton.chg_partie(0)
-            elif tournois.tournoi().nb_parties() >= num:
+            elif tournoi.tournoi().nb_parties() >= num:
                 self.barre_bouton.chg_partie(num)
             else:
-                self.barre_bouton.chg_partie(tournois.tournoi().nb_parties())
+                self.barre_bouton.chg_partie(tournoi.tournoi().nb_parties())
 
             # Rafraichir
             self.enregistrer_auto()
@@ -576,13 +609,13 @@ cliquez sur ANNULER si vous ne voulez pas ajouter cette nouvelle équipe."
         dlg.Destroy()
 
     def entrer_resultats(self, event):
-        num_partie = int(self.barre_bouton.partie())
+        num_partie = int(self.barre_bouton.numero())
         num_equipe = self.grille.selection()
         if num_equipe is None:
             num_equipe = 1
         else:
             num_equipe = int(num_equipe)
-        etat = tournois.tournoi().equipe(num_equipe).resultat(num_partie)['etat']
+        etat = tournoi.tournoi().equipe(num_equipe).resultat(num_partie).etat
 
         if etat != cst.FORFAIT and etat != cst.CHAPEAU:
             dlg = dlgre.DialogueResultat(self, num_partie, num_equipe)
@@ -594,13 +627,13 @@ cliquez sur ANNULER si vous ne voulez pas ajouter cette nouvelle équipe."
                     fin = datetime.now()
                 else:
                     fin = None
-                tournois.tournoi().partie(num_partie).resultat(d, fin)
+                tournoi.tournoi().partie(num_partie).resultat(d, fin)
 
                 # Rafraichir
                 self.enregistrer_auto()
                 wx.PostEvent(self, evt.RafraichirEvent(self.GetId(), 'tout'))
 
-                nb = len(tournois.tournoi().partie_courante().equipes_incompletes())
+                nb = len(tournoi.tournoi().partie_courante().equipes_incompletes())
                 if nb != 0:
                     self.info(u"Manque encore %s équipes." % nb)
                 else:
@@ -630,7 +663,8 @@ cliquez sur ANNULER si vous ne voulez pas ajouter cette nouvelle équipe."
 
         dlg.Destroy()
         self.fenetre_affichage.configurer(self.config.get_options('AFFICHAGE', upper_keys=True))
-        wx.PostEvent(self, evt.RafraichirEvent(self.GetId(), "affichage"))
+        wx.PostEvent(self, evt.RafraichirEvent(self.GetId(), 'affichage'))
+        wx.PostEvent(self, evt.RafraichirEvent(self.GetId(), 'fond'))
         return ret
 
     def a_propos_de(self, event):
@@ -689,7 +723,7 @@ class TourBillonGUI(wx.App):
         Afficher la fenetre splash et la fenêtre principale.
         """
         wx.InitAllImageHandlers()
-        spl = FentetreSplash(None, wx.ID_ANY, 5000)
+        spl = FentetreSplash(None, wx.ID_ANY, 1000)
 
         self.fenetre = FenetrePrincipale(self.config)
         self.fenetre.Show()
@@ -728,9 +762,9 @@ class TourBillonGUI(wx.App):
         self.ouvrir(fichier)
 
     def ouvrir(self, fichier):
-        tournois.charger_tournoi(fichier)
-        self.fenetre.barre_bouton.chg_partie(tournois.tournoi().nb_parties())
+        tournoi.charger_tournoi(fichier)
+        self.fenetre.barre_bouton.chg_partie(tournoi.tournoi().nb_parties())
         self.fenetre.grille.effacer()
-        for equipe in tournois.tournoi().equipes():
+        for equipe in tournoi.tournoi().equipes():
             self.fenetre.grille.ajout_equipe(equipe)
         wx.PostEvent(self.fenetre, evt.RafraichirEvent(self.fenetre.GetId()))

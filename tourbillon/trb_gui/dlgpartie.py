@@ -12,10 +12,11 @@ from wx.lib.mixins import listctrl
 from wx.lib.wordwrap import wordwrap
 
 from tourbillon.trb_gui import evenements as evt
+from tourbillon.trb_gui.dlgimpression import DialogueImprimerTirage
 
 from tourbillon import images
 from tourbillon.trb_core import constantes as cst
-from tourbillon.trb_core import tournois
+from tourbillon.trb_core import tournoi
 from tourbillon.trb_core.tirages import utile
 from tourbillon.trb_core import tirages
 
@@ -85,7 +86,7 @@ class DialogueAfficherTirage(wx.Dialog):
         self.CenterOnParent()
 
         self.txt_phrase = wx.StaticText(self, wx.ID_ANY, u"Tirage de la partie n° ")
-        self.ctl_numero = wx.Choice(self, wx.ID_ANY, choices=[unicode(partie.numero) for partie in tournois.tournoi().parties()])
+        self.ctl_numero = wx.Choice(self, wx.ID_ANY, choices=[unicode(partie.numero) for partie in tournoi.tournoi().parties()])
         self.ctl_numero.SetSelection(self.ctl_numero.FindString(unicode(numero_affiche)))
 
         # Choix
@@ -94,45 +95,42 @@ class DialogueAfficherTirage(wx.Dialog):
         box_chx.Add(self.ctl_numero, 0, wx.ALIGN_CENTER_VERTICAL)
 
         # Grille
-        self.grille = grid.Grid(self)
-        self.grille.CreateGrid(0, tournois.tournoi().equipes_par_manche)
-        self.grille.SetColLabelSize(0)
-        self.grille.SetRowLabelSize(0)
+        self.grille = GrilleManchesCtrl(self, [], chapeaux=[])
 
         # Boutons
         self.btn_ok = wx.Button(self, id=wx.ID_OK, label=u"Fermer", size=(100, -1))
+        self.btn_imprimer = wx.Button(self, id=wx.ID_PREVIEW_PRINT, label=u"Imprimer...", size=(100, -1))
+        box_btn = wx.BoxSizer(wx.HORIZONTAL)
+        box_btn.Add(self.btn_ok, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 20)
+        box_btn.Add(self.btn_imprimer, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 20)
 
         # Assembler
         self.sizer = wx.BoxSizer(wx.VERTICAL)
         self.sizer.Add(box_chx, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.ALL, 20)
-        self.sizer.Add(self.grille, 1, wx.ALIGN_CENTER)
+        self.sizer.Add(self.grille, 1, wx.EXPAND | wx.ALL, 5)
         self.sizer.AddSizer((10, 10), 0, wx.EXPAND)
-        self.sizer.Add(self.btn_ok, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.ALL, 20)
+        self.sizer.AddSizer(box_btn, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.ALL, 20)
         self.SetSizer(self.sizer)
         self.Layout()
 
         self._maj(None)
         self.Bind(wx.EVT_CHOICE, self._maj, self.ctl_numero)
+        self.Bind(wx.EVT_BUTTON, self.imprimer, self.btn_imprimer)
 
     def _maj(self, event):
-        tirage = tournois.tournoi().partie(int(self.ctl_numero.GetStringSelection())).tirage()
-        if self.grille.GetNumberRows() > 0:
-            self.grille.DeleteRows(0, self.grille.GetNumberRows(), False)
+        partie = tournoi.tournoi().partie(int(self.ctl_numero.GetStringSelection()))
+        self.grille.maj(partie.tirage(), [eq.numero for eq in partie.chapeaux()], tournoi.tournoi().statistiques(partie_limite=partie.numero - 1))
 
-        i = 0
-        while i < len(tirage):
-            self.grille.InsertRows(i, 1, False)
-            j = 0
-            while j < tournois.tournoi().equipes_par_manche:
-                if j < len(tirage[i]):
-                    self.grille.SetCellValue(i, j, unicode(tirage[i][j]))
-                else:
-                    self.grille.SetCellValue(i, j, u"C")
-                j += 1
-            i += 1
+        for i in range(self.grille.GetNumberRows()):
+            self.grille.verifier_ligne(i)
 
         if self.grille.GetNumberRows() < 30:
             self.Fit()
+
+    def imprimer(self, event):
+        dlg = DialogueImprimerTirage(self.GetParent(), self.ctl_numero.GetStringSelection(), self.grille)
+        self.Close()
+        dlg.Print()
 
 #--- Bande info pour wizard ----------------------------------------------------
 
@@ -194,10 +192,10 @@ class ListeEquipesCtrl(wx.ListCtrl, listctrl.CheckListCtrlMixin):
         selection = [int(self.GetItemText(i)) for i in range(self.GetItemCount()) if self.IsChecked(i)]
         self.DeleteAllItems()
         classement = {}
-        classement.update(tournois.tournoi().classement())
+        classement.update(tournoi.tournoi().classement())
 
         for num in liste_equipes:
-            equipe = tournois.tournoi().equipe(int(num))
+            equipe = tournoi.tournoi().equipe(int(num))
             self.Append([unicode(equipe.numero),
                          u", ".join([unicode(joueur) for joueur in equipe.joueurs()]),
                          unicode(equipe.total_victoires()),
@@ -223,56 +221,17 @@ class ListeEquipesCtrl(wx.ListCtrl, listctrl.CheckListCtrlMixin):
 #--- Grille des manches --------------------------------------------------------
 
 class GrilleManchesCtrl(grid.Grid):
-    def __init__(self, parent, equipes_par_manche, manches, chapeaux=[]):
+    def __init__(self, parent, manches, chapeaux=[]):
         grid.Grid.__init__(self, parent, wx.ID_ANY)
-
-        # Nombre de lignes (1 par manche + 1 pour les chapeaux)
-        self.equipes_par_manche = equipes_par_manche
-        self.nbr_ligne = len(manches)
-        if len(chapeaux) != 0:
-            self.nbr_ligne += 1
-
-        self.CreateGrid(self.nbr_ligne, self.equipes_par_manche + 1)
-
-        # Format cellules equipe
-        attr = wx.grid.GridCellAttr()
-        attr.SetBackgroundColour(wx.Colour(255, 255, 255))
-        attr.SetFont(wx.Font(10, wx.SWISS, wx.NORMAL, wx.NORMAL))
-        attr.SetAlignment(wx.ALIGN_CENTRE, wx.ALIGN_CENTRE)
-
-        # Format cellules info
-        attr_info = wx.grid.GridCellAttr()
-        attr_info.SetBackgroundColour(wx.Colour(255, 255, 255))
-        attr_info.SetTextColour(wx.Colour(255, 0, 0))
-        attr_info.SetFont(wx.Font(10, wx.SWISS, wx.NORMAL, wx.NORMAL))
+        self.equipes_par_manche = tournoi.tournoi().equipes_par_manche
+        self.CreateGrid(0, self.equipes_par_manche + 2)
+        self.SetColAttr(0, self.attribut('piquet'))
+        self.SetColAttr(self.GetNumberCols() - 1, self.attribut('info'))
 
         for i in range(self.GetNumberCols()):
-            if i == self.GetNumberCols() - 1:
-                self.SetColAttr(i, attr_info)
-            else:
-                self.SetColAttr(i, attr)
+            if 0 < i < self.GetNumberCols() - 1:
+                self.SetColAttr(i, self.attribut('equipe'))
             self.SetColSize(i, 50)
-
-        # Première ligne pour afficher les chapeaux
-        i = 0
-        j = 0
-        if len(chapeaux) != 0:
-            while j < self.equipes_par_manche:
-                if j < len(chapeaux):
-                    self.SetCellValue(i, j, unicode(chapeaux[j]))
-                else:
-                    self.SetCellValue(i, j, u"C")
-                    self.SetCellTextColour(i, j, images.couleur(cst.CHAPEAU))
-                j += 1
-            i += 1
-
-        # Afficher les manches
-        for m in manches:
-            j = 0
-            for e in m:
-                self.SetCellValue(i, j, unicode(e))
-                j += 1
-            i += 1
 
         # cases selectionnées
         self.select1 = None
@@ -282,10 +241,18 @@ class GrilleManchesCtrl(grid.Grid):
         self.SetColMinimalAcceptableWidth(1)
 
         self.SetRowLabelSize(0)
-        self.SetColLabelSize(0)
+        for i in range(self.GetNumberCols()):
+            if i == 0:
+                self.SetColLabelValue(i, u"Piquet")
+            elif i == self.GetNumberCols() - 1:
+                self.SetColLabelValue(self.GetNumberCols() - 1, u"Information")
+            else:
+                self.SetColLabelValue(i, u"")
         self.EnableDragColSize(False)
         self.EnableDragRowSize(False)
-        self.EnableEditing(False)
+
+        # Mise à jour
+        self.maj(manches, chapeaux, tournoi.tournoi().statistiques())
 
         self.Bind(grid.EVT_GRID_CELL_LEFT_CLICK, self._selection_equipe)
         self.Bind(wx.EVT_SIZE, self.Layout, self)
@@ -310,36 +277,94 @@ class GrilleManchesCtrl(grid.Grid):
             self._deselectionner(l, c)
             self.select2 = None
         elif self.select1 == None:
-            if self.GetCellValue(l, c) != u"C" and c < self.equipes_par_manche:
+            if self.GetCellValue(l, c) != u"C" and 0 < c < self.equipes_par_manche + 1:
                 self.select1 = (l, c)
                 self._selectionner(l, c)
         elif self.select2 == None:
-            if self.GetCellValue(l, c) != u"C" and c < self.equipes_par_manche:
+            if self.GetCellValue(l, c) != u"C" and 0 < c < self.equipes_par_manche + 1:
                 self.select2 = (l, c)
                 self._selectionner(l, c)
         self.Refresh()
         event.Skip()
 
     def _selectionner(self, ligne, colonne):
-        self.SetCellBackgroundColour(ligne, colonne, wx.Colour(200, 6, 6))
+        self.SetCellBackgroundColour(ligne, colonne, wx.Colour(6, 200, 6))
         self.SetCellFont(ligne, colonne, wx.Font(10, wx.SWISS, wx.NORMAL, wx.NORMAL))
 
     def _deselectionner(self, ligne, colonne):
         self.SetCellBackgroundColour(ligne, colonne, wx.Colour(255, 255, 255))
         self.SetCellFont(ligne, colonne, wx.Font(10, wx.SWISS, wx.NORMAL, wx.NORMAL))
 
+    def attribut(self, ref):
+        attr = wx.grid.GridCellAttr()
+        if ref == 'equipe':
+            attr.SetBackgroundColour(wx.Colour(255, 255, 255))
+            attr.SetFont(wx.Font(10, wx.SWISS, wx.NORMAL, wx.NORMAL))
+            attr.SetAlignment(wx.ALIGN_CENTRE, wx.ALIGN_CENTRE)
+            attr.SetTextColour(wx.Color(0, 0, 200))
+            attr.SetReadOnly(True)
+        elif ref == 'piquet':
+            attr.SetBackgroundColour(images.couleur('piquet'))
+            attr.SetFont(wx.Font(10, wx.SWISS, wx.NORMAL, wx.BOLD))
+            attr.SetAlignment(wx.ALIGN_CENTRE, wx.ALIGN_CENTRE)
+            attr.SetTextColour(wx.Color(0, 0, 0))
+            attr.SetReadOnly(False)
+        elif ref == 'info':
+            attr.SetBackgroundColour(wx.Colour(255, 255, 255))
+            attr.SetTextColour(wx.Colour(255, 0, 0))
+            attr.SetFont(wx.Font(10, wx.SWISS, wx.NORMAL, wx.NORMAL))
+            attr.SetReadOnly(True)
+        return attr
+
     def Layout(self, event=None):
         grid.Grid.Layout(self)
         # Largeur dernière colonne
-        largeur = self.Size[0] - 30 - self.GetColSize(0) * self.equipes_par_manche
+        largeur = self.Size[0] - 30 - self.GetColSize(0) * (self.equipes_par_manche + 1)
         if largeur < 200:
             largeur = 200
-        self.SetColSize(self.equipes_par_manche, largeur)
+        self.SetColSize(self.equipes_par_manche + 1, largeur)
         if event is not None:
             event.Skip()
 
+    def maj(self, manches, chapeaux=[], statistiques={}):
+        self.statistiques = statistiques
+
+        # Suppression des lignes
+        if self.GetNumberRows() > 0:
+            self.DeleteRows(0, self.GetNumberRows())
+
+        # Nombre de lignes (1 par manche + 1 pour les chapeaux)
+        self.nbr_ligne = len(manches)
+        if len(chapeaux) != 0:
+            self.nbr_ligne += 1
+        self.InsertRows(0, self.nbr_ligne)
+
+        # Première ligne pour afficher les chapeaux
+        i = 0
+        j = 0
+        if len(chapeaux) != 0:
+            self.SetCellValue(i, 0, u"-")
+            while j < self.equipes_par_manche:
+                if j < len(chapeaux):
+                    self.SetCellValue(i, j + 1, unicode(chapeaux[j]))
+                else:
+                    self.SetCellValue(i, j + 1, u"C")
+                    self.SetCellTextColour(i, j + 1, images.couleur(cst.CHAPEAU))
+                j += 1
+            i += 1
+
+        # Afficher les manches
+        piquets = tournoi.tournoi().piquets()
+        for m in manches:
+            self.SetCellValue(i, 0, unicode(piquets.pop(0)))
+            j = 1
+            for e in m:
+                self.SetCellValue(i, j, unicode(e))
+                j += 1
+            i += 1
+
     def chg_texte(self, ligne, texte):
-        self.SetCellValue(ligne, self.equipes_par_manche, unicode(texte))
+        self.SetCellValue(ligne, self.equipes_par_manche + 1, unicode(texte))
 
     def echangeable(self):
         return self.select1 is not None and self.select2 is not None
@@ -356,12 +381,74 @@ class GrilleManchesCtrl(grid.Grid):
 
     def manche(self, ligne):
         m = []
-        for j in range(self.GetNumberCols() - 1):
+        for j in range(1, self.GetNumberCols() - 1):
             valeur = self.GetCellValue(ligne, j)
             if valeur != u"C":
                 valeur = int(valeur)
             m.append(valeur)
-        return m
+
+        p = self.GetCellValue(ligne, 0)
+        try:
+            p = int(p)
+        except:
+            pass
+
+        return p, m
+
+    def verifier_ligne(self, ligne):
+        attention = False
+        piquet, manche = self.manche(ligne)
+
+        if u"C" in manche:
+            manche = [equipe for equipe in manche if equipe != u"C"]
+            # Compter parmis les chapeaux les équipes qui ont déjà été chapeau
+            deja_ete_chapeau = []
+            for num in manche:
+                if self.statistiques[num]['chapeaux'] != 0:
+                    deja_ete_chapeau.append(num)
+                i = 1
+
+            # Afficher le message si des équipes ont déjà été chapeau
+            if len(deja_ete_chapeau) == 1:
+                attention = True
+                self.chg_texte(ligne, u"!!! L'équipe n°%s a déjà été chapeau." % deja_ete_chapeau[0])
+            elif len(deja_ete_chapeau) > 1:
+                attention = True
+                self.chg_texte(ligne, u"!!! Les équipes n°%s ont déjà été chapeaux." % ", ".join(map(unicode, deja_ete_chapeau)))
+            else:
+                self.chg_texte(ligne, u"")
+        else:
+            # Pour chaque ligne, afficher si des équipes se sont déjà rencontrées.
+            rencontre_faite = False
+            rencontres = []
+            manche.sort()
+
+            for num in manche:
+                for manche_prec in self.statistiques[num]['manches']:
+                    manche_prec = sorted(manche_prec)
+                    if manche == manche_prec:
+                        rencontres.append(manche)
+                        rencontre_faite = True
+                        break
+
+                    m = []
+                    for adv in manche_prec:
+                        if adv in manche:
+                            m.append(adv)
+                    if m and m not in rencontres and len(m) > 1:
+                        rencontres.append(m)
+
+            if rencontres != []:
+                attention = True
+                if rencontre_faite:
+                    texte = u"!!! Cette manche a déjà eu lieu"
+                else:
+                    texte = u"!!! Les rencontres suivantes ont déjà eu lieu: %s" % ", ".join(map(unicode, rencontres))
+                self.chg_texte(ligne, texte)
+            else:
+                self.chg_texte(ligne, u"")
+
+        return attention
 
 #--- Pages du Wizard -----------------------------------------------------------
 
@@ -372,7 +459,7 @@ class SelectionEquipesPage(wiz.PyWizardPage):
         self.sizer, self.txt_msg = ajout_page_titre(self, u"Selection des équipes")
 
         self.liste = ListeEquipesCtrl(self)
-        self.liste.ajout_equipes(tournois.tournoi().equipes())
+        self.liste.ajout_equipes(tournoi.tournoi().equipes())
         self.liste.SetSize(wx.Size(600, 300))
         self._cocher_tout(None)
 
@@ -390,8 +477,8 @@ class SelectionEquipesPage(wiz.PyWizardPage):
         self.sizer.AddSizer(box_btn, 0, wx.LEFT, 5)
 
         # Décocher les équipes forfait de la partie précédente
-        if tournois.tournoi().partie_courante() is not None:
-            forfaits = tournois.tournoi().partie_courante().forfaits()
+        if tournoi.tournoi().partie_courante() is not None:
+            forfaits = tournoi.tournoi().partie_courante().forfaits()
         else:
             forfaits = []
         i = 0
@@ -423,7 +510,7 @@ class SelectionEquipesPage(wiz.PyWizardPage):
         self.prev = prev
 
     def GetNext(self):
-        if utile.nb_chapeaux_necessaires(len(self.equipes()), tournois.tournoi().equipes_par_manche) == 0:
+        if utile.nb_chapeaux_necessaires(len(self.equipes()), tournoi.tournoi().equipes_par_manche) == 0:
             # Page tirage
             self.next.GetNext().SetPrev(self)
             return self.next.GetNext()
@@ -515,7 +602,7 @@ class SelectionChapeauPage(wiz.PyWizardPage):
     def GetPrev(self):
         return self.prev
 
-    def pre_chapeaux(self):
+    def chapeaux(self):
         liste = []
         i = 0
         while i < self.liste.GetItemCount():
@@ -526,12 +613,12 @@ class SelectionChapeauPage(wiz.PyWizardPage):
 
     def verifier(self, event):
         nextButton = self.GetParent().FindWindowById(wx.ID_FORWARD)
-        nb_max = utile.nb_chapeaux_necessaires(self.liste.GetItemCount(), tournois.tournoi().equipes_par_manche)
+        nb_max = utile.nb_chapeaux_necessaires(self.liste.GetItemCount(), tournoi.tournoi().equipes_par_manche)
 
-        if nb_max < len(self.pre_chapeaux()):
+        if nb_max < len(self.chapeaux()):
             self.txt_msg.chg_texte(u"Il ne peut pas y avoir plus de %s chapeau(x)." % nb_max, wx.ICON_ERROR)
             nextButton.Disable()
-        elif nb_max > len(self.pre_chapeaux()):
+        elif nb_max > len(self.chapeaux()):
             self.txt_msg.chg_texte(u"Si nécessaire, le reste de la séléction se fera par tirage. (maximum %s chapeau(x))..." % nb_max, wx.ICON_INFORMATION)
             nextButton.Enable()
         else:
@@ -595,6 +682,19 @@ class LancerTiragePage(wiz.PyWizardPage):
     def _modifier_options(self, event):
         wx.PostEvent(self, evt.PreferencesEvent(self.btn_options.GetId(), 2))
 
+    def _tirage_manuel(self):
+        # Tirage manuel: créer un tirage ordonné
+        equipes = self.GetParent().page1.equipes()
+        chapeaux = self.GetParent().page2.chapeaux()
+        for chapeau in chapeaux:
+            equipes.remove(chapeau)
+
+        tirage = utile.creer_manches(equipes, tournoi.tournoi().equipes_par_manche)
+
+        if len(tirage[-1]) < tournoi.tournoi().equipes_par_manche:
+            chapeaux += tirage.pop(-1)
+        return tirage, chapeaux
+
     def SetNext(self, next):
         self.next = next
 
@@ -607,23 +707,21 @@ class LancerTiragePage(wiz.PyWizardPage):
     def GetPrev(self):
         return self.prev
 
-    def pre_tirage(self):
+    def tirage(self):
         if self.rdb_type_tirage.GetSelection() == 1:
-            # Tirage manuel: créer un tirage ordonné
-            equipes = self.GetParent().page1.equipes()
-            pre_chapeaux = self.GetParent().page2.pre_chapeaux()
-            for chapeau in pre_chapeaux:
-                equipes.remove(chapeau)
-
-            tirage = utile.creer_manches(equipes, tournois.tournoi().equipes_par_manche)
-
-            if len(tirage[-1]) < tournois.tournoi().equipes_par_manche:
-                pre_chapeaux += tirage.pop(-1)
-
-            return (tirage, pre_chapeaux)
+            tirage, _ = self._tirage_manuel()
+            return tirage
         else:
             # tirage automatique
-            return (self._tirage.tirage, self._tirage.chapeaux)
+            return self._tirage.tirage
+
+    def chapeaux(self):
+        if self.rdb_type_tirage.GetSelection() == 1:
+            _, chapeaux = self._tirage_manuel()
+            return chapeaux
+        else:
+            # tirage automatique
+            return self._tirage.chapeaux
 
     def progression_event(self, *args, **kwrds):
         """
@@ -631,14 +729,14 @@ class LancerTiragePage(wiz.PyWizardPage):
         """
         event = evt.ProgressionTirageEvent(-1, *args, **kwrds)
         wx.PostEvent(self, event)
-        time.sleep(0.001)
 
     def progression(self, event):
         """
         Méthode appelée par le thread principal lors d'un nouveau événement de 
         progression.
         """
-        self.bar_progression.SetValue(event.valeur)
+        if event.valeur >= 0:
+            self.bar_progression.SetValue(event.valeur)
         if event.message is not None:
             self.txt_progression.WriteText(event.message + u'\n')
 
@@ -658,20 +756,21 @@ class LancerTiragePage(wiz.PyWizardPage):
         if self._tirage is None:
             self.txt_msg.chg_texte(u"")
             self.txt_progression.Clear()
+            self.bar_progression.SetValue(0)
             font = self.txt_progression.GetFont()
             font.SetFaceName("Courier")
             self.txt_progression.SetFont(font)
             # Statistiques des équipes (hors FORFAITS)
-            statistiques = tournois.tournoi().statistiques(self.GetParent().forfaits())
+            statistiques = tournoi.tournoi().statistiques(self.GetParent().forfaits())
 
             # Pre chapeaux
-            pre_chapeaux = self.GetParent().page2.pre_chapeaux()
+            chapeaux = self.GetParent().page2.chapeaux()
 
             # Créeation du thread tirage
             self._tirage = tirages.tirage(tirages.TIRAGES.items()[self.chx_algorithme.GetCurrentSelection()][0],
-                                          tournois.tournoi().equipes_par_manche,
+                                          tournoi.tournoi().equipes_par_manche,
                                           statistiques,
-                                          pre_chapeaux,
+                                          chapeaux,
                                           self.progression_event)
 
             # Configuration du tirage
@@ -747,14 +846,18 @@ class ConfirmerTiragePage(wiz.PyWizardPage):
         self.sizer, self.txt_msg = ajout_page_titre(self, u"Confirmation du tirage")
 
         self.grille = None
-        self.btn_echanger = wx.Button(self, wx.ID_ANY, label=u"Echanger", size=(100, -1))
 
-        self.sizer.AddSizer(self.btn_echanger, 0, wx.LEFT | wx.BOTTOM, 5)
+        self.btn_echanger = wx.Button(self, wx.ID_ANY, label=u"Echanger", size=(100, -1))
+        self.btn_imprimer = wx.Button(self, id=wx.ID_PREVIEW_PRINT, label=u"Imprimer...", size=(100, -1))
+        box_btn = wx.BoxSizer(wx.HORIZONTAL)
+        box_btn.Add(self.btn_echanger, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 20)
+        box_btn.Add(self.btn_imprimer, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 20)
+
+        self.sizer.AddSizer(box_btn, 0, wx.LEFT | wx.BOTTOM, 5)
         self.Layout()
 
         self.Bind(wx.EVT_BUTTON, self.echanger, self.btn_echanger)
-
-        self.statistiques = tournois.tournoi().statistiques()
+        self.Bind(wx.EVT_BUTTON, self.imprimer, self.btn_imprimer)
 
     def SetNext(self, next):
         self.next = next
@@ -771,92 +874,48 @@ class ConfirmerTiragePage(wiz.PyWizardPage):
     def echanger(self, event):
         if self.grille is not None:
             cell1, cell2 = self.grille.echanger()
-            self.verifier_ligne(cell1[0])
-            self.verifier_ligne(cell2[0])
+            self.grille.verifier_ligne(cell1[0])
+            self.grille.verifier_ligne(cell2[0])
             self.verifier(event)
 
     def chg_tirage(self, tirage, chapeaux=[]):
         if self.grille is not None:
             self.sizer.Remove(self.grille)
-        self.grille = GrilleManchesCtrl(self, tournois.tournoi().equipes_par_manche, tirage, chapeaux)
+        self.grille = GrilleManchesCtrl(self, tirage, chapeaux)
         self.Bind(grid.EVT_GRID_CELL_LEFT_CLICK, self.verifier)
         self.sizer.Insert(3, self.grille, 1, wx.EXPAND | wx.ALL, 5)
         self.Layout()
         self.grille.Layout()
 
     def tirage(self):
-        l = []
+        l = {}
         i = 0
         while i < self.grille.GetNumberRows():
-            manche = self.grille.manche(i)
+            piquet, manche = self.grille.manche(i)
             if u"C" not in manche:
-                l.append(manche)
+                l[piquet] = manche
             i += 1
 
         return l
 
     def chapeaux(self):
-        manche = self.grille.manche(0)
+        piquet, manche = self.grille.manche(0)
         if u"C" in manche:
             return [equipe for equipe in manche if equipe != u"C"]
         else:
             return []
 
-    def verifier_ligne(self, ligne):
-        attention = False
-        manche = self.grille.manche(ligne)
-        if u"C" in manche:
-            manche = [equipe for equipe in manche if equipe != u"C"]
-            # Compter parmis les chapeaux les équipes qui ont déjà été chapeau
-            deja_ete_chapeau = []
-            for num in manche:
-                if tournois.tournoi().equipe(num).total_chapeaux() != 0:
-                    deja_ete_chapeau.append(num)
-                i = 1
-
-            # Afficher le message si des équipes ont déjà été chapeau
-            if len(deja_ete_chapeau) == 1:
-                attention = True
-                self.grille.chg_texte(ligne, u"!!! L'équipe n°%s a déjà été chapeau." % deja_ete_chapeau[0])
-            elif len(deja_ete_chapeau) > 1:
-                attention = True
-                self.grille.chg_texte(ligne, u"!!! Les équipes n°%s ont déjà été chapeaux." % ", ".join(map(unicode, deja_ete_chapeau)))
-            else:
-                self.grille.chg_texte(ligne, u"")
+    def imprimer(self, event):
+        partie = tournoi.tournoi().partie_courante()
+        if partie:
+            num = partie.numero
         else:
-            # Pour chaque ligne, afficher si des équipes se sont déjà rencontrées.
-            rencontre_faite = False
-            rencontres = []
-            manche.sort()
-
-            for num in manche:
-                for manche_prec in self.statistiques[num]['manches']:
-                    manche_prec = sorted(manche_prec)
-                    if manche == manche_prec:
-                        rencontres.append(manche)
-                        rencontre_faite = True
-                        break
-
-                    m = []
-                    for adv in manche_prec:
-                        if adv in manche:
-                            m.append(adv)
-                    if m and m not in rencontres and len(m) > 1:
-                        rencontres.append(m)
-
-            if rencontres != []:
-                attention = True
-                if rencontre_faite:
-                    texte = u"!!! Cette manche a déjà eu lieu"
-                else:
-                    texte = u"!!! Les rencontres suivantes ont déjà eu lieu: %s" % ", ".join(map(unicode, rencontres))
-                self.grille.chg_texte(ligne, texte)
-            else:
-                self.grille.chg_texte(ligne, u"")
-
-        return attention
+            num = 1
+        dlg = DialogueImprimerTirage(self.GetParent(), num, self.grille)
+        dlg.Print()
 
     def verifier(self, event):
+        piquets = []
         if self.grille is not None:
             if self.grille.echangeable():
                 self.btn_echanger.Enable()
@@ -865,17 +924,29 @@ class ConfirmerTiragePage(wiz.PyWizardPage):
 
             if event is None:
                 for i in range(self.grille.GetNumberRows()):
-                    self.verifier_ligne(i)
+                    self.grille.verifier_ligne(i)
 
+            # Message d'avertissement
             attention = False
             for i in range(self.grille.GetNumberRows()):
+                p, _ = self.grille.manche(i)
+                piquets.append(p)
                 if self.grille.GetCellValue(i, self.grille.GetNumberCols() - 1):
                     attention = True
-                    break
+
             if attention:
                 self.txt_msg.chg_texte(u"Ce tirage contient des redondances.", wx.ICON_WARNING)
             else:
                 self.txt_msg.chg_texte(u"")
+
+        # Verifier unicité des numéro de piquets
+        for i in range(len(piquets)):
+            p = piquets[i]
+            nb = piquets.count(p)
+            if nb == 1 and type(p) == int:
+                self.grille.SetCellBackgroundColour(i, 0, wx.Color(200, 200, 200))
+            else:
+                self.grille.SetCellBackgroundColour(i, 0, wx.Color(210, 0, 0))
 
         if event is not None:
             event.Skip()
@@ -915,7 +986,7 @@ class DialogueAjouterPartie(wiz.Wizard):
         if page == self.page2:
             page.liste.ajout_equipes(self.page1.equipes())
         elif page == self.page4:
-            page.chg_tirage(*self.page3.pre_tirage())
+            page.chg_tirage(self.page3.tirage(), self.page3.chapeaux())
         page.verifier(None)
         page.Fit()
 

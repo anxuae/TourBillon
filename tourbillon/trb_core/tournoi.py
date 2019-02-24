@@ -12,8 +12,9 @@ import yaml
 
 from tourbillon.images import entete
 from tourbillon.trb_core.exceptions import FichierError, NumeroError, StatutError, IncoherenceError
-from tourbillon.trb_core.equipes import Equipe
-from tourbillon.trb_core.parties import Partie
+from tourbillon.trb_core.manche import Manche
+from tourbillon.trb_core.equipe import Equipe
+from tourbillon.trb_core.partie import Partie
 from tourbillon.trb_core.constantes import (CHAPEAU, GAGNE, PERDU, FORFAIT,
                                             E_INCOMPLETE, P_NON_DEMARREE, P_EN_COURS, P_COMPLETE,
                                             T_INSCRIPTION, T_ATTEND_TIRAGE, T_PARTIE_EN_COURS)
@@ -26,15 +27,24 @@ FICHIER_TOURNOI = None
 #--- Fonctions -----------------------------------------------------------------
 
 def tournoi():
+    """
+    Retourne le tournoi courrant.
+    """
     return TOURNOI
 
 def nouveau_tournoi(equipes_par_manche=2, points_par_manche=12, joueurs_par_equipe=2):
+    """
+    Création d'un nouveau tournoi.
+    """
     global TOURNOI, FICHIER_TOURNOI
     TOURNOI = Tournoi(equipes_par_manche, points_par_manche, joueurs_par_equipe)
     FICHIER_TOURNOI = None
     return TOURNOI
 
 def enregistrer_tournoi(fichier=None):
+    """
+    Enregistrement d'un tournoi dans un fichier au format YAML.
+    """
     global FICHIER_TOURNOI, TOURNOI
     if TOURNOI is None:
         raise IOError, u"Pas de tournoi commencé."
@@ -78,7 +88,7 @@ def enregistrer_tournoi(fichier=None):
         y = {}
         y['parties'] = {}
         for equipe in TOURNOI.equipes():
-            y['parties'][equipe.numero] = equipe._resultats
+            y['parties'][equipe.numero] = [m.data for m in equipe._resultats]
         yaml.dump(y, f, default_flow_style=False)
 
         f.close()
@@ -89,6 +99,9 @@ def enregistrer_tournoi(fichier=None):
         raise IOError, u"L'enregistrement a échoué (%s)." % str(e)
 
 def charger_tournoi(fichier):
+    """
+    Chargement d'un tournoi depuis un fichier au format YAML.
+    """
     global FICHIER_TOURNOI, TOURNOI
     if not os.path.exists(fichier):
         raise FichierError, u"Le fichier '%s' n'existe pas." % fichier
@@ -118,7 +131,10 @@ def charger_tournoi(fichier):
 
         # Infos parties
         for num in y['parties']:
-            TOURNOI.equipe(num)._resultats = y['parties'][num]
+            for data in y['parties'][num]:
+                m = Manche()
+                m.charger(data)
+                TOURNOI.equipe(num)._resultats.append(m)
 
         # Calcul du nombre de parties
         nb_parties = 0
@@ -175,9 +191,17 @@ class Tournoi(object):
                         self.statut)
 
     def statut():
+        doc = """
+        Retourne le status du tournoi:
+        
+            T_INSCRIPTION     => Aucune partie n'est commencée
+            T_ATTEND_TIRAGE   => la dernière partie est terminée
+            T_PARTIE_EN_COURS => une partie partie est en cours
+        """
+
         def fget(self):
-            # Nombre d'équipe <3
-            if self.nb_equipes() < 3:
+            # Impossibilité de créer une manche
+            if self.nb_equipes() < self.equipes_par_manche:
                 return T_INSCRIPTION
 
             # Toutes les informations ne sont pas entrées
@@ -215,17 +239,44 @@ class Tournoi(object):
                                         'place':classement[equipe]}
         return stat
 
-    def tirages(self):
-        tir = []
-        for partie in self._liste_parties:
-            if partie.statut != P_NON_DEMARREE:
-                tir.append(partie.tirage())
-        return tir
+    def piquets(self):
+        """
+        Retourne une liste de numéros de piquets disponibles
+        pour ce tournoi. Se base sur la partie précédentes
+        afin de determiner si des numéros de piquets doivent
+        être ignorés (piquet dégradé).
+        
+        Pas de piquet prévu pour les chapeaux.
+        """
+        nombre = self.nb_equipes() / self.equipes_par_manche
+        piquets = []
+        i = 1
+        if self.partie_courante():
+            for p in self.partie_courante().piquets():
+                if len(piquets) == nombre:
+                    break
+                piquets.append(p)
+            if piquets:
+                i = piquets[-1] + 1
+
+        while i <= nombre:
+            piquets.append(i)
+            i += 1
+
+        return piquets
 
     def nb_equipes(self):
+        """
+        Retourne le nombre d'équipes inscrites.
+        """
         return len(self._liste_equipes)
 
     def equipe(self, numero):
+        """
+        Retourne l'équipe avec le numéro spécifié.
+        
+        numero (int)
+        """
         if type(numero) == Equipe:
             return numero
         elif numero not in self._liste_equipes:
@@ -234,15 +285,27 @@ class Tournoi(object):
             return self._liste_equipes[numero]
 
     def equipes(self):
+        """
+        Retourne les équipes sous forme de liste.
+        """
         return self._liste_equipes.values()
 
     def nouveau_numero_equipe(self):
+        """
+        Retourne un numéro d'équipe non utilisé
+        """
         i = 1
         while i in self._liste_equipes:
             i += 1
         return i
 
     def ajout_equipe(self, numero):
+        """
+        Ajoute et retourne une nouvelle équipe avec le
+        numéro spécifié.
+        
+        numero (int)
+        """
         if numero in self._liste_equipes:
             raise NumeroError, u"L'équipe n°%s existe déjà." % numero
 
@@ -252,13 +315,26 @@ class Tournoi(object):
         return eq
 
     def suppr_equipe(self, numero):
+        """
+        Supprime et retourne une équipe avec le numéro spécifié.
+        
+        numero (int)
+        """
         if numero not in self._liste_equipes:
             raise NumeroError, u"L'équipe n°%s n'existe pas." % numero
 
-        self._liste_equipes.pop(numero)
+        eq = self._liste_equipes.pop(numero)
         self.modifie = True
+        return eq
 
-    def modifier_numero_equipe(self, numero, nouv_numero):
+    def modif_numero_equipe(self, numero, nouv_numero):
+        """
+        Modifie le numéro d'une équipe. Ne peut se faire que si
+        aucune partie n'a été commencée.
+        
+        numero (int)
+        nouv_numero (int)
+        """
         if self.nb_parties() != 0:
             raise StatutError, u"Le numéro de l'équipe n°%s ne peut pas être changé." % numero
         if nouv_numero in self._liste_equipes:
@@ -270,9 +346,17 @@ class Tournoi(object):
         self.modifie = True
 
     def nb_parties(self):
+        """
+        Retourne le nombre de parties.
+        """
         return len(self._liste_parties)
 
     def partie(self, numero):
+        """
+        Retourne la partie avec le numéro spécifié.
+        
+        numero (int)
+        """
         if type(numero) == Partie:
             return numero
         elif numero not in range(1, len(self._liste_parties) + 1):
@@ -281,15 +365,24 @@ class Tournoi(object):
             return self._liste_parties[numero - 1]
 
     def partie_courante(self):
+        """
+        Retourne la dernière partie du tournoi.
+        """
         if len(self._liste_parties) != 0:
             return self._liste_parties[-1]
         else:
             return None
 
     def parties(self):
+        """
+        Retourne les parties sous forme de liste.
+        """
         return self._liste_parties
 
     def ajout_partie(self):
+        """
+        Ajoute et retourne une nouvelle partie.
+        """
         if self.statut == T_INSCRIPTION:
             raise StatutError, u"Impossible de créer une partie (inscriptions en cours)."
         elif self.statut == T_PARTIE_EN_COURS:
@@ -301,19 +394,27 @@ class Tournoi(object):
         return partie
 
     def suppr_partie(self, numero):
+        """
+        Supprimer la partie correspondante au numéro spécifié.
+        
+        numero (int)
+        """
         if numero > len(self._liste_parties) or numero < 1:
             raise NumeroError, u"La partie n°%s n'existe pas." % numero
         else:
-            partie = self.partie(numero)
-
-            if partie.statut != P_NON_DEMARREE:
-                for equipe in self._liste_equipes.values():
-                    equipe._suppr_partie(numero)
-
+            self.partie(numero).raz()
             self._liste_parties.pop(numero - 1)
             self.modifie = True
 
     def comparer(self, equipe1, equipe2):
+        """
+        Comparer la force de deux équipes. La comparaison se fait en fonction du
+        nombre de victoires (si activé), du nombre de points enfin de la durée
+        moyenne d'une partie (si activé).
+        
+        equipe1 (Equipe instance)
+        equipe2 (Equipe instance)
+        """
         if type(equipe1) != Equipe or type(equipe2) != Equipe:
             raise TypeError, u"Une équipe doit être comparée à une autre."
 

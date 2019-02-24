@@ -204,6 +204,9 @@ class ThreadTirage(BaseThreadTirage):
         self.categorie = u"niveau_ag"
         self._env = None
 
+        # Parametres par défaut de l'algorithme
+        self.configurer(**dict([(cle.lower(), valeur) for cle, valeur in DEFAUT.iteritems()]))
+
     def demarrer(self):
         nb_eq = len(self.statistiques)
         nb_chapeaux = nb_chapeaux_necessaires(nb_eq, self.equipes_par_manche)
@@ -245,8 +248,9 @@ class ThreadTirage(BaseThreadTirage):
                     ponderation += (self.statistiques[equipe]['points'] * 1.0) / parties
 
             self.config['ponderation_victoires'] = ponderation / len(self.statistiques)
-            self.rapport(0, u"Coefficient de pondération des victoires: %s" % self.config['ponderation_victoires'])
+            self.rapport(message=u"Coefficient de pondération des victoires: %s" % self.config['ponderation_victoires'])
 
+        self.rapport(message=u"Objectif: %s" % self.config['optimum'])
         # Créer l'environement
         Tirage.alleles = self.statistiques.keys()
         self._env = Environement(genese(Tirage, self.config['taille_population_ini']), **self.config)
@@ -255,7 +259,8 @@ class ThreadTirage(BaseThreadTirage):
         self._env.run()
 
         self.tirage = creer_manches(self._env.elite.chromosome, self.equipes_par_manche)
-        self.rapport(99, tirage_texte(self.statistiques, self.tirage))
+        self.rapport(message="")
+        self.rapport(message=tirage_texte(self.statistiques, self.tirage))
 
         # Verification de la pertinence de la solution
 

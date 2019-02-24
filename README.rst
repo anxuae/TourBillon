@@ -21,4 +21,4 @@
           #& #&                                                                      | o
           #& #&    ------------------------------------------------------------------- o
           #&     ooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
-          #&                                              Version 5.0.1 © La Billonnière
+          #&                                              Version 5.0.2 © La Billonnière

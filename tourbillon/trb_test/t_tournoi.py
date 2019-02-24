@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
 
+import os
 import unittest
 from datetime import datetime, timedelta
 
-from tourbillon.trb_core import tournois
+from tourbillon.trb_core import tournoi
 from tourbillon.trb_core.exceptions import FichierError, NumeroError, StatutError, LimiteError
 from tourbillon.trb_core.constantes import (E_INCOMPLETE, E_ATTEND_TIRAGE, P_NON_DEMARREE, P_EN_COURS,
                                             P_COMPLETE,
@@ -23,12 +24,12 @@ EQUIPES = {1:data.JOUEURS_1,
 
 NB_EQUIPES = len(EQUIPES)
 
-tournois.nouveau_tournoi(EQUIPES_PAR_MANCHE, POINTS_PAR_MANCHE, JOUEURS_PAR_EQUIPE)
+tournoi.nouveau_tournoi(EQUIPES_PAR_MANCHE, POINTS_PAR_MANCHE, JOUEURS_PAR_EQUIPE)
 
 class TestCreationTournoi(unittest.TestCase):
 
     def setUp(self):
-        self.tournoi = tournois.tournoi()
+        self.tournoi = tournoi.tournoi()
 
     def test01_status(self):
         self.assertEqual(self.tournoi.statut, T_INSCRIPTION)
@@ -72,7 +73,7 @@ class TestCreationTournoi(unittest.TestCase):
 class TestInscriptionTournoi(unittest.TestCase):
 
     def setUp(self):
-        self.tournoi = tournois.tournoi()
+        self.tournoi = tournoi.tournoi()
 
     def test01_ajout_equipe(self):
         for equipe in EQUIPES:
@@ -106,15 +107,15 @@ class TestInscriptionTournoi(unittest.TestCase):
     def test07_changer_numero(self):
         # 8 -> 1
         e = self.tournoi.equipe(8)
-        self.assertRaises(NumeroError, self.tournoi.modifier_numero_equipe, 8, 1)
+        self.assertRaises(NumeroError, self.tournoi.modif_numero_equipe, 8, 1)
         # 8 -> 3
-        self.tournoi.modifier_numero_equipe(8, 3)
+        self.tournoi.modif_numero_equipe(8, 3)
         self.assertEqual(e.numero, 3)
         # 8 a disparu
         self.assertRaises(NumeroError, self.tournoi.equipe, 8)
         # 9 -> 3
         e = self.tournoi.equipe(9)
-        self.tournoi.modifier_numero_equipe(9, 6)
+        self.tournoi.modif_numero_equipe(9, 6)
         self.assertEqual(e.numero, 6)
         # 9 a disparu
         self.assertRaises(NumeroError, self.tournoi.equipe, 9)
@@ -174,26 +175,26 @@ class TestInscriptionTournoi(unittest.TestCase):
 class TestEnregistrerTournoi(unittest.TestCase):
 
     def setUp(self):
-        self.tournoi = tournois.tournoi()
+        self.tournoi = tournoi.tournoi()
 
     def test01_enregistrer(self):
         self.assertEqual(self.tournoi.modifie, True)
-        tournois.enregistrer_tournoi('test.trb')
+        tournoi.enregistrer_tournoi('test.trb')
         self.assertEqual(self.tournoi.modifie, False)
 
     def test02_date_enregistrement(self):
         d = datetime.now()
-        d1 = self.tournoi.date_enregistrement - timedelta(0, 0, self.tournoi.date_enregistrement.microsecond)
-        d2 = d - timedelta(0, 0, d.microsecond)
+        d1 = self.tournoi.date_enregistrement - timedelta(0, self.tournoi.date_enregistrement.second, self.tournoi.date_enregistrement.microsecond)
+        d2 = d - timedelta(0, d.second, d.microsecond)
         self.assertEqual(d1, d2)
 
 class TestChargerTournoi(unittest.TestCase):
 
     def setUp(self):
-        self.tournoi = tournois.tournoi()
+        self.tournoi = tournoi.tournoi()
 
     def test01_enregistrer(self):
-        tournois.charger_tournoi('test.trb')
+        tournoi.charger_tournoi('test.trb')
         self.assertEqual(self.tournoi.modifie, False)
 
     def test02_date_chargement(self):

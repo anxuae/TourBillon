@@ -17,7 +17,7 @@ TIRAGES = {'aleatoire_ag'   :aleatoire_ag,
            'niveau_ag'      :niveau_ag,
            'niveau2008_dt'  :niveau2008_dt}
 
-def tirage(type_tirage, equipes_par_manche, statistiques, chapeaux=[], rapport=[]):
+def tirage(type_tirage, equipes_par_manche, statistiques, chapeaux=[], rapport=None):
     if type_tirage not in TIRAGES:
         raise TirageError, u"Categorie de tirage '%s' inconnue." % type_tirage
 

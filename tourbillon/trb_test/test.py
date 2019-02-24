@@ -3,8 +3,7 @@
 
 import unittest
 
-from tourbillon.trb_test import t_equipe
-from tourbillon.trb_test import t_tournoi
+from tourbillon.trb_test import t_equipe, t_tournoi, t_4eq_par_manche
 
 TESTS = [t_equipe.TestEquipeVide,
          t_equipe.TestEquipeComplete,
@@ -16,7 +15,12 @@ TESTS = [t_equipe.TestEquipeVide,
          t_tournoi.TestCreationTournoi,
          t_tournoi.TestInscriptionTournoi,
          t_tournoi.TestEnregistrerTournoi,
-         t_tournoi.TestChargerTournoi]
+         t_tournoi.TestChargerTournoi,
+         t_4eq_par_manche.TestCreerTournoi,
+         t_4eq_par_manche.TestAjoutParie1,
+#         t_4eq_par_manche.TestAjoutParie2,
+#         t_4eq_par_manche.TestAjoutParie3,
+         t_tournoi.TestEnregistrerTournoi]
 
 
 def suite():
@@ -25,4 +29,4 @@ def suite():
         l.append(unittest.TestLoader().loadTestsFromTestCase(test))
     return unittest.TestSuite(l)
 
-unittest.TextTestRunner(verbosity = 2).run(suite())
+unittest.TextTestRunner(verbosity=2).run(suite())

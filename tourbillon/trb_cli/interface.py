@@ -13,7 +13,7 @@ import tourbillon
 from tourbillon.trb_cli.interpreteur import Interpreteur
 from tourbillon.trb_cli import progression
 from tourbillon.trb_cli import terminal
-from tourbillon.trb_core import tournois, joueurs
+from tourbillon.trb_core import tournoi, joueur
 from tourbillon.trb_core import tirages
 from tourbillon import images
 from tourbillon.trb_core import constantes as cst
@@ -224,8 +224,8 @@ Le système d'alias est composé des fonctions suivantes:\n"""
         joueurs_par_equipe = self.config.getint("TOURNOI", "joueurs_par_equipe")
         points_par_manche = self.config.getint("TOURNOI", "points_par_manche")
 
-        self._inter_environ['T'] = tournois.nouveau_tournoi(equipes_par_manche, points_par_manche, joueurs_par_equipe)
-        return tournois.tournoi()
+        self._inter_environ['T'] = tournoi.nouveau_tournoi(equipes_par_manche, points_par_manche, joueurs_par_equipe)
+        return tournoi.tournoi()
 
     def alias_charger(self, args_s=''):
         u"""
@@ -239,12 +239,12 @@ Le système d'alias est composé des fonctions suivantes:\n"""
             args_s = question(u"Fichier: ")
 
         if args_s != '':
-            self._inter_environ['T'] = tournois.charger_tournoi(args_s)
-            return tournois.tournoi()
+            self._inter_environ['T'] = tournoi.charger_tournoi(args_s)
+            return tournoi.tournoi()
 
     def alias_enregistrer(self, args_s=''):
         u"""
-        Enregistrer le tournois en cours.
+        Enregistrer le tournoi en cours.
         
         Les données d'un tournoi sont enregistées dans un fichier texte au format
         YAML ce qui permet une lecture et modification aisée. Cependant la modification
@@ -258,26 +258,26 @@ Le système d'alias est composé des fonctions suivantes:\n"""
             <fichier>        : fichier à enregistrer
         """
         if args_s == '':
-            if tournois.FICHIER_TOURNOI is not None:
-                args_s = tournois.FICHIER_TOURNOI
-                tournois.enregistrer_tournoi()
+            if tournoi.FICHIER_TOURNOI is not None:
+                args_s = tournoi.FICHIER_TOURNOI
+                tournoi.enregistrer_tournoi()
             else:
                 args_s = question(u"Fichier: ")
                 if args_s != '':
-                    tournois.enregistrer_tournoi(args_s)
+                    tournoi.enregistrer_tournoi(args_s)
         else:
-            tournois.enregistrer_tournoi(args_s)
+            tournoi.enregistrer_tournoi(args_s)
 
         if args_s != '':
             print u"Enregistré (%s)" % args_s
             # Enregistrer l'historique joueurs
-            joueurs.enregistrer_historique()
+            joueur.enregistrer_historique()
 
     def alias_tirage(self, args_s=''):
         u"""
         Créer un nouveau tirage
         """
-        if not tournois.tournoi():
+        if not tournoi.tournoi():
             print u"Pas de tournoi commencé."
         else:
             t = question(u"Catégorie %s: " % tirages.TIRAGES.keys())
@@ -296,7 +296,7 @@ Le système d'alias est composé des fonctions suivantes:\n"""
                 else:
                     exclues = eval(exclues)
 
-                stat = tournois.tournoi().statistiques(exclues)
+                stat = tournoi.tournoi().statistiques(exclues)
 
 
                 p = progression.BarreProgression('blue', largeur=60, vide='_')
@@ -312,7 +312,7 @@ Le système d'alias est composé des fonctions suivantes:\n"""
                         print u"Chapeaux: ", resultat['chapeaux']
                         print u"Validé  : ", erreur
 
-                tir = tirages.tirage(t, tournois.tournoi().equipes_par_manche, stat, chap, printResulat)
+                tir = tirages.tirage(t, tournoi.tournoi().equipes_par_manche, stat, chap, printResulat)
 
                 if t == u"aleatoire_ag":
                     tir.configurer(optimum=0)
@@ -337,7 +337,7 @@ Le système d'alias est composé des fonctions suivantes:\n"""
                 manches = eval(manches)
                 for manche in manches:
                     map(equipes.append, manche)
-                for equipe in tournois.tournoi().equipes():
+                for equipe in tournoi.tournoi().equipes():
                     if equipe.numero not in equipes and equipe.numero not in chap:
                         exclues.append(equipe.numero)
                 return manches
@@ -348,11 +348,11 @@ Le système d'alias est composé des fonctions suivantes:\n"""
             Le 4ème argument indique qu'il ne faut pas enregistrer
             l'heure actuelle comme heure de fin.
         """
-        if not tournois.tournoi():
+        if not tournoi.tournoi():
             print u"Pas de tournoi commencé."
-        elif not tournois.tournoi().partie_courante():
+        elif not tournoi.tournoi().partie_courante():
             print u"Aucune partie démarrée"
-        elif tournois.tournoi().partie_courante().statut == cst.P_NON_DEMARREE:
+        elif tournoi.tournoi().partie_courante().statut == cst.P_NON_DEMARREE:
             print u"Le tirage n'a pas été fait."
         else:
             r = question(u"Resultat (ex: 4 12): ")
@@ -362,14 +362,14 @@ Le système d'alias est composé des fonctions suivantes:\n"""
             pts = int(float(r[1]))
             d[num] = pts
 
-            manche = tournois.tournoi().equipe(num).resultat(tournois.tournoi().partie_courante().numero)['adversaires']
+            manche = tournoi.tournoi().equipe(num).resultat(tournoi.tournoi().partie_courante().numero).adversaires
             for num in manche:
                 r = question(u"Points équipe n°%s: " % num)
                 r = r.strip()
                 pts = int(float(r))
                 d[num] = pts
 
-            if tournois.tournoi().equipe(num).resultat(tournois.tournoi().partie_courante().numero)['duree'] != None:
+            if tournoi.tournoi().equipe(num).resultat(tournoi.tournoi().partie_courante().numero).duree != None:
                 r = question(u"Enregistrer l'heure de fin? (o / n) ")
                 if r.strip() in ['o', 'oui', 'y', 'yes']:
                     fin = datetime.now()
@@ -378,7 +378,7 @@ Le système d'alias est composé des fonctions suivantes:\n"""
             else:
                 fin = datetime.now()
 
-            tournois.tournoi().partie_courante().resultat(d, fin)
+            tournoi.tournoi().partie_courante().resultat(d, fin)
 
     def alias_quitter(self, args_s=''):
         u"""
@@ -395,10 +395,10 @@ class TourBillonCLI(Alias):
         self.config = config
         self.nom = '__cli__'
         self._quitter = False
-        self._inter_environ = {self.nom:self, '__trn__':tournois, '__cfg__':config}
+        self._inter_environ = {self.nom:self, '__trn__':tournoi, '__cfg__':config}
         self._inter = Interpreteur(self, self._inter_environ)
         self._inter.charger_historique(config.get('INTERFACE', 'historique'))
-        joueurs.charger_historique(config.get('TOURNOI', 'historique'))
+        joueur.charger_historique(config.get('TOURNOI', 'historique'))
 
         # interpreter prompt.
         try:
@@ -454,6 +454,6 @@ type `%licence' for details.
             sys.exit(1)
 
     def ouvrir(self, fichier):
-        tournois.charger_tournoi(fichier)
-        self._inter_environ['T'] = tournois.tournoi()
-        print tournois.tournoi()
+        tournoi.charger_tournoi(fichier)
+        self._inter_environ['T'] = tournoi.tournoi()
+        print tournoi.tournoi()

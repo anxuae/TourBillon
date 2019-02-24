@@ -8,8 +8,8 @@ import wx
 import string
 from  wx.lib import scrolledpanel as scrolled
 
-from tourbillon.trb_core import joueurs
-from tourbillon.trb_core import tournois
+from tourbillon.trb_core import joueur
+from tourbillon.trb_core import tournoi
 from tourbillon.trb_core import constantes as cst
 
 #--- Varibles globales ---------------------------------------------------------
@@ -107,7 +107,7 @@ class EntrerJoueur(wx.Panel):
     def completer(self, event):
         if self._completion:
             if self._cmp:
-                c = joueurs.NomCompleteur()
+                c = joueur.NomCompleteur()
                 prenom, nom, age, date = c.completer(self.ctl_prenom.GetValue(), self.ctl_nom.GetValue())
 
                 if prenom != u"":
@@ -206,7 +206,7 @@ class EntrerNumero(wx.Panel):
         else:
             if self.ctl_numero.GetValue() != u"":
                 try:
-                    tournois.tournoi().equipe(int(self.ctl_numero.GetValue()))
+                    tournoi.tournoi().equipe(int(self.ctl_numero.GetValue()))
                     return False
                 except:
                     return True
@@ -231,7 +231,7 @@ class DialogueEquipe(wx.Dialog):
         # Panel avec les entrées des joueurs
         self.panel = scrolled.ScrolledPanel(self, wx.ID_ANY, style=wx.TAB_TRAVERSAL)
         box_panel = wx.BoxSizer(wx.VERTICAL)
-        for i in range(tournois.tournoi().joueurs_par_equipe):
+        for i in range(tournoi.tournoi().joueurs_par_equipe):
             e = EntrerJoueur(self.panel)
             e.activer_completion(completion)
             self.entrees.append(e)
@@ -284,7 +284,7 @@ class DialogueEquipe(wx.Dialog):
     def _maj(self, event):
         num = int(self.txt_numero.numero())
         i = 0
-        for joueur in tournois.tournoi().equipe(num).joueurs():
+        for joueur in tournoi.tournoi().equipe(num).joueurs():
             self.entrees[i].chg_joueur(joueur.prenom, joueur.nom, joueur.age)
             i += 1
         if event:
@@ -316,7 +316,7 @@ class DialogueMessageEquipe(wx.Dialog):
 
         texte = u"La partie n° %s est en cours, pour toutes les parties précédentes l'équipe\n\
 sera considérée comme forfait, choisissez l'état de l'équipe n° %s pour la\n\
-partie en cours:" % (tournois.tournoi().partie_courante().numero, equipe)
+partie en cours:" % (tournoi.tournoi().partie_courante().numero, equipe)
         self.txt_info = wx.StaticText(self, wx.ID_ANY, texte, size=wx.Size(-1, 200))
         self.chx_etat = wx.Choice(self, ID_NUMERO, choices=[cst.FORFAIT, cst.CHAPEAU])
         self.chk_cree_manche = wx.CheckBox(self, wx.ID_ANY, "Créer une manche avec les équipes chapeaux si possible.")

@@ -106,6 +106,9 @@ class ThreadTirage(BaseThreadTirage):
         self.categorie = u"aleatoire_ag"
         self._env = None
 
+        # Parametres par défaut de l'algorithme
+        self.configurer(**dict([(cle.lower(), valeur) for cle, valeur in DEFAUT.iteritems()]))
+
     def demarrer(self):
         nb_eq = len(self.statistiques)
         nb_chapeaux = nb_chapeaux_necessaires(nb_eq, self.equipes_par_manche)
@@ -144,7 +147,7 @@ class ThreadTirage(BaseThreadTirage):
         self._env.run()
 
         self.tirage = creer_manches(self._env.elite.chromosome, self.equipes_par_manche)
-        self.rapport(99, tirage_texte(self.statistiques, self.tirage))
+        self.rapport(message=tirage_texte(self.statistiques, self.tirage))
 
         # Verification de la pertinence de la solution
         if self._env.elite.score >= 1e36:

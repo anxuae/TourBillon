@@ -3,11 +3,11 @@
 
 import unittest
 from datetime import datetime, timedelta
-from tourbillon.trb_core import tournois
-from tourbillon.trb_core import equipes
+from tourbillon.trb_core import tournoi
+from tourbillon.trb_core import equipe
 from tourbillon.trb_core.exceptions import FichierError, NumeroError, StatutError, LimiteError
 from tourbillon.trb_core.constantes import (CHAPEAU, GAGNE, PERDU, FORFAIT,
-                                            E_INCOMPLETE, E_ATTEND_TIRAGE, E_MANCHE_EN_COURS)
+                                            E_INCOMPLETE, E_ATTEND_TIRAGE, E_JOUE)
 
 # Donnée de l'équipe 1 servant pour le test
 from tourbillon.trb_test.data import EQUIPES_PAR_MANCHE, POINTS_PAR_MANCHE, JOUEURS_PAR_EQUIPE
@@ -15,15 +15,15 @@ from tourbillon.trb_test.data import STATISTIQUES_1 as STATISTIQUES
 from tourbillon.trb_test.data import PARTIES_1 as PARTIES
 from tourbillon.trb_test.data import JOUEURS_1 as JOUEURS
 
-EQUIPE = equipes.Equipe(tournois.Tournoi(EQUIPES_PAR_MANCHE, POINTS_PAR_MANCHE, JOUEURS_PAR_EQUIPE), 1)
+EQUIPE = equipe.Equipe(tournoi.Tournoi(EQUIPES_PAR_MANCHE, POINTS_PAR_MANCHE, JOUEURS_PAR_EQUIPE), 1)
 
 STAT0 = {'adversaires' : [], 'points' : 0, 'victoires' : 0, 'forfaits' : 0, 'parties' : 0, 'chapeaux' : 0,
          'moy_billon' : 0, 'min_billon' : 0, 'max_billon' : 0,
          'moy_duree' : timedelta(0), 'min_duree' : timedelta(0), 'max_duree' : timedelta(0)}
 
-def test_statistiques(self, adversaires = [], points = 0, victoires = 0, forfaits = 0, parties = 0, chapeaux = 0,
-                      moy_billon = 0, min_billon = 0, max_billon = 0,
-                      moy_duree = timedelta(0), min_duree = timedelta(0), max_duree = timedelta(0)):
+def test_statistiques(self, adversaires=[], points=0, victoires=0, forfaits=0, parties=0, chapeaux=0,
+                      moy_billon=0, min_billon=0, max_billon=0,
+                      moy_duree=timedelta(0), min_duree=timedelta(0), max_duree=timedelta(0)):
 
     self.assertEqual(EQUIPE.adversaires(), adversaires)
     self.assertEqual(EQUIPE.total_points(), points)
@@ -47,9 +47,9 @@ class TestEquipeVide(unittest.TestCase):
         self.assertEqual(EQUIPE.nb_joueurs(), 0)
 
     def test03_statistiques(self):
-        test_statistiques(self, adversaires = [], points = 0, victoires = 0, forfaits = 0, parties = 0, chapeaux = 0,
-                                moy_billon = 0, min_billon = 0, max_billon = 0,
-                                moy_duree = timedelta(0), min_duree = timedelta(0), max_duree = timedelta(0))
+        test_statistiques(self, adversaires=[], points=0, victoires=0, forfaits=0, parties=0, chapeaux=0,
+                                moy_billon=0, min_billon=0, max_billon=0,
+                                moy_duree=timedelta(0), min_duree=timedelta(0), max_duree=timedelta(0))
 
 class TestEquipeComplete(unittest.TestCase):
 
@@ -64,9 +64,9 @@ class TestEquipeComplete(unittest.TestCase):
         self.assertEqual(EQUIPE.nb_joueurs(), JOUEURS_PAR_EQUIPE)
 
     def test04_statistiques(self):
-        test_statistiques(self, adversaires = [], points = 0, victoires = 0, forfaits = 0, parties = 0, chapeaux = 0,
-                                moy_billon = 0, min_billon = 0, max_billon = 0,
-                                moy_duree = timedelta(0), min_duree = timedelta(0), max_duree = timedelta(0))
+        test_statistiques(self, adversaires=[], points=0, victoires=0, forfaits=0, parties=0, chapeaux=0,
+                                moy_billon=0, min_billon=0, max_billon=0,
+                                moy_duree=timedelta(0), min_duree=timedelta(0), max_duree=timedelta(0))
 
 class TestPartie(unittest.TestCase):
     num = 0
@@ -75,7 +75,7 @@ class TestPartie(unittest.TestCase):
         if PARTIES[self.num]['etat'] != FORFAIT and PARTIES[self.num]['etat'] != CHAPEAU:
             # L'état est inconnu et la manche est en cours
             self.etat = None
-            self.statut = E_MANCHE_EN_COURS
+            self.statut = E_JOUE
             self.fin = PARTIES[self.num]['debut'] + PARTIES[self.num]['duree']
         else:
             # L'équipe est CHAPEAU ou FORFAIT
@@ -87,10 +87,10 @@ class TestPartie(unittest.TestCase):
         self.assertEqual(EQUIPE.statut, E_ATTEND_TIRAGE)
 
     def test02_ajout_partie(self):
-        EQUIPE._ajout_partie(PARTIES[self.num]['debut'], PARTIES[self.num]['adversaires'], self.etat)
+        EQUIPE._ajout_partie(PARTIES[self.num]['debut'], PARTIES[self.num]['adversaires'], self.etat, 1)
         if PARTIES[self.num]['etat'] != FORFAIT and PARTIES[self.num]['etat'] != CHAPEAU:
             # L'état est inconnu et la manche est en cours
-            self.assertRaises(StatutError, EQUIPE._ajout_partie, PARTIES[self.num]['debut'], PARTIES[self.num]['adversaires'], None)
+            self.assertRaises(StatutError, EQUIPE._ajout_partie, PARTIES[self.num]['debut'], PARTIES[self.num]['adversaires'], None, 1)
 
     def test03_statut(self):
         """
@@ -106,10 +106,10 @@ class TestPartie(unittest.TestCase):
             else:
                 stat = STATISTIQUES[num_av]
 
-            test_statistiques(self, adversaires = STATISTIQUES[self.num]['adversaires'], points = stat['points'], victoires = stat['victoires'],
-                                    forfaits = stat['forfaits'], parties = STATISTIQUES[self.num]['parties'], chapeaux = stat['chapeaux'],
-                                    moy_billon = stat['moy_billon'], min_billon = stat['min_billon'], max_billon = stat['max_billon'],
-                                    moy_duree = stat['moy_duree'], min_duree = stat['min_duree'], max_duree = stat['max_duree'])
+            test_statistiques(self, adversaires=STATISTIQUES[self.num]['adversaires'], points=stat['points'], victoires=stat['victoires'],
+                                    forfaits=stat['forfaits'], parties=STATISTIQUES[self.num]['parties'], chapeaux=stat['chapeaux'],
+                                    moy_billon=stat['moy_billon'], min_billon=stat['min_billon'], max_billon=stat['max_billon'],
+                                    moy_duree=stat['moy_duree'], min_duree=stat['min_duree'], max_duree=stat['max_duree'])
         else:
             test_statistiques(self, **STATISTIQUES[self.num])
 

@@ -9,7 +9,7 @@ from  wx.lib import scrolledpanel as scrolled
 
 from tourbillon.trb_gui import dlgequipe as dlgeq
 
-from tourbillon.trb_core import tournois
+from tourbillon.trb_core import tournoi
 from tourbillon.trb_core.tirages import utile
 from tourbillon.trb_core import constantes as cst
 
@@ -72,16 +72,19 @@ class DialogueResultat(wx.Dialog):
 
         self.entrees = []
         self.numero_partie = numero_partie
-        self.tirage = tournois.tournoi().partie(self.numero_partie).tirage()
+        self.tirage = tournoi.tournoi().partie(self.numero_partie).tirage()
+
+        # Numero de piquet
+        self.lbl_piquet = wx.StaticText(self, wx.ID_ANY, u"", style=wx.ALIGN_CENTER)
+        self.lbl_piquet.SetForegroundColour(wx.Color(0, 0, 200))
 
         # Panel avec les entrées des équipes
         self.panel = scrolled.ScrolledPanel(self, wx.ID_ANY, style=wx.TAB_TRAVERSAL)
         box_panel = wx.BoxSizer(wx.VERTICAL)
-        for i in range(tournois.tournoi().equipes_par_manche):
+
+        for i in range(tournoi.tournoi().equipes_par_manche):
             if i == 0:
                 liste = utile.creer_liste(self.tirage)
-                for chap in tournois.tournoi().partie(self.numero_partie).chapeaux():
-                    liste.remove(chap)
                 e = EntrerScore(self.panel, sorted(liste))
                 e.chg_numero(numero_affiche)
             else:
@@ -106,6 +109,8 @@ class DialogueResultat(wx.Dialog):
 
         # Assembler
         box = wx.BoxSizer(wx.VERTICAL)
+        box.AddSpacer((-1, 10), 0, wx.EXPAND)
+        box.Add(self.lbl_piquet, 0, wx.EXPAND)
         box.Add(self.panel, 1, wx.EXPAND)
         box.Add(self.chx_fin, 0, wx.EXPAND | wx.LEFT, 14)
         box.AddSizer(box_btn, 0, wx.EXPAND)
@@ -115,7 +120,8 @@ class DialogueResultat(wx.Dialog):
         self._selection_equipe(None)
         self.verifier(None)
 
-        hauteur_necessaire = (self.entrees[0].GetSize()[1] + 15) * len(self.entrees) + 100
+        hauteur_necessaire = 10 + self.lbl_piquet.GetSizeTuple()[1] + \
+                            (self.entrees[0].GetSize()[1] + 15) * len(self.entrees) + 100
         if hauteur_necessaire < wx.GetDisplaySize()[1]:
             self.SetSize(wx.Size(280, hauteur_necessaire))
         else:
@@ -131,15 +137,21 @@ class DialogueResultat(wx.Dialog):
                 break
         i = 1
         for equipe in manche:
-            points = tournois.tournoi().equipe(equipe).resultat(self.numero_partie)['points']
+            m = tournoi.tournoi().equipe(equipe).resultat(self.numero_partie)
+
             if equipe == num:
-                self.entrees[0].chg_points(points)
+                self.entrees[0].chg_points(m.points)
             else:
                 self.entrees[i].chg_numero(equipe)
-                self.entrees[i].chg_points(points)
+                self.entrees[i].chg_points(m.points)
                 i += 1
 
-        if tournois.tournoi().equipe(self.entrees[0].numero()).resultat(self.numero_partie)['duree'] is None:
+        # Piquet (identique pour toutes les équipes)
+        piquet = m.piquet
+        self.lbl_piquet.SetLabel(u"Piquet %s" % piquet)
+        self.Layout()
+
+        if m.statut == cst.M_EN_COURS:
             self.chx_fin.SetValue(True)
             self.chx_fin.Disable()
         else:
@@ -165,7 +177,7 @@ class DialogueResultat(wx.Dialog):
 
         if len(valeurs) == len(self.entrees):
             m = max(valeurs)
-            if m < tournois.tournoi().points_par_manche:
+            if m < tournoi.tournoi().points_par_manche:
                 self.btn_ok.Disable()
             else:
                 self.btn_ok.Enable()

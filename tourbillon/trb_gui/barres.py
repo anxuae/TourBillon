@@ -12,6 +12,7 @@ from tourbillon.trb_core import constantes as cst
 
 #--- Variables Globales --------------------------------------------------------
 
+ID_STATISTIQUES = wx.NewId()
 ID_INFO = wx.NewId()
 ID_TIRAGE = wx.NewId()
 ID_NOUVELLE_E = wx.NewId()
@@ -164,6 +165,7 @@ class BarreMenu(wx.MenuBar):
 
         # Menu affichage
         self.menu_affichage = wx.Menu()
+        self.menu_affichage.Append(ID_STATISTIQUES, u"Statistiques tournoi", u"  Afficher les statistiques du tournoi", wx.ITEM_CHECK)
         self.menu_affichage.Append(ID_INFO, u"&Infos Equipes", u"  Afficher les informations des joueurs", wx.ITEM_CHECK)
         self.menu_affichage.Append(ID_TIRAGE, u"&Tirages", u"  Afficher les tirages")
 
@@ -287,7 +289,7 @@ class BarreBouton(bp.ButtonPanel):
         self.box_chercher = wx.SearchCtrl(self, wx.ID_FIND, size=(200, -1), style=wx.TE_PROCESS_ENTER)
 
         menu = wx.Menu()
-        titres = [t[0] for t in grl.TITRES if t[0] != u""]
+        titres = [t[0] for t in grl.TITRES['partie'] if t[0] != u""] + [t[0] for t in grl.TITRES['statistiques'] if t[0] != u""]
         for texte in titres:
             menu.Append(wx.ID_ANY, texte, "" , wx.ITEM_RADIO)
         self.box_chercher.SetMenu(menu)
@@ -356,8 +358,9 @@ class BarreBouton(bp.ButtonPanel):
                 control.Enable(styles[st])
         self.SetBarText(texte)
         self.DoLayout()
+        self.txt_partie.Refresh()
 
-    def partie(self):
+    def numero(self):
         return int(float(self.txt_partie.GetLabelText()))
 
     def chg_partie(self, valeur=0):
@@ -392,26 +395,27 @@ class Voyant(object):
         self.Layout()
 
     def Layout(self):
-        rect = self.parent.GetFieldRect(4)
-        self._image.SetPosition((rect.x + 4, rect.y + 1))
+        rect = self.parent.GetFieldRect(5)
+        self._image.SetPosition((rect.x + 5, rect.y + 1))
         self.parent.Refresh()
 
 class BarreEtat(wx.StatusBar):
     def __init__(self, parent):
         wx.StatusBar.__init__(self, parent)
-        self.SetFieldsCount(5)
-        self.SetStatusWidths([-1, 180, 140, 140, 35])
-        self.SetStatusText(u"", 4)
+        self.SetFieldsCount(6)
+        self.SetStatusWidths([-1, 180, 100, 100, 200, 35])
+        self.SetStatusText(u"", 5)
 
         self._voyant_modif = Voyant(self)
         self.Bind(wx.EVT_SIZE, self.reDim, self)
 
-    def _rafraichir(self, debut, equipes, parties , modifie):
+    def _rafraichir(self, debut, parties, equipes, manches_incompletes, modifie):
         """
         NE PAS UTILISER !!!!! (Manipulé par la fenêtre principale)
         """
-        self.SetStatusText(u"  Nombre de parties : %s" % parties, 3)
-        self.SetStatusText(u"  Nombre d'équipes : %s" % equipes, 2)
+        self.SetStatusText(u"  Manches incompletes : %s" % manches_incompletes, 4)
+        self.SetStatusText(u"  Equipes : %s" % equipes, 3)
+        self.SetStatusText(u"  Parties : %s" % parties, 2)
         self.SetStatusText(u"  Début du tournoi : %s" % debut, 1)
         self._voyant_modif.change(modifie)
 
