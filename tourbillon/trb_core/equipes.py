@@ -14,8 +14,6 @@ from tourbillon.trb_core.constantes import (CHAPEAU, GAGNE, PERDU, FORFAIT,
 #--- Classes -------------------------------------------------------------------
 
 class Equipe(object):
-    cmp_avec_duree = False
-
     def __init__(self, parent, numero):
         self.tournoi = parent
         self._num = int(numero)
@@ -32,9 +30,7 @@ class Equipe(object):
             
             Statut    : %s
         """
-        noms = ""
-        for joueur in self._liste_joueurs:
-            noms = noms + joueur.prenom + " " + joueur.nom + " / "
+        noms = " / ".join([" ".join([joueur.prenom, joueur.nom]) for joueur in self._liste_joueurs])
         return texte % (self.numero, noms,
                         self.total_points(),
                         self.total_victoires(),
@@ -52,31 +48,7 @@ class Equipe(object):
         else:
             return - 1
 
-    def comparer(self, other):
-        if type(other) != Equipe:
-            raise TypeError, u"Une équipe doit être comparée à une autre."
-
-        if self.total_victoires() + self.total_chapeaux() > other.total_victoires() + other.total_chapeaux():
-            return 1
-        elif self.total_victoires() + self.total_chapeaux() == other.total_victoires() + other.total_chapeaux():
-            if self.total_points() > other.total_points():
-                return 1
-            elif self.total_points() == other.total_points():
-                if Equipe.cmp_avec_duree:
-                    if self.moyenne_duree() < other.moyenne_duree() :
-                        return 1
-                    elif self.moyenne_duree() == other.moyenne_duree():
-                        return 0
-                    elif self.moyenne_duree() > other.moyenne_duree() :
-                        return - 1
-                else:
-                    return 0
-            elif self.total_points() < other.total_points():
-                return - 1
-        elif self.total_victoires() + self.total_chapeaux() < other.total_victoires() + other.total_chapeaux():
-            return - 1
-
-    def _ajout_partie(self, debut, adversaires = [], etat = None):
+    def _ajout_partie(self, debut, adversaires=[], etat=None):
         """
         Ajouter des résultats par défault pour l'équipe à la partie donnée.
         NE PAS UTILISER !!!!! (Manipulé par les objets Tournoi et Partie)
@@ -117,7 +89,7 @@ class Equipe(object):
         else:
             self._resultats.pop(num_partie - 1)
 
-    def _modif_partie(self, num_partie, points = None, etat = None, fin = None):
+    def _modif_partie(self, num_partie, points=None, etat=None, fin=None):
         """
         Modifier les résultats de l'équipe à la partie donnée.
         NE PAS UTILISER !!!!! (Manipulé par les objets Tournoi et Partie)
@@ -187,7 +159,7 @@ class Equipe(object):
     def joueurs(self):
         return self._liste_joueurs
 
-    def ajout_joueur(self, prenom, nom, age = ''):
+    def ajout_joueur(self, prenom, nom, age=''):
         if self.tournoi.joueurs_par_equipe < len(self._liste_joueurs) + 1:
             raise LimiteError, u"Il ne peut y avoir plus de %s joueurs par équipe." % self.tournoi.joueurs_par_equipe
 
@@ -210,7 +182,7 @@ class Equipe(object):
         else:
             return self._resultats[num_partie - 1]
 
-    def adversaires(self, partie_limite = None):
+    def adversaires(self, partie_limite=None):
         if partie_limite is None:partie_limite = len(self._resultats)
         l = []
         for resultat in self._resultats[:partie_limite]:
@@ -219,7 +191,7 @@ class Equipe(object):
 
         return l
 
-    def manches(self, partie_limite = None):
+    def manches(self, partie_limite=None):
         if partie_limite is None:partie_limite = len(self._resultats)
         l = []
         for resultat in self._resultats[:partie_limite]:
@@ -230,38 +202,38 @@ class Equipe(object):
 
         return l
 
-    def total_points(self, partie_limite = None):
+    def total_points(self, partie_limite=None):
         if partie_limite is None:partie_limite = len(self._resultats)
 
         l = [resultat['points'] for resultat in self._resultats[:partie_limite]]
         return sum(l)
 
-    def total_victoires(self, partie_limite = None):
+    def total_victoires(self, partie_limite=None):
         if partie_limite is None:partie_limite = len(self._resultats)
 
         l = [resultat['etat'] for resultat in self._resultats[:partie_limite] if resultat['etat'] == GAGNE]
         return len(l)
 
-    def total_forfaits(self, partie_limite = None):
+    def total_forfaits(self, partie_limite=None):
         if partie_limite is None:partie_limite = len(self._resultats)
 
         l = [resultat['etat'] for resultat in self._resultats[:partie_limite] if resultat['etat'] == FORFAIT]
         return len(l)
 
-    def total_chapeaux(self, partie_limite = None):
+    def total_chapeaux(self, partie_limite=None):
         if partie_limite is None:partie_limite = len(self._resultats)
 
         l = [resultat['etat'] for resultat in self._resultats[:partie_limite] if resultat['etat'] == CHAPEAU]
         return len(l)
 
-    def total_parties(self, partie_limite = None):
+    def total_parties(self, partie_limite=None):
         if partie_limite is None:partie_limite = len(self._resultats)
 
         # Les parties FORFAIT ne sont pas prises en compte
         l = [resultat['etat'] for resultat in self._resultats[:partie_limite] if resultat['etat'] != FORFAIT]
         return len(l)
 
-    def moyenne_billon(self, partie_limite = None):
+    def moyenne_billon(self, partie_limite=None):
         if partie_limite is None:partie_limite = len(self._resultats)
         pts = self.total_points(partie_limite)
 
@@ -272,7 +244,7 @@ class Equipe(object):
         else:
             return round(pts * 1.0 / parties, 2)
 
-    def min_billon(self, partie_limite = None):
+    def min_billon(self, partie_limite=None):
         if partie_limite is None:partie_limite = len(self._resultats)
 
         # Résultat des parties FORFAIT et de la partie incompléte ne sont pas pris en compte
@@ -282,7 +254,7 @@ class Equipe(object):
         else:
             return min(l)
 
-    def max_billon(self, partie_limite = None):
+    def max_billon(self, partie_limite=None):
         if partie_limite is None:partie_limite = len(self._resultats)
 
         l = [resultat['points'] for resultat in self._resultats[:partie_limite]]
@@ -291,7 +263,7 @@ class Equipe(object):
         else:
             return max(l)
 
-    def moyenne_duree(self, partie_limite = None):
+    def moyenne_duree(self, partie_limite=None):
         if partie_limite is None:partie_limite = len(self._resultats)
 
         # Résultat des parties FORFAIT, CHAPEAU et de la partie incompléte ne sont pas pris en compte
@@ -304,7 +276,7 @@ class Equipe(object):
                 r += t
             return r / len(l)
 
-    def min_duree(self, partie_limite = None):
+    def min_duree(self, partie_limite=None):
         if partie_limite is None:partie_limite = len(self._resultats)
 
         # Résultat des parties FORFAIT, CHAPEAU et de la partie incompléte ne sont pas pris en compte
@@ -314,7 +286,7 @@ class Equipe(object):
         else:
             return min(l)
 
-    def max_duree(self, partie_limite = None):
+    def max_duree(self, partie_limite=None):
         if partie_limite is None:partie_limite = len(self._resultats)
 
         # Résultat des parties FORFAIT, CHAPEAU et de la partie incompléte ne sont pas pris en compte

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
 
-__doc__ = """Définitions des équipes."""
+__doc__ = """Définitions des parties."""
 
 #--- Import --------------------------------------------------------------------
 
@@ -47,7 +47,7 @@ class Partie(object):
 
     def numero():
         """
-        Retourne le numero de la partie.
+        Retourne le numéro de la partie.
         """
         def fget(self):
             if self in self.tournoi.parties():
@@ -64,8 +64,9 @@ class Partie(object):
                 return P_NON_DEMARREE
             else:
                 for equipe in self.tournoi.equipes():
-                    if equipe.statut == E_MANCHE_EN_COURS:
+                    if equipe.statut == E_MANCHE_EN_COURS and self == self.tournoi.partie_courante():
                         return P_EN_COURS
+
                 if self == self.tournoi.partie_courante():
                     return P_COMPLETE
                 else:
@@ -111,24 +112,18 @@ class Partie(object):
                         map(l.append, list(res['adversaires']))
                     except NumeroError, e:
                         res = None
-                        if self.numero_erreur_resultat:
-                            print u"La partie n°%s n'est pas définie pour l'équipe n°%s. Le tournoi est peut être corrompu." % (self.numero, equipe.numero)
-                            self.numero_erreur_resultat = False
+                        print u"La partie n°%s n'est pas définie pour l'équipe n°%s. Le tournoi est peut être corrompu." % (self.numero, equipe.numero)
 
                     if res is not None:
                         if res['adversaires'] != []:
-                            manches.append([equipe.numero] + res['adversaires'])
+                            manches.append(sorted([equipe.numero] + res['adversaires']))
                         elif res['etat'] == CHAPEAU:
                             manche_chapeau.append(equipe.numero)
 
             if len(manche_chapeau) != 0:
-                if len(manche_chapeau) < self.tournoi.equipes_par_manche:
-                    nb_ajout = self.tournoi.equipes_par_manche - len(manche_chapeau)
-                    for i in range(nb_ajout):
-                        manche_chapeau.append(CHAPEAU)
-                else:
+                if len(manche_chapeau) >= self.tournoi.equipes_par_manche:
                     raise IncoherenceError, u"Le nombre de chapeaux pour la partie n°% est incorrect (%s chapeaux)" % (self.numero, len(manche_chapeau))
-                manches.append(manche_chapeau)
+                manches.append(sorted(manche_chapeau))
 
         return manches
 
@@ -138,7 +133,7 @@ class Partie(object):
             for num in self.equipes():
                 res = self.tournoi.equipe(num).resultat(self.numero)
                 if res['etat'] == CHAPEAU:
-                    chapeaux.append(equipe.numero)
+                    chapeaux.append(num)
         chapeaux.sort()
         return chapeaux
 
@@ -163,6 +158,14 @@ class Partie(object):
             equipes.sort()
         return equipes
 
+    def equipes_incompletes(self):
+        liste = []
+        for equipe in self.tournoi.equipes():
+            if equipe.statut == E_MANCHE_EN_COURS:
+                liste.append(equipe.numero)
+
+        return liste
+
     def adversaires(self, num_equipe):
         l = []
         if self.statut != P_NON_DEMARREE:
@@ -174,7 +177,7 @@ class Partie(object):
         l.sort()
         return l
 
-    def demarrer(self, tirage, chapeaux = []):
+    def demarrer(self, manches, chapeaux=[]):
         if self.statut != P_NON_DEMARREE:
             if self.statut == P_TERMINEE:
                 raise StatutError, u"La partie n°%s est terminée." % self.numero
@@ -185,7 +188,7 @@ class Partie(object):
 
         l = []
         # Ajout des manches
-        for manche in tirage:
+        for manche in manches:
             for num in manche:
                 l.append(num)
                 adversaires = [equipe for equipe in manche if equipe != num]
@@ -194,23 +197,23 @@ class Partie(object):
         # Ajout des chapeaux
         for num in chapeaux:
             l.append(num)
-            self.tournoi.equipe(num)._ajout_partie(debut, etat = CHAPEAU)
+            self.tournoi.equipe(num)._ajout_partie(debut, etat=CHAPEAU)
 
         # Ajout des forfaits
         for equipe in self.tournoi.equipes():
             if equipe.numero not in l:
-                equipe._ajout_partie(debut, etat = FORFAIT)
+                equipe._ajout_partie(debut, etat=FORFAIT)
 
         self.tournoi.modifie = True
 
-    def ajout_equipe(self, equipe, etat, creer_manche_si_possible = True):
+    def ajout_equipe(self, equipe, etat, creer_manche_si_possible=True):
         if type(equipe) == int:
             equipe = self.tournoi.equipe(equipe)
 
         if self.statut == P_NON_DEMARREE:
             raise StatutError, u"La partie n°%s n'est pas démarrée (utiliser 'demarrer')." % self.numero
         if equipe.numero in self.equipes():
-            raise NumeroError, u"L'équipe n°%s participe déjà à cette partie." % equipe.numero
+            raise NumeroError, u"L'équipe n°%s participe déjà à cette partie." % equipe.numero
         if etat not in [FORFAIT, CHAPEAU]:
             raise ResultatError, u"Cette fonction ne peut être utilisée que pour ajouter un CHAPEAU ou un FORFAIT."
         if self.tournoi.nb_parties() != 1:
@@ -238,16 +241,16 @@ class Partie(object):
                     self.tournoi.modifie = True
                 else:
                     # Ajouter un chapeau supplementaire
-                    equipe._ajout_partie(self.debut(), etat = CHAPEAU)
+                    equipe._ajout_partie(self.debut(), etat=CHAPEAU)
                     self.tournoi.modifie = True
             else:
-                equipe._ajout_partie(self.debut(), etat = FORFAIT)
+                equipe._ajout_partie(self.debut(), etat=FORFAIT)
                 self.tournoi.modifie = True
         else:
-            equipe._ajout_partie(self.debut(), etat = FORFAIT)
+            equipe._ajout_partie(self.debut(), etat=FORFAIT)
             self.tournoi.modifie = True
 
-    def resultat(self, resultat_manche, fin = None):
+    def resultat(self, resultat_manche, fin=None):
         # Vérification: partie commencée
         if self.statut == P_NON_DEMARREE:
             raise StatutError, u"La partie n°%s n'est pas commencée." % self.numero
@@ -263,25 +266,19 @@ class Partie(object):
         if CHAPEAU in manche:
             raise ResultatError, u"Le score des équipes chapeaux ne peut pas être modifié."
 
-        # Recherche du gagnant
-        gagnant = None
-        gagnant_pts = None
+        # Recherche des gagnants
+        gagnants = []
+        gagnants_pts = max(resultat_manche.values())
         for num, pts in resultat_manche.items():
-            if pts > gagnant_pts:
-                gagnant_pts = pts
-                gagnant = num
+            if pts == gagnants_pts:
+                gagnants.append(num)
 
         # Vérification: nombre de points
-        if gagnant_pts < self.tournoi.points_par_manche:
+        if gagnants_pts < self.tournoi.points_par_manche:
             raise ResultatError, u"Au moins une équipe doit avoir un score suppérieur ou égale à %s." % self.tournoi.points_par_manche
 
-        # Vérification: un et un seul un gagnant
-        nb_gagnants = resultat_manche.values().count(gagnant_pts)
-        if nb_gagnants != 1:
-            raise ResultatError, u"Il ne peut y avoir plus d'un gagnant. (%s donnés)" % nb_gagnants
-
         for num in resultat_manche:
-            if num == gagnant:
+            if num in gagnants:
                 etat = GAGNE
             else:
                 etat = PERDU

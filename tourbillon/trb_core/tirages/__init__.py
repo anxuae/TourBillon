@@ -6,29 +6,22 @@ __doc__ = """Définitions des équipes."""
 #--- Import --------------------------------------------------------------------
 
 import sys, os
+import imp
+import re
 from tourbillon.trb_core.exceptions import TirageError
-from tourbillon.trb_core.tirages import *
+from tourbillon.trb_core.tirages import aleatoire_ag, niveau_ag, niveau2008_dt
 
 #--- Functions -----------------------------------------------------------------
 
-_IGNORE = ['__init__', 'utile']
-__dir__ = os.path.abspath(os.path.dirname(__file__))
-__modules__ = {}
+TIRAGES = {'aleatoire_ag'   :aleatoire_ag,
+           'niveau_ag'      :niveau_ag,
+           'niveau2008_dt'  :niveau2008_dt}
 
-for root, dirs, fics in os.walk(__dir__):
-    for module in fics:
-        if module.endswith('.py'):
-            module = module.split('.')[0]
-            if module not in __modules__ and module not in _IGNORE:
-                nom = __package__ + "." + module
-                __import__(nom)
-                __modules__[module] = sys.modules[nom]
-
-def tirage(module, equipes_par_manche, statistiques, chapeaux = [], rapport = []):
-    if module not in __modules__:
-        raise TirageError, u"Categorie de tirage '%s' inconnue." % categorie
+def tirage(type_tirage, equipes_par_manche, statistiques, chapeaux=[], rapport=[]):
+    if type_tirage not in TIRAGES:
+        raise TirageError, u"Categorie de tirage '%s' inconnue." % type_tirage
 
     # Création thread tirage
-    t = __modules__[module].ThreadTirage(equipes_par_manche, statistiques, chapeaux, rapport)
+    t = TIRAGES[type_tirage].ThreadTirage(equipes_par_manche, statistiques, chapeaux, rapport)
 
     return t

@@ -1,16 +1,30 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
 
-__doc__ = """Définitions des équipes."""
+__doc__ = u"""Algorithme déterministe créé en 2008."""
 
 #--- Import --------------------------------------------------------------------
 
 import random
 from tourbillon.trb_core.tirages.utile import (BaseThreadTirage, nb_chapeaux_necessaires, tri_stat, Cnp,
-                                               creer_manches, creer_liste, NV, NV_REDONDANCE, NV_DISPARITE)
+                                               creer_manches, creer_liste, NV, NV_REDONDANCE, NV_DISPARITE,
+                                               tirage_texte, dernieres_equipes)
 from tourbillon.trb_core.exceptions import StopTirageError, SolutionError
 
 #--- Variables globales --------------------------------------------------------
+
+NOM = u"Niveau (Algorithme Déterministe)"
+
+DEFAUT = {'OPTIMUM'              : 0.0,
+          'REDONDANCE'           : False,
+          'PONDERATION_VICTOIRES': 12.0,
+          'CALCUL_PONDERATION_AUTO': True,
+          'TAUX_AUGMENTATION'    : 1.05,
+          'MAX_DISPARITE'        : 2,
+          'DEPASSEMENT_MAX_DISPARITE': False,
+          'CHAPEAUX_PARMIS'      : 6,
+          'DEPASSEMENT_CHAPEAUX_PARMIS': True,
+          }
 
 MC_CACHE = {}
 MR_CACHE = {}
@@ -105,12 +119,12 @@ def creer_matrices(parametres, statistiques):
 
         # Avancement du calcul (affichage jusque 99% pour éviter d'indiquer la fin de l'algorithme)
         compteur += 1
-        s = u"%-" + str(len(str(len(CNP_CACHE)))) + "s/%s manches évaluées"
+        s = u"%-" + str(len(str(len(CNP_CACHE)))) + u"s/%s manches évaluées"
         parametres['rapport'](((compteur * 100) / len(CNP_CACHE)) - 1, s % (compteur, len(CNP_CACHE)))
 
     parametres['rapport'](0, "")
 
-def fonction_cout(parametres, manche, redondance = False, disparite = False):
+def fonction_cout(parametres, manche, redondance=False, disparite=False):
     """
     Fonction de coût attribuant une performance à la manche. Elle se compose
     de trois termes:
@@ -167,13 +181,13 @@ def fonction_cout(parametres, manche, redondance = False, disparite = False):
     elif terme2 != NV and terme3 == NV:
         return terme3
 
-def manche_possible(manche, equipes_disponibles, equipe = None):
+def manche_possible(manche, equipes_disponibles, equipe=None):
     if equipe is None:
         equipe = manche[0]
 
     return len(manche) == len([True for e in manche if (e in equipes_disponibles and equipe in manche)])
 
-def min_cout(parametres, equipes_disponibles, redondance = False, disparite = False, equipe = None):
+def min_cout(parametres, equipes_disponibles, redondance=False, disparite=False, equipe=None):
     """
     Fonction renvoyant la manche qui possède la fonction de coût minimale
     
@@ -199,7 +213,7 @@ def min_cout(parametres, equipes_disponibles, redondance = False, disparite = Fa
     else:
         return [e for e in min]
 
-def max_cout(parametres, equipes_disponibles, redondance = False, disparite = False, equipe = None):
+def max_cout(parametres, equipes_disponibles, redondance=False, disparite=False, equipe=None):
     """
     Fonction renvoyant la manche qui possède la fonction de coût minimale
     
@@ -235,19 +249,6 @@ def premier(statistiques, equipes):
             p = equipe
 
     return p
-
-def dernieres_equipes(statistiques, n = 1):
-    """
-    Retourne la liste des n dernières équipes.
-    """
-    r = []
-    d = tri_stat(statistiques, 'place')
-    places = d.keys()
-    places.sort()
-    for p in places:
-        r += d[p]
-
-    return r[-6:]
 
 def nb_parties(statistiques, equipe, equipes_par_manche):
     adversaires = len(statistiques[equipe]['adversaires'])
@@ -298,27 +299,9 @@ def message(statistiques, manche):
     return "%-15s: diff points = %-5s, redondance = %-5s, disparité = %-5s" % (manche, dp, MR_CACHE[cle], MD_CACHE[cle])
 
 class ThreadTirage(BaseThreadTirage):
-    def __init__(self, equipes_par_manche, statistiques, chapeaux = [], rapport = None):
+    def __init__(self, equipes_par_manche, statistiques, chapeaux=[], rapport=None):
         BaseThreadTirage.__init__(self, equipes_par_manche, statistiques, chapeaux, rapport)
         self.categorie = u"niveau2008_dt"
-        self._algo_conf = {}
-        self.configurer()
-
-    def configurer(self, chapeaux_parmis = 6, depassement_chapeaux_parmis = True, ponderation_victoires = 12.0, calcul_ponderation_auto = False,
-                   taux_augmentation = 1.05, max_disparite = 2, depassement_max_disparite = False, optimum = -1, redondance = False):
-        self._algo_conf['chapeaux_parmis'] = chapeaux_parmis
-        self._algo_conf['depassement_chapeaux_parmis'] = depassement_chapeaux_parmis
-        self._algo_conf['ponderation_victoires'] = ponderation_victoires
-        self._algo_conf['taux_augmentation'] = taux_augmentation
-        self._algo_conf['max_disparite'] = max_disparite
-        self._algo_conf['depassement_max_disparite'] = depassement_max_disparite
-        self._algo_conf['optimum'] = optimum
-        self._algo_conf['redondance'] = redondance
-        self._algo_conf['calcul_ponderation_auto'] = calcul_ponderation_auto
-        self._algo_conf['statistiques'] = self.statistiques
-        self._algo_conf['equipes_par_manche'] = self.equipes_par_manche
-        self._algo_conf['arret_utilisateur'] = self._arret_utilisateur
-        self._algo_conf['rapport'] = self.rapport
 
     def demarrer(self):
         nb_eq = len(self.statistiques)
@@ -344,7 +327,7 @@ class ThreadTirage(BaseThreadTirage):
         for i in range(nb_chapeaux - len(self.chapeaux)):
             # Si le nombre de chapeaux fourni est insuffisant: en choisir d'autres
             self._arret_utilisateur()
-            chap = select_chapeau(self._algo_conf, self.statistiques)
+            chap = select_chapeau(self.config, self.statistiques)
             self.chapeaux.append(chap)
 
         # Tirage des manches:
@@ -354,29 +337,29 @@ class ThreadTirage(BaseThreadTirage):
         vider_caches()
 
         # Paramètre de pondération des victoires
-        if self._algo_conf['calcul_ponderation_auto'] == True:       # Calcul du coefficient de pondération des victoires
+        if self.config['calcul_ponderation_auto'] == True:       # Calcul du coefficient de pondération des victoires
             ponderation = 0
             for equipe in self.statistiques:
-                parties = nb_parties(self.statistiques, equipe, self._algo_conf['equipes_par_manche'])
+                parties = nb_parties(self.statistiques, equipe, self.config['equipes_par_manche'])
                 if parties == 0:
                     ponderation += 12.0
                 else:
                     ponderation += (self.statistiques[equipe]['points'] * 1.0) / parties
 
-            self._algo_conf['ponderation_victoires'] = ponderation / len(self.statistiques)
-            self.rapport(0, u"Coefficient de pondération des victoires: %s" % self._algo_conf['ponderation_victoires'])
+            self.config['ponderation_victoires'] = ponderation / len(self.statistiques)
+            self.rapport(0, u"Coefficient de pondération des victoires: %s" % self.config['ponderation_victoires'])
 
         # Création de la matrice de cout
-        creer_matrices(self._algo_conf, self.statistiques)
+        creer_matrices(self.config, self.statistiques)
 
         # Lancer l'algorithme
         equipes_disponibles = self.statistiques.keys()
         tirage_temp = []
 
         while equipes_disponibles != []:
-            self._algo_conf['arret_utilisateur']()
+            self.config['arret_utilisateur']()
             # Fonction de coût stricte
-            manche = min_cout(self._algo_conf, equipes_disponibles)
+            manche = min_cout(self.config, equipes_disponibles)
 
             if manche == NV:
                 # Pas de solution pour les équipes restantes, on va rechercher 
@@ -391,12 +374,12 @@ class ThreadTirage(BaseThreadTirage):
                 tirage_temp = []
 
                 # Fonction de coût stricte sur la plus forte équipe
-                manche = max_cout(self._algo_conf, equipes_disponibles, equipe = p)
+                manche = max_cout(self.config, equipes_disponibles, equipe=p)
 
                 if manche == NV:
                     # La plus forte équipe n'a aucune possibilité de rencontre, on teste avec les paramètres utilisateur
                     # Fonction de coût peut être augmentée (dépend des paramètres utilisateur)
-                    manche = max_cout(self._algo_conf, equipes_disponibles, self._algo_conf['redondance'], self._algo_conf['depassement_max_disparite'], equipe = p)
+                    manche = max_cout(self.config, equipes_disponibles, self.config['redondance'], self.config['depassement_max_disparite'], equipe=p)
 
                     if manche == NV_REDONDANCE:
                         # ERREUR 154: La redondance n'est pas autorisée.
@@ -411,7 +394,6 @@ class ThreadTirage(BaseThreadTirage):
                 # Ces rencontres sont tirées une fois pour toute
                 map(equipes_disponibles.remove, manche)
                 self.tirage.append(manche)
-                self.rapport(len(self.tirage) * 100 / (len(self.statistiques) / self.equipes_par_manche), message(self.statistiques, manche))
             else:
                 # Ajout à la liste temporaire qui sera à effacer si une erreur est trouvée
                 # (équipe sans solution)
@@ -420,6 +402,8 @@ class ThreadTirage(BaseThreadTirage):
 
         for manche in tirage_temp:
             # Passage des manches de la liste temporaire vers la liste définitive
-            self._algo_conf['arret_utilisateur']()
+            self.config['arret_utilisateur']()
             self.tirage.append(manche)
-            self.rapport(len(self.tirage) * 100 / (len(self.statistiques) / self.equipes_par_manche), message(self.statistiques, manche))
+
+        self.rapport(99, tirage_texte(self.statistiques, self.tirage))
+

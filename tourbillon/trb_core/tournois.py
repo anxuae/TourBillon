@@ -6,6 +6,7 @@ __doc__ = """Definition des tournois."""
 #--- Import --------------------------------------------------------------------
 
 import sys, os
+import codecs
 from datetime import datetime, timedelta
 import yaml
 
@@ -27,13 +28,13 @@ FICHIER_TOURNOI = None
 def tournoi():
     return TOURNOI
 
-def nouveau_tournoi(equipes_par_manche = 2, points_par_manche = 12, joueurs_par_equipe = 2):
+def nouveau_tournoi(equipes_par_manche=2, points_par_manche=12, joueurs_par_equipe=2):
     global TOURNOI, FICHIER_TOURNOI
     TOURNOI = Tournoi(equipes_par_manche, points_par_manche, joueurs_par_equipe)
     FICHIER_TOURNOI = None
     return TOURNOI
 
-def enregistrer_tournoi(fichier = None):
+def enregistrer_tournoi(fichier=None):
     global FICHIER_TOURNOI, TOURNOI
     if TOURNOI is None:
         raise IOError, u"Pas de tournoi commencé."
@@ -48,12 +49,12 @@ def enregistrer_tournoi(fichier = None):
     # Enregistrer
     ancienne_date = TOURNOI.date_enregistrement
     try:
-        f = open(FICHIER_TOURNOI, 'w')
+        f = codecs.open(FICHIER_TOURNOI, 'wb', 'utf-8')
         f.write(entete() + '\n')
 
         # Date enregistrement
         d = datetime.now()
-        yaml.dump({'enregistrement': d}, f, default_flow_style = False)
+        yaml.dump({'enregistrement': d}, f, default_flow_style=False)
 
         # Infos tournoi
         y = {}
@@ -62,7 +63,7 @@ def enregistrer_tournoi(fichier = None):
         y['tournoi']['equipes_par_manche'] = TOURNOI.equipes_par_manche
         y['tournoi']['joueurs_par_equipe'] = TOURNOI.joueurs_par_equipe
         y['tournoi']['points_par_manche'] = TOURNOI.points_par_manche
-        yaml.dump(y, f, default_flow_style = False)
+        yaml.dump(y, f, default_flow_style=False)
 
         # Infos inscription
         y = {}
@@ -71,14 +72,14 @@ def enregistrer_tournoi(fichier = None):
             y['inscription'][equipe.numero] = []
             for joueur in equipe.joueurs():
                 y['inscription'][equipe.numero].append([joueur.prenom, joueur.nom, joueur.age])
-        yaml.dump(y, f, default_flow_style = False)
+        yaml.dump(y, f, default_flow_style=False)
 
         # Infos parties
         y = {}
         y['parties'] = {}
         for equipe in TOURNOI.equipes():
             y['parties'][equipe.numero] = equipe._resultats
-        yaml.dump(y, f, default_flow_style = False)
+        yaml.dump(y, f, default_flow_style=False)
 
         f.close()
         TOURNOI.date_enregistrement = d
@@ -95,7 +96,7 @@ def charger_tournoi(fichier):
     donnee = {}
     try:
         # Extraction des données
-        f = open(fichier, 'r')
+        f = codecs.open(fichier, 'rb', 'utf-8')
         y = yaml.load(f)
         f.close()
         nouveau_tournoi()
@@ -163,7 +164,7 @@ class Tournoi(object):
             Points par manche   : %s
             Joueurs par équipe  : %s
             
-            Satut               : %s
+            Statut              : %s
         """
         return texte % (self.debut,
                         len(self._liste_parties),
@@ -196,7 +197,7 @@ class Tournoi(object):
 
     statut = property(**statut())
 
-    def statistiques(self, equipes_exclue = [], partie_limite = None):
+    def statistiques(self, equipes_exclue=[], partie_limite=None):
         """
         Statistiques sur les parties précédentes des équipes spécifiées.
         """
@@ -225,7 +226,9 @@ class Tournoi(object):
         return len(self._liste_equipes)
 
     def equipe(self, numero):
-        if numero not in self._liste_equipes:
+        if type(numero) == Equipe:
+            return numero
+        elif numero not in self._liste_equipes:
             raise NumeroError, u"L'équipe n°%s n'existe pas." % numero
         else:
             return self._liste_equipes[numero]
@@ -270,7 +273,9 @@ class Tournoi(object):
         return len(self._liste_parties)
 
     def partie(self, numero):
-        if numero not in range(1, len(self._liste_parties) + 1):
+        if type(numero) == Partie:
+            return numero
+        elif numero not in range(1, len(self._liste_parties) + 1):
             raise NumeroError, u"La partie n°%s n'existe pas." % numero
         else:
             return self._liste_parties[numero - 1]
@@ -308,9 +313,62 @@ class Tournoi(object):
             self._liste_parties.pop(numero - 1)
             self.modifie = True
 
-    def classement(self, avec_duree = True):
-        Equipe.cmp_avec_duree = avec_duree
-        l = sorted(self.equipes(), cmp = Equipe.comparer, reverse = True)
+    def comparer(self, equipe1, equipe2):
+        if type(equipe1) != Equipe or type(equipe2) != Equipe:
+            raise TypeError, u"Une équipe doit être comparée à une autre."
+
+        # priorité 1: comparaison des victoires
+        vic = equipe1.total_victoires() + equipe1.total_chapeaux() - equipe2.total_victoires() - equipe2.total_chapeaux()
+        if vic > 0 :
+            vic = 1
+        elif vic < 0 :
+            vic = -1
+
+        if self.cmp_avec_victoires and vic != 0:
+            return vic
+
+        # priorité 2: comparaison des points
+        pts = equipe1.total_points() - equipe2.total_points()
+        if pts > 0 :
+            pts = 1
+        elif pts < 0 :
+            pts = -1
+
+        if pts != 0:
+            return pts
+
+        # priorité 3: comparaison des durées moyennes
+        # (equipe superieure si durée mini)
+        if equipe1.moyenne_duree() < equipe2.moyenne_duree() :
+            dur = 1
+        elif equipe1.moyenne_duree() == equipe2.moyenne_duree():
+            dur = 0
+        elif equipe1.moyenne_duree() > equipe2.moyenne_duree() :
+            dur = -1
+
+        if self.cmp_avec_duree and dur != 0:
+            return dur
+
+        return 0
+
+    def classement(self, avec_victoires=True, avec_duree=True):
+        """
+        Retourne une liste de tuple indiquant l'équipe et sa place
+        dans le classement. En cas d'égalité, la ou les places
+        suivant les ex aequo ne seront plus utilisées afin de garder
+        un numéro de place correspondant au nombre d'équipe.
+        
+        Exemple:
+            [(12, 1), (4, 2), (7, 2), (9, 4)...]
+            
+        avec_victoires (bool): le classement tient compte du nombre de
+                               victoires de l'équipe.
+        avec_duree (bool)    : le classement tient compte de la durée
+                               moyenne d'une partie
+        """
+        self.cmp_avec_victoires = avec_victoires
+        self.cmp_avec_duree = avec_duree
+        l = sorted(self.equipes(), cmp=self.comparer, reverse=True)
 
         classement = []
 
@@ -319,7 +377,7 @@ class Tournoi(object):
             classement.append((l[0], place))
             i = 1
             while i < len(l):
-                if l[i - 1].comparer(l[i]) != 0:
+                if self.comparer(l[i - 1], l[i]) != 0:
                     place = i + 1
                 classement.append((l[i] , place))
                 i += 1

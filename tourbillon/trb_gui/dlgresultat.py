@@ -16,21 +16,20 @@ from tourbillon.trb_core import constantes as cst
 #--- Entrée score --------------------------------------------------------------
 
 class EntrerScore(wx.Panel):
-    def __init__(self, parent, choix = []):
+    def __init__(self, parent, choix=[]):
         wx.Panel.__init__(self, parent, wx.ID_ANY)
 
         if choix == []:
             self.ctl_numero = wx.StaticText(self, wx.ID_ANY, u"")
-            self.ctl_numero.SetBackgroundColour(wx.Color(210, 210, 210))
-            self.ctl_numero.SetFont(wx.Font(14, wx.SWISS, wx.NORMAL, wx.NORMAL))
+            self.ctl_numero.SetBackgroundColour(wx.Color(220, 220, 220))
             self.combo = False
         else:
-            self.ctl_numero = wx.Choice(self, dlgeq.ID_NUMERO, choices = map(unicode, choix))
+            self.ctl_numero = wx.Choice(self, dlgeq.ID_NUMERO, choices=map(unicode, choix))
             self.combo = True
 
         self.ctl_numero.SetMinSize(wx.Size(70, 22))
 
-        self.ctl_points = wx.TextCtrl(self, wx.ID_ANY, u"", style = wx.TE_CENTRE, validator = dlgeq.EquipeValidateur())
+        self.ctl_points = wx.TextCtrl(self, wx.ID_ANY, u"", style=wx.TE_CENTRE, validator=dlgeq.EquipeValidateur())
         self.ctl_points.SetMinSize(wx.Size(70, 22))
 
         box = wx.BoxSizer(wx.HORIZONTAL)
@@ -64,9 +63,8 @@ class EntrerScore(wx.Panel):
             return int(valeur)
 
 class DialogueResultat(wx.Dialog):
-    def __init__(self, parent, numero_partie, numero_affiche = 1):
-        wx.Dialog.__init__(self, parent, wx.ID_ANY, title = u"Resultats" , style = wx.DEFAULT_DIALOG_STYLE | wx.CENTER_ON_SCREEN | wx.RESIZE_BORDER)
-        self.SetSize(wx.Size(280, 170))
+    def __init__(self, parent, numero_partie, numero_affiche=1):
+        wx.Dialog.__init__(self, parent, wx.ID_ANY, title=u"Resultats" , style=wx.DEFAULT_DIALOG_STYLE | wx.CENTER_ON_SCREEN | wx.RESIZE_BORDER)
         self.SetMinSize(wx.Size(280, 170))
         self.SetMaxSize(wx.Size(280, -1))
         self.SetTitle(u"Resultats de la partie n°%s" % numero_partie)
@@ -77,11 +75,14 @@ class DialogueResultat(wx.Dialog):
         self.tirage = tournois.tournoi().partie(self.numero_partie).tirage()
 
         # Panel avec les entrées des équipes
-        self.panel = scrolled.ScrolledPanel(self, wx.ID_ANY, style = wx.TAB_TRAVERSAL)
+        self.panel = scrolled.ScrolledPanel(self, wx.ID_ANY, style=wx.TAB_TRAVERSAL)
         box_panel = wx.BoxSizer(wx.VERTICAL)
         for i in range(tournois.tournoi().equipes_par_manche):
             if i == 0:
-                e = EntrerScore(self.panel, utile.creer_liste(self.tirage))
+                liste = utile.creer_liste(self.tirage)
+                for chap in tournois.tournoi().partie(self.numero_partie).chapeaux():
+                    liste.remove(chap)
+                e = EntrerScore(self.panel, sorted(liste))
                 e.chg_numero(numero_affiche)
             else:
                 e = EntrerScore(self.panel)
@@ -94,9 +95,9 @@ class DialogueResultat(wx.Dialog):
         self.chx_fin = wx.CheckBox(self, wx.ID_ANY, u"Enregistrer l'heure de fin.")
 
         # Boutons
-        self.btn_ok = wx.Button(self, id = wx.ID_OK, label = u"Valider", size = (100, -1))
+        self.btn_ok = wx.Button(self, id=wx.ID_OK, label=u"Valider", size=(100, -1))
         self.btn_ok.SetDefault()
-        self.btn_annule = wx.Button(self, id = wx.ID_CANCEL, label = "Annuler", size = (100, -1))
+        self.btn_annule = wx.Button(self, id=wx.ID_CANCEL, label="Annuler", size=(100, -1))
         box_btn = wx.BoxSizer(wx.HORIZONTAL)
         box_btn.AddSpacer((50, 50), 1, wx.EXPAND)
         box_btn.Add(self.btn_annule, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 10)
@@ -114,8 +115,14 @@ class DialogueResultat(wx.Dialog):
         self._selection_equipe(None)
         self.verifier(None)
 
+        hauteur_necessaire = (self.entrees[0].GetSize()[1] + 15) * len(self.entrees) + 100
+        if hauteur_necessaire < wx.GetDisplaySize()[1]:
+            self.SetSize(wx.Size(280, hauteur_necessaire))
+        else:
+            self.SetSize(wx.Size(280, wx.GetDisplaySize()[1] - 10))
+
         self.Bind(wx.EVT_TEXT, self.verifier)
-        self.Bind(wx.EVT_CHOICE, self._selection_equipe, id = dlgeq.ID_NUMERO)
+        self.Bind(wx.EVT_CHOICE, self._selection_equipe, id=dlgeq.ID_NUMERO)
 
     def _selection_equipe(self, event):
         num = self.entrees[0].numero()
@@ -159,8 +166,6 @@ class DialogueResultat(wx.Dialog):
         if len(valeurs) == len(self.entrees):
             m = max(valeurs)
             if m < tournois.tournoi().points_par_manche:
-                self.btn_ok.Disable()
-            elif valeurs.count(m) > 1:
                 self.btn_ok.Disable()
             else:
                 self.btn_ok.Enable()

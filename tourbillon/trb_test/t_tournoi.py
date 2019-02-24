@@ -14,17 +14,16 @@ from tourbillon.trb_core.constantes import (E_INCOMPLETE, E_ATTEND_TIRAGE, P_NON
 from tourbillon.trb_test.data import EQUIPES_PAR_MANCHE, POINTS_PAR_MANCHE, JOUEURS_PAR_EQUIPE
 from tourbillon.trb_test import data
 
-EQUIPES = {1: data.JOUEURS_1,
-           2: data.JOUEURS_2,
-           4: data.JOUEURS_4,
-           5: data.JOUEURS_5,
-           8: data.JOUEURS_8,  # Changé en n°3
-           9: data.JOUEURS_9}  # Changé en n°6
+EQUIPES = {1:data.JOUEURS_1,
+           2:data.JOUEURS_2,
+           4:data.JOUEURS_4,
+           5:data.JOUEURS_5,
+           8:data.JOUEURS_8, # Changé en n°3
+           9:data.JOUEURS_9} # Changé en n°6
 
 NB_EQUIPES = len(EQUIPES)
 
 tournois.nouveau_tournoi(EQUIPES_PAR_MANCHE, POINTS_PAR_MANCHE, JOUEURS_PAR_EQUIPE)
-
 
 class TestCreationTournoi(unittest.TestCase):
 
@@ -69,7 +68,6 @@ class TestCreationTournoi(unittest.TestCase):
         self.assertEqual(self.tournoi.equipes_par_manche, EQUIPES_PAR_MANCHE)
         self.assertEqual(self.tournoi.joueurs_par_equipe, JOUEURS_PAR_EQUIPE)
         self.assertEqual(self.tournoi.points_par_manche, POINTS_PAR_MANCHE)
-
 
 class TestInscriptionTournoi(unittest.TestCase):
 
@@ -173,7 +171,6 @@ class TestInscriptionTournoi(unittest.TestCase):
         for equipe in self.tournoi.equipes():
             self.assertEqual(equipe.max_duree(), timedelta(0))
 
-
 class TestEnregistrerTournoi(unittest.TestCase):
 
     def setUp(self):
@@ -189,7 +186,6 @@ class TestEnregistrerTournoi(unittest.TestCase):
         d1 = self.tournoi.date_enregistrement - timedelta(0, 0, self.tournoi.date_enregistrement.microsecond)
         d2 = d - timedelta(0, 0, d.microsecond)
         self.assertEqual(d1, d2)
-
 
 class TestChargerTournoi(unittest.TestCase):
 

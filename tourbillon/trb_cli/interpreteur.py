@@ -5,114 +5,100 @@
 
 import sys, os
 import code
-import _completer
-import readline
+from tourbillon.trb_cli import terminal
+from tourbillon.trb_cli.completer import TrbCompleter
 import atexit
 
 #--- Classes -------------------------------------------------------------------
 
 class Interpreteur(code.InteractiveConsole):
-    def __init__(self, environ, commandes):
+    def __init__(self, shell, environ):
+        self.shell = shell
         self.namespace = environ
         code.InteractiveConsole.__init__(self, self.namespace)
-        self.commandes = commandes
         self.fichier_historique = None
+        self.completer = None
         self.tab = '    '
-
         self.initialise()
 
     def initialise(self):
-        readline.set_completer(self.get_completions)
-        rlcmds = ['tab: complete',
-                   r'"\C-[[5D": history-search-backward',
-                   r'"\C-[[5C": history-search-forward']
+        if terminal.has_readline:
+            self.completer = TrbCompleter(self.shell,
+                                namespace=self.namespace,
+                                global_namespace=self.namespace,
+                                omit__names=False)
 
-        map(readline.parse_and_bind, rlcmds)
+            terminal.readline.set_completer(self.completer.complete)
+
+            rlcmds = []
+
+            if sys.platform == 'darwin':
+                rlcmds.append(r'"\C-[[5D": history-search-backward')
+                rlcmds.append(r'"\C-[[5C": history-search-forward')
+                if terminal.uses_libedit:
+                    rlcmds.append("bind ^I rl_complete")
+                else:
+                    rlcmds.append('tab: complete')
+            else:
+                rlcmds.append('tab: complete')
+                rlcmds.append(r'"\C-up": history-search-backward')
+                rlcmds.append(r'"\C-down": history-search-forward')
+                if sys.platform == 'win32':
+                    rlcmds.append('set show-all-if-ambiguous on')
+
+            rlcmds.append(r'"\C-l": possible-completions')
+
+            map(terminal.readline.parse_and_bind, rlcmds)
 
     def charger_historique(self, fichier):
-        readline.set_history_length(1000)
-        readline.read_history_file(fichier)
-        self.fichier_historique = fichier
-        # Enregistrer l'historique avant de quitter
-        atexit.register(self.enregistrer_historique)
+        if terminal.has_readline:
+            terminal.readline.set_history_length(1000)
+            terminal.readline.read_history_file(fichier)
+            self.fichier_historique = fichier
+            atexit.register(self.enregistrer_historique)
 
     def enregistrer_historique(self):
-        if self.fichier_historique is not None:
-            readline.write_history_file(self.fichier_historique)
-
-    def get_commande(self, cmd):
-        est_commande = False
-        for commande in self.commandes:
-            if cmd == commande['short'] or cmd == commande['long']:
-                est_commande = True
-                break
-
-        if est_commande:
-            cmd = commande['cmd']
-
-        return cmd
+        if not terminal.has_readline or self.fichier_historique is None:
+            return
+        try:
+            terminal.readline.write_history_file(self.fichier_historique)
+        except:
+            print u"Impossible d'enregistrer l'historique des commandes dans: %s" % self.fichier_historique
 
     def push(self, ligne):
-        ligne = self.get_commande(ligne)
         return code.InteractiveConsole.push(self, ligne)
 
-    def get_completions(self, text, state):
-        if text == '':
-            readline.insert_text(self.tab)
-            return None
+    def complete(self, text):
+        """Return a sorted list of all possible completions on text.
 
-        completer = _completer.Completer(self.namespace, None)
-        choix = completer.complete(text)
-        if state < len(choix):
-            if '.' in text:
-                l = text.split('.')
-                if len(l) > 1:
-                    l = l[:-1]
-                    text = ''
-                    for i in l:
-                        text += i + '.'
+        Inputs:
 
-                return  text + choix[state][0]
-            else:
-                return  choix[state][0]
-        else:
-            return None
+          - text: a string of text to be completed on.
 
-    def get_description(self, text):
-        obj = None
-        if '.' not in text:
-            try:
-                obj = self.namespace[text]
-            except KeyError:
-                return ''
-
-        else:
-            try:
-                splitted = text.split('.')
-                obj = self.namespace[splitted[0]]
-                for t in splitted[1:]:
-                    obj = getattr(obj, t)
-            except:
-                return ''
-
-
-        if obj is not None:
-            try:
-                #Python and Iron Python
-                import inspect #@UnresolvedImport
-                doc = inspect.getdoc(obj)
-                if doc is not None:
-                    return doc
-            except:
-                pass
-
-        try:
-            #if no attempt succeeded, try to return repr()... 
-            return repr(obj)
-        except:
-            try:
-                #otherwise the class 
-                return str(obj.__class__)
-            except:
-                #if all fails, go to an empty string 
-                return ''
+        This is a wrapper around the completion mechanism, similar to what
+        readline does at the command line when the TAB key is hit.  By
+        exposing it as a method, it can be used by other non-readline
+        environments (such as GUIs) for text completion.
+        
+        Exemple:
+                  x = 'hello'
+                  Interpreteur.complete('x.l')
+                                       => ['x.ljust', 'x.lower', 'x.lstrip']
+        """
+        complete = self.completer.complete
+        state = 0
+        # use a dict so we get unique keys, since ipyhton's multiple
+        # completers can return duplicates.  When we make 2.4 a requirement,
+        # start using sets instead, which are faster.
+        comps = {}
+        while True:
+            newcomp = complete(text, state, line_buffer=text)
+            if newcomp is None:
+                break
+            comps[newcomp] = 1
+            state += 1
+        outcomps = comps.keys()
+        outcomps.sort()
+        #print "T:",text,"OC:",outcomps  # dbg
+        #print "vars:",self.user_ns.keys()
+        return outcomps

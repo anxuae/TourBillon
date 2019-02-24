@@ -6,6 +6,7 @@ __doc__ = """Définitions des joueurs."""
 #--- Import --------------------------------------------------------------------
 
 import os
+import codecs
 from datetime import datetime
 
 #--- Fonctions -----------------------------------------------------------------
@@ -24,7 +25,7 @@ def creer_id(prenom, nom):
 
 def charger_historique(fichier):
     global HISTORIQUE, FICHIER_HISTORIQUE
-    f = open(fichier, 'r')
+    f = codecs.open(fichier, 'rb', 'utf-8')
     lignes = f.readlines()
     f.close()
 
@@ -41,7 +42,7 @@ def enregistrer_historique():
         ids = HISTORIQUE.keys()
         ids.sort()
 
-        f = open(FICHIER_HISTORIQUE, 'w')
+        f = codecs.open(FICHIER_HISTORIQUE, 'wb', 'utf-8')
         for id in ids:
             ligne = id + ',' + ','.join(HISTORIQUE[id]) + "\n"
             f.write(ligne)
@@ -53,7 +54,7 @@ class NomCompleteur(object):
     def __init__(self):
        pass
 
-    def completer(self, prenom, nom = ''):
+    def completer(self, prenom, nom=''):
         debut_id = creer_id(prenom, nom)
         if debut_id.endswith('_'):
             debut_id = debut_id[:-1]
@@ -64,9 +65,9 @@ class NomCompleteur(object):
             return ('', '', '', '')
         else:
             if nom == '':
-                return (HISTORIQUE[id][0][len(prenom):], HISTORIQUE[id][1], HISTORIQUE[id][2], HISTORIQUE[id][3])
+                return (HISTORIQUE[id][0], HISTORIQUE[id][1], HISTORIQUE[id][2], HISTORIQUE[id][3])
             else:
-                return ('', HISTORIQUE[id][1][len(nom):], HISTORIQUE[id][2], HISTORIQUE[id][3])
+                return ('', HISTORIQUE[id][1], HISTORIQUE[id][2], HISTORIQUE[id][3])
 
     def _dichotomie(self, texte) :
         if HISTORIQUE and texte != '':
@@ -86,7 +87,7 @@ class NomCompleteur(object):
                     # Recherche avant le milieu
                     fin = milieu - 1
                 else :
-                    # Recherche après le milieu
+                    # Recherche apr�s le milieu
                     debut = milieu + 1
         return None
 

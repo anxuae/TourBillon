@@ -4,6 +4,9 @@
 #--- Import --------------------------------------------------------------------
 
 import os
+import glob
+import imp
+import codecs
 import tourbillon
 from tourbillon.trb_core import constantes as cst
 from tourbillon.trb_cli import terminal
@@ -15,7 +18,29 @@ except ImportError, e:
 
 #--- Variables globales --------------------------------------------------------
 
-IMAGES_REP = os.path.dirname(os.path.abspath(__file__))
+IMAGES_REP = [os.path.dirname(os.path.abspath(__file__))]
+
+# Trouver un eventuel fichier terminé par '_rc' qui indique d'autre
+# répertoires contenant des ressources (images, texte...)
+images_rc = None
+d = os.path.splitdrive(os.path.dirname(os.path.abspath(__file__)))[1]
+while d != os.path.sep and d != '':
+    for fichier in glob.glob(os.path.join(d, '*_rc')):
+        if os.path.isfile(fichier):
+            images_rc = fichier
+            break
+    if images_rc is not None:
+        break
+    else:
+        d = os.path.splitdrive(os.path.abspath(os.path.join(d, os.path.pardir)))[1]
+
+if images_rc is not None:
+    base = os.path.dirname(os.path.abspath(images_rc))
+    f = open(images_rc, 'r')
+    reps = f.readlines()
+    f.close()
+    for rep in reps:
+        IMAGES_REP.append(os.path.join(base, rep.strip()))
 
 #--- Entete (CLI ou Fichier texte)----------------------------------------------
 
@@ -37,32 +62,36 @@ for p in ENTETE_AVEC_COULEURS:
     else:
         ENTETE_SANS_COULEURS[p] = ENTETE_AVEC_COULEURS[p]
 
-def entete(terminal = False):
+def entete(terminal=False):
     """
     Retourne l'entête. Si terminal == True, l'entête sera formaté pour 
     être affichée dans le terminal.
     """
-    f = open(os.path.join(IMAGES_REP, 'entete.txt'), 'r')
+    f = codecs.open(chemin('entete.txt'), 'r', 'utf-8')
     if terminal == False:
         lignes = f.readlines()
         f.close()
         texte = u"#" + u"#".join(lignes)
-        return texte % ENTETE_SANS_COULEURS
+        return unicode(texte) % ENTETE_SANS_COULEURS
     else:
         texte = f.read()
         f.close()
-        return texte % ENTETE_AVEC_COULEURS
+        return unicode(texte) % ENTETE_AVEC_COULEURS
 
 #--- Images (GUI) --------------------------------------------------------------
 
 def chemin(nom):
-    return os.path.normpath(os.path.join(IMAGES_REP, nom))
+    for chem in IMAGES_REP:
+        c = os.path.normpath(os.path.join(chem, nom))
+        if os.path.exists(c):
+            return c
+    raise IOError, "No such file or directory: '%s'" % c
 
-def bitmap(nom, force_alpha = False):
+def bitmap(nom, force_alpha=False):
     bp = wx.Bitmap(chemin(nom), wx.BITMAP_TYPE_PNG)
     if force_alpha:
         image = bp.ConvertToImage()
-        image.ConvertAlphaToMask(threshold = 128)
+        image.ConvertAlphaToMask(threshold=128)
         return image.ConvertToBitmap()
     else:
         return bp
@@ -81,7 +110,7 @@ STYLES = {'texte':(255, 255, 255),
           'texte_bouton':(70, 143, 255),
           'separateur':(60, 11, 112),
           'selection':(222, 233, 98),
-          'grille':(234, 234, 234),
+          'grille':(234, 232, 227),
           'grille_paire':(226, 244, 215),
           'grille_impaire':(255, 255, 255),
            cst.GAGNE:(0, 255, 0),
@@ -89,8 +118,8 @@ STYLES = {'texte':(255, 255, 255),
            cst.CHAPEAU:(253, 183, 75),
            cst.FORFAIT:(0, 0, 0)}
 
-def couleur(stl = None):
+def couleur(stl=None):
     if stl == None:
         return wx.NullColor
 
-    return wx.Color(*STYLES[stl])
+    return wx.Colour(*STYLES[stl])

@@ -25,19 +25,26 @@ STYLE_SUPPRIMER = u"Supprimer"
 #--- Classes -------------------------------------------------------------------
 
 class EntrerJoueur(wx.Panel):
-    def __init__(self, parent, titres = True):
+    def __init__(self, parent, titres=True):
         wx.Panel.__init__(self, parent, wx.ID_ANY)
+        self._completion = True
         self._cmp = True
+
         prenom, nom, age = "", "", ""
         if titres:
             prenom, nom, age = "  Prenom:", "  Nom   :", "  Age   :"
 
-        self.txt_prenom = wx.StaticText(self, wx.ID_ANY, prenom, size = (65, -1))
+        self.txt_prenom = wx.StaticText(self, wx.ID_ANY, prenom, size=(65, -1))
         self.ctl_prenom = wx.TextCtrl(self, ID_PRENOM, u"")
-        self.txt_nom = wx.StaticText(self, wx.ID_ANY, nom, size = (65, -1))
+        self.ctl_prenom._selection = u""
+
+        self.txt_nom = wx.StaticText(self, wx.ID_ANY, nom, size=(65, -1))
         self.ctl_nom = wx.TextCtrl(self, ID_NOM, u"")
-        self.txt_age = wx.StaticText(self, wx.ID_ANY, age, size = (50, -1))
-        self.ctl_age = wx.TextCtrl(self, wx.ID_ANY, u"", size = (40, -1))
+        self.ctl_nom._selection = u""
+
+        self.txt_age = wx.StaticText(self, wx.ID_ANY, age, size=(50, -1))
+        self.ctl_age = wx.TextCtrl(self, wx.ID_ANY, u"", size=(40, -1))
+        self.ctl_age._selection = u""
 
         box = wx.BoxSizer(wx.HORIZONTAL)
         box.Add(self.txt_prenom, 0, wx.EXPAND)
@@ -55,64 +62,74 @@ class EntrerJoueur(wx.Panel):
         self.ctl_prenom.Bind(wx.EVT_TEXT, self.completer)
         self.ctl_nom.Bind(wx.EVT_TEXT, self.completer)
 
-    def enter_prenom(self, event):
-        point = self.ctl_prenom.GetInsertionPoint()
-        self.effacer_selection(self.ctl_nom)
-        self.effacer_selection(self.ctl_age)
+    def activer_completion(self, valeur=True):
+        self._completion = valeur
 
-        if event.GetKeyCode() == wx.WXK_DELETE or event.GetKeyCode() == wx.WXK_BACK or event.ControlDown() or event.CmdDown():
-            self._cmp = False
-        else:
-            self.effacer_selection(self.ctl_prenom)
-            self.ctl_prenom.SetInsertionPoint(point)
-            self._cmp = True
+    def enter_prenom(self, event):
+        if self._completion:
+
+            if event.GetKeyCode() == wx.WXK_DELETE or\
+               event.GetKeyCode() == wx.WXK_BACK or\
+               event.GetKeyCode() == wx.WXK_TAB or\
+               event.GetKeyCode() == wx.WXK_RIGHT or\
+               event.GetKeyCode() == wx.WXK_RETURN or\
+               event.ControlDown() or event.CmdDown():
+                self._cmp = False
+            else:
+                point = self.ctl_prenom.GetInsertionPoint()
+                self.effacer_selection(self.ctl_nom)
+                self.effacer_selection(self.ctl_age)
+                self.effacer_selection(self.ctl_prenom)
+                self.ctl_prenom.SetInsertionPoint(point)
+                self._cmp = True
 
         event.Skip()
 
     def enter_nom(self, event):
-        point = self.ctl_nom.GetInsertionPoint()
-        self.effacer_selection(self.ctl_age)
+        if self._completion:
 
-        if event.GetKeyCode() == wx.WXK_DELETE or event.GetKeyCode() == wx.WXK_BACK:
-            self._cmp = False
-        else:
-            self.effacer_selection(self.ctl_nom)
-            self.ctl_nom.SetInsertionPoint(point)
-            self._cmp = True
+            if event.GetKeyCode() == wx.WXK_DELETE or\
+               event.GetKeyCode() == wx.WXK_BACK or\
+               event.GetKeyCode() == wx.WXK_TAB or\
+               event.GetKeyCode() == wx.WXK_RIGHT or\
+               event.GetKeyCode() == wx.WXK_RETURN or\
+               event.ControlDown() or event.CmdDown():
+                self._cmp = False
+            else:
+                point = self.ctl_nom.GetInsertionPoint()
+                self.effacer_selection(self.ctl_age)
+                self.effacer_selection(self.ctl_nom)
+                self.ctl_nom.SetInsertionPoint(point)
+                self._cmp = True
 
         event.Skip()
 
     def completer(self, event):
-        if self._cmp:
-            c = joueurs.NomCompleteur()
-            prenom, nom, age, date = c.completer(self.ctl_prenom.GetValue(), self.ctl_nom.GetValue())
+        if self._completion:
+            if self._cmp:
+                c = joueurs.NomCompleteur()
+                prenom, nom, age, date = c.completer(self.ctl_prenom.GetValue(), self.ctl_nom.GetValue())
 
-            if event.GetId() == ID_PRENOM:
-                # Entrée dans la zone prénom
-                if prenom != u'':
+                if prenom != u"":
                     self.ajout_texte(self.ctl_prenom, prenom)
-                if nom != u'':
+                if nom != u"":
                     self.ajout_texte(self.ctl_nom, nom)
-                if age != u'':
+                if age != u"":
                     self.ajout_texte(self.ctl_age, age)
-            else:
-                # Entrée dans la zone nom
-                if nom != u'':
-                    self.ajout_texte(self.ctl_nom, nom)
-                if age != u'':
-                    self.ajout_texte(self.ctl_age, age)
-            event.Skip()
+
+        event.Skip()
 
     def ajout_texte(self, ctl, texte):
         debut = len(ctl.GetValue())
-        ctl.AppendText(texte)
+        ctl.ChangeValue(texte)
+        ctl._selection = texte[debut:]
         ctl.SetSelection(debut, len(ctl.GetValue()))
 
     def effacer_selection(self, ctl):
-        debut, fin = ctl.GetSelection()
-        ctl.Replace(debut, fin, "")
+        ctl.ChangeValue(ctl.GetValue().replace(ctl._selection, u""))
+        ctl._selection = u""
 
-    def chg_joueur(self, prenom, nom, age = ''):
+    def chg_joueur(self, prenom, nom, age=''):
         self.ctl_prenom.SetValue(prenom)
         self.ctl_nom.SetValue(nom)
         self.ctl_age.SetValue(age)
@@ -120,7 +137,7 @@ class EntrerJoueur(wx.Panel):
         self.ctl_nom.SetSelection(len(self.ctl_nom.GetValue()), len(self.ctl_nom.GetValue()))
         self.ctl_age.SetSelection(len(self.ctl_age.GetValue()), len(self.ctl_age.GetValue()))
 
-    def chg_editable(self, valeur = True):
+    def chg_editable(self, valeur=True):
         self.ctl_prenom.SetEditable(valeur)
         self.ctl_nom.SetEditable(valeur)
         self.ctl_age.SetEditable(valeur)
@@ -135,7 +152,7 @@ class EntrerJoueur(wx.Panel):
         return (self.ctl_prenom.GetValue(), self.ctl_nom.GetValue(), self.ctl_age.GetValue())
 
 class EquipeValidateur(wx.PyValidator):
-    def __init__(self, pyVar = None):
+    def __init__(self, pyVar=None):
         wx.PyValidator.__init__(self)
         self.Bind(wx.EVT_CHAR, self.OnChar)
 
@@ -158,16 +175,16 @@ class EquipeValidateur(wx.PyValidator):
         return
 
 class EntrerNumero(wx.Panel):
-    def __init__(self, parent, choix = []):
+    def __init__(self, parent, choix=[]):
         wx.Panel.__init__(self, parent, wx.ID_ANY)
         self.SetMinSize((-1, 40))
 
         self.txt_numero = wx.StaticText(self, wx.ID_ANY, u"Equipe n° ")
         if choix == []:
-            self.ctl_numero = wx.TextCtrl(self, wx.ID_ANY, u"", validator = EquipeValidateur())
+            self.ctl_numero = wx.TextCtrl(self, wx.ID_ANY, u"", validator=EquipeValidateur())
             self.combo = False
         else:
-            self.ctl_numero = wx.Choice(self, ID_NUMERO, choices = map(unicode, choix))
+            self.ctl_numero = wx.Choice(self, ID_NUMERO, choices=map(unicode, choix))
             self.combo = True
 
         box = wx.BoxSizer(wx.HORIZONTAL)
@@ -203,20 +220,20 @@ class EntrerNumero(wx.Panel):
             return self.ctl_numero.GetValue()
 
 class DialogueEquipe(wx.Dialog):
-    def __init__(self, parent, style = STYLE_AJOUTER, choix = [], numero_affiche = 1):
-        wx.Dialog.__init__(self, parent, wx.ID_ANY, title = style + u" une équipe" , style = wx.DEFAULT_DIALOG_STYLE | wx.CENTER_ON_SCREEN | wx.RESIZE_BORDER)
+    def __init__(self, parent, style=STYLE_AJOUTER, choix=[], numero_affiche=1, completion=True):
+        wx.Dialog.__init__(self, parent, wx.ID_ANY, title=style + u" une équipe" , style=wx.DEFAULT_DIALOG_STYLE | wx.CENTER_ON_SCREEN | wx.RESIZE_BORDER)
         self.SetMinSize((500, 220))
-        self.SetSize(wx.Size(500, 200))
         self.CenterOnParent()
 
         self.entrees = []
         self.choix = choix
 
         # Panel avec les entrées des joueurs
-        self.panel = scrolled.ScrolledPanel(self, wx.ID_ANY, style = wx.TAB_TRAVERSAL)
+        self.panel = scrolled.ScrolledPanel(self, wx.ID_ANY, style=wx.TAB_TRAVERSAL)
         box_panel = wx.BoxSizer(wx.VERTICAL)
         for i in range(tournois.tournoi().joueurs_par_equipe):
             e = EntrerJoueur(self.panel)
+            e.activer_completion(completion)
             self.entrees.append(e)
             box_panel.Add(e, 0, wx.EXPAND | wx.ALL, 15)
         self.panel.SetSizer(box_panel)
@@ -227,9 +244,9 @@ class DialogueEquipe(wx.Dialog):
                 entree.chg_editable(False)
 
         # Boutons
-        self.btn_ok = wx.Button(self, id = wx.ID_OK, label = style, size = (100, -1))
+        self.btn_ok = wx.Button(self, id=wx.ID_OK, label=style, size=(100, -1))
         self.btn_ok.SetDefault()
-        self.btn_annule = wx.Button(self, id = wx.ID_CANCEL, label = "Annuler", size = (100, -1))
+        self.btn_annule = wx.Button(self, id=wx.ID_CANCEL, label="Annuler", size=(100, -1))
         box_btn = wx.BoxSizer(wx.HORIZONTAL)
         box_btn.AddSpacer((50, 50), 1, wx.EXPAND)
         box_btn.Add(self.btn_annule, 0, wx.EAST | wx.ALIGN_CENTER_VERTICAL, 30)
@@ -255,7 +272,13 @@ class DialogueEquipe(wx.Dialog):
         self.SetSizer(box)
         self.Layout()
 
-        self.Bind(wx.EVT_CHOICE, self._maj, id = ID_NUMERO)
+        hauteur_necessaire = (self.entrees[0].GetSize()[1] + 30) * len(self.entrees) + 125
+        if hauteur_necessaire < wx.GetDisplaySize()[1]:
+            self.SetSize(wx.Size(500, hauteur_necessaire))
+        else:
+            self.SetSize(wx.Size(500, wx.GetDisplaySize()[1] - 10))
+
+        self.Bind(wx.EVT_CHOICE, self._maj, id=ID_NUMERO)
         self.Bind(wx.EVT_TEXT, self._btn_satut)
 
     def _maj(self, event):
@@ -286,7 +309,7 @@ class DialogueEquipe(wx.Dialog):
 
 class DialogueMessageEquipe(wx.Dialog):
     def __init__(self, parent, equipe):
-        wx.Dialog.__init__(self, parent, wx.ID_ANY, title = u"Tournoi en cours" , style = wx.DEFAULT_DIALOG_STYLE | wx.CENTER_ON_SCREEN, pos = wx.DefaultPosition, size = wx.DefaultSize)
+        wx.Dialog.__init__(self, parent, wx.ID_ANY, title=u"Tournoi en cours" , style=wx.DEFAULT_DIALOG_STYLE | wx.CENTER_ON_SCREEN, pos=wx.DefaultPosition, size=wx.DefaultSize)
         self.SetMinSize((500, 220))
         self.SetSize(wx.Size(500, 200))
         self.CenterOnParent()
@@ -294,14 +317,14 @@ class DialogueMessageEquipe(wx.Dialog):
         texte = u"La partie n° %s est en cours, pour toutes les parties précédentes l'équipe\n\
 sera considérée comme forfait, choisissez l'état de l'équipe n° %s pour la\n\
 partie en cours:" % (tournois.tournoi().partie_courante().numero, equipe)
-        self.txt_info = wx.StaticText(self, wx.ID_ANY, texte, size = wx.Size(-1, 200))
-        self.chx_etat = wx.Choice(self, ID_NUMERO, choices = [cst.FORFAIT, cst.CHAPEAU])
+        self.txt_info = wx.StaticText(self, wx.ID_ANY, texte, size=wx.Size(-1, 200))
+        self.chx_etat = wx.Choice(self, ID_NUMERO, choices=[cst.FORFAIT, cst.CHAPEAU])
         self.chk_cree_manche = wx.CheckBox(self, wx.ID_ANY, "Créer une manche avec les équipes chapeaux si possible.")
 
         # Boutons
-        self.btn_ok = wx.Button(self, id = wx.ID_OK, label = u"Valider", size = (100, -1))
+        self.btn_ok = wx.Button(self, id=wx.ID_OK, label=u"Valider", size=(100, -1))
         self.btn_ok.SetDefault()
-        self.btn_annule = wx.Button(self, id = wx.ID_CANCEL, label = u"Annuler", size = (100, -1))
+        self.btn_annule = wx.Button(self, id=wx.ID_CANCEL, label=u"Annuler", size=(100, -1))
 
         box_btn = wx.BoxSizer(wx.HORIZONTAL)
         box_btn.AddSpacer((50, 50), 1, wx.EXPAND)

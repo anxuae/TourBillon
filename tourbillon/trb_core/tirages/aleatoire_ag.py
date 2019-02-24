@@ -1,13 +1,26 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
 
-__doc__ = """Définitions des équipes."""
+__doc__ = u"""Algorithme génétique pseudo aléatoire (choix de la redondance possible)."""
 
 #--- Import --------------------------------------------------------------------
 import random
 from tourbillon.trb_core.tirages.utile import (BaseThreadTirage, nb_chapeaux_necessaires, tri_stat, Cnp,
-                                               Individu, Environement, genese, creer_manches)
+                                               Individu, Environement, genese, creer_manches, tirage_texte)
 from tourbillon.trb_core.exceptions import StopTirageError, SolutionError
+
+#--- Variables globales -------------------------------------------------------
+
+NOM = u"Aléatoire (Algorithme Génétique)"
+
+DEFAUT = {'TAILLE_POPULATION_INI': 40,
+          'TAILLE_POPULATION'    : 50,
+          'MAX_GENERATIONS'      : 100,
+          'TAUX_CROISEMENT'      : 0.9,
+          'TAUX_MUTATION'        : 0.01,
+          'OPTIMUM'              : 0.0,
+          'REDONDANCE'           : False
+          }
 
 #--- Fonctions -----------------------------------------------------------------
 
@@ -35,7 +48,7 @@ def select_chapeau(statistiques, redondance):
 
 class Tirage(Individu):
 
-    def evaluer(self, parametres, optimum = None):
+    def evaluer(self, parametres, optimum=None):
         """
         Calcul du nombre de fois ou deux équipes qui se sont déjà rencontrées
         vont rejouer une manche.
@@ -88,26 +101,10 @@ class Tirage(Individu):
                 i += 1
 
 class ThreadTirage(BaseThreadTirage):
-    def __init__(self, equipes_par_manche, statistiques, chapeaux = [], rapport = None):
+    def __init__(self, equipes_par_manche, statistiques, chapeaux=[], rapport=None):
         BaseThreadTirage.__init__(self, equipes_par_manche, statistiques, chapeaux, rapport)
         self.categorie = u"aleatoire_ag"
         self._env = None
-        self._algo_conf = {}
-        self.configurer()
-
-    def configurer(self, taille_population_ini = 40, taille_population = 50, max_generations = 1000, taux_croiser = 0.9, taux_muter = 0.01,
-                   optimum = -1, redondance = False):
-        self._algo_conf['taille_population_ini'] = taille_population_ini
-        self._algo_conf['taille_population'] = taille_population
-        self._algo_conf['max_generations'] = max_generations
-        self._algo_conf['taux_croiser'] = taux_croiser
-        self._algo_conf['taux_muter'] = taux_muter
-        self._algo_conf['optimum'] = optimum
-        self._algo_conf['redondance'] = redondance
-        self._algo_conf['statistiques'] = self.statistiques
-        self._algo_conf['equipes_par_manche'] = self.equipes_par_manche
-        self._algo_conf['arret_utilisateur'] = self._arret_utilisateur
-        self._algo_conf['rapport'] = self.rapport
 
     def demarrer(self):
         nb_eq = len(self.statistiques)
@@ -133,7 +130,7 @@ class ThreadTirage(BaseThreadTirage):
         for i in range(nb_chapeaux - len(self.chapeaux)):
             # Si le nombre de chapeaux fourni est insuffisant: en choisir d'autres
             self._arret_utilisateur()
-            chap = select_chapeau(self.statistiques, self._algo_conf['redondance'])
+            chap = select_chapeau(self.statistiques, self.config['redondance'])
             self.chapeaux.append(chap)
 
         # Tirage des manches:
@@ -141,12 +138,13 @@ class ThreadTirage(BaseThreadTirage):
 
         # Créer l'environement
         Tirage.alleles = self.statistiques.keys()
-        self._env = Environement(genese(Tirage, self._algo_conf['taille_population_ini']), **self._algo_conf)
+        self._env = Environement(genese(Tirage, self.config['taille_population_ini']), **self.config)
 
         # Lancer l'algorithme
         self._env.run()
 
         self.tirage = creer_manches(self._env.elite.chromosome, self.equipes_par_manche)
+        self.rapport(99, tirage_texte(self.statistiques, self.tirage))
 
         # Verification de la pertinence de la solution
         if self._env.elite.score >= 1e36:
@@ -158,7 +156,7 @@ class ThreadTirage(BaseThreadTirage):
                     args.append((equipe, nb))
             raise SolutionError(150, args)
 
-        elif self._algo_conf['redondance'] == False and self._env.elite.score >= 1:
+        elif self.config['redondance'] == False and self._env.elite.score >= 1:
             # ERREUR 151: Au moins une manche qui a déjà été disputée se trouve dans le tirage et
             #             la redondance n'est pas autorisée.
             args = []

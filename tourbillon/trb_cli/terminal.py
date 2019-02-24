@@ -1,26 +1,39 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
 
-__doc__ = """Terminal controller module
-Example of usage:
-    print BG_BLUE + 'Text on blue background' + NORMAL
-    print BLUE + UNDERLINE + 'Blue underlined text' + NORMAL
-    print BLUE + BG_YELLOW + BOLD + 'text' + NORMAL
+__doc__ = """Module de control du Terminal
+
+1) Importe et fournit la version 'correcte' de readline en fonction de
+la plateforme.
+Readline est utilisé dans TourBillon de la manière suivante:
+            'from tourbillon.trb_cli import terminal
+             terminal.readline... '.
+
+Ce module fournis aussi les variables has_readline, has_curses,
+uses_libedit et _outputfile.
+
+2) Importe des variables pour le controle des cpolices et couleurs
+du terminal.
+Exemple d'utilisation:
+    print BG_BLUE + 'Texte en fond bleu' + NORMAL
+    print BLUE + UNDERLINE + 'Texte bleu souligné' + NORMAL
+    print BLUE + BG_YELLOW + BOLD + 'Texte' + NORMAL
 """
 
 #--- Import --------------------------------------------------------------------
 
 import sys
+import os
 
-#--- Global Variables ----------------------------------------------------------
+#--- Variables Globales -------------------------------------------------------
 
-# The current module
+# Module courant
 MODULE = sys.modules[__name__]
 
-# List of terminal colors.
+# Liste des couleurs disponibles dans le terminal.
 COLORS = "BLUE GREEN CYAN RED MAGENTA YELLOW WHITE BLACK".split()
 
-# List of terminal controls, you can add more to the list.
+# Liste des controls du terminal (possibilité d'en ajouter plus).
 CONTROLS = {'BOL':'cr',
             'UP':'cuu1',
             'DOWN':'cud1',
@@ -39,16 +52,16 @@ CONTROLS = {'BOL':'cr',
             'HIDE_CURSOR':'cinvis',
             'SHOW_CURSOR':'cnorm'}
 
-# List of numeric capabilities
-VALUES = {'COLUMNS':'cols', # Width of the terminal (None for unknown)
-          'LINES':'lines', # Height of the terminal (None for unknown)
+# Liste des capacités numériques
+VALUES = {'COLUMNS':'cols', # Largeur du terminal (None pour inconnue)
+          'LINES':'lines', # Hauteur du terminal (None pour inconnue)
           'MAX_COLORS': 'colors', }
 
 #--- Fonctions -----------------------------------------------------------------
 
 def default():
     """
-    Set the default attribute values
+    Ecriture des attributs par défaut
     """
     for color in COLORS:
         setattr(MODULE, color, '')
@@ -60,10 +73,11 @@ def default():
 
 def setup():
     """
-    Set the terminal control strings
+    Ecriture des controls du terminal
     """
-    # Initializing the terminal
+    # Initializing terminal
     curses.setupterm()
+    # 
     # Get the color escape sequence template or '' if not supported
     # setab and setaf are for ANSI escape sequences
     bgColorSeq = curses.tigetstr('setab') or curses.tigetstr('setb') or ''
@@ -87,16 +101,60 @@ def setup():
 
 def render(text):
     """
-    Helper function to apply controls easily
-    Example:
-    apply("%(GREEN)s%(BOLD)stext%(NORMAL)s") -> a bold green text
+    Fonction pour faciliter l'usage des controls
+    Exemple:
+        apply("%(GREEN)s%(BOLD)stext%(NORMAL)s") -> un texte vert en gras
     """
     return text % MODULE.__dict__
 
+#--- Main ---------------------------------------------------------------------
+
+has_curses = False
 try:
     import curses
     setup()
+    has_curses = True
 except Exception, e:
     # There is a failure; set all attributes to default
-    print 'Warning: %s' % e
+    print "Warning: %s" % e
     default()
+
+try:
+    import readline
+    has_readline = True
+except ImportError:
+    try:
+        import pyreadline as readline
+        has_readline = True
+    except ImportError:
+        has_readline = False
+        print "Warning: Library readline not installed"
+
+if sys.platform == 'win32' and has_readline:
+    try:
+        _outputfile = readline.GetOutputFile()
+    except AttributeError:
+        print "Warning: Failed GetOutputFile"
+        _outputfile = sys.stdout
+        has_readline = False
+else:
+    _outputfile = sys.stdout
+
+# Test to see if libedit is being used instead of GNU readline.
+uses_libedit = False
+if sys.platform == 'darwin' and has_readline:
+    import commands
+    for i in range(10):
+        try:
+            (status, result) = commands.getstatusoutput("otool -L %s | grep libedit" % readline.__file__)
+            break
+        except IOError, (errno, strerror):
+            if errno == 4:
+                continue
+            else:
+                break
+
+    if status == 0 and len(result) > 0:
+        # we are bound to libedit - new in Leopard
+        print "Info: Leopard libedit detected."
+        uses_libedit = True

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
 
-__doc__ = """Définitions des équipes."""
+__doc__ = """Fonctions utiles à la création d'algorithmes de tirage."""
 
 #--- Import --------------------------------------------------------------------
 
@@ -12,7 +12,7 @@ from tourbillon.trb_core.constantes import MAXIMISE, MINIMISE
 
 #--- fonctions math ------------------------------------------------------------
 
-def Cnp(equipes, p, l = None, res = None):
+def Cnp(equipes, p, l=None, res=None):
     """
     Retourne les combinaisons (Cnp) possibles pour tirer 'p' équipes
     parmis la liste 'equipes' sans répétition.
@@ -39,12 +39,6 @@ def Cnp(equipes, p, l = None, res = None):
 
 #--- fonctions générales -------------------------------------------------------
 
-def nb_chapeaux_necessaires(nb_equipes, nb_par_manche):
-    if nb_equipes < nb_par_manche:
-        raise TirageError, u"Pas assez d'équipes (nb équipes: %s, nb par manche: %s)" % (nb_equipes, nb_par_manche)
-    else:
-        return nb_equipes % nb_par_manche
-
 def tri_stat(statistiques, caracteristique):
     d = {}
     for eq in statistiques:
@@ -53,6 +47,25 @@ def tri_stat(statistiques, caracteristique):
             d[chap] = []
         d[chap].append(eq)
     return d
+
+def nb_chapeaux_necessaires(nb_equipes, nb_par_manche):
+    if nb_equipes < nb_par_manche:
+        raise TirageError, u"Pas assez d'équipes (nb équipes: %s, nb par manche: %s)" % (nb_equipes, nb_par_manche)
+    else:
+        return nb_equipes % nb_par_manche
+
+def dernieres_equipes(statistiques, n=1):
+    """
+    Retourne la liste des n dernières équipes.
+    """
+    r = []
+    d = tri_stat(statistiques, 'place')
+    places = d.keys()
+    places.sort()
+    for p in places:
+        r += d[p]
+
+    return r[-6:]
 
 def creer_manches(liste_equipes, equipes_par_manche):
     i = 1
@@ -71,11 +84,53 @@ def creer_liste(tirage):
             liste_equipes.append(equipe)
     return liste_equipes
 
+def tirage_texte(statistiques, manches):
+    texte = []
+
+    for manche in manches:
+        pts = []
+        nv = []
+        for equipe in manche:
+            pts.append(statistiques[equipe]['points'])
+            nv.append(statistiques[equipe]['victoires'] + statistiques[equipe]['chapeaux'])
+
+        # Evaluation de l'écart max de points
+        dp = max(pts) - min(pts)
+        # Evaluation de l'écart max de victoires (+ chapeaux)
+        dv = max(nv) - min(nv)
+
+        # Calcul de la redondance (1 pour toute rencontrée + 1/n par semirencontre)
+        # Une semirencontre est un jeu de 2 équipes. Une manche peut comporter
+        # plus de deux équipes donc il y a Cnp(manche, 2) posibilités.
+        l = Cnp(manche, 2)
+        semirencontres = {}
+        nrc = 0
+        for vu in l:
+            vu.sort()
+            cle = "_".join([unicode(num) for num in vu])
+            semirencontres[cle] = statistiques[vu[1]]['adversaires'].count(vu[0])
+
+        r = []
+        for equipe in statistiques:
+            if manche in statistiques[equipe]['manches'] and manche not in r:
+                # La manche a déjà été disputée
+                r.append(manche)
+                for k in semirencontres:
+                    semirencontres[k] -= 1
+                nrc += 1
+
+        # Completer avec un un nombre < 1 pour les rencontres 2 à 2 effectuées
+        # dans d'autres manches que celles redondantes
+        nrc += 1 - (1.0 * semirencontres.values().count(0) / len(l))
+
+        texte.append(u"%-15s: diff points = %-5s, redondance = %-5s, disparité = %-5s" % (manche, dp, nrc, dv))
+
+    return '\n'.join(texte)
 
 #--- classes -------------------------------------------------------------------
 
 class NonValide(object):
-    def __init__(self, valeur = None, redondance = 0, disparite = 0):
+    def __init__(self, valeur=None, redondance=0, disparite=0):
         if type(valeur) == self.__class__:
             self.redondance = valeur.redondance
             self.disparite = valeur.disparite
@@ -120,44 +175,53 @@ class NonValide(object):
         v = self.raison() | other.raison()
 
         if v == NV_REDONDANCE.raison():
-            return NonValide(redondance = 1)
+            return NonValide(redondance=1)
         elif v == NV_DISPARITE.raison():
-            return NonValide(disparite = 2)
+            return NonValide(disparite=2)
         elif v == NV_REDONDANCE.raison() | NV_DISPARITE.raison():
-            return NonValide(redondance = 1, disparite = 2)
+            return NonValide(redondance=1, disparite=2)
         else:
             raise TypeError, "unsupported operand type(s) for |: '%s' and '%s'" % (type(self), type(other))
 
     __ror__ = __or__
 
 NV = NonValide
-NV_REDONDANCE = NonValide(redondance = 1)
-NV_DISPARITE = NonValide(disparite = 2)
+NV_REDONDANCE = NonValide(redondance=1)
+NV_DISPARITE = NonValide(disparite=2)
 
 class BaseThreadTirage(Thread):
     """
     Base de la classe ThreadTirage.
     """
-    def __init__(self, equipes_par_manche, statistiques, chapeaux = [], rapport = None):
+    def __init__(self, equipes_par_manche, statistiques, chapeaux=[], rapport=None):
         Thread.__init__(self)
         if self.__class__ == BaseThreadTirage:
             raise NotImplemented, u"Classe abstraite"
 
+        self._stop = Event()
+        self.config = {}
         self.equipes_par_manche = equipes_par_manche
         self.statistiques = statistiques
         self.erreur = None
+        self.tirage = []
+        self.chapeaux = chapeaux
 
         # Surcharge du rapport
         if rapport is not None:
             self.rapport = rapport
 
-        self.tirage = []
-        self.chapeaux = chapeaux
-        self._stop = Event()
+        self.configurer()
 
     def _arret_utilisateur(self):
         if self._stop.isSet() == True:
             raise StopTirageError, u"Arrêt demmandé par l'utilisateur."
+
+    def configurer(self, **kwargs):
+        self.config.update(kwargs)
+        self.config['statistiques'] = self.statistiques
+        self.config['equipes_par_manche'] = self.equipes_par_manche
+        self.config['arret_utilisateur'] = self._arret_utilisateur
+        self.config['rapport'] = self.rapport
 
     def start(self):
         self._stop.clear()
@@ -184,7 +248,7 @@ class BaseThreadTirage(Thread):
         """
         pass
 
-    def rapport(self, valeur = 0, message = None, resultat = {'tirage':[], 'chapeaux':[]}, erreur = None):
+    def rapport(self, valeur=0, message=None, resultat={'tirage':[], 'chapeaux':[]}, erreur=None):
         """
         Cette methode peut être surchargée pour l'affichage d'un rapport
         de progression.
@@ -196,7 +260,7 @@ class BaseThreadTirage(Thread):
 
 #--- Algorithme génétique ------------------------------------------------------
 
-def genese(individu_type, taille = 20):
+def genese(individu_type, taille=20):
     """
     Créer la population initiale.
     """
@@ -215,7 +279,7 @@ class Individu(object):
     alleles = [] # Version d'un gène
     optimization = MINIMISE
 
-    def __init__(self, chromosome = None):
+    def __init__(self, chromosome=None):
         self.chromosome = chromosome
         self.score = None  # set during evaluation
 
@@ -272,7 +336,7 @@ class Individu(object):
         twin.score = self.score
         return twin
 
-    def evaluer(self, parametres, optimum = None):
+    def evaluer(self, parametres, optimum=None):
         """
         Cette methode DOIT être surchargée pour évaluer la finesse du
         score d'un individu.
@@ -294,8 +358,8 @@ class Individu(object):
         self._remplacer(gene)
 
 class Environement(object):
-    def __init__(self, population , taille_population = 100, max_generations = 1000,
-                 taux_croiser = 0.90, taux_muter = 0.01, optimum = None, rapport = None, **kwrds):
+    def __init__(self, population , taille_population=100, max_generations=1000,
+                 taux_croiser=0.90, taux_muter=0.01, optimum=None, rapport=None, **kwrds):
 
         # Taille maximale de la population
         self.taille = taille_population
@@ -317,7 +381,7 @@ class Environement(object):
         self.generation = 0
         # Execute le fonction à chaque nouvelle génération
         self.rapport = rapport
-        self.message = "Génération %-" + str(len(str(max_generations))) + "s - score : %-8.5g (objectif: %s)"
+        self.message = u"Génération %-" + str(len(str(max_generations))) + u"s - score : %-8.5g (objectif: %s)"
 
     def run(self):
         while not self._but():
@@ -352,7 +416,7 @@ class Environement(object):
             if random.random() < self.taux_muter:
                 individu.muter(gene)
 
-    def _tournoi(self, taille = 6, taux_elite = 0.80):
+    def _tournoi(self, taille=6, taux_elite=0.80):
         """
         Selection par tournoi. 'taille' individus sont choisis aléatoirement parmi
         la population. Le pourcentage donné par 'taux_elite' indique la probabilité

@@ -16,15 +16,15 @@ from tourbillon.trb_core import exceptions as expt
 
 #--- Variables globales --------------------------------------------------------
 
-TITRES = [(u"Equipe", 50),
+TITRES = [(u"Equipe", 60),
           (u"Noms", 300),
           (u"Etat", 50),
           (u"Score", 50),
           (u"Durée", 80),
-          (u"", 70),
+          (u"", 60),
           (u"Victoires", 70),
           (u"Points", 70),
-          (u"Classement", 70),
+          (u"Place", 70),
           (u"min Billons", 80),
           (u"max Billons", 80),
           (u"moy Billons", 80),
@@ -174,7 +174,7 @@ class Grille(grid.Grid):
             self.Refresh()
         event.Skip()
 
-    def attribut(self, ref = 'paire'):
+    def attribut(self, ref='paire'):
         attr = wx.grid.GridCellAttr()
         if ref == 'paire':
             attr.SetBackgroundColour(images.couleur('grille_paire'))
@@ -198,7 +198,7 @@ class Grille(grid.Grid):
         elif ref == 'entete1':
             attr.SetBackgroundColour(images.couleur('gradient1'))
             attr.SetTextColour(images.couleur('texte'))
-            attr.SetFont(wx.Font(16, wx.ROMAN, wx.ITALIC, wx.BOLD))
+            attr.SetFont(wx.Font(14, wx.ROMAN, wx.ITALIC, wx.BOLD))
             attr.SetAlignment(wx.ALIGN_CENTRE, wx.ALIGN_CENTRE)
             attr.SetReadOnly(True)
         elif ref == 'entete2':
@@ -211,7 +211,7 @@ class Grille(grid.Grid):
 
 class GrillePanel(scrolled.ScrolledPanel):
     def __init__(self, parent):
-        scrolled.ScrolledPanel.__init__(self, parent, wx.ID_ANY, style = wx.TAB_TRAVERSAL)
+        scrolled.ScrolledPanel.__init__(self, parent, wx.ID_ANY, style=wx.TAB_TRAVERSAL)
         self._colonne_recherche = 0
         self.grille = Grille(self)
 
@@ -220,20 +220,19 @@ class GrillePanel(scrolled.ScrolledPanel):
         self.SetSizer(box)
 
         self.SetAutoLayout(True)
-        self.SetupScrolling(scrollToTop = False)
+        self.SetupScrolling(scrollToTop=False)
 
-        self.grille.Bind(wx.EVT_MOUSEWHEEL, self.teste)
+        self.grille.Bind(wx.EVT_MOUSEWHEEL, self._roulette)
 
-    def teste(self, event):
-        event.SetId(self.GetId())
-        wx.PostEvent(self, event)
-        event.Skip()
+    def _roulette(self, event):
+        x, y = self.GetViewStart()
+        self.Scroll(x, y - (self.GetScaleY()*(event.GetWheelRotation() / abs(event.GetWheelRotation()))))
 
     def OnChildFocus(self, event):
         self.SetFocus()
         event.Skip()
 
-    def _rafraichir(self, partie = None, equipe = None, classement = None):
+    def _rafraichir(self, partie=None, equipe=None, classement=None):
         """
         NE PAS UTILISER !!!!! (Manipulé par la fenêtre principale)
         """
@@ -266,7 +265,7 @@ class GrillePanel(scrolled.ScrolledPanel):
             self.grille.SetCellFont(l, 0, wx.Font(10, wx.SWISS, wx.NORMAL, wx.BOLD))
             # Noms
             noms = [unicode(joueur) for joueur in equipe.joueurs()]
-            noms = " / ".join(noms)
+            noms = u" / ".join(noms)
             self.grille.SetCellValue(l, 1, u"%s" % noms)
             # Etat
             try:
@@ -304,15 +303,18 @@ class GrillePanel(scrolled.ScrolledPanel):
             self.grille.SetCellValue(l, 13, u"%s" % unicode_timedelta(equipe.max_duree()))
             self.grille.SetCellValue(l, 14, u"%s" % unicode_timedelta(equipe.moyenne_duree()))
 
-#            # Indication équipe incomplète
-#            if equipe.resultat(partie)['etat'] == None:
-#                self.grille.SetCellValue(l, 5, u"*")
-#            else:
-#                self.grille.SetCellValue(l, 5, u"")
+            # Indication équipe incomplète
+            if partie > 0:
+                if equipe.resultat(partie)['etat'] == None:
+                    self.grille.SetCellValue(l, 5, u"*")
+                else:
+                    self.grille.SetCellValue(l, 5, u"")
+            else:
+                self.grille.SetCellValue(l, 5, u"")
 
         self.grille.Thaw()
 
-    def rechercher(self, event, precedent = -1):
+    def rechercher(self, event, precedent= -1):
         i = 2
         trouve = False
         trouve_avant_precedent = -1
@@ -338,7 +340,7 @@ class GrillePanel(scrolled.ScrolledPanel):
                 else:
                     i = trouve_avant_precedent
 
-        event = grid.GridEvent(self.grille.GetId(), 10209, self.grille, row = i)
+        event = grid.GridEvent(self.grille.GetId(), 10209, self.grille, row=i)
         event.GetRect = lambda:self.grille.CellToRect(i, 0)
 
         self.grille.selectionner(event)
@@ -355,6 +357,15 @@ class GrillePanel(scrolled.ScrolledPanel):
         if event.index >= 5:
             event.index += 1
         self._colonne_recherche = event.index
+
+    def equipe(self, ligne):
+        """
+        Retourne le numero d'équipe à l'indice de ligne spécifié.
+        """
+        if self.grille.GetNumberRows() == 2 or ligne > self.grille.GetNumberRows():
+            return None
+        else:
+            return int(self.grille.GetCellValue(ligne, 0))
 
     def ligne(self, equipe):
         """
@@ -399,12 +410,12 @@ class GrillePanel(scrolled.ScrolledPanel):
         # Le numéro qui permet de retrouver la ligne de l'équipe
         self.grille.SetCellValue(i, 0, u"%s" % equipe.numero)
         self.grille._rafraichir_couleur()
-        self.SetupScrolling(scrollToTop = False)
+        self.SetupScrolling(scrollToTop=False)
 
     def suppr_equipe(self, equipe):
         self.grille.DeleteRows(self.ligne(equipe), 1, False)
         self.grille._rafraichir_couleur()
-        self.SetupScrolling(scrollToTop = False)
+        self.SetupScrolling(scrollToTop=False)
 
     def effacer(self):
         if self.grille.GetNumberRows() > 2:

@@ -3,12 +3,14 @@
 
 #--- Import --------------------------------------------------------------------
 
-import os
-import sys
+import os, sys
+import __builtin__
 from datetime import datetime, timedelta
+import atexit
+import code
 
 import tourbillon
-from tourbillon.trb_cli import interpreteur
+from tourbillon.trb_cli.interpreteur import Interpreteur
 from tourbillon.trb_cli import progression
 from tourbillon.trb_cli import terminal
 from tourbillon.trb_core import tournois, joueurs
@@ -16,193 +18,279 @@ from tourbillon.trb_core import tirages
 from tourbillon import images
 from tourbillon.trb_core import constantes as cst
 
-#--- Commandes -----------------------------------------------------------------
-
-COMMANDES = [{'short': 'n', 'long': 'nouveau', 'aide': "Commencer un nouveau tournoi", 'cmd': 'T = __CLI.nouveau()'},
-             {'short': 'e', 'long': 'enregistrer', 'aide': "Enregistrer le tournois en cours", 'cmd': '__CLI.enregistrer()'},
-             {'short': 'c', 'long': 'charger', 'aide': "Charger un tournoi", 'cmd': 'T=__CLI.charger()'},
-             {'short': 't', 'long': 'tirage', 'aide': "Créer un nouveau tirage", 'cmd': 'tir= __CLI.tirage()'},
-             {'short': 'r', 'long': 'resultat', 'aide': "Entrer les résultats d'une équipe (ex: 4 g 12 False)\n\
-                                Le 4ème argument indique qu'il ne faut pas enregistrer l'heure\n\
-                                actuelle comme heure de fin.", 'cmd': 'tir= __CLI.resultat()'},
-             {'short': 'q', 'long': 'quitter', 'aide': "Quitter TourBillon CLI", 'cmd': '__CLI.quitter()'},
-             {'short': 'a', 'long': 'aide', 'aide': "Aide TourBillon CLI", 'cmd': '__CLI.afficher_aide()'},
-             {'short': 'l', 'long': 'licence', 'aide': "Licence GNU GPL", 'cmd': '__CLI.licence()'}]
-
 #--- Fonctions -----------------------------------------------------------------
-
 
 def question(texte=''):
     return raw_input("%s%s%s" % (terminal.GREEN, texte, terminal.NORMAL))
 
+def normalise_chaine(s):
+    """
+    Retourne une chaine de charactères dans des guillemets appropriés sous
+    forme de ligne si possible.
+    """
+    tail = ''
+    tailpadding = ''
+    raw = ''
+    if "\\" in s:
+        raw = 'r'
+        if s.endswith('\\'):
+            tail = '[:-1]'
+            tailpadding = '_'
+    if '"' not in s:
+        quote = '"'
+    elif "'" not in s:
+        quote = "'"
+    elif '"""' not in s and not s.endswith('"'):
+        quote = '"""'
+    elif "'''" not in s and not s.endswith("'"):
+        quote = "'''"
+    else:
+        # give up, backslash-escaped string will do
+        return '"%s"' % esc_quotes(s)
+    res = raw + quote + s + tailpadding + quote + tail
+    return res
+
 #--- Classes -------------------------------------------------------------------
 
+class Alias(object):
+    ESC_ALIAS = '%'
+    """
+    Alias pour le shell interactif.
+    
+    Fonctions qui pevent être atteinte dans le shell avec %nom_fonction.
+    """
+    def __init__(self):
+        __builtin__.exit = self.alias_quitter
+        __builtin__.quit = self.alias_quitter
 
-class SortieCouleur(object):
-
-    def __init__(self, sortie, couleur='normal'):
-        self.couleur = getattr(terminal, couleur.upper())
-        self.sortie = sortie
-
-    def _format_localisation(self, texte):
-        l = texte.split(', ')
-        p0 = l[0].split('"')
-        p1 = l[1].split(' ')
-        texte = p0[0] + '"' + terminal.CYAN + p0[1] + self.couleur + '", '
-        texte += p1[0] + terminal.CYAN + ' ' + p1[1] + self.couleur + ', '
-        for t in l[2:]:
-            texte += t
-        return texte
-
-    def read(self):
-        return self.sortie.read()
-
-    def readlines(self):
-        return self.sortie.readlines()
-
-    def write(self, texte):
-        if texte.startswith('  File'):
-            texte = self._format_localisation(texte)
-        texte = "%s%s%s" % (self.couleur, texte, terminal.NORMAL)
-        self.sortie.write(texte)
-
-    def writelines(sequence):
-        new_sequence = []
-        i = 0
-        while i < len(sequence):
-            if i == 0:
-                new_sequence.append(self.couleur + sequence[i])
-            elif i == len(sequence) - 1:
-                new_sequence.append(sequence[i] + terminal.NORMAL)
-            else:
-                new_sequence.append(sequence[i])
-        self.sortie.writelines(new_sequence)
-
-    def isatty(self):
-        return self.sortie.isatty()
-
-sys.stderr = SortieCouleur(sys.__stdout__, 'red')
-
-
-class TourBillonCLI(object):
-
-    def __init__(self, nom, config):
-        self.config = config
-        self._inter = interpreteur.Interpreteur({'__CLI': self, '__TRN': tournois, 'CONFIG': config}, COMMANDES)
-        self._inter.charger_historique(config.get('INTERFACE', 'historique'))
-        joueurs.charger_historique(config.get('TOURNOI', 'historique'))
-
-        # interpreter prompt.
-        try:
-            sys.ps1
-        except AttributeError:
-            sys.ps1 = terminal.NORMAL + ">>> "
-        try:
-            sys.ps2
-        except AttributeError:
-            sys.ps2 = terminal.NORMAL + "... "
-
-        print """TourBillon Copyright © 2010 La Billonnière.
-This program comes with ABSOLUTELY NO WARRANTY; This is free software, and you
-are welcome to redistribute it under certain conditions; type `l' for details.
-"""
-        print
-        print images.entete(terminal=True)
-
-    def run(self):
+    def liste_alias(self):
         """
-        Let the interpreter execute the last line(s), and clean up accounting for
-        the interpreter results:
-        (1) the interpreter succeeds
-        (2) the interpreter fails, finds no errors and wants more line(s)
-        (3) the interpreter fails, finds errors and writes them to sys.stderr
+        Retourne la liste des alias disponibles.
+
+        Donne la liste après suppression du prefix (['ls','cd', ...], et non
+        ['alias_ls','alias_cd',...]
         """
+
+        # Alias définits dans la class
+        class_alias = lambda fn: fn.startswith('alias_') and \
+                      callable(Alias.__dict__[fn])
+        # Alias définits dans l'instance (ajoutés par l'utilisateur pendant l'execution)
+        inst_alias = lambda fn: fn.startswith('alias_') and \
+                     callable(self.__dict__[fn])
+
+        aliases = filter(class_alias, Alias.__dict__.keys()) + filter(inst_alias, self.__dict__.keys())
+
+        out = []
+        for fn in set(aliases):
+            out.append(fn.replace('alias_', '', 1))
+        out.sort()
+        return out
+
+    def commande(self, nom_alias, args_s):
+        u"""
+        Retourne la commande à executer dans le shell.
+        """
+        if nom_alias.startswith(self.ESC_ALIAS):
+            nom_alias = nom_alias[1:]
+        if nom_alias not in self.liste_alias():
+            return None
+
+        cmd = '%s.alias_%s(%s)' % (self.nom, nom_alias,
+                                        normalise_chaine(args_s))
+        return cmd
+
+    def alias_licence(self, args_s=''):
+        u"""
+        Afficher la licence GPL.
+        
+        TourBillon est un logiciel libre distribué sous licence GPL, aussi appelée
+        en français Licence Publique Générale GNU. Cette licence vous garantit les
+        libertés suivantes :
+
+            -  la liberté d’installer et d’utiliser TourBillon pour quelque usage
+               que ce soit ;
+            -  la liberté d’étudier le fonctionnement de TourBillon et de l’adapter
+               à vos propres besoins en modifiant le code source, auquel vous avez
+               un accès immédiat;
+            -  la liberté de distribuer des copies à qui que ce soit, tant que vous
+               n’altérez ni ne supprimez la licence ;
+            -  la liberté d’améliorer TourBillon et de diffuser vos améliorations au
+               public, de façon à ce que l’ensemble de la communauté puisse en tirer
+               avantage, tant que vous n’altérez ni ne supprimez la licence.
+
+        Il ne faut pas confondre logiciel libre et logiciel en domaine public. L’intérêt
+        de la licence GPL (licence du logiciel libre) est de garantir la non-confiscation
+        du logiciel, au contraire d’un logiciel du domaine public qui peut se voir
+        transformé en logiciel propriétaire. Vous bénéficiez des libertés ci-dessus
+        dans le respect de la licence GPL ; en particulier, si vous redistribuez ou si
+        vous modifiez TourBillon, vous ne pouvez cependant pas y appliquer une licence
+        qui contredirait la licence GPL (par exemple, qui ne donnerait plus le droit à
+        autrui de modifier le code source ou de redistribuer le code source modifié).
+        """
+        print "Retrouver la licence dans sa version complète sur http://www.gnu.org/licenses/gpl.html"
+
+    def alias_alias(self, args_s=''):
+        u"""
+        Affiche l'aide des alias de Tourbillon.
+        
+        options:
+            
+            bref        : affiche un court résumé
+        """
+
+        mode = ''
         try:
-            plus = False
-            while 1:
+            if args_s.split()[0] == 'bref':
+                mode = 'bref'
+        except:
+            pass
+
+        alias_doc = []
+        for nom_alias in self.liste_alias():
+            nom_fonction = 'alias_' + nom_alias
+            for space in (Alias, self):
                 try:
-                    if plus:
-                        ligne = raw_input(sys.ps2)
+                    fn = space.__dict__[nom_fonction]
+                except KeyError, e:
+                    pass
+                else:
+                    break
+            if mode == 'bref':
+                # seulement la première ligne
+                if fn.__doc__:
+                    lignes = fn.__doc__.split('\n', 2)[:2]
+                    if len(lignes) == 1:
+                        fndoc = lignes[0].rstrip()
                     else:
-                        ligne = raw_input(sys.ps1)
+                        if lignes[0].strip() == '':
+                            fndoc = '\n'.join(lignes).rstrip()
+                        else:
+                            fndoc = lignes[0].rstrip()
+                else:
+                    fndoc = u"Pas de documentation"
+            else:
+                if fn.__doc__:
+                    fndoc = fn.__doc__.rstrip()
+                else:
+                    fndoc = u"Pas de documentation"
 
-                    plus = self._inter.push(ligne)
-                except KeyboardInterrupt, e:
-                    print "\nKeyboardInterrupt"
-                    plus = False
-        except EOFError, e:
-            print
-            sys.exit(0)
 
-    def quitter(self):
-        cmd = question('Quitter TourBillon? (o / n): ')
-        cmd = cmd.lower()
-        if cmd == 'oui' or cmd == 'o':
-            sys.exit(0)
+            alias_doc.append('%s%s:\n\t%s\n\n' % (self.ESC_ALIAS, nom_alias, fndoc))
 
-    def licence(self):
-        print tourbillon.__licence__
+        alias_doc = ''.join(alias_doc)
 
-    def afficher_aide(self):
-        texte = "Aide TourBillon CLI:\n"
-        for commande in COMMANDES:
-            texte = texte + "\t%-15s / %s :   %s\n" % (commande['long'], commande['short'], commande['aide'])
+        if mode == 'bref':
+            print alias_doc
+            return
 
-        print texte
+        outmsg = u"""
+Alias des fonctions de Tourbillon:
+==================================
 
-    def nouveau(self):
-        joueurs_par_equipe = question("Nombre de joueurs par équipe: ")
+Le système d'alias de Tourbillon fournis une série de fonctions qui permettent
+de faciliter  l'utilisation  du logiciel en ligne de  commande. Tous ces alias
+sont  préfixés avec le  caractère '%', mais les  paramètres  sont donnés sans
+parenthèse ni guillemets (séparés par des espaces).
+
+Le système d'alias est composé des fonctions suivantes:\n"""
+
+        outmsg = ("%s\n%s\n\n" % (outmsg, alias_doc))
+
+        print outmsg
+
+    def alias_nouveau(self, args_s=''):
+        u"""
+        Commencer un nouveau tournoi.
+
+        options:
+            
+            <joueurs>        : nombre de joueurs par équipes
+            <manches>        : nombre d'équipes par manche
+            <points>         : nombre de points par manche
+        """
+        joueurs_par_equipe = question(u"Nombre de joueurs par équipe: ")
         if joueurs_par_equipe != '':
             self.config.set('TOURNOI', 'joueurs_par_equipe', str(int(float(joueurs_par_equipe))))
 
-        equipes_par_manche = question("Nombre d'équipes par manche: ")
+        equipes_par_manche = question(u"Nombre d'équipes par manche: ")
         if equipes_par_manche != '':
             self.config.set('TOURNOI', 'equipes_par_manche', str(int(float(equipes_par_manche))))
 
-        points_par_manche = question("Points par manche: ")
+        points_par_manche = question(u"Points par manche: ")
         if points_par_manche != '':
             self.config.set('TOURNOI', 'points_par_manche', str(int(float(points_par_manche))))
 
         equipes_par_manche = self.config.getint("TOURNOI", "equipes_par_manche")
         joueurs_par_equipe = self.config.getint("TOURNOI", "joueurs_par_equipe")
         points_par_manche = self.config.getint("TOURNOI", "points_par_manche")
-        return tournois.nouveau_tournoi(equipes_par_manche, points_par_manche, joueurs_par_equipe)
 
-    def charger(self):
-        fichier = question("Fichier: ")
-        return tournois.charger_tournoi(fichier)
+        self._inter_environ['T'] = tournois.nouveau_tournoi(equipes_par_manche, points_par_manche, joueurs_par_equipe)
+        return tournois.tournoi()
 
-    def enregistrer(self):
-        fichier = question("Chemin: ")
-        if fichier == '':
-            fichier = None
+    def alias_charger(self, args_s=''):
+        u"""
+        Charger un tournoi.
+        
+        options:
+            
+            <fichier>        : fichier à charger
+        """
+        if args_s == '':
+            args_s = question(u"Fichier: ")
 
-        tournois.enregistrer_tournoi(fichier)
+        if args_s != '':
+            self._inter_environ['T'] = tournois.charger_tournoi(args_s)
+            return tournois.tournoi()
 
-        if fichier == None:
-            print tournois.FICHIER_TOURNOI
-
-        # Enregistrer l'historique joueurs
-        joueurs.enregistrer_historique()
-
-    def chapeaux(self):
-        chap = question("Liste des chapeaux ([ENTRE] pour passer): ")
-        if chap == '':
-            return []
+    def alias_enregistrer(self, args_s=''):
+        u"""
+        Enregistrer le tournois en cours.
+        
+        Les données d'un tournoi sont enregistées dans un fichier texte au format
+        YAML ce qui permet une lecture et modification aisée. Cependant la modification
+        manuelle de ces fichiers est à eviter au risque de corrompre les donn�es.
+        
+        Si le nom du fichier n'est pas donné et qu'un tournoi est en cours, le fichier
+        d'enregistrement courant sera écrasé (si il existe).
+        
+        options:
+            
+            <fichier>        : fichier à enregistrer
+        """
+        if args_s == '':
+            if tournois.FICHIER_TOURNOI is not None:
+                args_s = tournois.FICHIER_TOURNOI
+                tournois.enregistrer_tournoi()
+            else:
+                args_s = question(u"Fichier: ")
+                if args_s != '':
+                    tournois.enregistrer_tournoi(args_s)
         else:
-            return eval(chap)
+            tournois.enregistrer_tournoi(args_s)
 
-    def tirage(self):
+        if args_s != '':
+            print u"Enregistré (%s)" % args_s
+            # Enregistrer l'historique joueurs
+            joueurs.enregistrer_historique()
+
+    def alias_tirage(self, args_s=''):
+        u"""
+        Créer un nouveau tirage
+        """
         if not tournois.tournoi():
             print u"Pas de tournoi commencé."
         else:
-            t = question("Catégorie %s: " % tirages.__modules__.keys())
-            if t not in tirages.__modules__:
+            t = question(u"Catégorie %s: " % tirages.TIRAGES.keys())
+            if t not in tirages.TIRAGES:
                 raise IOError, u"Catégorie invalide."
 
             if t != u"manuel":
-                chap = self.chapeaux()
-                exclues = question("Liste des équipes exclues ([ENTRE] pour passer): ")
+                chap = question(u"Liste des chapeaux ([ENTRE] pour passer): ")
+                if chap == '':
+                    chap = []
+                else:
+                    chap = eval(chap)
+                exclues = question(u"Liste des équipes exclues ([ENTRE] pour passer): ")
                 if exclues == '':
                     exclues = []
                 else:
@@ -210,19 +298,19 @@ are welcome to redistribute it under certain conditions; type `l' for details.
 
                 stat = tournois.tournoi().statistiques(exclues)
 
-                p = progression.BarreProgression('blue', largeur=60, vide='_')
 
+                p = progression.BarreProgression('blue', largeur=60, vide='_')
                 def printResulat(progression, message, resultat=None, erreur=None):
                     if erreur is None:
                         erreur = 'ok'
-                        p.afficher(progression, '\n' + message + "\n\nTapez sur [ENTRER] pour arrêter.")
+                        p.afficher(progression, '\n' + message + u"\n\nTapez sur [ENTRER] pour arrêter.")
 
                     if resultat is not None:
                         p.afficher(p.valeur(), '\n' + message)
                         print
-                        print "Tirage  : ", resultat['tirage']
-                        print "Chapeaux: ", resultat['chapeaux']
-                        print "Validé  : ", erreur
+                        print u"Tirage  : ", resultat['tirage']
+                        print u"Chapeaux: ", resultat['chapeaux']
+                        print u"Validé  : ", erreur
 
                 tir = tirages.tirage(t, tournois.tournoi().equipes_par_manche, stat, chap, printResulat)
 
@@ -240,8 +328,12 @@ are welcome to redistribute it under certain conditions; type `l' for details.
             else:
                 exclues = []
                 equipes = []
-                manches = question("Tirage: ")
-                chap = self.chapeaux()
+                manches = question(u"Tirage: ")
+                chap = question(u"Liste des chapeaux ([ENTRE] pour passer): ")
+                if chap == '':
+                    chap = []
+                else:
+                    chap = eval(chap)
                 manches = eval(manches)
                 for manche in manches:
                     map(equipes.append, manche)
@@ -250,7 +342,12 @@ are welcome to redistribute it under certain conditions; type `l' for details.
                         exclues.append(equipe.numero)
                 return manches
 
-    def resultat(self):
+    def alias_resultat(self, args_s=''):
+        u"""
+        Entrer les résultats d'une équipe (ex: 4 g 12 False)
+            Le 4ème argument indique qu'il ne faut pas enregistrer
+            l'heure actuelle comme heure de fin.
+        """
         if not tournois.tournoi():
             print u"Pas de tournoi commencé."
         elif not tournois.tournoi().partie_courante():
@@ -258,7 +355,7 @@ are welcome to redistribute it under certain conditions; type `l' for details.
         elif tournois.tournoi().partie_courante().statut == cst.P_NON_DEMARREE:
             print u"Le tirage n'a pas été fait."
         else:
-            r = question('Resultat (ex: 4 12): ')
+            r = question(u"Resultat (ex: 4 12): ")
             r = r.split(' ')
             d = {}
             num = int(float(r[0]))
@@ -267,7 +364,7 @@ are welcome to redistribute it under certain conditions; type `l' for details.
 
             manche = tournois.tournoi().equipe(num).resultat(tournois.tournoi().partie_courante().numero)['adversaires']
             for num in manche:
-                r = question('Points équipe n°%s: ' % num)
+                r = question(u"Points équipe n°%s: " % num)
                 r = r.strip()
                 pts = int(float(r))
                 d[num] = pts
@@ -283,8 +380,80 @@ are welcome to redistribute it under certain conditions; type `l' for details.
 
             tournois.tournoi().partie_courante().resultat(d, fin)
 
+    def alias_quitter(self, args_s=''):
+        u"""
+        Quitter TourBillon
+        """
+        cmd = question(u'Quitter TourBillon? (oui / non): ')
+        cmd = cmd.lower()
+        if cmd in ['oui', 'o', 'yes', 'y']:
+            self._quitter = True
 
-def run(config):
-    nom = "TourBillon v %s.%s.%s" % tourbillon.__version__
-    app = TourBillonCLI(nom, config)
-    app.run()
+class TourBillonCLI(Alias):
+    def __init__(self, config):
+        Alias.__init__(self)
+        self.config = config
+        self.nom = '__cli__'
+        self._quitter = False
+        self._inter_environ = {self.nom:self, '__trn__':tournois, '__cfg__':config}
+        self._inter = Interpreteur(self, self._inter_environ)
+        self._inter.charger_historique(config.get('INTERFACE', 'historique'))
+        joueurs.charger_historique(config.get('TOURNOI', 'historique'))
+
+        # interpreter prompt.
+        try:
+            sys.ps1
+        except AttributeError:
+            sys.ps1 = terminal.NORMAL + ">>> "
+        try:
+            sys.ps2
+        except AttributeError:
+            sys.ps2 = terminal.NORMAL + "... "
+
+        print u"%s  Copyright © 2010  La Billonnière." % tourbillon.__nom__
+        print u"""
+This program comes with ABSOLUTELY NO WARRANTY; This is a free software, and
+you are welcome to redistribute it under certain conditions;
+
+type `%licence' for details.
+"""
+        print
+        print images.entete(terminal=True)
+
+    def MainLoop(self):
+        """
+        Let the interpreter execute the last line(s), and clean up accounting for
+        the interpreter results:
+        (1) the interpreter succeeds
+        (2) the interpreter fails, finds no errors and wants more line(s)
+        (3) the interpreter fails, finds errors and writes them to sys.stderr
+        """
+        try:
+            plus = False
+            while not self._quitter:
+                try:
+                    if plus:
+                        ligne = raw_input(sys.ps2)
+                    else:
+                        ligne = raw_input(sys.ps1)
+
+                    try:
+                        cmd = self.commande(ligne.split()[0], ' '.join(ligne.split()[1:]))
+                    except:
+                        cmd = None
+
+                    if cmd is not None:
+                        plus = self._inter.push(cmd)
+                    else:
+                        plus = self._inter.push(ligne)
+                except KeyboardInterrupt, e:
+                    print "\nKeyboardInterrupt"
+                    plus = False
+        except EOFError, e:
+            print e
+            sys.exit(1)
+
+    def ouvrir(self, fichier):
+        tournois.charger_tournoi(fichier)
+        self._inter_environ['T'] = tournois.tournoi()
+        print tournois.tournoi()

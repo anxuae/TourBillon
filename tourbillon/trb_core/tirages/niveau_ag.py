@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
 
-__doc__ = """Définitions des équipes."""
+__doc__ = u"""Algorithme génétique pour la selection des équipes en fonction de leur niveau."""
 
 #--- Import --------------------------------------------------------------------
 
@@ -9,12 +9,28 @@ import random
 import copy
 from tourbillon.trb_core.tirages.utile import (BaseThreadTirage, nb_chapeaux_necessaires, tri_stat, Cnp,
                                                Individu, Environement, genese, creer_manches, creer_liste,
-                                               NV, NV_REDONDANCE, NV_DISPARITE)
+                                               NV, NV_REDONDANCE, NV_DISPARITE, tirage_texte, dernieres_equipes)
 from tourbillon.trb_core.exceptions import StopTirageError, SolutionError
 
-#--- Variables globales --------------------------------------------------------
+#--- Variables globales -------------------------------------------------------
 
+NOM = u"Niveau (Algorithme Génétique)"
 
+DEFAUT = {'TAILLE_POPULATION_INI': 50,
+          'TAILLE_POPULATION'    : 60,
+          'MAX_GENERATIONS'      : 700,
+          'TAUX_CROISEMENT'      : 0.9,
+          'TAUX_MUTATION'        : 0.01,
+          'OPTIMUM'              : 0.0,
+          'REDONDANCE'           : False,
+          'PONDERATION_VICTOIRES': 12.0,
+          'CALCUL_PONDERATION_AUTO': True,
+          'TAUX_AUGMENTATION'    : 1.05,
+          'MAX_DISPARITE'        : 2,
+          'DEPASSEMENT_MAX_DISPARITE': False,
+          'CHAPEAUX_PARMIS'      : 6,
+          'DEPASSEMENT_CHAPEAUX_PARMIS': True,
+          }
 
 #--- Fonctions -----------------------------------------------------------------
 
@@ -140,7 +156,7 @@ class Tirage(Individu):
         self.nv = None
         self.aug = 0
 
-    def evaluer(self, parametres, optimum = None):
+    def evaluer(self, parametres, optimum=None):
         """
         """
         # Nombre de manches
@@ -183,34 +199,10 @@ class Tirage(Individu):
                 i += 1
 
 class ThreadTirage(BaseThreadTirage):
-    def __init__(self, equipes_par_manche, statistiques, chapeaux = [], rapport = None):
+    def __init__(self, equipes_par_manche, statistiques, chapeaux=[], rapport=None):
         BaseThreadTirage.__init__(self, equipes_par_manche, statistiques, chapeaux, rapport)
         self.categorie = u"niveau_ag"
         self._env = None
-        self._algo_conf = {}
-        self.configurer()
-
-    def configurer(self, taille_population_ini = 40, taille_population = 50, max_generations = 1000, taux_croiser = 0.9, taux_muter = 0.01,
-                   optimum = -1, redondance = False, max_disparite = 2, depassement_max_disparite = False, taux_augmentation = 1.05,
-                   ponderation_victoires = 12.0, calcul_ponderation_auto = False, chapeaux_parmis = 6, depassement_chapeaux_parmis = True):
-        self._algo_conf['taille_population_ini'] = taille_population_ini
-        self._algo_conf['taille_population'] = taille_population
-        self._algo_conf['max_generations'] = max_generations
-        self._algo_conf['taux_croiser'] = taux_croiser
-        self._algo_conf['taux_muter'] = taux_muter
-        self._algo_conf['optimum'] = optimum
-        self._algo_conf['chapeaux_parmis'] = chapeaux_parmis
-        self._algo_conf['depassement_chapeaux_parmis'] = depassement_chapeaux_parmis
-        self._algo_conf['ponderation_victoires'] = ponderation_victoires
-        self._algo_conf['taux_augmentation'] = taux_augmentation
-        self._algo_conf['max_disparite'] = max_disparite
-        self._algo_conf['depassement_max_disparite'] = depassement_max_disparite
-        self._algo_conf['redondance'] = redondance
-        self._algo_conf['calcul_ponderation_auto'] = calcul_ponderation_auto
-        self._algo_conf['statistiques'] = self.statistiques
-        self._algo_conf['equipes_par_manche'] = self.equipes_par_manche
-        self._algo_conf['arret_utilisateur'] = self._arret_utilisateur
-        self._algo_conf['rapport'] = self.rapport
 
     def demarrer(self):
         nb_eq = len(self.statistiques)
@@ -236,38 +228,34 @@ class ThreadTirage(BaseThreadTirage):
         for i in range(nb_chapeaux - len(self.chapeaux)):
             # Si le nombre de chapeaux fourni est insuffisant: en choisir d'autres
             self._arret_utilisateur()
-            chap = select_chapeau(self._algo_conf, self.statistiques)
+            chap = select_chapeau(self.config, self.statistiques)
             self.chapeaux.append(chap)
 
         # Tirage des manches:
         #--------------------
 
         # Paramètre de pondération des victoires
-        if self._algo_conf['calcul_ponderation_auto'] == True:       # Calcul du coefficient de pondération des victoires
+        if self.config['calcul_ponderation_auto'] == True:       # Calcul du coefficient de pondération des victoires
             ponderation = 0
             for equipe in self.statistiques:
-                parties = nb_parties(self.statistiques, equipe, self._algo_conf['equipes_par_manche'])
+                parties = nb_parties(self.statistiques, equipe, self.config['equipes_par_manche'])
                 if parties == 0:
                     ponderation += 12.0
                 else:
                     ponderation += (self.statistiques[equipe]['points'] * 1.0) / parties
 
-            self._algo_conf['ponderation_victoires'] = ponderation / len(self.statistiques)
-            self.rapport(0, u"Coefficient de pondération des victoires: %s" % self._algo_conf['ponderation_victoires'])
+            self.config['ponderation_victoires'] = ponderation / len(self.statistiques)
+            self.rapport(0, u"Coefficient de pondération des victoires: %s" % self.config['ponderation_victoires'])
 
         # Créer l'environement
         Tirage.alleles = self.statistiques.keys()
-        self._env = Environement(genese(Tirage, self._algo_conf['taille_population_ini']), **self._algo_conf)
+        self._env = Environement(genese(Tirage, self.config['taille_population_ini']), **self.config)
 
         # Lancer l'algorithme
         self._env.run()
 
         self.tirage = creer_manches(self._env.elite.chromosome, self.equipes_par_manche)
-
-        for manche in self.tirage:
-            _, l = fonction_cout(self._algo_conf, self.statistiques, manche)
-
-            self.rapport(99, "%-15s: diff points = %-5s, redondance = %-5s, disparité = %-5s" % (manche, l[0], l[1], l[2]))
+        self.rapport(99, tirage_texte(self.statistiques, self.tirage))
 
         # Verification de la pertinence de la solution
 

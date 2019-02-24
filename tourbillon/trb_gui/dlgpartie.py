@@ -38,14 +38,14 @@ def ajout_page_titre(wizPg, titre):
 #--- Fenêtre de suppression de partie ------------------------------------------
 
 class DialogueSupprimerPartie(wx.Dialog):
-    def __init__(self, parent, choix = [], numero_affiche = 1):
-        wx.Dialog.__init__(self, parent, wx.ID_ANY, title = u"Supprimer une partie" , style = wx.DEFAULT_DIALOG_STYLE | wx.CENTER_ON_SCREEN, pos = wx.DefaultPosition, size = wx.DefaultSize)
+    def __init__(self, parent, choix=[], numero_affiche=1):
+        wx.Dialog.__init__(self, parent, wx.ID_ANY, title=u"Supprimer une partie" , style=wx.DEFAULT_DIALOG_STYLE | wx.CENTER_ON_SCREEN, pos=wx.DefaultPosition, size=wx.DefaultSize)
         self.SetMinSize((500, 150))
         self.SetSize(wx.Size(500, 140))
         self.CenterOnParent()
 
         self.txt_phrase0 = wx.StaticText(self, wx.ID_ANY, u"Etes vous sûr de vouloir supprimer la partie n° ")
-        self.ctl_numero = wx.Choice(self, wx.ID_ANY, choices = map(unicode, choix))
+        self.ctl_numero = wx.Choice(self, wx.ID_ANY, choices=map(unicode, choix))
         self.txt_phrase1 = wx.StaticText(self, wx.ID_ANY, u" ?")
         self.txt_phrase2 = wx.StaticText(self, wx.ID_ANY, u"(Attention, toutes les données de la partie seront supprimées)")
         self.ctl_numero.SetSelection(self.ctl_numero.FindString(unicode(numero_affiche)))
@@ -57,8 +57,8 @@ class DialogueSupprimerPartie(wx.Dialog):
         box_chx.Add(self.txt_phrase1, 0, wx.ALIGN_CENTER_VERTICAL)
 
         # Boutons
-        self.btn_ok = wx.Button(self, id = wx.ID_OK, label = u"Supprimer", size = (100, -1))
-        self.btn_annule = wx.Button(self, id = wx.ID_CANCEL, label = u"Annuler", size = (100, -1))
+        self.btn_ok = wx.Button(self, id=wx.ID_OK, label=u"Supprimer", size=(100, -1))
+        self.btn_annule = wx.Button(self, id=wx.ID_CANCEL, label=u"Annuler", size=(100, -1))
         box_btn = wx.BoxSizer(wx.HORIZONTAL)
         box_btn.AddSpacer((50, 50), 1, wx.EXPAND)
         box_btn.Add(self.btn_annule, 0, wx.EAST | wx.ALIGN_CENTER_VERTICAL, 30)
@@ -80,12 +80,12 @@ class DialogueSupprimerPartie(wx.Dialog):
         return self.ctl_numero.GetString(self.ctl_numero.GetSelection())
 
 class DialogueAfficherTirage(wx.Dialog):
-    def __init__(self, parent, numero_affiche = 1):
-        wx.Dialog.__init__(self, parent, wx.ID_ANY, title = u"Tirages" , style = wx.DEFAULT_DIALOG_STYLE | wx.CENTER_ON_SCREEN | wx.RESIZE_BORDER | wx.STAY_ON_TOP)
+    def __init__(self, parent, numero_affiche=1):
+        wx.Dialog.__init__(self, parent, wx.ID_ANY, title=u"Tirages" , style=wx.DEFAULT_DIALOG_STYLE | wx.CENTER_ON_SCREEN | wx.RESIZE_BORDER | wx.STAY_ON_TOP)
         self.CenterOnParent()
 
         self.txt_phrase = wx.StaticText(self, wx.ID_ANY, u"Tirage de la partie n° ")
-        self.ctl_numero = wx.Choice(self, wx.ID_ANY, choices = [unicode(partie.numero) for partie in tournois.tournoi().parties()])
+        self.ctl_numero = wx.Choice(self, wx.ID_ANY, choices=[unicode(partie.numero) for partie in tournois.tournoi().parties()])
         self.ctl_numero.SetSelection(self.ctl_numero.FindString(unicode(numero_affiche)))
 
         # Choix
@@ -100,7 +100,7 @@ class DialogueAfficherTirage(wx.Dialog):
         self.grille.SetRowLabelSize(0)
 
         # Boutons
-        self.btn_ok = wx.Button(self, id = wx.ID_OK, label = u"Fermer", size = (100, -1))
+        self.btn_ok = wx.Button(self, id=wx.ID_OK, label=u"Fermer", size=(100, -1))
 
         # Assembler
         self.sizer = wx.BoxSizer(wx.VERTICAL)
@@ -123,10 +123,11 @@ class DialogueAfficherTirage(wx.Dialog):
         while i < len(tirage):
             self.grille.InsertRows(i, 1, False)
             j = 0
-            for num in tirage[i]:
-                if num == cst.CHAPEAU:
-                    num = u"C"
-                self.grille.SetCellValue(i, j, unicode(num))
+            while j < tournois.tournoi().equipes_par_manche:
+                if j < len(tirage[i]):
+                    self.grille.SetCellValue(i, j, unicode(tirage[i][j]))
+                else:
+                    self.grille.SetCellValue(i, j, u"C")
                 j += 1
             i += 1
 
@@ -154,7 +155,7 @@ class BandeTexte(wx.Panel):
         sizer.Add(self.txt_message, 1, wx.ALIGN_CENTER_VERTICAL | wx.LEFT, 5)
         self.SetSizer(sizer)
 
-    def chg_texte(self, texte, icon = None):
+    def chg_texte(self, texte, icon=None):
         texte = wordwrap(texte, 600, wx.ClientDC(self.txt_message))
         if icon == wx.ICON_ERROR:
             self.btm_icon.Show()
@@ -179,15 +180,15 @@ class BandeTexte(wx.Panel):
 
 class ListeEquipesCtrl(wx.ListCtrl, listctrl.CheckListCtrlMixin):
     def __init__(self, parent):
-        wx.ListCtrl.__init__(self, parent, wx.ID_ANY, style = wx.LC_REPORT)
+        wx.ListCtrl.__init__(self, parent, wx.ID_ANY, style=wx.LC_REPORT)
         listctrl.CheckListCtrlMixin.__init__(self)
 
-        self.InsertColumn(0, "N°", wx.LIST_FORMAT_CENTRE)
-        self.InsertColumn(1, "Noms", wx.LIST_FORMAT_LEFT)
-        self.InsertColumn(2, "Victoires", wx.LIST_FORMAT_CENTRE)
-        self.InsertColumn(3, "Points", wx.LIST_FORMAT_CENTRE)
-        self.InsertColumn(4, "Chapeaux", wx.LIST_FORMAT_CENTRE)
-        self.InsertColumn(5, "Classement", wx.LIST_FORMAT_CENTRE)
+        self.InsertColumn(0, u"N°", wx.LIST_FORMAT_CENTRE)
+        self.InsertColumn(1, u"Noms", wx.LIST_FORMAT_LEFT)
+        self.InsertColumn(2, u"Victoires", wx.LIST_FORMAT_CENTRE)
+        self.InsertColumn(3, u"Points", wx.LIST_FORMAT_CENTRE)
+        self.InsertColumn(4, u"Chapeaux", wx.LIST_FORMAT_CENTRE)
+        self.InsertColumn(5, u"Classement", wx.LIST_FORMAT_CENTRE)
 
     def ajout_equipes(self, liste_equipes):
         selection = [int(self.GetItemText(i)) for i in range(self.GetItemCount()) if self.IsChecked(i)]
@@ -222,7 +223,7 @@ class ListeEquipesCtrl(wx.ListCtrl, listctrl.CheckListCtrlMixin):
 #--- Grille des manches --------------------------------------------------------
 
 class GrilleManchesCtrl(grid.Grid):
-    def __init__(self, parent, equipes_par_manche, manches, chapeaux = []):
+    def __init__(self, parent, equipes_par_manche, manches, chapeaux=[]):
         grid.Grid.__init__(self, parent, wx.ID_ANY)
 
         # Nombre de lignes (1 par manche + 1 pour les chapeaux)
@@ -287,6 +288,7 @@ class GrilleManchesCtrl(grid.Grid):
         self.EnableEditing(False)
 
         self.Bind(grid.EVT_GRID_CELL_LEFT_CLICK, self._selection_equipe)
+        self.Bind(wx.EVT_SIZE, self.Layout, self)
 
     def _selection_equipe(self, event):
         l, c = event.GetRow(), event.GetCol()
@@ -326,13 +328,15 @@ class GrilleManchesCtrl(grid.Grid):
         self.SetCellBackgroundColour(ligne, colonne, wx.Colour(255, 255, 255))
         self.SetCellFont(ligne, colonne, wx.Font(10, wx.SWISS, wx.NORMAL, wx.NORMAL))
 
-    def Layout(self):
+    def Layout(self, event=None):
         grid.Grid.Layout(self)
         # Largeur dernière colonne
-        largeur = self.Size[0] - 15 - self.GetColSize(0) * self.equipes_par_manche
+        largeur = self.Size[0] - 30 - self.GetColSize(0) * self.equipes_par_manche
         if largeur < 200:
             largeur = 200
         self.SetColSize(self.equipes_par_manche, largeur)
+        if event is not None:
+            event.Skip()
 
     def chg_texte(self, ligne, texte):
         self.SetCellValue(ligne, self.equipes_par_manche, unicode(texte))
@@ -377,7 +381,7 @@ class SelectionEquipesPage(wiz.PyWizardPage):
         self.btn_decocher_tout = wx.BitmapButton(self, wx.ID_ANY, images.bitmap('check_off.png'))
         self.btn_decocher_tout.SetToolTipString(u"Dessélectionner toutes les équipes")
 
-        self.sizer.Add(self.liste, 1, wx.ALL, 5)
+        self.sizer.Add(self.liste, 1, wx.EXPAND | wx.ALL, 5)
 
         box_btn = wx.BoxSizer(wx.HORIZONTAL)
         box_btn.Add(self.btn_cocher_tout)
@@ -452,7 +456,7 @@ class SelectionEquipesPage(wiz.PyWizardPage):
     def verifier(self, event):
         nextButton = self.GetParent().FindWindowById(wx.ID_FORWARD)
         if len(self.equipes()) < 3:
-            self.txt_msg.chg_texte("Au minimum, 3 équipes doivent être séléctionnées.", wx.ICON_ERROR)
+            self.txt_msg.chg_texte(u"Au minimum, 3 équipes doivent être séléctionnées.", wx.ICON_ERROR)
             nextButton.Disable()
         else:
             self.txt_msg.chg_texte("")
@@ -475,7 +479,7 @@ class SelectionChapeauPage(wiz.PyWizardPage):
         self.btn_decocher_tout = wx.BitmapButton(self, -1, images.bitmap('check_off.png'))
         self.btn_decocher_tout.SetToolTipString(u"Dessélectionner toutes les équipes")
 
-        self.sizer.Add(self.liste, 1, wx.ALL, 5)
+        self.sizer.Add(self.liste, 1, wx.EXPAND | wx.ALL, 5)
 
         box_btn = wx.BoxSizer(wx.HORIZONTAL)
         box_btn.Add(self.btn_cocher_tout)
@@ -525,10 +529,10 @@ class SelectionChapeauPage(wiz.PyWizardPage):
         nb_max = utile.nb_chapeaux_necessaires(self.liste.GetItemCount(), tournois.tournoi().equipes_par_manche)
 
         if nb_max < len(self.pre_chapeaux()):
-            self.txt_msg.chg_texte("Il ne peut pas y avoir plus de %s chapeau(x)." % nb_max, wx.ICON_ERROR)
+            self.txt_msg.chg_texte(u"Il ne peut pas y avoir plus de %s chapeau(x)." % nb_max, wx.ICON_ERROR)
             nextButton.Disable()
         elif nb_max > len(self.pre_chapeaux()):
-            self.txt_msg.chg_texte("Si nécessaire, le reste de la séléction se fera par tirage. (maximum %s chapeau(x))..." % nb_max, wx.ICON_INFORMATION)
+            self.txt_msg.chg_texte(u"Si nécessaire, le reste de la séléction se fera par tirage. (maximum %s chapeau(x))..." % nb_max, wx.ICON_INFORMATION)
             nextButton.Enable()
         else:
             self.txt_msg.chg_texte("")
@@ -546,21 +550,23 @@ class LancerTiragePage(wiz.PyWizardPage):
         self._tirage = None
 
         # Tirage manuel / automatique
-        self.rdb_type_tirage = wx.RadioBox(self, wx.ID_ANY, u"", choices = [u"Tirage Automatique", u"Tirage Manuel"],
-                                           majorDimension = 2, style = wx.RA_SPECIFY_COLS)
+        self.rdb_type_tirage = wx.RadioBox(self, wx.ID_ANY, u"", choices=[u"Tirage Automatique", u"Tirage Manuel"],
+                                           majorDimension=2, style=wx.RA_SPECIFY_COLS)
 
         # Choix de l'algorithme
-        self.chx_algorithme = wx.Choice(self, wx.ID_ANY, choices = tirages.__modules__.keys())
+        liste_tirages = [module.NOM for tirage, module in tirages.TIRAGES.items()]
+        self.chx_algorithme = wx.Choice(self, wx.ID_ANY, choices=liste_tirages)
+        self.chx_algorithme.SetSelection(0)
         self.txt_algorithme = wx.StaticText(self, wx.ID_ANY, u"Choix de l'algorithme utilisé: ")
-        self.btn_options = wx.Button(self, id = wx.ID_PREFERENCES, label = u"Options", size = (100, -1))
+        self.btn_options = wx.Button(self, id=wx.ID_PREFERENCES, label=u"Options", size=(100, -1))
 
         # Progression
-        self.bar_progression = wx.Gauge(self, wx.ID_ANY, 100, style = wx.GA_HORIZONTAL)
-        self.txt_progression = wx.TextCtrl(self, wx.ID_ANY, u"", style = wx.TE_MULTILINE)
+        self.bar_progression = wx.Gauge(self, wx.ID_ANY, 100, size=(-1, 15), style=wx.GA_HORIZONTAL)
+        self.txt_progression = wx.TextCtrl(self, wx.ID_ANY, u"", style=wx.TE_MULTILINE)
         self.txt_progression.SetEditable(False)
 
         # Start / Stop
-        self.btn_tirage = wx.Button(self, id = wx.ID_APPLY, label = u"Démarrer", size = (100, -1))
+        self.btn_tirage = wx.Button(self, id=wx.ID_APPLY, label=u"Démarrer", size=(100, -1))
 
         self.sizer.Add(self.rdb_type_tirage, 0, wx.EXPAND | wx.ALL, 5)
         self.sizer.Add((10, 10), 0, wx.EXPAND | wx.ALL, 5)
@@ -652,7 +658,9 @@ class LancerTiragePage(wiz.PyWizardPage):
         if self._tirage is None:
             self.txt_msg.chg_texte(u"")
             self.txt_progression.Clear()
-            self.txt_progression.SetFont(wx.Font(12, wx.SWISS, wx.NORMAL, wx.BOLD, False, "Courier New"))
+            font = self.txt_progression.GetFont()
+            font.SetFaceName("Courier")
+            self.txt_progression.SetFont(font)
             # Statistiques des équipes (hors FORFAITS)
             statistiques = tournois.tournoi().statistiques(self.GetParent().forfaits())
 
@@ -660,14 +668,14 @@ class LancerTiragePage(wiz.PyWizardPage):
             pre_chapeaux = self.GetParent().page2.pre_chapeaux()
 
             # Créeation du thread tirage
-            self._tirage = tirages.tirage(self.chx_algorithme.GetStringSelection(),
+            self._tirage = tirages.tirage(tirages.TIRAGES.items()[self.chx_algorithme.GetCurrentSelection()][0],
                                           tournois.tournoi().equipes_par_manche,
                                           statistiques,
                                           pre_chapeaux,
                                           self.progression_event)
 
             # Configuration du tirage
-            config = self.GetParent().config.get_options(u"TIRAGE_" + self.chx_algorithme.GetStringSelection().upper())
+            config = self.GetParent().config.get_options(tirages.TIRAGES.items()[self.chx_algorithme.GetCurrentSelection()][0])
             self._tirage.configurer(**config)
 
             # Démarrer le tirage
@@ -696,7 +704,7 @@ class LancerTiragePage(wiz.PyWizardPage):
                 self.btn_options.Enable()
                 self.rdb_type_tirage.Enable()
                 self.btn_tirage.Enable()
-                self.btn_tirage.SetLabel("Démarrer")
+                self.btn_tirage.SetLabel(u"Démarrer")
                 nextButton.Disable()
             else:
                 if self._tirage.isAlive():
@@ -706,7 +714,7 @@ class LancerTiragePage(wiz.PyWizardPage):
                     self.bar_progression.Enable()
                     self.btn_options.Disable()
                     self.btn_tirage.Enable()
-                    self.btn_tirage.SetLabel("Arrêter")
+                    self.btn_tirage.SetLabel(u"Arrêter")
                     nextButton.Disable()
                     prevButton.Disable()
                     cancButton.Disable()
@@ -717,7 +725,7 @@ class LancerTiragePage(wiz.PyWizardPage):
                     self.bar_progression.Enable()
                     self.btn_options.Enable()
                     self.btn_tirage.Enable()
-                    self.btn_tirage.SetLabel("Démarrer")
+                    self.btn_tirage.SetLabel(u"Démarrer")
                     prevButton.Enable()
                     cancButton.Enable()
 
@@ -739,7 +747,7 @@ class ConfirmerTiragePage(wiz.PyWizardPage):
         self.sizer, self.txt_msg = ajout_page_titre(self, u"Confirmation du tirage")
 
         self.grille = None
-        self.btn_echanger = wx.Button(self, wx.ID_ANY, label = u"Echanger", size = (100, -1))
+        self.btn_echanger = wx.Button(self, wx.ID_ANY, label=u"Echanger", size=(100, -1))
 
         self.sizer.AddSizer(self.btn_echanger, 0, wx.LEFT | wx.BOTTOM, 5)
         self.Layout()
@@ -767,7 +775,7 @@ class ConfirmerTiragePage(wiz.PyWizardPage):
             self.verifier_ligne(cell2[0])
             self.verifier(event)
 
-    def chg_tirage(self, tirage, chapeaux = []):
+    def chg_tirage(self, tirage, chapeaux=[]):
         if self.grille is not None:
             self.sizer.Remove(self.grille)
         self.grille = GrilleManchesCtrl(self, tournois.tournoi().equipes_par_manche, tirage, chapeaux)
@@ -799,7 +807,7 @@ class ConfirmerTiragePage(wiz.PyWizardPage):
         manche = self.grille.manche(ligne)
         if u"C" in manche:
             manche = [equipe for equipe in manche if equipe != u"C"]
-            # Compter parmis les chapeaux les équipes qui ont été déjà chapeau
+            # Compter parmis les chapeaux les équipes qui ont déjà été chapeau
             deja_ete_chapeau = []
             for num in manche:
                 if tournois.tournoi().equipe(num).total_chapeaux() != 0:
@@ -817,22 +825,32 @@ class ConfirmerTiragePage(wiz.PyWizardPage):
                 self.grille.chg_texte(ligne, u"")
         else:
             # Pour chaque ligne, afficher si des équipes se sont déjà rencontrées.
-            renc = []
-            for num in manche:
-                c = []
-                adversaires = self.statistiques[num]['adversaires']
-                for adv in adversaires:
-                    if adv in manche:
-                        c.append(adv)
-                if c != []:
-                    c = [num] + c
-                    c.sort()
-                    if c not in renc:
-                        renc.append(c)
+            rencontre_faite = False
+            rencontres = []
+            manche.sort()
 
-            if renc != []:
+            for num in manche:
+                for manche_prec in self.statistiques[num]['manches']:
+                    manche_prec = sorted(manche_prec)
+                    if manche == manche_prec:
+                        rencontres.append(manche)
+                        rencontre_faite = True
+                        break
+
+                    m = []
+                    for adv in manche_prec:
+                        if adv in manche:
+                            m.append(adv)
+                    if m and m not in rencontres and len(m) > 1:
+                        rencontres.append(m)
+
+            if rencontres != []:
                 attention = True
-                self.grille.chg_texte(ligne, u"!!! Les rencontres suivantes ont déjà eu lieu: %s" % ", ".join(map(unicode, renc)))
+                if rencontre_faite:
+                    texte = u"!!! Cette manche a déjà eu lieu"
+                else:
+                    texte = u"!!! Les rencontres suivantes ont déjà eu lieu: %s" % ", ".join(map(unicode, rencontres))
+                self.grille.chg_texte(ligne, texte)
             else:
                 self.grille.chg_texte(ligne, u"")
 
@@ -866,7 +884,8 @@ class ConfirmerTiragePage(wiz.PyWizardPage):
 
 class DialogueAjouterPartie(wiz.Wizard):
     def __init__(self, parent, config):
-        wiz.Wizard.__init__(self, parent, wx.ID_ANY, title = u"Nouvelle partie", pos = wx.DefaultPosition)
+        wiz.Wizard.__init__(self, parent, wx.ID_ANY, title=u"Nouvelle partie",
+                            style=wx.DEFAULT_FRAME_STYLE, pos=wx.DefaultPosition)
         self.CenterOnParent()
         self.config = config
 
@@ -884,7 +903,6 @@ class DialogueAjouterPartie(wiz.Wizard):
         self.page4.SetPrev(self.page3)
 
         self.FitToPage(self.page1)
-        self.GetPageAreaSizer().Add(self.page1)
 
         self.Bind(wiz.EVT_WIZARD_PAGE_CHANGED, self.chg_page)
         self.Bind(wx.EVT_CLOSE, self.annuler)
@@ -899,6 +917,7 @@ class DialogueAjouterPartie(wiz.Wizard):
         elif page == self.page4:
             page.chg_tirage(*self.page3.pre_tirage())
         page.verifier(None)
+        page.Fit()
 
     def equipes(self):
         return self.page1.equipes()

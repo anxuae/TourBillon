@@ -1,0 +1,3 @@
+# ressources added to sdist
+include license.txt
+recursive-include tourbillon/images *.txt *.png
