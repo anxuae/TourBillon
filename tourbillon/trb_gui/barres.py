@@ -1,16 +1,18 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
 
-#--- Import --------------------------------------------------------------------
+#--- Import -------------------------------------------------------------------
 
 import wx
 from wx.lib.agw import buttonpanel as bp
 from tourbillon import images
+
 from tourbillon.trb_gui import evenements as evt
 from tourbillon.trb_gui import grille as grl
 from tourbillon.trb_core import constantes as cst
+from tourbillon.trb_core import tournoi
 
-#--- Variables Globales --------------------------------------------------------
+#--- Variables Globales -------------------------------------------------------
 
 ID_STATISTIQUES = wx.NewId()
 ID_INFO = wx.NewId()
@@ -25,104 +27,106 @@ ID_INSCRIPTION = wx.NewId()
 ID_PARTIE = wx.NewId()
 ID_CLASSEMENT = wx.NewId()
 
-STYLES_MENU = {None:{wx.ID_SAVE:False,
-                    wx.ID_SAVEAS:False,
-                    wx.ID_PRINT:False,
-                    wx.ID_PREVIEW_PRINT:False,
-                    ID_INFO:False,
-                    ID_TIRAGE:False,
-                    ID_INSCRIPTION:False,
-                    ID_NOUVELLE_E:False,
-                    ID_MODIFIER_E:False,
-                    ID_SUPPRIMER_E:False,
-                    ID_PARTIE:False,
-                    ID_NOUVELLE_P:False,
-                    ID_RESULTATS:False,
-                    ID_CLASSEMENT:False},
+STYLES_MENU = {None: {wx.ID_SAVE: False,
+                     wx.ID_SAVEAS: False,
+                     wx.ID_PRINT: False,
+                     wx.ID_PREVIEW_PRINT: False,
+                     ID_INFO: False,
+                     ID_TIRAGE: False,
+                     ID_INSCRIPTION: False,
+                     ID_NOUVELLE_E: False,
+                     ID_MODIFIER_E: False,
+                     ID_SUPPRIMER_E: False,
+                     ID_PARTIE: False,
+                     ID_NOUVELLE_P: False,
+                     ID_RESULTATS: False,
+                     ID_CLASSEMENT: False},
 
-              '0 equipe':{wx.ID_SAVE:True,
-                    wx.ID_SAVEAS:True,
-                    wx.ID_PRINT:False,
-                    wx.ID_PREVIEW_PRINT:False,
-                    ID_INFO:True,
-                    ID_TIRAGE:False,
-                    ID_INSCRIPTION:True,
-                    ID_NOUVELLE_E:True,
-                    ID_MODIFIER_E:False,
-                    ID_SUPPRIMER_E:False,
-                    ID_PARTIE:False,
-                    ID_NOUVELLE_P:False,
-                    ID_RESULTATS:False,
-                    ID_CLASSEMENT:False},
+              '0 equipe': {wx.ID_SAVE: True,
+                     wx.ID_SAVEAS: True,
+                     wx.ID_PRINT: False,
+                     wx.ID_PREVIEW_PRINT: False,
+                     ID_INFO: True,
+                     ID_TIRAGE: False,
+                     ID_INSCRIPTION: True,
+                     ID_NOUVELLE_E: True,
+                     ID_MODIFIER_E: False,
+                     ID_SUPPRIMER_E: False,
+                     ID_PARTIE: False,
+                     ID_NOUVELLE_P: False,
+                     ID_RESULTATS: False,
+                     ID_CLASSEMENT: False},
 
-              cst.T_INSCRIPTION:{wx.ID_SAVE:True,
-                    wx.ID_SAVEAS:True,
-                    wx.ID_PRINT:False,
-                    wx.ID_PREVIEW_PRINT:False,
-                    ID_INFO:True,
-                    ID_TIRAGE:False,
-                    ID_INSCRIPTION:True,
-                    ID_NOUVELLE_E:True,
-                    ID_MODIFIER_E:True,
-                    ID_SUPPRIMER_E:True,
-                    ID_PARTIE:False,
-                    ID_CLASSEMENT:False},
+              cst.T_INSCRIPTION: {wx.ID_SAVE: True,
+                     wx.ID_SAVEAS: True,
+                     wx.ID_PRINT: False,
+                     wx.ID_PREVIEW_PRINT: False,
+                     ID_INFO: True,
+                     ID_TIRAGE: False,
+                     ID_INSCRIPTION: True,
+                     ID_NOUVELLE_E: True,
+                     ID_MODIFIER_E: True,
+                     ID_SUPPRIMER_E: True,
+                     ID_PARTIE: False,
+                     ID_CLASSEMENT: False},
 
-              '0 partie':{wx.ID_SAVE:True,
-                    wx.ID_SAVEAS:True,
-                    wx.ID_PRINT:True,
-                    wx.ID_PREVIEW_PRINT:True,
-                    ID_INFO:True,
-                    ID_TIRAGE:False,
-                    ID_INSCRIPTION:True,
-                    ID_NOUVELLE_E:True,
-                    ID_MODIFIER_E:True,
-                    ID_SUPPRIMER_E:True,
-                    ID_PARTIE:True,
-                    ID_NOUVELLE_P:True,
-                    ID_RESULTATS:False,
-                    ID_SUPPRIMER_P:False,
-                    ID_CLASSEMENT:True},
+              '0 partie': {wx.ID_SAVE: True,
+                     wx.ID_SAVEAS: True,
+                     wx.ID_PRINT: True,
+                     wx.ID_PREVIEW_PRINT: True,
+                     ID_INFO: True,
+                     ID_TIRAGE: False,
+                     ID_INSCRIPTION: True,
+                     ID_NOUVELLE_E: True,
+                     ID_MODIFIER_E: True,
+                     ID_SUPPRIMER_E: True,
+                     ID_PARTIE: True,
+                     ID_NOUVELLE_P: True,
+                     ID_RESULTATS: False,
+                     ID_SUPPRIMER_P: False,
+                     ID_CLASSEMENT: True},
 
-              cst.T_ATTEND_TIRAGE:{wx.ID_SAVE:True,
-                    wx.ID_SAVEAS:True,
-                    wx.ID_PRINT:True,
-                    wx.ID_PREVIEW_PRINT:True,
-                    ID_INFO:True,
-                    ID_TIRAGE:True,
-                    ID_INSCRIPTION:True,
-                    ID_NOUVELLE_E:True,
-                    ID_MODIFIER_E:True,
-                    ID_SUPPRIMER_E:False,
-                    ID_PARTIE:True,
-                    ID_NOUVELLE_P:True,
-                    ID_RESULTATS:True,
-                    ID_SUPPRIMER_P:True,
-                    ID_CLASSEMENT:True},
+              cst.T_ATTEND_TIRAGE: {wx.ID_SAVE: True,
+                     wx.ID_SAVEAS: True,
+                     wx.ID_PRINT: True,
+                     wx.ID_PREVIEW_PRINT: True,
+                     ID_INFO: True,
+                     ID_TIRAGE: True,
+                     ID_INSCRIPTION: True,
+                     ID_NOUVELLE_E: True,
+                     ID_MODIFIER_E: True,
+                     ID_SUPPRIMER_E: False,
+                     ID_PARTIE: True,
+                     ID_NOUVELLE_P: True,
+                     ID_RESULTATS: True,
+                     ID_SUPPRIMER_P: True,
+                     ID_CLASSEMENT: True},
 
-              cst.T_PARTIE_EN_COURS:{wx.ID_SAVE:True,
-                    wx.ID_SAVEAS:True,
-                    wx.ID_PRINT:True,
-                    wx.ID_PREVIEW_PRINT:True,
-                    ID_INFO:True,
-                    ID_TIRAGE:True,
-                    ID_INSCRIPTION:True,
-                    ID_NOUVELLE_E:True,
-                    ID_MODIFIER_E:True,
-                    ID_SUPPRIMER_E:False,
-                    ID_PARTIE:True,
-                    ID_NOUVELLE_P:False,
-                    ID_RESULTATS:True,
-                    ID_SUPPRIMER_P:True,
-                    ID_CLASSEMENT:True}}
+              cst.T_PARTIE_EN_COURS: {wx.ID_SAVE: True,
+                     wx.ID_SAVEAS: True,
+                     wx.ID_PRINT: True,
+                     wx.ID_PREVIEW_PRINT: True,
+                     ID_INFO: True,
+                     ID_TIRAGE: True,
+                     ID_INSCRIPTION: True,
+                     ID_NOUVELLE_E: True,
+                     ID_MODIFIER_E: True,
+                     ID_SUPPRIMER_E: False,
+                     ID_PARTIE: True,
+                     ID_NOUVELLE_P: False,
+                     ID_RESULTATS: True,
+                     ID_SUPPRIMER_P: True,
+                     ID_CLASSEMENT: True}}
 
-#--- Hack pour ButtonInfo ------------------------------------------------------
+
+#--- Hack pour ButtonInfo -----------------------------------------------------
+
 
 class ButtonInfo(bp.ButtonInfo):
 
     def __init__(self, parent, id=wx.ID_ANY, bmp=wx.NullBitmap,
                  status="Normal", text="", kind=wx.ITEM_NORMAL, shortHelp="", longHelp=""):
-        bp.ButtonInfo.__init__(self, parent, id , bmp , status , text , kind, shortHelp , longHelp)
+        bp.ButtonInfo.__init__(self, parent, id, bmp, status, text, kind, shortHelp, longHelp)
 
         if id == wx.ID_ANY:
             self._id = wx.NewId()
@@ -144,24 +148,76 @@ class ButtonInfo(bp.ButtonInfo):
                 self.SetToggled(False)
                 self.SetStatus('Normal')
 
-#--- Classes -------------------------------------------------------------------
+
+class Menu(wx.Menu):
+    def __init__(self, *args, **kargs):
+        wx.Menu.__init__(self, *args, **kargs)
+
+    def ajouter(self, id, text, help=u"", kind=wx.ITEM_NORMAL, bpm=None):
+        sous_menu = wx.MenuItem(self, id, text, help, kind)
+        if bpm:
+            sous_menu.SetBitmap(bpm)
+        self.AppendItem(sous_menu)
+
+
+#--- Classes ------------------------------------------------------------------
+
+
+def styles():
+    t = tournoi.tournoi()
+    if t is None:
+        etat = None
+    else:
+        if t.statut == cst.T_INSCRIPTION and t.nb_equipes() == 0:
+            etat = '0 equipe'
+        elif t.statut == cst.T_ATTEND_TIRAGE and t.nb_parties() == 0:
+            etat = '0 partie'
+        else:
+            etat = t.statut
+    return STYLES_MENU[etat]
+
+
+def cree_contexte_menu():
+    menu = Menu()
+    menu.ajouter(ID_RESULTATS, u"&Entrer les résultats", u"  Entrer les résultats des manches de la partie en cours",
+                 bpm=images.bitmap('resultats.png', scale=0.5))
+    menu.ajouter(ID_MODIFIER_E, u"&Modifier", u"  Modifier les données d'une équipe",
+                 bpm=images.bitmap('modifier.png', scale=0.5))
+    menu.ajouter(ID_NOUVELLE_E, u"&Nouvelle\tCtrl+E", u"  Inscrire une nouvelle équipe au tournoi",
+                 bpm=images.bitmap('equipe.png', scale=0.5))
+    menu.ajouter(ID_SUPPRIMER_E, u"&Supprimer", u"  Supprimer une équipe du tournoi",
+                 bpm=images.bitmap('supprimer.png', scale=0.5))
+
+    for st, val in styles().items():
+        item = menu.FindItemById(st)
+        if item:
+            item.Enable(val)
+    return menu
+
 
 class BarreMenu(wx.MenuBar):
     def __init__(self, parent):
         wx.MenuBar.__init__(self)
 
         # Menu fichier
-        self.menu_fichier = wx.Menu()
-        self.menu_fichier.Append(wx.ID_NEW, u"&Nouveau\tCtrl+N", u"  Commencer un nouveau tournoi")
-        self.menu_fichier.Append(wx.ID_OPEN, u"&Ouvrir...\tCtrl+O", u"  Ouvrir un tournoi")
+        self.menu_fichier = Menu()
+        self.menu_fichier.ajouter(wx.ID_NEW, u"&Nouveau\tCtrl+N", u"  Commencer un nouveau tournoi",
+                                  bpm=images.bitmap('nouveau.png', scale=0.5))
+        self.menu_fichier.ajouter(wx.ID_OPEN, u"&Ouvrir...\tCtrl+O", u"  Ouvrir un tournoi",
+                                 bpm=images.bitmap('ouvrir.png', scale=0.5))
         self.menu_fichier.AppendSeparator()
-        self.menu_fichier.Append(wx.ID_SAVE, u"&Enregistrer\tCtrl+S", u"  Enregistrer le fichier ouvert")
-        self.menu_fichier.Append(wx.ID_SAVEAS, u"&Enregistrer sous...", u"  Enregistrer le fichier ouvert")
+        self.menu_fichier.ajouter(wx.ID_SAVE, u"&Enregistrer\tCtrl+S", u"  Enregistrer le fichier ouvert",
+                                  bpm=images.bitmap('enregistrer.png', scale=0.5))
+        self.menu_fichier.ajouter(wx.ID_SAVEAS, u"&Enregistrer sous...", u"  Enregistrer le fichier ouvert",
+                                  bpm=images.bitmap('enregistrer_sous.png', scale=0.5))
         self.menu_fichier.AppendSeparator()
-        self.menu_fichier.Append(wx.ID_PREVIEW_PRINT, u"&Apreçu avant impression", u"  Visualiser le classement avant impression")
-        self.menu_fichier.Append(wx.ID_PRINT, u"&Imprimer...\tCtrl+I", u"  Imprimer le classement des équipes")
+        self.menu_fichier.ajouter(wx.ID_PREVIEW_PRINT, u"&Apreçu avant impression", u"  Visualiser le classement avant impression",
+                                 bpm=images.bitmap('loupe.png', scale=0.5))
+        self.menu_fichier.ajouter(wx.ID_PRINT, u"&Imprimer...\tCtrl+I", u"  Imprimer le classement des équipes",
+                                 bpm=images.bitmap('imprimer.png', scale=0.5))
         self.menu_fichier.AppendSeparator()
-        self.menu_fichier.Append(wx.ID_EXIT, u"&Quitter\tCtrl+Q", u"  Quitter TourBillon")
+        self.menu_fichier.ajouter(wx.ID_EXIT, u"&Quitter\tCtrl+Q", u"  Quitter TourBillon",
+                                 bpm=images.bitmap('quitter.png', scale=0.5))
 
         # Menu affichage
         self.menu_affichage = wx.Menu()
@@ -170,42 +226,52 @@ class BarreMenu(wx.MenuBar):
         self.menu_affichage.Append(ID_TIRAGE, u"&Tirages", u"  Afficher les tirages")
 
         # Menu Tournoi
-        self.sous_menu_inscription = wx.Menu()
-        self.sous_menu_inscription.Append(ID_NOUVELLE_E, u"&Nouvelle\tCtrl+E", u"  Inscrire une nouvelle équipe au tournoi")
-        self.sous_menu_inscription.Append(ID_MODIFIER_E, u"&Modifier", u"  Modifier les données d'une équipe")
-        self.sous_menu_inscription.Append(ID_SUPPRIMER_E, u"&Supprimer", u"  Supprimer une équipe du tournoi")
+        self.sous_menu_inscription = Menu()
+        self.sous_menu_inscription.ajouter(ID_NOUVELLE_E, u"&Nouvelle\tCtrl+E", u"  Inscrire une nouvelle équipe au tournoi",
+                                           bpm=images.bitmap('equipe.png', scale=0.5))
+        self.sous_menu_inscription.ajouter(ID_MODIFIER_E, u"&Modifier", u"  Modifier les données d'une équipe",
+                                          bpm=images.bitmap('modifier.png', scale=0.5))
+        self.sous_menu_inscription.ajouter(ID_SUPPRIMER_E, u"&Supprimer", u"  Supprimer une équipe du tournoi",
+                                          bpm=images.bitmap('supprimer.png', scale=0.5))
 
-        self.sous_menu_partie = wx.Menu()
-        self.sous_menu_partie.Append(ID_NOUVELLE_P, u"&Nouvelle\tCtrl+P", u"  Lancer une nouvelle partie")
-        self.sous_menu_partie.Append(ID_SUPPRIMER_P, u"&Supprimer", u"  Supprimer une partie")
-        self.sous_menu_partie.Append(ID_RESULTATS, u"&Entrer les résultats", u"  Entrer les résultats des manches de la partie en cours")
+        self.sous_menu_partie = Menu()
+        self.sous_menu_partie.ajouter(ID_NOUVELLE_P, u"&Nouvelle\tCtrl+P", u"  Lancer une nouvelle partie",
+                                      bpm=images.bitmap('partie.png', scale=0.5))
+        self.sous_menu_partie.ajouter(ID_RESULTATS, u"&Entrer les résultats", u"  Entrer les résultats des manches de la partie en cours",
+                                     bpm=images.bitmap('resultats.png', scale=0.5))
+        self.sous_menu_partie.ajouter(ID_SUPPRIMER_P, u"&Supprimer", u"  Supprimer une partie",
+                                     bpm=images.bitmap('supprimer.png', scale=0.5))
 
-        self.menu_tournoi = wx.Menu()
+        self.menu_tournoi = Menu()
         self.menu_tournoi.AppendMenu(ID_INSCRIPTION, u"&Equipes", self.sous_menu_inscription)
         self.menu_tournoi.AppendMenu(ID_PARTIE, u"&Parties", self.sous_menu_partie)
         self.menu_tournoi.Append(ID_CLASSEMENT, u"&Classement", u"  Afficher le classement")
         self.menu_tournoi.AppendSeparator()
-        self.menu_tournoi.Append(wx.ID_PREFERENCES, u"&Préférences\tCtrl+,", u" Configuration de l'application")
+        self.menu_tournoi.ajouter(wx.ID_PREFERENCES, u"&Préférences\tCtrl+,", u" Configuration de l'application",
+                                  bpm=images.bitmap('preferences.png', scale=0.5))
 
         # Menu Aide
-        self.menu_aide = wx.Menu()
-        self.menu_aide.Append(wx.ID_ABOUT, u"&A propos de TourBillon", u" Pour en savoir plus...")
+        self.menu_aide = Menu()
+        self.menu_aide.ajouter(wx.ID_PROPERTIES, u"Information Système", u" Configuration du système hôte de TourBillon...",
+                              bpm=images.bitmap('systeme.png', scale=0.5))
+        self.menu_aide.ajouter(wx.ID_ABOUT, u"&A propos de TourBillon", u" Pour en savoir plus...",
+                              bpm=images.bitmap('icon.png', scale=0.6))
 
         self.Append(self.menu_fichier, "&Fichier")
         self.Append(self.menu_affichage, "&Affichage")
         self.Append(self.menu_tournoi, "&Tournoi")
         self.Append(self.menu_aide, "&Aide")
 
-    def _rafraichir(self, etat=None):
+    def _rafraichir(self):
         """
         NE PAS UTILISER !!!!! (Manipulé par la fenêtre principale)
         """
-        styles = STYLES_MENU[etat]
-        for st, val in styles.items():
+        for st, val in styles().items():
             item = self.FindItemById(st)
             item.Enable(val)
 
         self.Update()
+
 
 class BarreBouton(bp.ButtonPanel):
     def __init__(self, parent):
@@ -291,7 +357,7 @@ class BarreBouton(bp.ButtonPanel):
         menu = wx.Menu()
         titres = [t[0] for t in grl.TITRES['partie'] if t[0] != u""] + [t[0] for t in grl.TITRES['statistiques'] if t[0] != u""]
         for texte in titres:
-            menu.Append(wx.ID_ANY, texte, "" , wx.ITEM_RADIO)
+            menu.Append(wx.ID_ANY, texte, "", wx.ITEM_RADIO)
         self.box_chercher.SetMenu(menu)
         self.box_chercher.ShowCancelButton(True)
 
@@ -333,6 +399,16 @@ class BarreBouton(bp.ButtonPanel):
 
         self.box_chercher.Bind(wx.EVT_MENU, self._menu_recherche)
         self.Bind(wx.EVT_SEARCHCTRL_CANCEL_BTN, self._effacer_recherche)
+        self.Bind(wx.EVT_SIZE, self._force_layout)
+
+    def _force_layout(self, event):
+        """
+        Fix un bug sous win32: le widget de recherche n'est pas correctement
+        positionné lors d'un redimensionnement de la fenêtre si la mise en
+        page n'est pas forcée.
+        """
+        self.Layout()
+        event.Skip()
 
     def _menu_recherche(self, event):
         menu = self.box_chercher.GetMenu()
@@ -347,15 +423,14 @@ class BarreBouton(bp.ButtonPanel):
     def _effacer_recherche(self, event):
         self.box_chercher.Clear()
 
-    def _rafraichir(self, etat, texte=''):
+    def _rafraichir(self, texte=''):
         """
         NE PAS UTILISER !!!!! (Manipulé par la fenêtre principale)
         """
-        styles = STYLES_MENU[etat]
-        for st in styles:
+        for st in styles():
             control = self.FindItemById(st)
             if control is not None:
-                control.Enable(styles[st])
+                control.Enable(styles()[st])
         self.SetBarText(texte)
         self.DoLayout()
         self.txt_partie.Refresh()
@@ -371,6 +446,7 @@ class BarreBouton(bp.ButtonPanel):
             if control.GetId() == id:
                 return control
         return None
+
 
 class Voyant(object):
     def __init__(self, parent):
@@ -398,6 +474,7 @@ class Voyant(object):
         rect = self.parent.GetFieldRect(5)
         self._image.SetPosition((rect.x + 5, rect.y + 1))
         self.parent.Refresh()
+
 
 class BarreEtat(wx.StatusBar):
     def __init__(self, parent):

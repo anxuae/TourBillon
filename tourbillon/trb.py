@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
 
-__doc__ = """Module principale de TourBillon"""
+"""Module principale de TourBillon"""
 
 #--- Import --------------------------------------------------------------------
 
@@ -17,12 +17,9 @@ except ImportError:
     ce_fichier = inspect.currentframe().f_code.co_filename
     sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(ce_fichier)), '..'))
 
-import tourbillon
-from tourbillon.configuration import (creer_config, charger_config,
-                                        parse_options, USERPATH)
-from tourbillon.trb_core.exceptions import ConfigError
+from tourbillon.configuration import charger_config, parse_options
 
-try :
+try:
 # Cela prendra 1 minute ; si psyco n’est pas installé, ça ne changera rien; et si
 # psyco est installé, on peut obtenir des gains de performance très considérable
 # (probablement de l’ordre de 3-4 fois plus vite – voire 10 ou même plus !)
@@ -33,11 +30,9 @@ except ImportError:
 
 #--- Charger la configuration --------------------------------------------------
 
-try:
-    CONFIG = charger_config()
-except ConfigError, e:
-    creer_config()
-    CONFIG = charger_config()
+
+CONFIG = charger_config()
+
 
 def run():
     OPTIONS, ARGS = parse_options()
@@ -56,7 +51,6 @@ def run():
 
         from tourbillon.trb_gui.interface import TourBillonGUI
         app = TourBillonGUI(CONFIG)
-
 
     if len(ARGS) > 0:
         app.ouvrir(ARGS[0])

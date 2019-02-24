@@ -3,16 +3,16 @@
 
 #--- Import --------------------------------------------------------------------
 
-import sys
 import os
 from datetime import datetime
 import wx
+from wx import grid
 from wx.lib.agw import advancedsplash as aspl
-import wx.lib.scrolledpanel as scrolled
 from wx.lib.wordwrap import wordwrap
 from wx.lib.agw import toasterbox as toast
 
 import tourbillon
+from tourbillon.configuration import systeme_config
 from tourbillon.trb_core import constantes as cst
 from tourbillon.trb_core import tournoi, joueur
 from tourbillon.trb_core import exceptions as expt
@@ -56,17 +56,7 @@ class FenetrePrincipale(wx.Frame):
         wx.Frame.__init__(self, None, id=wx.ID_ANY, title=tourbillon.__nom__,
                           size=(640, 400), style=wx.DEFAULT_FRAME_STYLE)
         self.SetBackgroundColour(images.couleur('grille'))
-
-        # Initialiser
         self.config = config
-        self.config.get_typed('INTERFACE', 'plein_ecran')
-        if self.config.get_typed('INTERFACE', 'maximiser') or self.config.get_typed('INTERFACE', 'plein_ecran'):
-            self.Maximize()
-        else:
-            geo = self.config.get_typed('INTERFACE', 'geometrie')
-            self.SetPosition(geo[:2])
-            self.SetSize(geo[2:])
-        joueur.charger_historique(config.get_typed('TOURNOI', 'historique'))
 
         # Fenêtre informations montrée
         self.fenetre_affichage = dlginfo.DialogueInformations(self, self.config)
@@ -81,7 +71,7 @@ class FenetrePrincipale(wx.Frame):
         self.SetMenuBar(self.barre_menu)
 
         self.Bind(wx.EVT_MENU, self.nouveau, id=wx.ID_NEW)
-        self.Bind(wx.EVT_MENU, self.ouvrir, id=wx.ID_OPEN)
+        self.Bind(wx.EVT_MENU, self.ouvrir_demande, id=wx.ID_OPEN)
         self.Bind(wx.EVT_MENU, self.enregistrer, id=wx.ID_SAVE)
         self.Bind(wx.EVT_MENU, self.enregistrer_sous, id=wx.ID_SAVEAS)
         self.Bind(wx.EVT_MENU, self.apercu_avant_impression, id=wx.ID_PREVIEW_PRINT)
@@ -101,6 +91,7 @@ class FenetrePrincipale(wx.Frame):
         self.Bind(wx.EVT_MENU, self.classement, id=barres.ID_CLASSEMENT)
         self.Bind(wx.EVT_MENU, self.preferences, id=wx.ID_PREFERENCES)
 
+        self.Bind(wx.EVT_MENU, self.info_systeme, id=wx.ID_PROPERTIES)
         self.Bind(wx.EVT_MENU, self.a_propos_de, id=wx.ID_ABOUT)
 
         # Créer la barre de statut
@@ -128,7 +119,6 @@ class FenetrePrincipale(wx.Frame):
         self.Bind(wx.EVT_BUTTON, self.nouvelle_equipe, id=barres.ID_NOUVELLE_E)
         self.Bind(wx.EVT_BUTTON, self.nouvelle_partie, id=barres.ID_NOUVELLE_P)
         self.Bind(wx.EVT_BUTTON, self.entrer_resultats, id=barres.ID_RESULTATS)
-        self.Bind(wx.EVT_BUTTON, self.entrer_resultats, id=barres.ID_RESULTATS)
         self.Bind(wx.EVT_SEARCHCTRL_SEARCH_BTN, self.grille.rechercher_suivant, id=wx.ID_FIND)
         self.Bind(wx.EVT_TEXT_ENTER, self.grille.rechercher_suivant, id=wx.ID_FIND)
         self.Bind(wx.EVT_TEXT, self.grille.rechercher, id=wx.ID_FIND)
@@ -146,18 +136,31 @@ class FenetrePrincipale(wx.Frame):
         self.Bind(wx.EVT_CLOSE, self.quitter)
         self.Bind(evt.EVT_RAFRAICHIR, self.rafraichir)
         self.grille.Bind(grl.grid.EVT_GRID_CELL_LEFT_DCLICK, self.grille_double_click)
+        self.grille.Bind(grl.grid.EVT_GRID_CELL_RIGHT_CLICK, self.grille_contexte)
         self.grille.Bind(wx.EVT_KEY_DOWN, self.grille_enter)
 
         # Rafraichir
         wx.PostEvent(self, evt.RafraichirEvent(self.GetId()))
 
     def grille_enter(self, event):
+        """
+        Ouvre le fenêtre correspondant à l'activitée en cours
+        pour l'équipe selectionnée si la touche [ENTER] et
+        pressée (voir la fonction 'grille_double_click' pour
+        plus de details).
+        """
         if event.GetKeyCode() == wx.WXK_RETURN:
             self.grille_double_click(event)
         else:
             event.Skip()
 
     def grille_double_click(self, event):
+        """
+        Ouvre le fenêtre correspondant à l'activitée en cours
+        pour l'équipe selectionnée:
+            - "Ajout de Joueur" si le tournoi n'est pas commencé
+            - "Entrer les Résultats" si le tournoi est commencé
+        """
         if tournoi.tournoi() is not None:
             if self.grille.selection() is not None:
                 statut = tournoi.tournoi().statut
@@ -165,6 +168,17 @@ class FenetrePrincipale(wx.Frame):
                     self.modifier_equipe(event)
                 else:
                     self.entrer_resultats(event)
+
+    def grille_contexte(self, event):
+        """
+        Ouvre le menu contextuel
+        """
+        if tournoi.tournoi() is not None:
+            if self.grille.selection() is not None:
+                menu = barres.cree_contexte_menu()
+                self.PopupMenu(menu, wx.GetMousePosition() - self.GetPosition() -
+                               (self.grille.GetPosition().x / 2, self.grille.GetPosition().y / 2))
+                menu.Destroy()
 
     def rafraichir(self, event):
         t = tournoi.tournoi()
@@ -178,19 +192,12 @@ class FenetrePrincipale(wx.Frame):
         # Barre de menu
         if event.quoi == 'menu' or event.quoi == 'tout':
             if t is None:
-                etat = None
                 nom = ''
             else:
                 nom = 'Tournoi  du %s' % t.debut.strftime('%d/%m/%Y')
-                if t.statut == cst.T_INSCRIPTION and t.nb_equipes() == 0:
-                    etat = '0 equipe'
-                elif t.statut == cst.T_ATTEND_TIRAGE and t.nb_parties() == 0:
-                    etat = '0 partie'
-                else:
-                    etat = t.statut
 
-            self.barre_menu._rafraichir(etat)
-            self.barre_bouton._rafraichir(etat, nom)
+            self.barre_menu._rafraichir()
+            self.barre_bouton._rafraichir(nom)
 
         # Barre d'état
         if event.quoi == 'etat' or event.quoi == 'tout':
@@ -247,7 +254,7 @@ class FenetrePrincipale(wx.Frame):
             self.grille.chg_fond(images.bitmap(chemin_image))
 
     def info(self, texte):
-        if self.config.get_typed('INTERFACE', 'BAVARDE'):
+        if self.config.get_typed('INTERFACE', 'BAVARDE') and self.IsShown():
             tb = toast.ToasterBox(self, toast.TB_SIMPLE, toast.TB_DEFAULT_STYLE, toast.TB_ONTIME | toast.TB_ONCLICK)
 
             w = 200
@@ -271,7 +278,7 @@ class FenetrePrincipale(wx.Frame):
             tb.Play()
 
     def nouveau(self, event):
-        ret = self.demande_enregistrement()
+        ret = self.enregister_demande()
 
         if ret != wx.ID_CANCEL:
             if self.config.get_typed("INTERFACE", 'NOUVEAU_AFFICHE_PREFERENCES'):
@@ -291,8 +298,11 @@ class FenetrePrincipale(wx.Frame):
 
                 self.info(u"Il est %s, un nouveau tournoi commence..." % tournoi.tournoi().debut.strftime('%Hh%M'))
 
-    def ouvrir(self, event):
-        ret = self.demande_enregistrement()
+    def ouvrir_demande(self, event):
+        """
+        Demander à l'utilisateur quel fichier il souhaite ouvrir.
+        """
+        ret = self.enregister_demande()
 
         if ret != wx.ID_CANCEL:
             if tournoi.FICHIER_TOURNOI is not None:
@@ -309,21 +319,26 @@ class FenetrePrincipale(wx.Frame):
 
             if ret == wx.ID_OK:
                 fichier = dlg.GetPath()
-                tournoi.charger_tournoi(fichier)
-
-                # Rafraichir
-                self.barre_bouton.chg_partie(tournoi.tournoi().nb_parties())
-                self.grille.effacer()
-                for equipe in tournoi.tournoi().equipes():
-                    self.grille.ajout_equipe(equipe)
-                wx.PostEvent(self, evt.RafraichirEvent(self.GetId()))
-
-                self.SetTitle("%s - %s" % (tourbillon.__nom__, fichier))
-                self.info(u"Chargé, prêt à jouer mon commandant!")
-
+                self.ouvrir(fichier)
             dlg.Destroy()
 
-    def demande_enregistrement(self):
+    def ouvrir(self, fichier):
+        tournoi.charger_tournoi(fichier)
+
+        # Rafraichir
+        self.barre_bouton.chg_partie(tournoi.tournoi().nb_parties())
+        self.grille.effacer()
+        self.grille.ajout_equipe(*tournoi.tournoi().equipes())
+        wx.PostEvent(self, evt.RafraichirEvent(self.GetId()))
+
+        self.SetTitle("%s - %s" % (tourbillon.__nom__, fichier))
+        self.info(u"Chargé, prêt à jouer mon commandant!")
+
+    def enregister_demande(self):
+        """
+        Demander à l'utilisateur s'il veux enregristrer le
+        tournoi courrant.
+        """
         continuer = wx.ID_OK
         if tournoi.tournoi() is not None:
             if tournoi.tournoi().modifie:
@@ -344,8 +359,6 @@ class FenetrePrincipale(wx.Frame):
         else:
             tournoi.enregistrer_tournoi()
 
-        # Enregistrer l'historique joueurs
-        joueur.enregistrer_historique()
         # Rafraichir
         wx.PostEvent(self, evt.RafraichirEvent(self.GetId(), 'etat'))
 
@@ -367,7 +380,7 @@ class FenetrePrincipale(wx.Frame):
 
         if ret == wx.ID_OK:
             fichier = dlg.GetPath()
-            p, ext = os.path.splitext(fichier)
+            _p, ext = os.path.splitext(fichier)
             if ext != '.trb':
                 fichier += '.trb'
             tournoi.enregistrer_tournoi(fichier)
@@ -392,7 +405,7 @@ class FenetrePrincipale(wx.Frame):
         dlg.Print()
 
     def quitter(self, event):
-        ret = self.demande_enregistrement()
+        ret = self.enregister_demande()
 
         if ret != wx.ID_CANCEL:
             # Enregistrer la géométrie de l'interface
@@ -421,7 +434,6 @@ class FenetrePrincipale(wx.Frame):
         if self.affichage_visible:
             self.barre_bouton.FindItemById(barres.ID_INFO).Check(self.affichage_visible)
             self.barre_menu.FindItemById(barres.ID_INFO).Check(self.affichage_visible)
-
             self.fenetre_affichage.Show()
             self.SetFocus()
         else:
@@ -437,7 +449,7 @@ class FenetrePrincipale(wx.Frame):
         num = self.barre_bouton.numero()
 
         dlg = dlgpa.DialogueAfficherTirage(self, num)
-        ret = dlg.Show()
+        dlg.Show()
 
     def afficher_partie_prec(self, event):
         if tournoi.tournoi() is None:
@@ -662,7 +674,7 @@ cliquez sur ANNULER si vous ne voulez pas ajouter cette nouvelle équipe."
     def preferences(self, event):
         if type(event) == evt.PreferencesEvent:
             # Ouverture d'une page spécifique
-            dlg = dlgpref.DialoguePreferences(self, self.config, event.page)
+            dlg = dlgpref.DialoguePreferences(self, self.config, event.page, event.sous_page)
         else:
             # Page générale
             dlg = dlgpref.DialoguePreferences(self, self.config)
@@ -679,6 +691,33 @@ cliquez sur ANNULER si vous ne voulez pas ajouter cette nouvelle équipe."
         wx.PostEvent(self, evt.RafraichirEvent(self.GetId(), 'affichage'))
         wx.PostEvent(self, evt.RafraichirEvent(self.GetId(), 'fond'))
         return ret
+
+    def info_systeme(self, event):
+        dlg = wx.Dialog(self, style=wx.DEFAULT_DIALOG_STYLE | wx.CENTER_ON_SCREEN)
+        dlg.CenterOnScreen()
+
+        grille = grid.Grid(dlg, wx.ID_ANY)
+        grille.CreateGrid(0, 2)
+        grille.SetRowLabelSize(0)
+        grille.SetDefaultCellBackgroundColour(images.couleur('grille'))
+        grille.SetColLabelValue(0, u"Elément")
+        grille.SetColSize(0, dlg.GetSize()[0] / 2)
+        grille.SetColLabelValue(1, u"Valeur")
+        grille.SetColSize(1, dlg.GetSize()[0] / 2)
+
+        for a, b in systeme_config():
+            grille.AppendRows(1)
+            index = grille.GetNumberRows() - 1
+            grille.SetCellValue(index, 0, " %s" % a)
+            grille.SetCellValue(index, 1, b)
+
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer.Add(grille, 1)
+        dlg.SetSizer(sizer)
+        dlg.Layout()
+
+        dlg.ShowModal()
+        dlg.Destroy()
 
     def a_propos_de(self, event):
         info = wx.AboutDialogInfo()
@@ -699,22 +738,14 @@ cliquez sur ANNULER si vous ne voulez pas ajouter cette nouvelle équipe."
             u"n’altérez ni ne supprimez la licence ;\n"
             u"    -  la liberté d’améliorer TourBillon et de diffuser vos améliorations au "
             u"public, de façon à ce que l’ensemble de la communauté puisse en tirer "
-            u"avantage, tant que vous n’altérez ni ne supprimez la licence.\n"
-            u"\n"
-            u"Il ne faut pas confondre logiciel libre et logiciel en domaine public. L’intérêt "
-            u"de la licence GPL (licence du logiciel libre) est de garantir la non-confiscation "
-            u"du logiciel, au contraire d’un logiciel du domaine public qui peut se voir "
-            u"transformé en logiciel propriétaire. Vous bénéficiez des libertés ci-dessus "
-            u"dans le respect de la licence GPL ; en particulier, si vous redistribuez ou si "
-            u"vous modifiez TourBillon, vous ne pouvez cependant pas y appliquer une licence "
-            u"qui contredirait la licence GPL (par exemple, qui ne donnerait plus le droit à "
-            u"autrui de modifier le code source ou de redistribuer le code source modifié).", 800, wx.ClientDC(self))
+            u"avantage, tant que vous n’altérez ni ne supprimez la licence.", 800, wx.ClientDC(self))
         info.WebSite = ("https://www.facebook.com/labillonniere", "Billon home page")
         info.Developers = ["La Billonnière"]
 
         info.License = u"Retrouver la licence dans sa version complète sur http://www.gnu.org/licenses/gpl.html"
 
         wx.AboutBox(info)
+
 
 #--- Application ---------------------------------------------------------------
 
@@ -727,45 +758,35 @@ class TourBillonGUI(wx.App):
         wx.App.__init__(self, False)
 
         self.SetAppName(tourbillon.__nom__)
-        # This catches events when the app is asked to activate by some other
-        # process
-        self.Bind(wx.EVT_ACTIVATE_APP, self.OnActivate)
 
     def OnInit(self):
         """
         Afficher la fenetre splash et la fenêtre principale.
         """
         wx.InitAllImageHandlers()
-        spl = FentetreSplash(None, wx.ID_ANY, 5000)
+        sp = FentetreSplash(None, wx.ID_ANY, 5000)
+        sp.Update()
+
+        self._timer = wx.Timer(self)
+        self.Bind(wx.EVT_TIMER, self.OnShow, self._timer)
+
+        joueur.charger_historique(self.config.get_typed('TOURNOI', 'historique'))
 
         self.fenetre = FenetrePrincipale(self.config)
-        self.fenetre.Show()
-
+        # Laisser le temps du chargement avant affichage
+        self._timer.Start(3000)
         return True
 
-    def BringWindowToFront(self):
-        """
-        Il est possible que cet événement survienne quand la denière
-        fenêtre est fermée.
-        """
-        try:
-            self.GetTopWindow().Raise()
-        except:
-            pass
-
-    def OnActivate(self, event):
-        """
-        Afficher les fenêtres de l'application si elle prend le focus.
-        """
-        if event.GetActive():
-            self.BringWindowToFront()
-        event.Skip()
-
-    def MacReopenApp(self):
-        """
-        Appelé quand l'icone du DOC est cliquée.
-        """
-        self.BringWindowToFront()
+    def OnShow(self, event):
+        # Changer la geometrie après initilisation de la fenetre
+        # (évite les problèmes de rafraichissement)
+        geo = self.config.get_typed('INTERFACE', 'geometrie')
+        self.fenetre.SetPosition(geo[:2])
+        self.fenetre.SetSize(geo[2:])
+        self.fenetre.Show()
+        if self.config.get_typed('INTERFACE', 'maximiser') or self.config.get_typed('INTERFACE', 'plein_ecran'):
+            self.fenetre.Maximize()
+        self._timer.Stop()
 
     def MacOpenFile(self, fichier):
         """
@@ -775,9 +796,4 @@ class TourBillonGUI(wx.App):
         self.ouvrir(fichier)
 
     def ouvrir(self, fichier):
-        tournoi.charger_tournoi(fichier)
-        self.fenetre.barre_bouton.chg_partie(tournoi.tournoi().nb_parties())
-        self.fenetre.grille.effacer()
-        for equipe in tournoi.tournoi().equipes():
-            self.fenetre.grille.ajout_equipe(equipe)
-        wx.PostEvent(self.fenetre, evt.RafraichirEvent(self.fenetre.GetId()))
+        self.fenetre.ouvrir(fichier)

@@ -1,15 +1,15 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
 
-__doc__ = u"""Algorithme déterministe créé en 2008."""
+u"""Algorithme déterministe créé en 2008."""
 
 #--- Import --------------------------------------------------------------------
 
 import random
 from tourbillon.trb_core.tirages.utile import (BaseThreadTirage, nb_chapeaux_necessaires, tri_stat, Cnp,
-                                               creer_manches, creer_liste, NV, NV_REDONDANCE, NV_DISPARITE,
+                                               creer_liste, NV, NV_REDONDANCE, NV_DISPARITE,
                                                tirage_texte, dernieres_equipes)
-from tourbillon.trb_core.exceptions import StopTirageError, SolutionError
+from tourbillon.trb_core.exceptions import SolutionError
 
 #--- Variables globales --------------------------------------------------------
 
@@ -33,10 +33,12 @@ CNP_CACHE = []
 
 #--- Fonctions -----------------------------------------------------------------
 
+
 def cle_matrice(manche):
     manche.sort()
     cle = "_".join([unicode(num) for num in manche])
     return cle
+
 
 def vider_caches():
     global MC_CACHE, MR_CACHE, MD_CACHE, CNP_CACHE
@@ -45,24 +47,25 @@ def vider_caches():
     MD_CACHE = {}
     CNP_CACHE = []
 
+
 def creer_matrices(parametres, statistiques):
     """
-    - Matrice de Coût: MC(manche) = ptsA+ptsB+... + kv * (nvA+nvB+...) + aléat(0,1)
-    
+    - Matrice de Coût: MC(manche) = ptsA+ptsB+... + kv * (nvA+nvB+...)
+
         Avec manche: [EquipeA, EquipeB, ...]
              pts   : nombre de points
              nv    : nombre de victoires (GAGNE + CHAPEAU)
              kv    : ponderation des victoires
-         
+
     - Matrice de Rencontres: MR(manche) = nombre de fois ou la manche à déjà été disputée
-    
+
         La valeur est < 1 si certaines équipes de la manche se sont déjà rencontrées
         mais pas toutes.
-        
+
         valeur = nbr_fait_rencontres_2_à_2 / nbr_possible_rencontres_2_à_2
-        
+
     - Matrice de Disparité: MD(manche) = max_victoires - min_victoires
-                                        
+
         écart en nombre de victoires entre l'équipe la plus forte et la plus faible
         de la manche
     """
@@ -89,7 +92,7 @@ def creer_matrices(parametres, statistiques):
                 min_vic = statistiques[num]['victoires'] + statistiques[num]['chapeaux']
             if statistiques[num]['victoires'] + statistiques[num]['chapeaux'] > max_vic or max_vic is None:
                 max_vic = statistiques[num]['victoires'] + statistiques[num]['chapeaux']
-        MC_CACHE[cle] = points + parametres['ponderation_victoires'] * victoires + random.random()
+        MC_CACHE[cle] = points + parametres['ponderation_victoires'] * victoires
 
         # Completer la matrice de disparité
         MD_CACHE[cle] = max_vic - min_vic
@@ -120,66 +123,68 @@ def creer_matrices(parametres, statistiques):
         # Avancement du calcul (affichage jusque 99% pour éviter d'indiquer la fin de l'algorithme)
         compteur += 1
         s = u"%-" + str(len(str(len(CNP_CACHE)))) + u"s/%s manches évaluées"
-        parametres['rapport'](((compteur * 100.0) / len(CNP_CACHE)) - 1, s % (compteur, len(CNP_CACHE)))
+        # 70% du temps attribué à la creation des matrices
+        parametres['rapport'](((compteur * 70.0) / len(CNP_CACHE)) - 1, s % (compteur, len(CNP_CACHE)))
 
     parametres['rapport'](message="")
 
-def fonction_cout(parametres, manche, redondance=False, disparite=False):
+
+def comanche(parametres, manche, redondance=False, disparite=False):
     """
-    Fonction de coût attribuant une performance à la manche. Elle se compose
-    de trois termes:
+    Fonction de coût attribuant une performance à la manche:
 
-    - Fonction de Coût minimum :
+            f(manche) = mc * mr * md
 
-            terme1 = MC(manche)
+    Avec:
+         mc  : Fonction de Coût minimum
+                   mc = MC(manche)
 
-    - Fonction d'Augmentation  :
-     
-        Si la redondance n'est pas autorisée:
-            terme2 = 1 ou NV (Non valide)
-        Sinon:
-            terme2 = 1 + taux_augmentation * MR(manche)
+         mr  : Fonction d'Augmentation
+               Si la redondance n'est pas autorisée:
+                   mr = 1 ou NV (Non valide)
+               Sinon:
+                   mr = 1 + taux_augmentation * MR(manche)
 
-    - Fonction de Disparité    :
-
-        Si le dépassement de la disparité max n'est pas autorisée:
-            terme3 = 1 ou NV (Non valide)
-        Sinon:
-            terme3 = 1 + MD(manche) / ( MR(manche) + 1 )
+         md  : Fonction de Disparité
+               Si le dépassement de la disparité max n'est pas autorisée:
+                   md = 1 ou NV (Non valide)
+               Sinon:
+                   md = 1 + MD(manche) / ( MR(manche) + 1 )
     """
     cle = cle_matrice(manche)
 
-    terme1 = MC_CACHE[cle]
+    mc = MC_CACHE[cle]
 
     if redondance == False:
         # Interdiction catégorique de rejouer ensemble
         if MR_CACHE[cle] < 1:
-            terme2 = 1
+            mr = 1
         else:
-            terme2 = NV_REDONDANCE
+            mr = NV_REDONDANCE
     else:
         # Pénalisaton si déjà joué ensembles
-        terme2 = 1 + parametres['taux_augmentation'] * MR_CACHE[cle]
+        mr = 1 + parametres['taux_augmentation'] * MR_CACHE[cle]
 
     if parametres['max_disparite'] >= MD_CACHE[cle]:
         # Disparité au plus égale à la disparité max autorisée
-        terme3 = 1
+        md = 1
     else:
         if disparite == False:
             # Interdiction catégorique de dépasser la disparité maxi
-            terme3 = NV_DISPARITE
+            md = NV_DISPARITE
         else:
             # Pénalisation si écart sur le nombre de victoires dépase la disparité max autorisée
-            terme3 = 1 + MD_CACHE[cle] / (1.0 + MR_CACHE[cle])
+            md = 1 + MD_CACHE[cle] / (1.0 + MR_CACHE[cle])
 
-    if terme2 != NV and terme3 != NV:
-        return terme1 * terme2 * terme3
-    elif terme2 == NV and terme3 == NV:
+    if mr == NV and md == NV:
         return NV_REDONDANCE | NV_DISPARITE
-    elif terme2 == NV and terme3 != NV:
-        return terme2
-    elif terme2 != NV and terme3 == NV:
-        return terme3
+    elif mr == NV:
+        return mr
+    elif md == NV:
+        return md
+    else:
+        return mc * mr * md
+
 
 def manche_possible(manche, equipes_disponibles, equipe=None):
     if equipe is None:
@@ -187,10 +192,12 @@ def manche_possible(manche, equipes_disponibles, equipe=None):
 
     return len(manche) == len([True for e in manche if (e in equipes_disponibles and equipe in manche)])
 
+
 def min_cout(parametres, equipes_disponibles, redondance=False, disparite=False, equipe=None):
     """
-    Fonction renvoyant la manche qui possède la fonction de coût minimale
-    
+    Fonction renvoyant la manche qui possède la fonction de coût minimal.
+    La manche avec un cout minimal comprend les équipes les plus failes.
+
     'equipes' : retourne la manche qui a le cout minimal parmis les manche
                 possibles avec 'equipes'.
     """
@@ -200,7 +207,7 @@ def min_cout(parametres, equipes_disponibles, redondance=False, disparite=False,
     for manche in CNP_CACHE:
         parametres['arret_utilisateur']()
         if manche_possible(manche, equipes_disponibles, equipe):
-            c = fonction_cout(parametres, manche, redondance, disparite)
+            c = comanche(parametres, manche, redondance, disparite)
             if (valeur is None or valeur > c):
                 if c != NV:
                     valeur = c
@@ -213,11 +220,13 @@ def min_cout(parametres, equipes_disponibles, redondance=False, disparite=False,
     else:
         return [e for e in min]
 
+
 def max_cout(parametres, equipes_disponibles, redondance=False, disparite=False, equipe=None):
     """
-    Fonction renvoyant la manche qui possède la fonction de coût minimale
-    
-    'equipes' : retourne la manche qui a le cout minimal parmis les manche
+    Fonction renvoyant la manche qui possède la fonction de coût maximal
+    La manche avec un cout maximal comprend les équipes les plus fortes.
+
+    'equipes' : retourne la manche qui a le cout maximal parmis les manche
                 possibles avec 'equipes'.
     """
     max = None
@@ -226,7 +235,7 @@ def max_cout(parametres, equipes_disponibles, redondance=False, disparite=False,
     for manche in CNP_CACHE:
         parametres['arret_utilisateur']()
         if manche_possible(manche, equipes_disponibles, equipe):
-            c = fonction_cout(parametres, manche, redondance, disparite)
+            c = comanche(parametres, manche, redondance, disparite)
             if (valeur is None or valeur < c):
                 if c != NV:
                     valeur = c
@@ -239,6 +248,7 @@ def max_cout(parametres, equipes_disponibles, redondance=False, disparite=False,
     else:
         return [e for e in max]
 
+
 def premier(statistiques, equipes):
     """
     Fonction retournant la meilleur équipe de la liste
@@ -250,9 +260,11 @@ def premier(statistiques, equipes):
 
     return p
 
+
 def nb_parties(statistiques, equipe, equipes_par_manche):
     adversaires = len(statistiques[equipe]['adversaires'])
     return adversaires / (equipes_par_manche - 1)
+
 
 def select_chapeau(parametres, statistiques):
     equipes = dernieres_equipes(statistiques, parametres['chapeaux_parmis'])
@@ -292,15 +304,10 @@ def select_chapeau(parametres, statistiques):
 
     return num
 
-def message(statistiques, manche):
-    cle = cle_matrice(manche)
-    pts = [statistiques[equipe]['points'] for equipe in manche]
-    dp = max(pts) - min(pts)
-    return "%-15s: diff points = %-5s, redondance = %-5s, disparité = %-5s" % (manche, dp, MR_CACHE[cle], MD_CACHE[cle])
 
 class ThreadTirage(BaseThreadTirage):
-    def __init__(self, equipes_par_manche, statistiques, chapeaux=[], rapport=None):
-        BaseThreadTirage.__init__(self, equipes_par_manche, statistiques, chapeaux, rapport)
+    def __init__(self, *args, **kargs):
+        BaseThreadTirage.__init__(self, *args, **kargs)
         self.categorie = u"niveau2008_dt"
 
         # Parametres par défaut de l'algorithme
@@ -340,7 +347,7 @@ class ThreadTirage(BaseThreadTirage):
         vider_caches()
 
         # Paramètre de pondération des victoires
-        if self.config['calcul_ponderation_auto'] == True:       # Calcul du coefficient de pondération des victoires
+        if self.config['calcul_ponderation_auto'] == True:  # Calcul du coefficient de pondération des victoires
             ponderation = 0
             for equipe in self.statistiques:
                 parties = nb_parties(self.statistiques, equipe, self.config['equipes_par_manche'])
@@ -365,7 +372,7 @@ class ThreadTirage(BaseThreadTirage):
             manche = min_cout(self.config, equipes_disponibles)
 
             if manche == NV:
-                # Pas de solution pour les équipes restantes, on va rechercher 
+                # Pas de solution pour les équipes restantes, on va rechercher
                 p = premier(self.statistiques, equipes_disponibles)
 
                 # Réinitialisation de la liste des équipes disponibles avant le début de
@@ -402,6 +409,9 @@ class ThreadTirage(BaseThreadTirage):
                 # (équipe sans solution)
                 map(equipes_disponibles.remove, manche)
                 tirage_temp.append(manche)
+                # 30% attribué au choix des équipes
+                self.rapport(70 + (len(self.tirage) * self.equipes_par_manche + len(tirage_temp) * self.equipes_par_manche
+                                   + len(self.chapeaux)) * 30.0 / len(self.statistiques))
 
         for manche in tirage_temp:
             # Passage des manches de la liste temporaire vers la liste définitive
@@ -409,4 +419,3 @@ class ThreadTirage(BaseThreadTirage):
             self.tirage.append(manche)
 
         self.rapport(message=tirage_texte(self.statistiques, self.tirage))
-

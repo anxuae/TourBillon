@@ -1,28 +1,30 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
 
-__doc__ = """Définition d'une manche."""
+"""Définition d'une manche."""
 
 from datetime import datetime, timedelta
-from tourbillon.trb_core.exceptions import StatutError
 from tourbillon.trb_core.constantes import (CHAPEAU, GAGNE, PERDU, FORFAIT,
                                             M_EN_COURS, M_TERMINEE)
 
 #--- Fonctions ----------------------------------------------------------------
 
+
 def Property(func):
     return property(**func())
 
-#--- Classes -------------------------------------------------------------------
+
+#--- Classes ------------------------------------------------------------------
+
 
 class Manche(object):
     def __init__(self, debut=datetime.now(), adversaires=[]):
-        self.data = {'points' : 0,
-                     'etat' : None,
-                     'debut' : debut,
-                     'fin' : None,
-                     'adversaires' : adversaires,
-                     'piquet' : None}
+        self.data = {'points': 0,
+                     'etat': None,
+                     'debut': debut,
+                     'fin': None,
+                     'adversaires': adversaires,
+                     'piquet': None}
 
     def __repr__(self):
         texte = """
@@ -32,7 +34,7 @@ class Manche(object):
             Points       : %s
             Adversaires  : %s
 
-            
+
             Statut       : %s
         """
         return texte % (self.debut,
@@ -46,10 +48,10 @@ class Manche(object):
         Methode rétro-compatible pour charger les données d'une manche
         via un dictionnaire. (utilisé par la fonction de chargerment
         d'un tournoi)
-        
+
         Cette fonction ne comporte aucune protection, les données entrées
         doivent êtres impérativement correctes.
-        
+
         data (dict)
         """
         for k, v  in data.iteritems():
@@ -65,7 +67,7 @@ class Manche(object):
     def statut():
         doc = """
         Retourne le status de la manche:
-        
+
             M_EN_COURS => manche non commencée ou non terminée
             M_TERMINEE => manche terminée (heure de fin enregistrée)
         """
@@ -87,9 +89,9 @@ class Manche(object):
 
         def fset(self, valeur):
             if type(valeur) != int or valeur < 0:
-                raise TypeError, u"Le nombre de points doit être un entier positif ou nul."
+                raise TypeError(u"Le nombre de points doit être un entier positif ou nul.")
             if self.data['etat'] == FORFAIT:
-                raise ValueError, u"Le nombre de points d'une manche FORFAIT ne peut pas être modifié."
+                raise ValueError(u"Le nombre de points d'une manche FORFAIT ne peut pas être modifié.")
             self.data['points'] = valeur
 
         return locals()
@@ -101,14 +103,14 @@ class Manche(object):
 
         def fset(self, valeur):
             if valeur not in [CHAPEAU, GAGNE, PERDU, FORFAIT]:
-                raise TypeError, u"L'état doit être une des valeur suivantes : %s." % ", ".join([CHAPEAU, GAGNE, PERDU, FORFAIT])
+                raise TypeError(u"L'état doit être une des valeur suivantes : %s." % ", ".join([CHAPEAU, GAGNE, PERDU, FORFAIT]))
 
             if valeur in [GAGNE, PERDU] and self.data['fin'] is None:
                 self.data['fin'] = datetime.now()
             if valeur in [CHAPEAU, FORFAIT]:
                 self.data['adversaires'] = []
                 self.data['fin'] = self.data['debut']
-            if valeur in [ FORFAIT]:
+            if valeur in [FORFAIT]:
                 self.data['points'] = 0
 
             self.data['etat'] = valeur
@@ -122,7 +124,7 @@ class Manche(object):
 
         def fset(self, valeur):
             if type(valeur) != datetime:
-                raise TypeError, u"L'heure de début doit être de type 'datetime'."
+                raise TypeError(u"L'heure de début doit être de type 'datetime'.")
             self.data['debut'] = valeur
 
         return locals()
@@ -137,9 +139,9 @@ class Manche(object):
 
         def fset(self, valeur):
             if type(valeur) != timedelta:
-                raise TypeError, u"La durée doit être de type 'timedelta'."
+                raise TypeError(u"La durée doit être de type 'timedelta'.")
             if self.data['etat']  in [CHAPEAU, FORFAIT]:
-                raise ValueError, u"La durée d'une manche CHAPEAU ou FORFAIT ne peut être modifiée."
+                raise ValueError(u"La durée d'une manche CHAPEAU ou FORFAIT ne peut être modifiée.")
             self.data['fin'] = self.data['debut'] + valeur
 
         return locals()
@@ -151,9 +153,9 @@ class Manche(object):
 
         def fset(self, valeur):
             if type(valeur) != datetime:
-                raise TypeError, u"L'heure de fin doit être de type 'datetime'."
+                raise TypeError(u"L'heure de fin doit être de type 'datetime'.")
             if self.data['etat']  in [CHAPEAU, FORFAIT]:
-                raise ValueError, u"La fin d'une manche CHAPEAU ou FORFAIT ne peut être modifiée."
+                raise ValueError(u"La fin d'une manche CHAPEAU ou FORFAIT ne peut être modifiée.")
             self.data['fin'] = valeur
 
         return locals()
@@ -165,12 +167,12 @@ class Manche(object):
 
         def fset(self, valeur):
             if type(valeur) != list:
-                raise TypeError, u"Les adversaires sont donnés sous forme de liste d'entiers."
+                raise TypeError(u"Les adversaires sont donnés sous forme de liste d'entiers.")
             for num in valeur:
                 if type(num) != int:
-                    raise TypeError, u"'%s' n'est pas un entier." % num
+                    raise TypeError(u"'%s' n'est pas un entier." % num)
             if self.data['etat']  in [CHAPEAU, FORFAIT]:
-                raise ValueError, u"Il n'y a pas d'adversaires pour une manche CHAPEAU ou FORFAIT."
+                raise ValueError(u"Il n'y a pas d'adversaires pour une manche CHAPEAU ou FORFAIT.")
             self.data['adversaires'] = valeur
 
         return locals()

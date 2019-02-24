@@ -3,17 +3,16 @@
 
 #--- Import --------------------------------------------------------------------
 
-import sys, os
 import wx
 from  wx.lib import scrolledpanel as scrolled
 
 from tourbillon.trb_gui import dlgequipe as dlgeq
-
 from tourbillon.trb_core import tournoi
 from tourbillon.trb_core.tirages import utile
 from tourbillon.trb_core import constantes as cst
 
 #--- Entrée score --------------------------------------------------------------
+
 
 class EntrerScore(wx.Panel):
     def __init__(self, parent, choix=[]):
@@ -62,9 +61,10 @@ class EntrerScore(wx.Panel):
         else:
             return int(valeur)
 
+
 class DialogueResultat(wx.Dialog):
     def __init__(self, parent, numero_partie, numero_affiche=1):
-        wx.Dialog.__init__(self, parent, wx.ID_ANY, title=u"Resultats" , style=wx.DEFAULT_DIALOG_STYLE | wx.CENTER_ON_SCREEN | wx.RESIZE_BORDER)
+        wx.Dialog.__init__(self, parent, wx.ID_ANY, title=u"Resultats", style=wx.DEFAULT_DIALOG_STYLE | wx.CENTER_ON_SCREEN | wx.RESIZE_BORDER)
         self.SetMinSize(wx.Size(280, 170))
         self.SetMaxSize(wx.Size(280, -1))
         self.SetTitle(u"Resultats de la partie n°%s" % numero_partie)

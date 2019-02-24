@@ -1,20 +1,19 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
 
-__doc__ = """Définitions des parties."""
+"""Définitions des parties."""
 
-#--- Import --------------------------------------------------------------------
+#--- Import -------------------------------------------------------------------
 
 import copy
-from datetime import datetime, timedelta
+from datetime import datetime
 from tourbillon.trb_core.manche import Manche
-from tourbillon.trb_core.exceptions import NumeroError, DureeError, StatutError, IncoherenceError, ResultatError
-from tourbillon.trb_core.constantes import (E_ATTEND_TIRAGE, E_JOUE,
-                                            P_NON_DEMARREE, P_EN_COURS, P_COMPLETE, P_TERMINEE,
-                                            CHAPEAU, GAGNE, PERDU, FORFAIT)
-from tourbillon.trb_core.tirages.utile import creer_liste
+from tourbillon.trb_core.exceptions import NumeroError, StatutError, IncoherenceError, ResultatError
+from tourbillon.trb_core.constantes import (E_JOUE, P_NON_DEMARREE, P_EN_COURS, P_COMPLETE,
+                                            P_TERMINEE, CHAPEAU, GAGNE, PERDU, FORFAIT)
 
-#--- Classes -------------------------------------------------------------------
+#--- Classes ------------------------------------------------------------------
+
 
 class Partie(object):
     """
@@ -32,7 +31,7 @@ class Partie(object):
             Joueurs   : %s
             Chapeaux  : %s
             Forfaits  : %s
-            
+
             Statut    : %s
         """
         return texte % (self.numero,
@@ -52,7 +51,7 @@ class Partie(object):
             if self in self.tournoi.parties():
                 return self.tournoi.parties().index(self) + 1
             else:
-                raise IncoherenceError, u"Cette partie n'appartient pas au tournoi en cours."
+                raise IncoherenceError(u"Cette partie n'appartient pas au tournoi en cours.")
         return locals()
 
     numero = property(**numero())
@@ -60,7 +59,7 @@ class Partie(object):
     def statut():
         doc = """
         Retourne le status de la partie:
-        
+
             P_NON_DEMARREE   => le tirage n'a pas été donné
             P_EN_COURS       => les manches ont été créées
             P_COMPLETE       => la partie est complete, c'est la dernière du tournoi
@@ -184,7 +183,7 @@ class Partie(object):
     def adversaires(self, equipe):
         """
         Retourne les adversaires d'une équipe.
-        
+
         equipe (int or Equipe)
         """
         if type(equipe) == int:
@@ -200,15 +199,15 @@ class Partie(object):
     def demarrer(self, manches, chapeaux=[]):
         """
         Démarrer la partie avec un tirage donné
-        
+
         manches (dict)       : assosciation de piquet - rencontres
         chapeaux (list)      : liste des chapeaux
         """
         if self.statut != P_NON_DEMARREE:
             if self.statut == P_TERMINEE:
-                raise StatutError, u"La partie n°%s est terminée." % self.numero
+                raise StatutError(u"La partie n°%s est terminée." % self.numero)
             else:
-                raise StatutError, u"La partie n°%s est en cours." % self.numero
+                raise StatutError(u"La partie n°%s est en cours." % self.numero)
         debut = datetime.now()
 
         l = []
@@ -243,13 +242,13 @@ class Partie(object):
             equipe = self.tournoi.equipe(equipe)
 
         if self.statut == P_NON_DEMARREE:
-            raise StatutError, u"La partie n°%s n'est pas démarrée (utiliser 'demarrer')." % self.numero
+            raise StatutError(u"La partie n°%s n'est pas démarrée (utiliser 'demarrer')." % self.numero)
         if equipe.partie_existe(self.numero):
-            raise NumeroError, u"L'équipe n°%s participe déjà à cette partie." % equipe.numero
+            raise NumeroError(u"L'équipe n°%s participe déjà à cette partie." % equipe.numero)
         if etat not in [FORFAIT, CHAPEAU]:
-            raise ResultatError, u"Cette fonction ne peut être utilisée que pour ajouter un CHAPEAU ou un FORFAIT."
+            raise ResultatError(u"Cette fonction ne peut être utilisée que pour ajouter un CHAPEAU ou un FORFAIT.")
         if creer_manche_si_possible == True and not piquet:
-            raise NumeroError, u"Un numéro de piquet est nécessaire"
+            raise NumeroError(u"Un numéro de piquet est nécessaire")
 
         if self.tournoi.nb_parties() != 1:
             # Vérification que toutes les parties précédentes on été complétées
@@ -284,18 +283,18 @@ class Partie(object):
     def resultat(self, resultat_manche, fin=None):
         # Vérification: partie commencée
         if self.statut == P_NON_DEMARREE:
-            raise StatutError, u"La partie n°%s n'est pas commencée." % self.numero
+            raise StatutError(u"La partie n°%s n'est pas commencée." % self.numero)
 
         # Vérification de l'existance de la manche
         manche = resultat_manche.keys()
         manche.sort()
 
         if manche not in self.tirage():
-            raise ResultatError, u"La manche '%s' n'existe pas." % (manche)
+            raise ResultatError(u"La manche '%s' n'existe pas." % (manche))
 
         # Verification pas une manche chapeau
         if CHAPEAU in manche:
-            raise ResultatError, u"Le score des équipes chapeaux ne peut pas être modifié."
+            raise ResultatError(u"Le score des équipes chapeaux ne peut pas être modifié.")
 
         # Recherche des gagnants
         gagnants = []
@@ -306,7 +305,7 @@ class Partie(object):
 
         # Vérification: nombre de points
         if gagnants_pts < self.tournoi.points_par_manche:
-            raise ResultatError, u"Au moins une équipe doit avoir un score suppérieur ou égale à %s." % self.tournoi.points_par_manche
+            raise ResultatError(u"Au moins une équipe doit avoir un score suppérieur ou égale à %s." % self.tournoi.points_par_manche)
 
         for num in resultat_manche:
             if num in gagnants:
@@ -334,7 +333,7 @@ class Partie(object):
         """
         Vérifie que le piquet n'est pas attribué
         à une rencontre.
-        
+
         numero (tout)
         """
         if numero in self.piquets():

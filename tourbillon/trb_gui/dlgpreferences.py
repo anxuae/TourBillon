@@ -3,33 +3,28 @@
 
 #--- Import --------------------------------------------------------------------
 
-import sys, os
+import os.path as osp
 from functools import partial
 
 import wx
-from wx.lib import intctrl
-from wx.lib import masked
-from wx.lib import rcsizer
 from wx.lib import buttons
 from wx.lib.agw import floatspin as flsp
 from wx import grid
 import shutil
 
-from tourbillon.trb_gui import dlgequipe as dlgeq
-
-import tourbillon
 from tourbillon import images
 from tourbillon.trb_gui.dlginformations import VARIABLES, DialogueInformations, string_en_wxFont, wxFont_en_string
 from tourbillon import configuration as cfg
 from tourbillon.trb_core import tirages
 
-#--- Variables globales --------------------------------------------------------
+#--- Variables globales -------------------------------------------------------
 
-GRILLE_EDITEURS = {bool:(grid.GridCellBoolEditor, grid.GridCellBoolRenderer, ()),
-                   int:(grid.GridCellNumberEditor, grid.GridCellNumberRenderer, ()),
-                   float:(grid.GridCellFloatEditor, grid.GridCellFloatRenderer, (6, 2))}
+GRILLE_EDITEURS = {bool: (grid.GridCellBoolEditor, grid.GridCellBoolRenderer, ()),
+                   int: (grid.GridCellNumberEditor, grid.GridCellNumberRenderer, ()),
+                   float: (grid.GridCellFloatEditor, grid.GridCellFloatRenderer, (6, 2))}
 
 #--- Fonctions ----------------------------------------------------------------
+
 
 def selectioner_variable(event, ctl_texte):
     dlg = wx.SingleChoiceDialog(ctl_texte, "Ces  variables sont  mises à jour au fure et à mesure\n"
@@ -40,7 +35,9 @@ def selectioner_variable(event, ctl_texte):
     if dlg.ShowModal() == wx.ID_OK:
         ctl_texte.SetValue(ctl_texte.GetValue() + '%(' + dlg.GetStringSelection() + ')s')
 
-#--- Classes -------------------------------------------------------------------
+
+#--- Classes ------------------------------------------------------------------
+
 
 class PoliceBouton(wx.Button):
     def __init__(self, parent, init_police=wx.NullFont, init_couleur=wx.NullColour, **kwargs):
@@ -81,16 +78,17 @@ class PoliceBouton(wx.Button):
     def chg_couleur(self, couleur):
         self.couleur = couleur
 
+
 class TimeSlider(wx.Panel):
-    def __init__(self, parent, id= -1, value=0, minValue=0, maxValue=100, increment=1,
+    def __init__(self, parent, value=0, minValue=0, maxValue=100, increment=1,
                  pos=wx.DefaultPosition, size=wx.DefaultSize, style=wx.SL_HORIZONTAL):
-        wx.Panel.__init__(self, parent, id, pos, size)
+        wx.Panel.__init__(self, parent, -1, pos, size)
         self.increment = int(increment)
         self.slider = wx.Slider(self, -1, value, minValue, maxValue, style=style)
         self.txt_valeur = wx.StaticText(self, wx.ID_ANY, u"", style=wx.ALIGN_CENTER)
         self.txt_valeur.SetMinSize((50, -1))
 
-        #position des objets
+        # position des objets
         sizer = wx.BoxSizer(wx.HORIZONTAL)
 
         sizer.Add(self.slider, 1, wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
@@ -131,6 +129,7 @@ class TimeSlider(wx.Panel):
         self.slider.SetValue(value)
         self.maj_texte(None)
 
+
 class GeneralPage(wx.Panel):
     def __init__(self, parent, section, config):
         wx.Panel.__init__(self, parent, wx.ID_ANY)
@@ -143,7 +142,7 @@ class GeneralPage(wx.Panel):
         # Chemin enregistrements
         txt_chemin_enregistrement = wx.StaticText(self, wx.ID_ANY, u"Chemin de sauvegarde par défaut : ")
         self.ctl_chemin_enregistrement = wx.TextCtrl(self, wx.ID_ANY, u"")
-        self.ctl_chemin_enregistrement.SetValue(os.path.expanduser(config.get(self.section, 'ENREGISTREMENT')))
+        self.ctl_chemin_enregistrement.SetValue(osp.expanduser(config.get(self.section, 'ENREGISTREMENT')))
         btn_parcourir = wx.Button(self, wx.ID_ANY, u"Parcourir...")
 
         # Enregistrement automatique
@@ -164,10 +163,10 @@ class GeneralPage(wx.Panel):
 
         # Statistiques: cumule des données
         txt_stat_cumule = wx.StaticText(self, wx.ID_ANY, u'Le panneau "Statistiques du tournoi" affiche le cumule')
-        self.rdb_stat_cumule = wx.RadioBox(self, wx.ID_ANY, u"", choices=[u"de toutes les parties",
-                                                                          u"jusqu'à la partie affichée"],
-                                           majorDimension=2, style=wx.RA_VERTICAL)
-        self.rdb_stat_cumule.SetSelection(config.get_typed(self.section, 'CUMULE_STATISTIQUES'))
+        self.chx_stat = wx.Choice(self, wx.ID_ANY, choices=[u"de toutes les parties",
+                                                            u"jusqu'à la partie affichée"])
+
+        self.chx_stat.SetSelection(config.get_typed(self.section, 'CUMULE_STATISTIQUES'))
 
         # image de fond
         txt_chemin_fond = wx.StaticText(self, wx.ID_ANY, u"Image de fond : ")
@@ -178,7 +177,7 @@ class GeneralPage(wx.Panel):
         self.ctl_chemin_fond.SetValue(nom)
         btn_parcourir_fond = wx.Button(self, wx.ID_ANY, u"Parcourir...")
 
-        #position des objets
+        # position des objets
         sizer = wx.BoxSizer(wx.VERTICAL)
 
         boit1 = wx.BoxSizer(wx.HORIZONTAL)
@@ -187,8 +186,8 @@ class GeneralPage(wx.Panel):
         boit1.Add(btn_parcourir, 0, wx.ALIGN_CENTER_VERTICAL | wx.LEFT, 5)
 
         boit2 = wx.StaticBoxSizer(box2, wx.VERTICAL)
-        boit2.AddSizer(boit1, 0, wx.EXPAND | wx.ALL, 5)
-        boit2.Add(self.cbx_enregistrement_auto, 0, wx.EXPAND | wx.ALL, 5)
+        boit2.AddSizer(boit1, 1, wx.EXPAND | wx.RIGHT | wx.LEFT | wx.TOP, 5)
+        boit2.Add(self.cbx_enregistrement_auto, 1, wx.EXPAND | wx.ALL, 5)
         sizer.Add(boit2, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, 10)
 
         boit3 = wx.BoxSizer(wx.HORIZONTAL)
@@ -197,22 +196,25 @@ class GeneralPage(wx.Panel):
         boit3.Add(btn_parcourir_fond, 0, wx.ALIGN_CENTER_VERTICAL | wx.LEFT, 5)
 
         boit4 = wx.BoxSizer(wx.HORIZONTAL)
-        boit4.Add(txt_stat_cumule, 1, wx.ALIGN_CENTER_VERTICAL, 0)
-        boit4.Add(self.rdb_stat_cumule, 0, wx.ALIGN_CENTER_VERTICAL | wx.LEFT, 5)
+        boit4.Add(txt_stat_cumule, 0, wx.ALIGN_CENTER_VERTICAL | wx.LEFT, 5)
+        boit4.Add(self.chx_stat, 1, wx.EXPAND | wx.ALIGN_CENTER_VERTICAL | wx.LEFT, 5)
 
         boit5 = wx.StaticBoxSizer(box3, wx.VERTICAL)
-        boit5.AddSizer(boit3, 0, wx.EXPAND | wx.ALL, 5)
-        boit5.Add(self.cbx_plein_ecran, 0, wx.ALL, 5)
-        boit5.Add(self.cbx_bavarde, 0, wx.ALL, 5)
-        boit5.Add(self.cbx_nouveau_affiche_preferences, 0, wx.ALL, 5)
+        boit5.AddSizer(boit3, 1, wx.EXPAND | wx.RIGHT | wx.LEFT | wx.TOP, 5)
+        boit5.Add(self.cbx_plein_ecran, 1, wx.EXPAND | wx.RIGHT | wx.LEFT | wx.TOP, 5)
+        boit5.Add(self.cbx_bavarde, 1, wx.EXPAND | wx.RIGHT | wx.LEFT | wx.TOP, 5)
+        boit5.Add(self.cbx_nouveau_affiche_preferences, 1, wx.EXPAND | wx.RIGHT | wx.LEFT | wx.TOP, 5)
         boit5.AddSizer(boit4, 0, wx.EXPAND | wx.ALL, 5)
-        sizer.Add(boit5, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, 10)
+        sizer.Add(boit5, 0, wx.EXPAND | wx.RIGHT | wx.LEFT | wx.TOP, 10)
 
         self.SetSizer(sizer)
         self.Layout()
 
         self.Bind(wx.EVT_BUTTON, self.parcourir, btn_parcourir)
         self.Bind(wx.EVT_BUTTON, self.parcourir_fond, btn_parcourir_fond)
+
+    def SetSelection(self, numero=None):
+        pass
 
     def parcourir(self, event):
         """
@@ -242,32 +244,33 @@ class GeneralPage(wx.Panel):
         """
         chemin_image = self.ctl_chemin_fond.GetValue()
         if chemin_image != "":
-            _, ext = os.path.splitext(chemin_image)
-            destination = os.path.join(cfg.USERPATH, 'fond_perso' + ext)
+            _, ext = osp.splitext(chemin_image)
+            destination = osp.join(cfg.USERPATH, 'fond_perso' + ext)
             if destination != chemin_image:
                 shutil.copy2(chemin_image, destination)
         else:
             destination = u""
 
-        return {'ENREGISTREMENT':self.ctl_chemin_enregistrement.GetValue(),
-                'ENREGISTREMENT_AUTO':self.cbx_enregistrement_auto.GetValue(),
-                'PLEIN_ECRAN':self.cbx_plein_ecran.GetValue(),
-                'BAVARDE':self.cbx_bavarde.GetValue(),
-                'NOUVEAU_AFFICHE_PREFERENCES':self.cbx_nouveau_affiche_preferences.GetValue(),
-                'IMAGE':destination,
-                'CUMULE_STATISTIQUES':self.rdb_stat_cumule.GetSelection()}
+        return {'ENREGISTREMENT': self.ctl_chemin_enregistrement.GetValue(),
+                'ENREGISTREMENT_AUTO': self.cbx_enregistrement_auto.GetValue(),
+                'PLEIN_ECRAN': self.cbx_plein_ecran.GetValue(),
+                'BAVARDE': self.cbx_bavarde.GetValue(),
+                'NOUVEAU_AFFICHE_PREFERENCES': self.cbx_nouveau_affiche_preferences.GetValue(),
+                'IMAGE': destination,
+                'CUMULE_STATISTIQUES': self.chx_stat.GetSelection()}
 
     def defaut(self):
         """
         Réinialiser les valeurs par défaut.
         """
-        self.ctl_chemin_enregistrement.SetValue(os.path.expanduser(cfg.DEFAUT[self.section]['ENREGISTREMENT']))
+        self.ctl_chemin_enregistrement.SetValue(osp.expanduser(cfg.DEFAUT[self.section]['ENREGISTREMENT']))
         self.cbx_enregistrement_auto.SetValue(cfg.DEFAUT[self.section]['ENREGISTREMENT_AUTO'])
         self.cbx_plein_ecran.SetValue(cfg.DEFAUT[self.section]['PLEIN_ECRAN'])
         self.cbx_bavarde.SetValue(cfg.DEFAUT[self.section]['BAVARDE'])
         self.cbx_nouveau_affiche_preferences.SetValue(cfg.DEFAUT[self.section]['NOUVEAU_AFFICHE_PREFERENCES'])
         self.ctl_chemin_fond.SetValue(cfg.DEFAUT[self.section]['IMAGE'])
-        self.rdb_stat_cumule.SetSelection(cfg.DEFAUT[self.section]['CUMULE_STATISTIQUES'])
+        self.chx_stat.SetSelection(cfg.DEFAUT[self.section]['CUMULE_STATISTIQUES'])
+
 
 class TournoiPage(wx.Panel):
     def __init__(self, parent, section, config):
@@ -282,7 +285,7 @@ class TournoiPage(wx.Panel):
         # Chemin historique joueurs
         txt_historique_joueurs = wx.StaticText(self, wx.ID_ANY, u"Fichier historique des joueurs : ")
         self.ctl_historique_joueurs = wx.TextCtrl(self, wx.ID_ANY, u"")
-        self.ctl_historique_joueurs.SetValue(os.path.expanduser(config.get(self.section, 'HISTORIQUE')))
+        self.ctl_historique_joueurs.SetValue(osp.expanduser(config.get(self.section, 'HISTORIQUE')))
         btn_parcourir = wx.Button(self, wx.ID_ANY, u"Parcourir...")
 
         # Completion des noms de joueurs
@@ -318,7 +321,7 @@ class TournoiPage(wx.Panel):
         self.spn_equipes_par_manche.SetDigits(0)
         self.spn_equipes_par_manche.SetValue(config.get_typed(self.section, 'EQUIPES_PAR_MANCHE'))
 
-        #position des objets
+        # position des objets
         sizer = wx.BoxSizer(wx.VERTICAL)
 
         boit1 = wx.BoxSizer(wx.HORIZONTAL)
@@ -327,45 +330,48 @@ class TournoiPage(wx.Panel):
         boit1.Add(btn_parcourir, 0, wx.ALIGN_CENTER_VERTICAL | wx.LEFT, 5)
 
         boit2 = wx.StaticBoxSizer(box1, wx.VERTICAL)
-        boit2.AddSizer(boit1, 0, wx.EXPAND, 5)
-        boit2.Add(self.cbx_joueur_completion, 0, wx.EXPAND | wx.TOP, 10)
+        boit2.AddSizer(boit1, 1, wx.EXPAND | wx.RIGHT | wx.LEFT | wx.TOP, 5)
+        boit2.Add(self.cbx_joueur_completion, 1, wx.ALL, 5)
         sizer.Add(boit2, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, 10)
 
         boit3 = wx.BoxSizer(wx.HORIZONTAL)
         boit3.Add(txt_joueurs_par_equipe, 1, wx.ALIGN_CENTER_VERTICAL)
-        boit3.Add(self.spn_joueurs_par_equipe, 1)
+        boit3.Add(self.spn_joueurs_par_equipe, 1, wx.ALIGN_CENTER_VERTICAL)
 
         boit4 = wx.BoxSizer(wx.HORIZONTAL)
-        boit4.AddSpacer((20, 10))
-        boit4.Add(self.cbx_classement_victoires, 0, wx.TOP | wx.LEFT, 10)
-        boit4.AddSpacer((20, 10))
-        boit4.Add(txt_classement_points, 0, wx.TOP | wx.LEFT, 10)
-        boit4.AddSpacer((20, 10))
-        boit4.Add(self.cbx_classement_duree, 0, wx.TOP | wx.LEFT, 10)
+        boit4.AddSpacer((30, 5))
+        boit4.Add(self.cbx_classement_victoires, 0, wx.ALIGN_CENTER_VERTICAL)
+        boit4.AddSpacer((30, 5))
+        boit4.Add(txt_classement_points, 0, wx.ALIGN_CENTER_VERTICAL)
+        boit4.AddSpacer((30, 5))
+        boit4.Add(self.cbx_classement_duree, 0, wx.ALIGN_CENTER_VERTICAL)
 
         boit5 = wx.StaticBoxSizer(box2, wx.VERTICAL)
-        boit5.AddSizer(boit3, 0, wx.EXPAND)
-        boit5.Add(txt_classement, 0, wx.EXPAND | wx.TOP, 5)
-        boit5.AddSizer(boit4, 0, wx.EXPAND)
-        sizer.Add(boit5, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, 10)
+        boit5.AddSizer(boit3, 1, wx.EXPAND | wx.RIGHT | wx.LEFT | wx.TOP, 5)
+        boit5.Add(txt_classement, 1, wx.EXPAND | wx.RIGHT | wx.LEFT | wx.TOP, 5)
+        boit5.AddSizer(boit4, 1, wx.EXPAND | wx.ALL, 5)
+        sizer.Add(boit5, 0, wx.EXPAND | wx.RIGHT | wx.LEFT | wx.TOP, 10)
 
         boit6 = wx.BoxSizer(wx.HORIZONTAL)
         boit6.Add(txt_points_par_manche, 1, wx.ALIGN_CENTER_VERTICAL)
-        boit6.Add(self.spn_points_par_manche, 1)
+        boit6.Add(self.spn_points_par_manche, 1, wx.ALIGN_CENTER_VERTICAL)
 
         boit7 = wx.BoxSizer(wx.HORIZONTAL)
         boit7.Add(txt_equipes_par_manche, 1, wx.ALIGN_CENTER_VERTICAL)
-        boit7.Add(self.spn_equipes_par_manche, 1)
+        boit7.Add(self.spn_equipes_par_manche, 1, wx.ALIGN_CENTER_VERTICAL)
 
         boit8 = wx.StaticBoxSizer(box3, wx.VERTICAL)
-        boit8.AddSizer(boit6, 0, wx.EXPAND)
-        boit8.AddSizer(boit7, 0, wx.EXPAND)
+        boit8.AddSizer(boit6, 1, wx.EXPAND | wx.RIGHT | wx.LEFT | wx.TOP, 5)
+        boit8.AddSizer(boit7, 1, wx.EXPAND | wx.ALL, 5)
         sizer.Add(boit8, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, 10)
 
         self.SetSizer(sizer)
         self.Layout()
 
         self.Bind(wx.EVT_BUTTON, self.parcourir, btn_parcourir)
+
+    def SetSelection(self, numero=None):
+        pass
 
     def parcourir(self, event):
         """
@@ -382,25 +388,26 @@ class TournoiPage(wx.Panel):
         """
         Récupérer les valeurs choisies par l'utilisateur.
         """
-        return {'HISTORIQUE':self.ctl_historique_joueurs.GetValue(),
-                'POINTS_PAR_MANCHE':int(self.spn_points_par_manche.GetValue()),
-                'JOUEURS_PAR_EQUIPE':int(self.spn_joueurs_par_equipe.GetValue()),
-                'EQUIPES_PAR_MANCHE':int(self.spn_equipes_par_manche.GetValue()),
-                'CLASSEMENT_VICTOIRES':self.cbx_classement_victoires.GetValue(),
-                'CLASSEMENT_DUREE':self.cbx_classement_duree.GetValue(),
-                'JOUEUR_COMPLETION':self.cbx_joueur_completion.GetValue()}
+        return {'HISTORIQUE': self.ctl_historique_joueurs.GetValue(),
+                'POINTS_PAR_MANCHE': int(self.spn_points_par_manche.GetValue()),
+                'JOUEURS_PAR_EQUIPE': int(self.spn_joueurs_par_equipe.GetValue()),
+                'EQUIPES_PAR_MANCHE': int(self.spn_equipes_par_manche.GetValue()),
+                'CLASSEMENT_VICTOIRES': self.cbx_classement_victoires.GetValue(),
+                'CLASSEMENT_DUREE': self.cbx_classement_duree.GetValue(),
+                'JOUEUR_COMPLETION': self.cbx_joueur_completion.GetValue(), }
 
     def defaut(self):
         """
         Réinialiser les valeurs par défaut.
         """
-        self.ctl_historique_joueurs.SetValue(os.path.expanduser(cfg.DEFAUT[self.section]['HISTORIQUE']))
+        self.ctl_historique_joueurs.SetValue(osp.expanduser(cfg.DEFAUT[self.section]['HISTORIQUE']))
         self.spn_points_par_manche.SetValue(cfg.DEFAUT[self.section]['POINTS_PAR_MANCHE'])
         self.spn_joueurs_par_equipe.SetValue(cfg.DEFAUT[self.section]['JOUEURS_PAR_EQUIPE'])
         self.spn_equipes_par_manche.SetValue(cfg.DEFAUT[self.section]['EQUIPES_PAR_MANCHE'])
         self.cbx_classement_victoires.SetValue(cfg.DEFAUT[self.section]['CLASSEMENT_VICTOIRES'])
         self.cbx_classement_duree.SetValue(cfg.DEFAUT[self.section]['CLASSEMENT_DUREE'])
         self.cbx_joueur_completion.SetValue(cfg.DEFAUT[self.section]['JOUEUR_COMPLETION'])
+
 
 class TiragePage(wx.Panel):
     def __init__(self, parent, section, config):
@@ -410,16 +417,23 @@ class TiragePage(wx.Panel):
 
         self.choicebook = wx.Choicebook(self, wx.ID_ANY)
 
-        for type_tirage, module in tirages.TIRAGES.items():
-            page = TirageSousPageParametre(self.choicebook, config, type_tirage)
+        for algorithme, _module in tirages.TIRAGES.items():
+            page = TirageSousPageParametre(self.choicebook, algorithme, config)
             self.pages.append(page)
-            self.choicebook.AddPage(page, tirages.TIRAGES[type_tirage].NOM)
+            self.choicebook.AddPage(page, tirages.TIRAGES[algorithme].NOM)
+
+        algorithme = config.get('TOURNOI', 'ALGORITHME_TIRAGE')
+        self.choicebook.SetSelection(tirages.TIRAGES.keys().index(algorithme))
 
         sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer.Add(self.choicebook, 0, wx.EXPAND | wx.ALL, 10)
+        sizer.Add(self.choicebook, 1, wx.EXPAND | wx.ALL, 10)
 
         self.SetSizer(sizer)
         self.Layout()
+
+    def SetSelection(self, numero=None):
+        if numero is not None:
+            self.choicebook.SetSelection(numero)
 
     def donnees(self):
         """
@@ -428,7 +442,7 @@ class TiragePage(wx.Panel):
         d = {}
         for page in self.pages:
             d[page.section] = page.donnees()
-        return d
+        return {'ALGORITHME_TIRAGE': self.choicebook.GetCurrentPage().section}, d
 
     def defaut(self):
         """
@@ -437,8 +451,9 @@ class TiragePage(wx.Panel):
         page = self.choicebook.GetCurrentPage()
         page.defaut()
 
+
 class TirageSousPageParametre(wx.Panel):
-    def __init__(self, parent, config, section):
+    def __init__(self, parent, section, config):
         wx.Panel.__init__(self, parent, wx.ID_ANY)
         self.section = section
 
@@ -452,7 +467,7 @@ class TirageSousPageParametre(wx.Panel):
         self.grille.SetColLabelValue(0, u"Paramètre")
         self.grille.SetColSize(0, 370)
         self.grille.SetColLabelValue(1, u"Valeur")
-        self.grille.SetColSize(1, 170)
+        self.grille.SetColSize(1, 180)
 
         i = 0
         config = config.get_options(self.section)
@@ -485,7 +500,7 @@ class TirageSousPageParametre(wx.Panel):
             i += 1
 
         sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer.Add(self.grille, 0, wx.EXPAND | wx.LEFT, 15)
+        sizer.Add(self.grille, 0, wx.EXPAND)
 
         self.SetSizer(sizer)
         self.Layout()
@@ -520,6 +535,7 @@ class TirageSousPageParametre(wx.Panel):
             self.grille.SetCellValue(i, 1, unicode(valeur))
             i += 1
 
+
 class AffichagePage(wx.Panel):
     def __init__(self, parent, section, config):
         wx.Panel.__init__(self, parent, wx.ID_ANY)
@@ -541,7 +557,7 @@ class AffichagePage(wx.Panel):
 
         self.btn_test = wx.Button(self, -1, "Test")
 
-        #position des objets
+        # position des objets
         sizer = wx.BoxSizer(wx.VERTICAL)
 
         boit1 = wx.BoxSizer(wx.HORIZONTAL)
@@ -557,6 +573,10 @@ class AffichagePage(wx.Panel):
         self.Layout()
 
         self.Bind(wx.EVT_BUTTON, self.test, self.btn_test)
+
+    def SetSelection(self, numero=None):
+        if numero is not None:
+            self.notebook.SetSelection(numero)
 
     def test(self, event):
         self._dlg_test.configurer(self.donnees())
@@ -574,7 +594,7 @@ class AffichagePage(wx.Panel):
         """
         Récupérer les valeurs choisies par l'utilisateur.
         """
-        d = {'DIMENSION_AUTO':self.cbx_dimension_auto.GetValue() }
+        d = {'DIMENSION_AUTO': self.cbx_dimension_auto.GetValue()}
 
         for page in range(self.notebook.GetPageCount()):
             d.update(self.notebook.GetPage(page).donnees())
@@ -588,6 +608,7 @@ class AffichagePage(wx.Panel):
         self.cbx_dimension_auto.SetValue(cfg.DEFAUT[self.section]['DIMENSION_AUTO'])
         page = self.notebook.GetCurrentPage()
         page.defaut()
+
 
 class AffichageSousPageMessage(wx.Panel):
     def __init__(self, parent, section, config, maj):
@@ -616,12 +637,12 @@ class AffichageSousPageMessage(wx.Panel):
 
         self.btn_variables = wx.Button(self, -1, "Variables...")
 
-        #position des objets
+        # position des objets
         sizer = wx.BoxSizer(wx.VERTICAL)
 
         boit1 = wx.BoxSizer(wx.HORIZONTAL)
         boit1.Add(wx.StaticText(self, -1, u"Police de caractères:", size=(230, -1)), 0, wx.ALIGN_CENTER_VERTICAL)
-        boit1.Add(self.btn_message_police, 0, wx.ALIGN_CENTER_VERTICAL)
+        boit1.Add(self.btn_message_police, 1, wx.ALIGN_CENTER_VERTICAL)
         boit1.Add(self.btn_message_couleur, 0, wx.ALIGN_CENTER_VERTICAL | wx.LEFT, 20)
 
         boit2 = wx.BoxSizer(wx.HORIZONTAL)
@@ -661,11 +682,11 @@ class AffichageSousPageMessage(wx.Panel):
         """
         Récupérer les valeurs choisies par l'utilisateur.
         """
-        return {'MESSAGE_VISIBLE':self.cbx_message_visible.GetValue(),
-                'MESSAGE':self.ctl_message.GetValue(),
-                'MESSAGE_POLICE':wxFont_en_string(self.btn_message_police.police),
-                'MESSAGE_COULEUR':self.btn_message_couleur.GetColour(),
-                'MESSAGE_VITESSE':self.sld_message_vitesse.GetValue()}
+        return {'MESSAGE_VISIBLE': self.cbx_message_visible.GetValue(),
+                'MESSAGE': self.ctl_message.GetValue(),
+                'MESSAGE_POLICE': wxFont_en_string(self.btn_message_police.police),
+                'MESSAGE_COULEUR': self.btn_message_couleur.GetColour(),
+                'MESSAGE_VITESSE': self.sld_message_vitesse.GetValue()}
 
     def defaut(self):
         """
@@ -676,6 +697,7 @@ class AffichageSousPageMessage(wx.Panel):
         self.btn_message_police.chg_police_desc(cfg.DEFAUT[self.section]['MESSAGE_POLICE'])
         self.btn_message_couleur.SetColour(wx.Colour(*cfg.DEFAUT[self.section]['MESSAGE_COULEUR']))
         self.sld_message_vitesse.SetValue(cfg.DEFAUT[self.section]['MESSAGE_VITESSE'])
+
 
 class AffichageSousPageInterlude(wx.Panel):
     def __init__(self, parent, section, config, maj):
@@ -700,7 +722,7 @@ class AffichageSousPageInterlude(wx.Panel):
         self.btn_variables_inscription = wx.Button(self, -1, "Variables...")
         self.btn_variables_tirage = wx.Button(self, -1, "Variables...")
 
-        #position des objets
+        # position des objets
         sizer = wx.BoxSizer(wx.VERTICAL)
 
         boit1 = wx.BoxSizer(wx.HORIZONTAL)
@@ -745,10 +767,10 @@ class AffichageSousPageInterlude(wx.Panel):
         """
         Récupérer les valeurs choisies par l'utilisateur.
         """
-        return {'TEXTE_INSCRIPTION':self.ctl_texte_inscription.GetValue(),
-                'TEXTE_TIRAGE':self.ctl_texte_tirage.GetValue(),
-                'TEXTE_POLICE':wxFont_en_string(self.btn_texte_police.police),
-                'TEXTE_COULEUR':self.btn_texte_couleur.GetColour()}
+        return {'TEXTE_INSCRIPTION': self.ctl_texte_inscription.GetValue(),
+                'TEXTE_TIRAGE': self.ctl_texte_tirage.GetValue(),
+                'TEXTE_POLICE': wxFont_en_string(self.btn_texte_police.police),
+                'TEXTE_COULEUR': self.btn_texte_couleur.GetColour()}
 
     def defaut(self):
         """
@@ -758,6 +780,7 @@ class AffichageSousPageInterlude(wx.Panel):
         self.ctl_texte_tirage.SetValue(cfg.DEFAUT[self.section]['TEXTE_TIRAGE'])
         self.btn_texte_police.chg_police_desc(cfg.DEFAUT[self.section]['TEXTE_POLICE'])
         self.btn_texte_couleur.SetColour(wx.Colour(*cfg.DEFAUT[self.section]['TEXTE_COULEUR']))
+
 
 class AffichageSousPageGrille(wx.Panel):
     def __init__(self, parent, section, config, maj):
@@ -801,12 +824,12 @@ class AffichageSousPageGrille(wx.Panel):
         self.btn_sens_vertical.SetBitmapLabel(images.bitmap('defilement_v.png'))
         self.btn_sens_vertical.SetToggle(config.get_typed(self.section, 'GRILLE_DEFILEMENT_VERTICAL'))
 
-        #position des objets
+        # position des objets
         sizer = wx.BoxSizer(wx.VERTICAL)
 
         boit1 = wx.BoxSizer(wx.HORIZONTAL)
         boit1.Add(wx.StaticText(self, -1, u"Police de caractères du titre:", size=(230, -1)), 0, wx.ALIGN_CENTER_VERTICAL)
-        boit1.Add(self.btn_titre_police, 0, wx.ALIGN_CENTER_VERTICAL)
+        boit1.Add(self.btn_titre_police, 1, wx.ALIGN_CENTER_VERTICAL)
         boit1.Add(self.btn_titre_couleur, 0, wx.ALIGN_CENTER_VERTICAL | wx.LEFT, 20)
 
         boit2 = wx.BoxSizer(wx.HORIZONTAL)
@@ -815,7 +838,7 @@ class AffichageSousPageGrille(wx.Panel):
 
         boit3 = wx.BoxSizer(wx.HORIZONTAL)
         boit3.Add(wx.StaticText(self, -1, u"Police de caractères de la grille:", size=(230, -1)), 0, wx.ALIGN_CENTER_VERTICAL)
-        boit3.Add(self.btn_grille_police, 0, wx.ALIGN_CENTER_VERTICAL)
+        boit3.Add(self.btn_grille_police, 1, wx.ALIGN_CENTER_VERTICAL)
 
         boit4 = wx.BoxSizer(wx.HORIZONTAL)
         boit4.Add(wx.StaticText(self, -1, u"Temps avant changement:", size=(230, -1)), 0, wx.ALIGN_CENTER_VERTICAL)
@@ -872,8 +895,8 @@ class AffichageSousPageGrille(wx.Panel):
         """
         Récupérer les valeurs choisies par l'utilisateur.
         """
-        return {'TITRE_POLICE':wxFont_en_string(self.btn_titre_police.police),
-                'TITRE_COULEUR':self.btn_titre_couleur.GetColour(),
+        return {'TITRE_POLICE': wxFont_en_string(self.btn_titre_police.police),
+                'TITRE_COULEUR': self.btn_titre_couleur.GetColour(),
                 'GRILLE_LIGNES': int(self.spn_grille_lignes.GetValue()),
                 'GRILLE_POLICE': wxFont_en_string(self.btn_grille_police.police),
                 'GRILLE_DUREE_AFFICHAGE': self.sld_grille_duree_affichage.GetValue(),
@@ -893,12 +916,13 @@ class AffichageSousPageGrille(wx.Panel):
         self.btn_sens_vertical.SetToggle(cfg.DEFAUT[self.section]['GRILLE_DEFILEMENT_VERTICAL'])
         self.btn_sens_horizontal.SetToggle(not cfg.DEFAUT[self.section]['GRILLE_DEFILEMENT_VERTICAL'])
 
+
 class DialoguePreferences(wx.Dialog):
-    def __init__(self, parent, config, page=0):
+    def __init__(self, parent, config, page=0, sous_page=None):
         wx.Dialog.__init__(self, parent, wx.ID_ANY, u"Préférences TourBillon")
         self.SetBackgroundColour(wx.Colour(226, 226, 226))
-        self.SetMinSize((600, 500))
-        self.CenterOnParent(wx.BOTH)
+        self.SetMinSize((600, 400))
+        self.SetMaxSize((600, -1))
         self.config = config
 
         self.notebook = wx.Listbook(self, wx.ID_ANY, style=wx.LB_TOP)
@@ -942,16 +966,22 @@ class DialoguePreferences(wx.Dialog):
         self.SetSizer(sizer)
         self.Layout()
         self.notebook.SetSelection(page)
+        self.notebook.GetPage(page).SetSelection(sous_page)
         self.Fit()
+        self.CenterOnParent(wx.BOTH)
 
         self.Bind(wx.EVT_BUTTON, self.defaut, self.btn_defaut)
 
     def donnees(self):
-        d = {self.page0.section:self.page0.donnees(),
-             self.page1.section:self.page1.donnees(),
-             self.page3.section:self.page3.donnees()}
+        d = {self.page0.section: self.page0.donnees(),
+             self.page1.section: self.page1.donnees(),
+             self.page3.section: self.page3.donnees()}
 
-        d.update(self.page2.donnees())
+        algo, parametres = self.page2.donnees()
+        # Maj de l'algorithme par defaut
+        d[self.page1.section].update(algo)
+        # Maj des parametres des algorithmes
+        d.update(parametres)
 
         return d
 

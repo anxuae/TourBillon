@@ -44,15 +44,15 @@ if images_rc is not None:
 
 #--- Entete (CLI ou Fichier texte)----------------------------------------------
 
-ENTETE_AVEC_COULEURS = {'CADRE':terminal.RED,
-                        'FOND':terminal.NORMAL,
-                        'CHAPEAU':terminal.NORMAL + terminal.BLUE,
-                        'PIQUET':terminal.NORMAL + terminal.BG_BLUE,
-                        'BILLON':terminal.NORMAL + terminal.YELLOW,
-                        'LB':terminal.BG_GREEN ,
-                        'TEXTE':terminal.BG_GREEN,
-                        'NORMAL':terminal.NORMAL,
-                        'VERSION':"%s.%s.%s" % tourbillon.__version__}
+ENTETE_AVEC_COULEURS = {'CADRE': terminal.RED,
+                        'FOND': terminal.NORMAL,
+                        'CHAPEAU': terminal.NORMAL + terminal.BLUE,
+                        'PIQUET': terminal.NORMAL + terminal.BG_BLUE,
+                        'BILLON': terminal.NORMAL + terminal.YELLOW,
+                        'LB': terminal.BG_GREEN,
+                        'TEXTE': terminal.BG_GREEN,
+                        'NORMAL': terminal.NORMAL,
+                        'VERSION': "%s.%s.%s" % tourbillon.__version__}
 
 ENTETE_SANS_COULEURS = {}
 
@@ -62,9 +62,10 @@ for p in ENTETE_AVEC_COULEURS:
     else:
         ENTETE_SANS_COULEURS[p] = ENTETE_AVEC_COULEURS[p]
 
+
 def entete(terminal=False):
     """
-    Retourne l'entête. Si terminal == True, l'entête sera formaté pour 
+    Retourne l'entête. Si terminal == True, l'entête sera formaté pour
     être affichée dans le terminal.
     """
     f = codecs.open(chemin('entete.txt'), 'r', 'utf-8')
@@ -78,14 +79,17 @@ def entete(terminal=False):
         f.close()
         return unicode(texte) % ENTETE_AVEC_COULEURS
 
+
 #--- Images (GUI) --------------------------------------------------------------
+
 
 def chemin(nom):
     for chem in IMAGES_REP:
         c = os.path.normpath(os.path.join(chem, nom))
         if os.path.exists(c):
             return c
-    raise IOError, "No such file or directory: '%s'" % c
+    raise IOError("No such file or directory: '%s'" % c)
+
 
 def scale_bitmap(bitmap, largeur, hauteur):
     image = wx.ImageFromBitmap(bitmap)
@@ -93,45 +97,51 @@ def scale_bitmap(bitmap, largeur, hauteur):
     result = wx.BitmapFromImage(image)
     return result
 
-def bitmap(nom, force_alpha=False):
+
+def bitmap(nom, force_alpha=False, scale= -1):
     _, ext = os.path.splitext(nom)
     if ext in ['.png']:
         t = wx.BITMAP_TYPE_PNG
-    elif ext in ['.jpg' , '.jpeg']:
+    elif ext in ['.jpg', '.jpeg']:
         t = wx.BITMAP_TYPE_JPEG
     else:
         t = wx.BITMAP_TYPE_ANY
 
     bp = wx.Bitmap(chemin(nom), t)
+    image = bp.ConvertToImage()
     if force_alpha:
-        image = bp.ConvertToImage()
         image.ConvertAlphaToMask(threshold=128)
-        return image.ConvertToBitmap()
-    else:
-        return bp
+    if scale > 0:
+        largeur, hauteur = image.GetWidth(), image.GetHeight()
+        image.Rescale(largeur * scale, hauteur * scale, wx.IMAGE_QUALITY_HIGH)
+    return image.ConvertToBitmap()
+
 
 def TourBillon_icon():
     icon = wx.EmptyIcon()
     icon.CopyFromBitmap(wx.Bitmap(chemin('icon.png'), wx.BITMAP_TYPE_ANY))
     return icon
 
+
 #--- Styles (GUI) --------------------------------------------------------------
 
-STYLES = {'texte':(255, 255, 255),
-          'bordure':(24, 91, 26),
-          'gradient1':(34, 68, 13),
-          'gradient2':(173, 255, 45),
-          'texte_bouton':(70, 143, 255),
-          'separateur':(60, 11, 112),
-          'selection':(222, 233, 98),
-          'grille':(234, 232, 227),
-          'grille_paire':(226, 244, 215),
-          'grille_impaire':(255, 255, 255),
+
+STYLES = {'texte': (255, 255, 255),
+          'bordure': (24, 91, 26),
+          'gradient1': (34, 68, 13),
+          'gradient2': (173, 255, 45),
+          'texte_bouton': (70, 143, 255),
+          'separateur': (60, 11, 112),
+          'selection': (222, 233, 98),
+          'grille': (234, 232, 227),
+          'grille_paire': (226, 244, 215),
+          'grille_impaire': (255, 255, 255),
           'piquet': (200, 200, 200),
-           cst.GAGNE:(0, 255, 0),
-           cst.PERDU:(255, 0, 0),
-           cst.CHAPEAU:(253, 183, 75),
-           cst.FORFAIT:(0, 0, 0)}
+           cst.GAGNE: (0, 255, 0),
+           cst.PERDU: (255, 0, 0),
+           cst.CHAPEAU: (253, 183, 75),
+           cst.FORFAIT: (0, 0, 0)}
+
 
 def couleur(stl=None):
     if stl == None:

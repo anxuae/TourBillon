@@ -7,7 +7,7 @@ le tournoi de Billon qui a lieu chaque année à Floyon, le premier dimanche d'a
 import sys, os
 
 __nom__ = u"TourBillon"
-__version__ = (5, 0, 3)
+__version__ = (5, 0, 4)
 
 if sys.version_info[:3] < (2, 6, 0):
     sys.exit("Python 2.6 (ou supérieure) est requis pour ce programme.")

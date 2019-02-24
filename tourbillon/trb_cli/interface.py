@@ -3,11 +3,9 @@
 
 #--- Import --------------------------------------------------------------------
 
-import os, sys
+import sys
 import __builtin__
-from datetime import datetime, timedelta
-import atexit
-import code
+from datetime import datetime
 
 import tourbillon
 from tourbillon.trb_cli.interpreteur import Interpreteur
@@ -20,8 +18,10 @@ from tourbillon.trb_core import constantes as cst
 
 #--- Fonctions -----------------------------------------------------------------
 
+
 def question(texte=''):
     return raw_input("%s%s%s" % (terminal.GREEN, texte, terminal.NORMAL))
+
 
 def normalise_chaine(s):
     """
@@ -52,11 +52,12 @@ def normalise_chaine(s):
 
 #--- Classes -------------------------------------------------------------------
 
+
 class Alias(object):
     ESC_ALIAS = '%'
     """
     Alias pour le shell interactif.
-    
+
     Fonctions qui pevent être atteinte dans le shell avec %nom_fonction.
     """
     def __init__(self):
@@ -101,7 +102,7 @@ class Alias(object):
 
     def alias_licence(self, args_s=''):
         u"""Afficher la licence GPL.
-        
+
         Retrouver la licence dans sa version complète sur http://www.gnu.org/licenses/gpl.html
         """
 
@@ -134,9 +135,9 @@ class Alias(object):
     def alias_alias(self, args_s=''):
         u"""
         Affiche l'aide des alias de Tourbillon.
-        
+
         options:
-            
+
             bref        : affiche un court résumé
         """
 
@@ -153,7 +154,7 @@ class Alias(object):
             for space in (Alias, self):
                 try:
                     fn = space.__dict__[nom_fonction]
-                except KeyError, e:
+                except KeyError, _e:
                     pass
                 else:
                     break
@@ -175,7 +176,6 @@ class Alias(object):
                     fndoc = fn.__doc__.rstrip()
                 else:
                     fndoc = u"Pas de documentation"
-
 
             alias_doc.append('%s%s:\n\t%s\n\n' % (self.ESC_ALIAS, nom_alias, fndoc))
 
@@ -205,7 +205,7 @@ Le système d'alias est composé des fonctions suivantes:\n"""
         Commencer un nouveau tournoi.
 
         options:
-            
+
             <joueurs>        : nombre de joueurs par équipes
             <manches>        : nombre d'équipes par manche
             <points>         : nombre de points par manche
@@ -232,9 +232,9 @@ Le système d'alias est composé des fonctions suivantes:\n"""
     def alias_charger(self, args_s=''):
         u"""
         Charger un tournoi.
-        
+
         options:
-            
+
             <fichier>        : fichier à charger
         """
         if args_s == '':
@@ -247,16 +247,16 @@ Le système d'alias est composé des fonctions suivantes:\n"""
     def alias_enregistrer(self, args_s=''):
         u"""
         Enregistrer le tournoi en cours.
-        
+
         Les données d'un tournoi sont enregistées dans un fichier texte au format
         YAML ce qui permet une lecture et modification aisée. Cependant la modification
         manuelle de ces fichiers est à eviter au risque de corrompre les données.
-        
+
         Si le nom du fichier n'est pas donné et qu'un tournoi est en cours, le fichier
         d'enregistrement courant sera écrasé (si il existe).
-        
+
         options:
-            
+
             <fichier>        : fichier à enregistrer
         """
         if args_s == '':
@@ -272,8 +272,6 @@ Le système d'alias est composé des fonctions suivantes:\n"""
 
         if args_s != '':
             print u"Enregistré (%s)" % args_s
-            # Enregistrer l'historique joueurs
-            joueur.enregistrer_historique()
 
     def alias_tirage(self, args_s=''):
         u"""
@@ -284,7 +282,7 @@ Le système d'alias est composé des fonctions suivantes:\n"""
         else:
             t = question(u"Catégorie %s: " % tirages.TIRAGES.keys())
             if t not in tirages.TIRAGES:
-                raise IOError, u"Catégorie invalide."
+                raise IOError(u"Catégorie invalide.")
 
             if t != u"manuel":
                 chap = question(u"Liste des chapeaux ([ENTRE] pour passer): ")
@@ -300,19 +298,18 @@ Le système d'alias est composé des fonctions suivantes:\n"""
 
                 stat = tournoi.tournoi().statistiques(exclues)
 
-
                 p = progression.BarreProgression('blue', largeur=60, vide='_')
-                def printResulat(progression, message, resultat=None, erreur=None):
-                    if erreur is None:
-                        erreur = 'ok'
+
+                def printResulat(progression, message, tps_restant):
+                    if tir.erreur is None:
                         p.afficher(progression, '\n' + message + u"\n\nTapez sur [ENTRER] pour arrêter.")
 
-                    if resultat is not None:
+                    if tir.tirage:
                         p.afficher(p.valeur(), '\n' + message)
                         print
-                        print u"Tirage  : ", resultat['tirage']
-                        print u"Chapeaux: ", resultat['chapeaux']
-                        print u"Validé  : ", erreur
+                        print u"Tirage  : ", tir.tirage
+                        print u"Chapeaux: ", tir.chapeaux
+                        print u"Validé  : ", tir.erreur or 'ok'
 
                 tir = tirages.tirage(t, tournoi.tournoi().equipes_par_manche, stat, chap, printResulat)
 
@@ -391,13 +388,14 @@ Le système d'alias est composé des fonctions suivantes:\n"""
         if cmd in ['oui', 'o', 'yes', 'y']:
             self._quitter = True
 
+
 class TourBillonCLI(Alias):
     def __init__(self, config):
         Alias.__init__(self)
         self.config = config
         self.nom = '__cli__'
         self._quitter = False
-        self._inter_environ = {self.nom:self, '__trn__':tournoi, '__cfg__':config}
+        self._inter_environ = {self.nom: self, '__trn__': tournoi, '__cfg__': config}
         self._inter = Interpreteur(self, self._inter_environ)
         self._inter.charger_historique(config.get('INTERFACE', 'historique'))
         joueur.charger_historique(config.get('TOURNOI', 'historique'))

@@ -1,13 +1,15 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
 
-__doc__ = u"""Algorithme génétique pseudo aléatoire (choix de la redondance possible)."""
+u"""Algorithme génétique pseudo aléatoire (choix de la redondance possible)."""
 
-#--- Import --------------------------------------------------------------------
+#--- Import -------------------------------------------------------------------
+
 import random
-from tourbillon.trb_core.tirages.utile import (BaseThreadTirage, nb_chapeaux_necessaires, tri_stat, Cnp,
-                                               Individu, Environement, genese, creer_manches, tirage_texte)
-from tourbillon.trb_core.exceptions import StopTirageError, SolutionError
+from tourbillon.trb_core.tirages.utile import (BaseThreadTirage, nb_chapeaux_necessaires,
+                                               tri_stat, Cnp, creer_manches, tirage_texte)
+from tourbillon.trb_core.tirages.niveau_ag import Tirage as NvTirage, Environement, genese
+from tourbillon.trb_core.exceptions import SolutionError
 
 #--- Variables globales -------------------------------------------------------
 
@@ -22,7 +24,8 @@ DEFAUT = {'TAILLE_POPULATION_INI': 40,
           'REDONDANCE'           : False
           }
 
-#--- Fonctions -----------------------------------------------------------------
+#--- Fonctions ----------------------------------------------------------------
+
 
 def select_chapeau(statistiques, redondance):
     d = tri_stat(statistiques, 'chapeaux')
@@ -44,41 +47,48 @@ def select_chapeau(statistiques, redondance):
             args = [cle_tri[0], cle_tri[-1]]
             raise SolutionError(101, args)
 
-#--- Classes -------------------------------------------------------------------
 
-class Tirage(Individu):
+def comanche(parametres, statistiques, manche):
+    """
+    Fonction de coût attribuant une performance à la manche:
+
+            f(manche) = nb_vu / len( Cnp(Manche) )
+
+    Avec:
+         nb_vu       : nombre de couples qui se sont déjà vu
+         Cnp(Manche) : ensemble des couples (de 2) pouvant s'être rencontrés
+    """
+    manches2a2 = Cnp(manche, 2)
+    vu = 0
+    for manche in manches2a2:
+        if statistiques[manche[1]]['adversaires'].count(manche[0]) > 0:
+            vu += 1
+
+    if vu == len(manches2a2):
+        return 1
+    else:
+        return vu * 1.0 / len(manches2a2)
+
+
+class Tirage(NvTirage):
 
     def evaluer(self, parametres, optimum=None):
         """
-        Calcul du nombre de fois ou deux équipes qui se sont déjà rencontrées
-        vont rejouer une manche.
-        
-        Manche avec aucune équipe qui se sont déjà rencontrées = 0
-        Manche avec certaines équipes qui se sont déjà rencontrées = nb / ( Cnp(Manche) * nb_manches )
-        Manche redondante = 1
-        
-        Tirage = somme des Manches
-        Tirage avec plusieurs fois la même équipe = 1e36
+        Evalue le score du tirage. L'algorithme "aléatoire génétique" est conçu
+        pour attribuer le meilleur score à un tirage si aucune des manches
+        n'a déjà eu lieu.
+
+        Le score est la somme des "cout" de chaque manche (pour le calcul
+        du cout d'une manche, voir la description de "comanche").
+
+        Un tirage contenant plusieurs fois la même équipe vaut 1e36
         """
-        # Vérifier si l'utilisateur a demandé l'arrêt
-        parametres['arret_utilisateur']()
-
-        # Nombre de manches
-        nb_manches = len(self.alleles) / parametres['equipes_par_manche']
-
         nb_vu = 0
         for manche in creer_manches(self.chromosome, parametres['equipes_par_manche']):
-            l = Cnp(manche, 2)
-            c = 0
-            for vu in l:
-                if parametres['statistiques'][vu[1]]['adversaires'].count(vu[0]) > 0:
-                    c += 1
+            # Vérifier si l'utilisateur a demandé l'arrêt
+            parametres['arret_utilisateur']()
 
-            if c == len(l):
-                # Toutes les équipes se sont déjà rencontrées
-                nb_vu += 1
-            else:
-                nb_vu += c * 1.0 / (len(l) * nb_manches)
+            nb_vu += comanche(parametres, parametres['statistiques'], manche)
 
         for eq in self.alleles:
             if self.chromosome.count(eq) > 1:
@@ -87,22 +97,10 @@ class Tirage(Individu):
 
         self.score = nb_vu
 
-    def reparer(self, parent1, parent2):
-        manque = []
-        for a in self.alleles:
-            if a not in self.chromosome:
-                manque.append(a)
-        i = 0
-        while i < len(self.alleles):
-            if self.chromosome.count(self.chromosome[i]) > 1:
-                self.chromosome[i] = manque[0]
-                manque.pop(0)
-            else:
-                i += 1
 
 class ThreadTirage(BaseThreadTirage):
-    def __init__(self, equipes_par_manche, statistiques, chapeaux=[], rapport=None):
-        BaseThreadTirage.__init__(self, equipes_par_manche, statistiques, chapeaux, rapport)
+    def __init__(self, *args, **kargs):
+        BaseThreadTirage.__init__(self, *args, **kargs)
         self.categorie = u"aleatoire_ag"
         self._env = None
 

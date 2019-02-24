@@ -1,3 +1,4 @@
 # Add resources to sdist
 include license.txt
+include sitecustomize.py
 recursive-include tourbillon/images *.txt *.png *.jpg *.ico *.icns

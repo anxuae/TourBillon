@@ -11,7 +11,7 @@ FORFAIT = u'forfait'
 M_EN_COURS = u"manche en cours"
 M_TERMINEE = u"manche terminée"
 
-# Etat d'une équipe 
+# Etat d'une équipe
 E_INCOMPLETE = u"incomplète"
 E_ATTEND_TIRAGE = u"attend tirage"
 E_JOUE = u"joue"

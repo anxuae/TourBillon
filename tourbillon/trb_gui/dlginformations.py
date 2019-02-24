@@ -3,7 +3,6 @@
 
 #--- Import --------------------------------------------------------------------
 
-import time
 from random import choice
 from datetime import datetime
 
@@ -20,11 +19,12 @@ from tourbillon.trb_gui import grille as grl
 
 #--- Variables globales -------------------------------------------------------
 
-VARIABLES = {'date':'',
-             'partie':0,
-             'partie suivante':1}
+VARIABLES = {'date': '',
+             'partie': 0,
+             'partie suivante': 1}
 
 #--- Fonctions ----------------------------------------------------------------
+
 
 def tournoi_factice(equipes_par_manche, joueurs_par_equipe, nombre_equipes):
     prenoms = ['Antoine', 'Aurelien', 'Christophe', 'Corentin', 'Corinne', 'Eric', 'Florian', 'Gabriel',
@@ -68,6 +68,7 @@ def tournoi_factice(equipes_par_manche, joueurs_par_equipe, nombre_equipes):
 
     return t
 
+
 def wxFont_en_string(font):
     attr = []
     attr.append(str(font.GetPointSize()))
@@ -79,12 +80,15 @@ def wxFont_en_string(font):
     attr.append(str(font.GetEncoding()))
     return ';'.join(attr)
 
+
 def string_en_wxFont(texte):
     attr = texte.split(';')
     return wx.Font(int(attr[0]), int(attr[1]), int(attr[2]),
                    int(attr[3]), int(attr[4]), attr[5], int(attr[6]))
 
+
 #--- Classes -------------------------------------------------------------------
+
 
 class ListeCyclique(object):
     def __init__(self, liste, nombre):
@@ -120,6 +124,7 @@ class ListeCyclique(object):
             else:
                 self._index = 0
                 return res
+
 
 class Grille(grid.Grid):
     def __init__(self, parent, lignes=1, colonnes=1):
@@ -201,6 +206,7 @@ class Grille(grid.Grid):
 
     def GetCellTextColour(self, row, col):
         return grid.Grid.GetCellTextColour(self, (row * 2) + 2, col)
+
 
 class GrilleTirage(Grille):
     def __init__(self, parent):
@@ -342,6 +348,7 @@ class GrilleTirage(Grille):
             attr.SetReadOnly(True)
         return attr
 
+
 class DoubleGrilleTirage(wx.BoxSizer):
     """
     BoxSizer contenant les deux grilles utilisées pour afficher
@@ -369,7 +376,7 @@ class DoubleGrilleTirage(wx.BoxSizer):
         Afficher les éléments en fonction de la taille
         de la liste à afficher dans las deux grilles.
         Masquer tous les éléments si value est faux.
-        
+
         value (bool)
         """
         i = 0
@@ -423,6 +430,7 @@ class DoubleGrilleTirage(wx.BoxSizer):
         if forcer or len(self._liste) > self.nombre_lignes_max:
             for grille in self.grilles:
                 grille.changer(temps_defilement, forcer)
+
 
 class GrilleResultats(Grille):
     def __init__(self, parent):
@@ -478,7 +486,7 @@ class GrilleResultats(Grille):
                         noms = u" / ".join(noms)
                         self.SetCellValue(i, 1, noms)
                         # Etat
-                        texte, couleur, police = grl.etat_style(equipe.resultat(self.tournoi.partie_courante().numero).etat)
+                        texte, couleur, _police = grl.etat_style(equipe.resultat(self.tournoi.partie_courante().numero).etat)
                         self.SetCellValue(i, 2, texte)
                         self.SetCellTextColour(i, 2, couleur)
                         # Points
@@ -562,7 +570,7 @@ class GrilleResultats(Grille):
                     noms = u" / ".join(noms)
                     self.SetCellValue(i, 1, noms)
                     # Etat
-                    texte, couleur, police = grl.etat_style(equipe.resultat(self.tournoi.partie_courante().numero).etat)
+                    texte, couleur, _police = grl.etat_style(equipe.resultat(self.tournoi.partie_courante().numero).etat)
                     self.SetCellValue(i, 2, texte)
                     self.SetCellTextColour(i, 2, couleur)
                     # Points
@@ -582,7 +590,7 @@ class GrilleResultats(Grille):
                 self._timer.Start(temps_defilement)
             else:
                 i = 0
-                while i < self.GetNumberRows() :
+                while i < self.GetNumberRows():
                     self._tourner(None)
                     i += 1
 
@@ -609,9 +617,10 @@ class GrilleResultats(Grille):
             attr.SetReadOnly(True)
         return attr
 
+
 class DialogueInformations(wx.Dialog):
     def __init__(self, parent, config):
-        wx.Dialog.__init__(self, parent, wx.ID_ANY, title=u"Informations" , style=wx.DEFAULT_FRAME_STYLE, pos=wx.DefaultPosition)
+        wx.Dialog.__init__(self, parent, wx.ID_ANY, title=u"Informations", style=wx.DEFAULT_FRAME_STYLE, pos=wx.DefaultPosition)
         w, h = wx.ScreenDC().GetSizeTuple()
         self.SetSize((w * 0.5, h * 0.5))
         self.SetBackgroundColour(images.couleur('grille'))

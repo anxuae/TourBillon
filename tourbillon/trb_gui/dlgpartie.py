@@ -3,8 +3,6 @@
 
 #--- Import --------------------------------------------------------------------
 
-import sys, os
-import time
 import wx
 import  wx.wizard as wiz
 from wx import grid
@@ -22,6 +20,7 @@ from tourbillon.trb_core import tirages
 
 #--- Function ------------------------------------------------------------------
 
+
 def ajout_page_titre(wizPg, titre):
     sizer = wx.BoxSizer(wx.VERTICAL)
     wizPg.SetSizer(sizer)
@@ -36,11 +35,13 @@ def ajout_page_titre(wizPg, titre):
     sizer.Add(wx.StaticLine(wizPg, wx.ID_ANY), 0, wx.EXPAND | wx.ALL, 0)
     return sizer, msg
 
+
 #--- Fenêtre de suppression de partie ------------------------------------------
+
 
 class DialogueSupprimerPartie(wx.Dialog):
     def __init__(self, parent, choix=[], numero_affiche=1):
-        wx.Dialog.__init__(self, parent, wx.ID_ANY, title=u"Supprimer une partie" , style=wx.DEFAULT_DIALOG_STYLE | wx.CENTER_ON_SCREEN, pos=wx.DefaultPosition, size=wx.DefaultSize)
+        wx.Dialog.__init__(self, parent, wx.ID_ANY, title=u"Supprimer une partie", style=wx.DEFAULT_DIALOG_STYLE | wx.CENTER_ON_SCREEN, pos=wx.DefaultPosition, size=wx.DefaultSize)
         self.SetMinSize((500, 150))
         self.SetSize(wx.Size(500, 140))
         self.CenterOnParent()
@@ -80,9 +81,10 @@ class DialogueSupprimerPartie(wx.Dialog):
     def numero(self):
         return self.ctl_numero.GetString(self.ctl_numero.GetSelection())
 
+
 class DialogueAfficherTirage(wx.Dialog):
     def __init__(self, parent, numero_affiche=1):
-        wx.Dialog.__init__(self, parent, wx.ID_ANY, title=u"Tirages" , style=wx.DEFAULT_DIALOG_STYLE | wx.CENTER_ON_SCREEN | wx.RESIZE_BORDER | wx.STAY_ON_TOP)
+        wx.Dialog.__init__(self, parent, wx.ID_ANY, title=u"Tirages", style=wx.DEFAULT_DIALOG_STYLE | wx.CENTER_ON_SCREEN | wx.RESIZE_BORDER | wx.STAY_ON_TOP)
         self.CenterOnParent()
 
         self.txt_phrase = wx.StaticText(self, wx.ID_ANY, u"Tirage de la partie n° ")
@@ -136,7 +138,9 @@ class DialogueAfficherTirage(wx.Dialog):
         self.Close()
         dlg.Print()
 
+
 #--- Bande info pour wizard ----------------------------------------------------
+
 
 class BandeTexte(wx.Panel):
     def __init__(self, parent):
@@ -178,7 +182,9 @@ class BandeTexte(wx.Panel):
     def texte(self):
         return self.txt_message.GetLabel()
 
+
 #--- Liste cochable des équipes ------------------------------------------------
+
 
 class ListeEquipesCtrl(wx.ListCtrl, listctrl.CheckListCtrlMixin):
     def __init__(self, parent):
@@ -222,7 +228,9 @@ class ListeEquipesCtrl(wx.ListCtrl, listctrl.CheckListCtrlMixin):
     def OnCheckItem(self, index, checked):
         self.GetEventHandler().ProcessEvent(evt.ListItemCheckedEvent(self.GetId(), index, checked))
 
+
 #--- Grille des manches --------------------------------------------------------
+
 
 class GrilleManchesCtrl(grid.Grid):
     def __init__(self, parent, manches, chapeaux=[]):
@@ -241,7 +249,7 @@ class GrilleManchesCtrl(grid.Grid):
         self.select1 = None
         self.select2 = None
 
-        #self.SetGridLineColour(wx.Colour(255, 255, 255))
+        # self.SetGridLineColour(wx.Colour(255, 255, 255))
         self.SetColMinimalAcceptableWidth(1)
 
         self.SetRowLabelSize(0)
@@ -400,7 +408,7 @@ class GrilleManchesCtrl(grid.Grid):
 
     def verifier_ligne(self, ligne):
         attention = False
-        piquet, manche = self.manche(ligne)
+        _piquet, manche = self.manche(ligne)
 
         if u"C" in manche:
             manche = [equipe for equipe in manche if equipe != u"C"]
@@ -409,7 +417,6 @@ class GrilleManchesCtrl(grid.Grid):
             for num in manche:
                 if self.statistiques[num]['chapeaux'] != 0:
                     deja_ete_chapeau.append(num)
-                i = 1
 
             # Afficher le message si des équipes ont déjà été chapeau
             if len(deja_ete_chapeau) == 1:
@@ -453,7 +460,9 @@ class GrilleManchesCtrl(grid.Grid):
 
         return attention
 
+
 #--- Pages du Wizard -----------------------------------------------------------
+
 
 class SelectionEquipesPage(wiz.PyWizardPage):
     def __init__(self, parent, title):
@@ -513,14 +522,14 @@ class SelectionEquipesPage(wiz.PyWizardPage):
         self.prev = prev
 
     def GetNext(self):
-        if utile.nb_chapeaux_necessaires(len(self.equipes()), tournoi.tournoi().equipes_par_manche) == 0:
-            # Page tirage
-            self.next.GetNext().SetPrev(self)
-            return self.next.GetNext()
-        else:
+        if utile.nb_chapeaux_necessaires(len(self.equipes()), tournoi.tournoi().equipes_par_manche) != 0:
             # Page chapeaux
             self.next.GetNext().SetPrev(self.next)
             return self.next
+        else:
+            # Page tirage
+            self.next.GetNext().SetPrev(self)
+            return self.next.GetNext()
 
     def GetPrev(self):
         return self.prev
@@ -554,6 +563,7 @@ class SelectionEquipesPage(wiz.PyWizardPage):
 
         if event is not None:
             event.Skip()
+
 
 class SelectionChapeauPage(wiz.PyWizardPage):
     def __init__(self, parent, title):
@@ -631,6 +641,7 @@ class SelectionChapeauPage(wiz.PyWizardPage):
         if event is not None:
             event.Skip()
 
+
 class LancerTiragePage(wiz.PyWizardPage):
     def __init__(self, parent, title):
         wiz.PyWizardPage.__init__(self, parent)
@@ -644,14 +655,16 @@ class LancerTiragePage(wiz.PyWizardPage):
                                            majorDimension=2, style=wx.RA_SPECIFY_COLS)
 
         # Choix de l'algorithme
-        liste_tirages = [module.NOM for tirage, module in tirages.TIRAGES.items()]
+        liste_tirages = [module.NOM for _tirage, module in tirages.TIRAGES.items()]
         self.chx_algorithme = wx.Choice(self, wx.ID_ANY, choices=liste_tirages)
-        self.chx_algorithme.SetSelection(0)
+        algorithme = self.GetParent().config.get('TOURNOI', 'ALGORITHME_TIRAGE')
+        self.chx_algorithme.SetSelection(tirages.TIRAGES.keys().index(algorithme))
         self.txt_algorithme = wx.StaticText(self, wx.ID_ANY, u"Choix de l'algorithme utilisé: ")
         self.btn_options = wx.Button(self, id=wx.ID_PREFERENCES, label=u"Options", size=(100, -1))
 
         # Progression
         self.bar_progression = wx.Gauge(self, wx.ID_ANY, 100, size=(-1, 15), style=wx.GA_HORIZONTAL)
+        self.txt_tps_restant = wx.StaticText(self, wx.ID_ANY, u"", size=(40, -1), style=wx.ALIGN_RIGHT)
         self.txt_progression = wx.TextCtrl(self, wx.ID_ANY, u"", style=wx.TE_MULTILINE)
         self.txt_progression.SetEditable(False)
 
@@ -671,6 +684,8 @@ class LancerTiragePage(wiz.PyWizardPage):
 
         prg_box = wx.BoxSizer(wx.HORIZONTAL)
         prg_box.Add(self.bar_progression, 1, wx.ALIGN_CENTER_VERTICAL)
+        prg_box.AddSpacer((10, -1))
+        prg_box.Add(self.txt_tps_restant, 0, wx.ALIGN_CENTER_VERTICAL)
         prg_box.Add((40, 10), 0)
         prg_box.Add(self.btn_tirage, 0)
         self.sizer.AddSizer(prg_box, 0, wx.EXPAND | wx.ALL, 5)
@@ -683,7 +698,7 @@ class LancerTiragePage(wiz.PyWizardPage):
         self.Bind(evt.EVT_PROGRESSION_TIRAGE, self.progression)
 
     def _modifier_options(self, event):
-        wx.PostEvent(self, evt.PreferencesEvent(self.btn_options.GetId(), 2))
+        wx.PostEvent(self, evt.PreferencesEvent(self.btn_options.GetId(), 2, self.chx_algorithme.GetCurrentSelection()))
 
     def _tirage_manuel(self):
         # Tirage manuel: créer un tirage ordonné
@@ -697,6 +712,24 @@ class LancerTiragePage(wiz.PyWizardPage):
         if len(tirage[-1]) < tournoi.tournoi().equipes_par_manche:
             chapeaux += tirage.pop(-1)
         return tirage, chapeaux
+
+    def _tirage_aleatoire(self):
+        # Pre chapeaux
+        chapeaux = self.GetParent().page2.chapeaux()
+
+        # Création du thread tirage
+        self._tirage = tirages.tirage('aleatoire_ag',
+                                      tournoi.tournoi().equipes_par_manche,
+                                      tournoi.tournoi().statistiques(self.GetParent().forfaits()),
+                                      chapeaux)
+
+        # Configuration du tirage
+        config = self.GetParent().config.get_options('aleatoire_ag')
+        self._tirage.configurer(**config)
+
+        # Démarrer le tirage
+        self._tirage.start()
+        self._tirage.join()
 
     def SetNext(self, next):
         self.next = next
@@ -714,17 +747,21 @@ class LancerTiragePage(wiz.PyWizardPage):
         if self.rdb_type_tirage.GetSelection() == 1:
             tirage, _ = self._tirage_manuel()
             return tirage
-        else:
-            # tirage automatique
-            return self._tirage.tirage
+        elif self._tirage is None:
+            # tirage aleatoire
+            self._tirage_aleatoire()
+
+        return self._tirage.tirage
 
     def chapeaux(self):
         if self.rdb_type_tirage.GetSelection() == 1:
             _, chapeaux = self._tirage_manuel()
             return chapeaux
-        else:
-            # tirage automatique
-            return self._tirage.chapeaux
+        elif self._tirage is None:
+            # tirage aleatoire
+            self._tirage_aleatoire()
+
+        return self._tirage.chapeaux
 
     def progression_event(self, *args, **kwrds):
         """
@@ -735,24 +772,26 @@ class LancerTiragePage(wiz.PyWizardPage):
 
     def progression(self, event):
         """
-        Méthode appelée par le thread principal lors d'un nouveau événement de 
-        progression.
+        Méthode appelée par le thread principal lors d'un nouveau événement
+        de progression.
         """
         if event.valeur >= 0:
             self.bar_progression.SetValue(event.valeur)
         if event.message is not None:
             self.txt_progression.WriteText(event.message + u'\n')
+        if event.tps_restant is not None:
+            self.txt_tps_restant.SetLabel(tirages.utile.temps_texte(event.tps_restant))
 
-        if event.erreur or event.valeur == 100:
-            self._tirage.isAlive = lambda : False
+        if self._tirage.erreur or event.valeur == 100:
+            self._tirage.isAlive = lambda: False
             self.verifier(event)
 
     def demarrer_arreter_tirage(self, event):
         if self._tirage is not None:
             if self._tirage.isAlive():
-               self._tirage.stop()
-               self._tirage.join()
-               self.txt_msg.chg_texte(u"")
+                self._tirage.stop()
+                self._tirage.join()
+                self.txt_msg.chg_texte(u"")
             else:
                 self._tirage = None
 
@@ -769,7 +808,7 @@ class LancerTiragePage(wiz.PyWizardPage):
             # Pre chapeaux
             chapeaux = self.GetParent().page2.chapeaux()
 
-            # Créeation du thread tirage
+            # Création du thread tirage
             self._tirage = tirages.tirage(tirages.TIRAGES.items()[self.chx_algorithme.GetCurrentSelection()][0],
                                           tournoi.tournoi().equipes_par_manche,
                                           statistiques,
@@ -842,6 +881,7 @@ class LancerTiragePage(wiz.PyWizardPage):
         if event is not None:
             event.Skip()
 
+
 class ConfirmerTiragePage(wiz.PyWizardPage):
     def __init__(self, parent, title):
         wiz.PyWizardPage.__init__(self, parent)
@@ -907,7 +947,7 @@ class ConfirmerTiragePage(wiz.PyWizardPage):
         return l
 
     def chapeaux(self):
-        piquet, manche = self.grille.manche(0)
+        _piquet, manche = self.grille.manche(0)
         if u"C" in manche:
             return [equipe for equipe in manche if equipe != u"C"]
         else:
@@ -916,7 +956,7 @@ class ConfirmerTiragePage(wiz.PyWizardPage):
     def imprimer(self, event):
         partie = tournoi.tournoi().partie_courante()
         if partie:
-            num = partie.numero
+            num = partie.numero + 1
         else:
             num = 1
         dlg = DialogueImprimerTirage(self.GetParent(), num, self.grille)
@@ -959,7 +999,9 @@ class ConfirmerTiragePage(wiz.PyWizardPage):
         if event is not None:
             event.Skip()
 
+
 #--- Fenêtre de tirage + d'ajout de partie (Wizard)-----------------------------
+
 
 class DialogueAjouterPartie(wiz.Wizard):
     def __init__(self, parent, config):

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
 
-__doc__ = "Setup file used by `setuptools` to build the installation packages."
+u"Setup file used by `setuptools` to build the installation packages."
 
 #--- Import ---------------------------------------------------------------
 
@@ -79,7 +79,7 @@ python_module_name = "tourbillon"
 
 dist_package_name = "TourBillon"
 
-short_desc = u"TourBillon - logiciel officiel de la Billionnière"
+short_desc = u"TourBillon - by La Billionnière"
 
 long_desc = \
     u"""TourBillon, est le progromme officile de la Billonnière, utilisé
@@ -116,21 +116,20 @@ for source, target, patterns in packages_data_files:
 #--- Définition des options du Setup ------------------------------------------
 
 # Options génériques pour la création de bdist (built distribution) et sdist (source distribution)
-options = {
-    'name':              dist_package_name,
-    'version':           version,
-    'description':       short_desc,
-    'long_description':  long_desc,
-    'license':           "GNU GPL",
-    'author':            "La Billonnière",
-    'author_email':      "labillonniere@gmail.fr",
-    'url':               'https://www.facebook.com/labillonniere',
-    'packages':          packages,
-    'package_data':      packages_data,  # ressources ajoutées à bdist et py2app
-    'install_requires':  required_dependencies,
-    'zip_safe':          False,
-    'platforms':         ["linux", "darwin", "win32"],
-}
+options = {'name':              dist_package_name,
+           'version':           version,
+           'description':       short_desc,
+           'long_description':  long_desc,
+           'license':           "GNU GPL",
+           'author':            "La Billonnière",
+           'author_email':      "labillonniere@gmail.fr",
+           'url':               'https://www.facebook.com/labillonniere',
+           'packages':          packages,
+           'package_data':      packages_data,  # ressources ajoutées à bdist et py2app
+           'install_requires':  required_dependencies,
+           'zip_safe':          False,
+           'platforms':         ["linux", "darwin", "win32"],
+           }
 
 if uses_setuptools:
     options['entry_points'] = {'console_scripts': ["%s = %s:%s" % (target, os.path.splitext(source)[0].replace('/', '.'), fonction)
@@ -144,10 +143,10 @@ if len(sys.argv) >= 2 and sys.argv[1] == 'py2exe':
         import py2exe
     except ImportError:
         print 'Imporatation erreur: py2exe.   Windows exe ne peut pas être généré.'
-        sys.exit(0)
+        sys.exit(1)
 
     options['platforms'] = ["win32"]
-    # site-packages etant zippé dans les distributions binaire les ressources
+    # site-packages étant zippé dans les distributions binaire les ressources
     # doivent êtres externalisées
     options['data_files'] = find_data_files(packages_data_files)
     options['windows'] = [{
@@ -156,7 +155,9 @@ if len(sys.argv) >= 2 and sys.argv[1] == 'py2exe':
         'icon_resources':    [(1, 'tourbillon/images/icon.ico')],
     }]
     options['options'] = {
-        'py2exe':            {'packages': ['tourbillon']}
+        'py2exe':            {'packages': ['tourbillon'],
+                              'custom_boot_script': 'sitecustomize.py'
+                              }
     }
 
 # Options spécifiques à la compilation d'executable Mac OSX
@@ -165,20 +166,22 @@ if len(sys.argv) >= 2 and sys.argv[1] == 'py2app':
         import py2app
     except ImportError:
         print 'Imporatation erreur: py2app.   Mac app ne peut pas être généré.'
-        sys.exit(0)
+        sys.exit(1)
 
     options['platforms'] = ["darwin"]
-    # site-packages etant zippé dans les distributions binaire les ressources
+    # site-packages étant zippé dans les distributions binaire les ressources
     # doivent êtres externalisées
     options['data_files'] = find_data_files(packages_data_files)
     options['app'] = ['tourbillon/trb.py']
     options['options'] = {
-        'py2app':         {
-            'site_packages': True,
-            'argv_emulation': True,
-            'iconfile': 'tourbillon/images/icon.icns',
-        }
+        'py2app':         {'site_packages': True,
+                           'argv_emulation': True,
+                           'iconfile': 'tourbillon/images/icon.icns',
+                           }
     }
+    # Pas de possibilité d'inclure 'sitecustomize.py' avec py2app, mais si il est
+    # installé sur la machine de developpement, l'encodage sera correct dans
+    # le package généré
 
 #--- Ajout d'action avant le build --------------------------------------------
 
@@ -216,7 +219,7 @@ class build(_build_orig):
     sub_commands = _build_orig.sub_commands + [('build_rc', None), ]
 
 cmdclass = {'build': build,
-            'build_rc': build_rc, }
+            'build_rc': build_rc}
 
 
 #--- Execution du Setup -------------------------------------------------------

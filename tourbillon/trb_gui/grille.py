@@ -3,7 +3,7 @@
 
 #--- Import --------------------------------------------------------------------
 
-import sys, os
+import sys
 import datetime
 from functools import partial
 
@@ -13,8 +13,6 @@ from  wx.lib import scrolledpanel as scrolled
 
 from tourbillon import images
 from tourbillon.trb_core import constantes as cst
-from tourbillon.trb_core import equipe, partie
-from tourbillon.trb_core import exceptions as expt
 
 #--- Variables globales --------------------------------------------------------
 
@@ -36,6 +34,7 @@ TITRES = {'partie':      [(u"Equipe", 60),
 
 #--- Fonctions -----------------------------------------------------------------
 
+
 def etat_style(valeur):
     police = wx.Font(12, wx.SWISS, wx.NORMAL, wx.BOLD)
     couleur = images.couleur(valeur)
@@ -53,6 +52,7 @@ def etat_style(valeur):
 
     return texte, couleur, police
 
+
 def points_style(valeur):
     couleur = wx.Color(0, 0, 255)
     police = wx.Font(10, wx.SWISS, wx.NORMAL, wx.NORMAL)
@@ -63,6 +63,7 @@ def points_style(valeur):
         texte = unicode(valeur)
 
     return texte, couleur, police
+
 
 def duree_style(valeur):
     couleur = wx.Color(0, 0, 0)
@@ -75,6 +76,7 @@ def duree_style(valeur):
 
     return texte, couleur, police
 
+
 def unicode_timedelta(timedelta):
     jours = timedelta.days
     heures, reste = divmod(timedelta.seconds, 3600)
@@ -84,7 +86,9 @@ def unicode_timedelta(timedelta):
     else:
         return u'%sj %02d:%02d:%02d' % (jours, heures, minutes, secondes)
 
+
 #--- Classes -------------------------------------------------------------------
+
 
 class Grille(wx.BoxSizer):
     """
@@ -101,7 +105,7 @@ class Grille(wx.BoxSizer):
         self.Add(self._grille_partie)
 
         # Espace entre grilles
-        self.AddSpacer((50, 50), 1)
+        self._espace = self.AddSpacer((50, 50), 1)
 
         # Initialisation de la grille des statistiques du tournoi
         self._grille_statistiques = wx.grid.Grid(parent, wx.ID_ANY)
@@ -143,6 +147,7 @@ class Grille(wx.BoxSizer):
                 colonne += 1
             # Evénements
             grille.Bind(grid.EVT_GRID_CELL_LEFT_CLICK, self.selectionner)
+            grille.Bind(grid.EVT_GRID_CELL_RIGHT_CLICK, self.selectionner)
             grille.Bind(wx.EVT_KEY_DOWN, partial(self._touche, grille=grille))
 
         # Cellule fusionnée
@@ -250,7 +255,7 @@ class Grille(wx.BoxSizer):
             g = self._grille_statistiques
             c = col - 5
         event = grid.GridEvent(g.GetId(), 10209, g, row=r, col=c)
-        event.GetRect = lambda:g.CellToRect(r, c)
+        event.GetRect = lambda: g.CellToRect(r, c)
         return event
 
     def GetSelectedRows(self):
@@ -286,7 +291,7 @@ class Grille(wx.BoxSizer):
         else:
             event.Skip()
             return
-        event.GetRow = lambda:valeur
+        event.GetRow = lambda: valeur
         self.selectionner(event)
         event.Skip()
 
@@ -296,20 +301,20 @@ class Grille(wx.BoxSizer):
         (Il est important que que la grille soit triée par ordre
         croissant de numéro d'équipe')
         Appelé depuis l'exterieur de l'objet. (Prend en compte l'entête)
-        
+
         numero (int)   : numéro recherché dans le première colonne
         """
         debut, fin = 2, self._grille_partie.GetNumberRows() - 1
-        while debut <= fin :
+        while debut <= fin:
             milieu = (debut + fin) / 2
             num = int(self._grille_partie.GetCellValue(milieu, 0))
-            if  num == numero :
+            if  num == numero:
                 # L'élément du milieu de l'intervalle [debut, fin] correspond
                 return milieu - 2
             elif num > numero:
                 # Recherche avant le milieu
                 fin = milieu - 1
-            else :
+            else:
                 # Recherche après le milieu
                 debut = milieu + 1
         return None
@@ -319,7 +324,7 @@ class Grille(wx.BoxSizer):
         Afficher/Masquer la grille des statistiques.
         """
         self._grille_statistiques.Show(valeur)
-        self.GetChildren()[1].Show(valeur)
+        self._espace.Show(valeur)
 
     def selectionner(self, event):
         # Deselectionner la selection courrante
@@ -371,11 +376,11 @@ class Grille(wx.BoxSizer):
             attr.SetReadOnly(True)
         return attr
 
+
 class GrillePanel(scrolled.ScrolledPanel):
     def __init__(self, parent, fond):
         scrolled.ScrolledPanel.__init__(self, parent, wx.ID_ANY, style=wx.TAB_TRAVERSAL)
         self._colonne_recherche = 0
-        self.SetBackgroundStyle(wx.BG_STYLE_CUSTOM)
         self.chg_fond(fond)
 
         self.grille = Grille(self)
@@ -388,6 +393,8 @@ class GrillePanel(scrolled.ScrolledPanel):
         self.SetupScrolling(scrollToTop=False)
 
         self.grille.Bind(wx.EVT_MOUSEWHEEL, self._roulette)
+
+        self.SetBackgroundStyle(wx.BG_STYLE_CUSTOM)
         self.Bind(wx.EVT_ERASE_BACKGROUND, self.dessiner_fond)
 
     def _roulette(self, event):
@@ -403,6 +410,24 @@ class GrillePanel(scrolled.ScrolledPanel):
         self._fond = images.scale_bitmap(bmp, sz.width, sz.height)
         self.Refresh()
 
+    def TileBackground(self, dc):
+        w = self._fond.GetWidth()
+        h = self._fond.GetHeight()
+
+        # adjust for scrolled position
+        spx, spy = self.GetScrollPixelsPerUnit()
+        vsx, vsy = self.GetViewStart()
+        dx, dy = (spx * vsx) % w, (spy * vsy) % h
+
+        x = -dx
+        while x < w:
+            y = -dy
+            while y < h:
+                dc.DrawBitmap(self._fond, x, y)
+                y = y + h
+
+            x = x + w
+
     def dessiner_fond(self, event):
         """
         Ajouter une imagne en fond d'écran.
@@ -412,7 +437,15 @@ class GrillePanel(scrolled.ScrolledPanel):
             dc = wx.ClientDC(self)
             rect = self.GetUpdateRegion().GetBox()
             dc.SetClippingRect(rect)
-        dc.DrawBitmap(self._fond, 0, 0)
+
+        if sys.platform == 'win32':
+            # Je suppose que le lag sur le fond d'écran est due à la version
+            # de WxPython. Sous OSX, la version '2.8.12.1' de WxPython fonctionne
+            # correctement. Mais franchement peu de chances... sinon choix en
+            # fonction de la plateforme win32.
+            self.TileBackground(dc)
+        else:
+            dc.DrawBitmap(self._fond, 0, 0)
         event.Skip()
 
     def OnChildFocus(self, event):
@@ -487,13 +520,13 @@ class GrillePanel(scrolled.ScrolledPanel):
 
         self.grille.Thaw()
 
-    def rechercher(self, event, precedent= -1):
+    def rechercher(self, event, precedent=-1):
         """
         Rechercher une chaine de caractère dans la colonne au
         préalablement selectionnée via 'chg_recherche_colonne'.
         Si la précedente ligne trouvée est spécifiée, la recherche
         débutera à partir de la ligne suivante.
-        
+
         precedent (int)
         """
         i = 0
@@ -501,12 +534,11 @@ class GrillePanel(scrolled.ScrolledPanel):
         trouve_avant_precedent = -1
         texte = event.GetString().strip()
 
-
         while i < self.grille.GetNumberRows():
             if  texte.lower() in self.grille.GetCellValue(i, self._colonne_recherche).lower() and texte != u'':
                 if  i <= precedent:
                     if trouve_avant_precedent == -1:
-                       trouve_avant_precedent = i
+                        trouve_avant_precedent = i
                 else:
                     trouve = True
                     break
@@ -551,23 +583,28 @@ class GrillePanel(scrolled.ScrolledPanel):
         if self.grille.GetSelectedRows() < 0:
             for i in range(0, self.grille.GetNumberRows()):
                 etat = self.grille.GetCellValue(i, 2)
-                if etat not in ['C', 'F'] :
+                if etat not in ['C', 'F']:
                     return int(self.grille.GetCellValue(i, 0))
         else:
             return int(self.grille.GetCellValue(self.grille.GetSelectedRows(), 0))
 
-    def ajout_equipe(self, equipe):
+    def ajout_equipe(self, *equipes):
         """
-        Ajouter une nouvelle équipe.
+        Ajouter une/pulieurs équipe(s).
         """
-        i = 0
-        while i < self.grille.GetNumberRows():
-            if int(self.grille.GetCellValue(i, 0)) > equipe.numero:
-                break
-            i += 1
+        self.grille.Freeze()
+        for equipe in equipes:
+            i = 0
+            while i < self.grille.GetNumberRows():
+                if int(self.grille.GetCellValue(i, 0)) > equipe.numero:
+                    break
+                i += 1
 
-        self.grille.InsertRows(i, 1, False)
-        self.grille.SetCellValue(i, 0, u"%s" % equipe.numero)
+            self.grille.InsertRows(i, 1, False)
+            self.grille.SetCellValue(i, 0, u"%s" % equipe.numero)
+
+        self.Layout()
+        self.grille.Thaw()
         self.SetupScrolling(scrollToTop=False)
 
     def suppr_equipe(self, equipe):
@@ -575,17 +612,18 @@ class GrillePanel(scrolled.ScrolledPanel):
         Suprimer une équipe.
         """
         self.grille.DeleteRows(self.grille.ligne(equipe.numero), 1, False)
-        self.grille._rafraichir_couleur()
+        self.grille._rafraichir()
         self.SetupScrolling(scrollToTop=False)
 
     def afficher_statistiques(self, valeur=True):
         """
         Afficher/Masquer la grille des statistiques.
-        
+
         valeur (bool)
         """
         self.grille.afficher_statistiques(valeur)
         self.Layout()
+        self.SetupScrolling(scrollToTop=False)
 
     def effacer(self):
         """

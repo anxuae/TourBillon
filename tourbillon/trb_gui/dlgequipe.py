@@ -1,9 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
 
-#--- Import --------------------------------------------------------------------
+#--- Import -------------------------------------------------------------------
 
-import sys, os
 import wx
 import string
 from  wx.lib import scrolledpanel as scrolled
@@ -12,7 +11,7 @@ from tourbillon.trb_core import joueur
 from tourbillon.trb_core import tournoi
 from tourbillon.trb_core import constantes as cst
 
-#--- Varibles globales ---------------------------------------------------------
+#--- Varibles globales --------------------------------------------------------
 
 ID_PRENOM = wx.NewId()
 ID_NOM = wx.NewId()
@@ -22,7 +21,8 @@ STYLE_AJOUTER = u"Ajouter"
 STYLE_MOFIFIER = u"Modifier"
 STYLE_SUPPRIMER = u"Supprimer"
 
-#--- Classes -------------------------------------------------------------------
+#--- Classes ------------------------------------------------------------------
+
 
 class EntrerJoueur(wx.Panel):
     def __init__(self, parent, titres=True):
@@ -108,7 +108,7 @@ class EntrerJoueur(wx.Panel):
         if self._completion:
             if self._cmp:
                 c = joueur.NomCompleteur()
-                prenom, nom, age, date = c.completer(self.ctl_prenom.GetValue(), self.ctl_nom.GetValue())
+                prenom, nom, age, _date = c.completer(self.ctl_prenom.GetValue(), self.ctl_nom.GetValue())
 
                 if prenom != u"":
                     self.ajout_texte(self.ctl_prenom, prenom)
@@ -151,6 +151,7 @@ class EntrerJoueur(wx.Panel):
     def donnees(self):
         return (self.ctl_prenom.GetValue(), self.ctl_nom.GetValue(), self.ctl_age.GetValue())
 
+
 class EquipeValidateur(wx.PyValidator):
     def __init__(self, pyVar=None):
         wx.PyValidator.__init__(self)
@@ -173,6 +174,7 @@ class EquipeValidateur(wx.PyValidator):
         if not wx.Validator_IsSilent():
             wx.Bell()
         return
+
 
 class EntrerNumero(wx.Panel):
     def __init__(self, parent, choix=[]):
@@ -219,9 +221,10 @@ class EntrerNumero(wx.Panel):
         else:
             return self.ctl_numero.GetValue()
 
+
 class DialogueEquipe(wx.Dialog):
     def __init__(self, parent, style=STYLE_AJOUTER, choix=[], numero_affiche=1, completion=True):
-        wx.Dialog.__init__(self, parent, wx.ID_ANY, title=style + u" une équipe" , style=wx.DEFAULT_DIALOG_STYLE | wx.CENTER_ON_SCREEN | wx.RESIZE_BORDER)
+        wx.Dialog.__init__(self, parent, wx.ID_ANY, title=style + u" une équipe", style=wx.DEFAULT_DIALOG_STYLE | wx.CENTER_ON_SCREEN | wx.RESIZE_BORDER)
         self.SetMinSize((500, 220))
         self.CenterOnParent()
 
@@ -302,14 +305,15 @@ class DialogueEquipe(wx.Dialog):
         self.btn_ok.Enable(True)
 
     def donnees(self):
-        d = {'numero':int(self.txt_numero.numero()), 'joueurs':[]}
+        d = {'numero': int(self.txt_numero.numero()), 'joueurs': []}
         for entree in self.entrees:
             d['joueurs'].append(entree.donnees())
         return d
 
+
 class DialogueMessageEquipe(wx.Dialog):
     def __init__(self, parent, equipe):
-        wx.Dialog.__init__(self, parent, wx.ID_ANY, title=u"Tournoi en cours" , style=wx.DEFAULT_DIALOG_STYLE | wx.CENTER_ON_SCREEN, pos=wx.DefaultPosition, size=wx.DefaultSize)
+        wx.Dialog.__init__(self, parent, wx.ID_ANY, title=u"Tournoi en cours", style=wx.DEFAULT_DIALOG_STYLE | wx.CENTER_ON_SCREEN, pos=wx.DefaultPosition, size=wx.DefaultSize)
         self.SetMinSize((500, 220))
         self.SetSize(wx.Size(500, 200))
         self.CenterOnParent()
@@ -333,7 +337,7 @@ partie en cours:" % (tournoi.tournoi().partie_courante().numero, equipe)
 
         # Assembler
         box = wx.BoxSizer(wx.VERTICAL)
-        box.Add(self.txt_info, 1, wx.ALL , 20)
+        box.Add(self.txt_info, 1, wx.ALL, 20)
         box.Add(self.chx_etat, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.ALIGN_CENTER_VERTICAL)
         box.Add(self.chk_cree_manche, 1, wx.LEFT | wx.ALIGN_CENTER_VERTICAL, 20)
         box.AddSizer(box_btn, 0, wx.EXPAND)

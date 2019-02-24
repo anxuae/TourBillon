@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
 
-__doc__ = """Définitions des exceptions spécifiques à Tourbillon."""
+"""Définitions des exceptions spécifiques à Tourbillon."""
 
 #--- class ---------------------------------------------------------------------
 
-class TourBillonError(Exception):pass
 
+class TourBillonError(Exception):pass
 class ConfigError(TourBillonError):pass
 class FichierError(TourBillonError):pass
 class NumeroError(TourBillonError):pass
@@ -16,11 +16,14 @@ class LimiteError(TourBillonError):pass
 class IncoherenceError(TourBillonError):pass
 class ResultatError(TourBillonError):pass
 
+
 # ARRET TIRAGE: erreur sur les paramètres
 class TirageError(TourBillonError):pass
 
+
 # ARRET TIRAGE: utilisateur
 class StopTirageError(TourBillonError):pass
+
 
 # ARRET TIRAGE: pas de solution acceptable
 #
@@ -35,7 +38,7 @@ ERREUR_MSG = {100: u"Le nombre de chapeaux donné et superieur au nombre d'équi
               102: u"Le nombre de chapeaux donné ne correspond pas au nombre attendu.",
 #
 #                   args: nb_chapeaux_attendu - nb_chapeaux_donnés
-# 
+#
               150: u"Une même équipe apparaît plusieurs fois dans le tirage.",
 #
 #                   args: (equipe1, nb_occurrence), (equipe2, nb_occurrence), ...
@@ -54,13 +57,14 @@ ERREUR_MSG = {100: u"Le nombre de chapeaux donné et superieur au nombre d'équi
 #
               154: u"Toutes les équipes se sont rencontrées, la redondance doit être autorisée.",
 #
-#                   args: 
+#                   args:
               155: u"La disparité est trop faible pour trouver une solution.",
 #
-#                   args: 
+#                   args:
               156: u"La disparité doit être augmentée ou la redondance autorisée.", }
 #
-#                   args: 
+#                   args:
+
 
 class SolutionError(TourBillonError):
     def __init__(self, code, args):

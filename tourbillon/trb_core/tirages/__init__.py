@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
 
-__doc__ = """Définitions des équipes."""
+"""Définitions des équipes."""
 
 #--- Import --------------------------------------------------------------------
 
@@ -17,11 +17,12 @@ TIRAGES = {'aleatoire_ag'   :aleatoire_ag,
            'niveau_ag'      :niveau_ag,
            'niveau2008_dt'  :niveau2008_dt}
 
-def tirage(type_tirage, equipes_par_manche, statistiques, chapeaux=[], rapport=None):
-    if type_tirage not in TIRAGES:
-        raise TirageError, u"Categorie de tirage '%s' inconnue." % type_tirage
+
+def tirage(algorithme, equipes_par_manche, statistiques, chapeaux=[], callback=None):
+    if algorithme not in TIRAGES:
+        raise TirageError(u"Categorie de tirage '%s' inconnue." % algorithme)
 
     # Création thread tirage
-    t = TIRAGES[type_tirage].ThreadTirage(equipes_par_manche, statistiques, chapeaux, rapport)
+    t = TIRAGES[algorithme].ThreadTirage(equipes_par_manche, statistiques, chapeaux, callback)
 
     return t

@@ -1,18 +1,15 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
 
-#--- Import --------------------------------------------------------------------
+#--- Import -------------------------------------------------------------------
 
-import sys, os
 import wx
 import wx.lib.printout as  printout
 
 from tourbillon.trb_core import tournoi
-from tourbillon.trb_core import constantes as cst
-
 from tourbillon.trb_gui import grille as grl
 
-#--- Varibles globales ---------------------------------------------------------
+#--- Varibles globales --------------------------------------------------------
 
 TITRES = [(u"Place", 0.5),
           (u"N°", 0.5),
@@ -25,7 +22,8 @@ TITRES = [(u"Place", 0.5),
           (u"Nombre moyen de billons / partie", 0.8),
           (u"Durée moyenne / partie", 0.8)]
 
-#--- Dialog imprimer classement ------------------------------------------------
+#--- Dialog imprimer classement -----------------------------------------------
+
 
 class DialogueImprimerTirage(printout.PrintTable):
     def __init__(self, parent, num_partie, grille):
@@ -57,10 +55,11 @@ class DialogueImprimerTirage(printout.PrintTable):
 
         self.SetRowLineSize(0, 2)
         self.SetRowSpacing(5, 5)
-        self.text_font = { "Name": "Arial", "Size": 14, "Colour": [0, 0, 0], "Attr": [1, 0, 0] }
+        self.text_font = {"Name": "Arial", "Size": 14, "Colour": [0, 0, 0], "Attr": [1, 0, 0]}
         self.SetHeader(u"Tournoi de Billon du %s - Partie n°%s" % (tournoi.tournoi().debut.strftime('%d/%m/%Y'), num_partie), colour=wx.NamedColour('BLACK'))
         self.SetHeader(u"Imprimé le : ", type="Date & Time", align=wx.ALIGN_RIGHT, indent= -0.5, colour=wx.NamedColour('BLUE'))
         self.SetFooter(u"Page ", colour=wx.NamedColour('BLACK'), type="Num")
+
 
 class DialogueImprimer(printout.PrintTable):
     def __init__(self, parent, classement):
@@ -82,10 +81,10 @@ class DialogueImprimer(printout.PrintTable):
         self.SetLandscape()
         self.SetRowLineSize(0, 2)
         self.SetRowSpacing(5, 5)
-        self.text_font = { "Name": "Arial", "Size": 14, "Colour": [0, 0, 0], "Attr": [1, 0, 0] }
+        self.text_font = {"Name": "Arial", "Size": 14, "Colour": [0, 0, 0], "Attr": [1, 0, 0]}
 
-        self.label = []         # Titre des colonnes
-        self.set_column = []    # Dimension des colonnes
+        self.label = []  # Titre des colonnes
+        self.set_column = []  # Dimension des colonnes
         i = 0
         for titre, largeur in TITRES:
             self.label.append(titre)

@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
 
-__doc__ = """Definition des tournois."""
+"""Definition des tournois."""
 
-#--- Import --------------------------------------------------------------------
+#--- Import -------------------------------------------------------------------
 
-import sys, os
+import os
 import codecs
-from datetime import datetime, timedelta
+from datetime import datetime
 import yaml
 from functools import partial
 
@@ -16,22 +16,23 @@ from tourbillon.trb_core.exceptions import FichierError, NumeroError, StatutErro
 from tourbillon.trb_core.manche import Manche
 from tourbillon.trb_core.equipe import Equipe
 from tourbillon.trb_core.partie import Partie
-from tourbillon.trb_core.constantes import (CHAPEAU, GAGNE, PERDU, FORFAIT,
-                                            E_INCOMPLETE, P_NON_DEMARREE, P_EN_COURS, P_COMPLETE,
-                                            T_INSCRIPTION, T_ATTEND_TIRAGE, T_PARTIE_EN_COURS)
+from tourbillon.trb_core.constantes import (E_INCOMPLETE, P_COMPLETE, T_INSCRIPTION,
+                                            T_ATTEND_TIRAGE, T_PARTIE_EN_COURS)
 
-#--- Global Variables ----------------------------------------------------------
+#--- Global Variables ---------------------------------------------------------
 
 TOURNOI = None
 FICHIER_TOURNOI = None
 
-#--- Fonctions -----------------------------------------------------------------
+#--- Fonctions ----------------------------------------------------------------
+
 
 def tournoi():
     """
     Retourne le tournoi courrant.
     """
     return TOURNOI
+
 
 def nouveau_tournoi(equipes_par_manche=2, points_par_manche=12, joueurs_par_equipe=2):
     """
@@ -42,18 +43,19 @@ def nouveau_tournoi(equipes_par_manche=2, points_par_manche=12, joueurs_par_equi
     FICHIER_TOURNOI = None
     return TOURNOI
 
+
 def enregistrer_tournoi(fichier=None):
     """
     Enregistrement d'un tournoi dans un fichier au format YAML.
     """
     global FICHIER_TOURNOI, TOURNOI
     if TOURNOI is None:
-        raise IOError, u"Pas de tournoi commencé."
+        raise IOError(u"Pas de tournoi commencé.")
     elif fichier is None and FICHIER_TOURNOI is None:
-        raise FichierError, u"Pas de fichier spécifié pour l'enregistrement."
+        raise FichierError(u"Pas de fichier spécifié pour l'enregistrement.")
     elif fichier is not None:
         if os.path.exists(fichier) and not os.path.isfile(fichier):
-            raise FichierError, u"'%s' est un répertoire." % fichier
+            raise FichierError(u"'%s' est un répertoire." % fichier)
         else:
             FICHIER_TOURNOI = fichier
 
@@ -97,7 +99,8 @@ def enregistrer_tournoi(fichier=None):
         TOURNOI.modifie = False
     except Exception, e:
         TOURNOI.date_enregistrement = ancienne_date
-        raise IOError, u"L'enregistrement a échoué (%s)." % str(e)
+        raise IOError(u"L'enregistrement a échoué (%s)." % str(e))
+
 
 def charger_tournoi(fichier):
     """
@@ -105,9 +108,8 @@ def charger_tournoi(fichier):
     """
     global FICHIER_TOURNOI, TOURNOI
     if not os.path.exists(fichier):
-        raise FichierError, u"Le fichier '%s' n'existe pas." % fichier
+        raise FichierError(u"Le fichier '%s' n'existe pas." % fichier)
 
-    donnee = {}
     try:
         # Extraction des données
         f = codecs.open(fichier, 'rb', 'utf-8')
@@ -128,7 +130,7 @@ def charger_tournoi(fichier):
         for num in y['inscription']:
             equipe = TOURNOI.ajout_equipe(num)
             for joueur in y['inscription'][num]:
-                equipe.ajout_joueur(joueur[0], joueur[1], joueur[2])
+                equipe.ajout_joueur(joueur[0], joueur[1], joueur[2], TOURNOI.debut)
 
         # Infos parties
         for num in y['parties']:
@@ -151,14 +153,16 @@ def charger_tournoi(fichier):
         TOURNOI.date_chargement = datetime.now()
         TOURNOI.modifie = False
     except Exception, e:
-        raise IncoherenceError, u"Le fichier '%s' est corrompu." % fichier
+        raise IncoherenceError(u"Le fichier '%s' est corrompu (%s)." % (fichier, str(e)))
 
     return TOURNOI
 
-#--- Classes -------------------------------------------------------------------
+
+#--- Classes ------------------------------------------------------------------
+
 
 class Tournoi(object):
-    def __init__(self, equipes_par_manche , points_par_manche, joueurs_par_equipe):
+    def __init__(self, equipes_par_manche, points_par_manche, joueurs_par_equipe):
         self.equipes_par_manche = equipes_par_manche
         self.joueurs_par_equipe = joueurs_par_equipe
         self.points_par_manche = points_par_manche
@@ -180,7 +184,7 @@ class Tournoi(object):
             Equipes par manche  : %s
             Points par manche   : %s
             Joueurs par équipe  : %s
-            
+
             Statut              : %s
         """
         return texte % (self.debut,
@@ -194,7 +198,7 @@ class Tournoi(object):
     def statut():
         doc = """
         Retourne le status du tournoi:
-        
+
             T_INSCRIPTION     => Aucune partie n'est commencée
             T_ATTEND_TIRAGE   => la dernière partie est terminée
             T_PARTIE_EN_COURS => une partie partie est en cours
@@ -232,12 +236,12 @@ class Tournoi(object):
         for equipe in self.equipes():
             if equipe not in equipes_exclue:
 
-                stat[equipe.numero] = { 'points':equipe.total_points(partie_limite),
-                                        'victoires':equipe.total_victoires(partie_limite),
-                                        'chapeaux':equipe.total_chapeaux(partie_limite),
-                                        'adversaires':equipe.adversaires(partie_limite),
-                                        'manches':equipe.manches(partie_limite),
-                                        'place':classement[equipe]}
+                stat[equipe.numero] = {'points': equipe.total_points(partie_limite),
+                                       'victoires': equipe.total_victoires(partie_limite),
+                                       'chapeaux': equipe.total_chapeaux(partie_limite),
+                                       'adversaires': equipe.adversaires(partie_limite),
+                                       'manches': equipe.manches(partie_limite),
+                                       'place': classement[equipe]}
         return stat
 
     def piquets(self):
@@ -246,7 +250,7 @@ class Tournoi(object):
         pour ce tournoi. Se base sur la partie précédentes
         afin de determiner si des numéros de piquets doivent
         être ignorés (piquet dégradé).
-        
+
         Pas de piquet prévu pour les chapeaux.
         """
         nombre = self.nb_equipes() / self.equipes_par_manche
@@ -275,13 +279,13 @@ class Tournoi(object):
     def equipe(self, numero):
         """
         Retourne l'équipe avec le numéro spécifié.
-        
+
         numero (int)
         """
         if type(numero) == Equipe:
             return numero
         elif numero not in self._liste_equipes:
-            raise NumeroError, u"L'équipe n°%s n'existe pas." % numero
+            raise NumeroError(u"L'équipe n°%s n'existe pas." % numero)
         else:
             return self._liste_equipes[numero]
 
@@ -304,11 +308,11 @@ class Tournoi(object):
         """
         Ajoute et retourne une nouvelle équipe avec le
         numéro spécifié.
-        
+
         numero (int)
         """
         if numero in self._liste_equipes:
-            raise NumeroError, u"L'équipe n°%s existe déjà." % numero
+            raise NumeroError(u"L'équipe n°%s existe déjà." % numero)
 
         eq = Equipe(self, numero)
         self._liste_equipes[eq.numero] = eq
@@ -318,11 +322,11 @@ class Tournoi(object):
     def suppr_equipe(self, numero):
         """
         Supprime et retourne une équipe avec le numéro spécifié.
-        
+
         numero (int)
         """
         if numero not in self._liste_equipes:
-            raise NumeroError, u"L'équipe n°%s n'existe pas." % numero
+            raise NumeroError(u"L'équipe n°%s n'existe pas." % numero)
 
         eq = self._liste_equipes.pop(numero)
         self.modifie = True
@@ -332,14 +336,14 @@ class Tournoi(object):
         """
         Modifie le numéro d'une équipe. Ne peut se faire que si
         aucune partie n'a été commencée.
-        
+
         numero (int)
         nouv_numero (int)
         """
         if self.nb_parties() != 0:
-            raise StatutError, u"Le numéro de l'équipe n°%s ne peut pas être changé." % numero
+            raise StatutError(u"Le numéro de l'équipe n°%s ne peut pas être changé." % numero)
         if nouv_numero in self._liste_equipes:
-            raise NumeroError, u"L'équipe n°%s existe déjà." % nouv_numero
+            raise NumeroError(u"L'équipe n°%s existe déjà." % nouv_numero)
 
         equipe = self._liste_equipes.pop(numero)
         equipe._num = nouv_numero
@@ -355,13 +359,13 @@ class Tournoi(object):
     def partie(self, numero):
         """
         Retourne la partie avec le numéro spécifié.
-        
+
         numero (int)
         """
         if type(numero) == Partie:
             return numero
         elif numero not in range(1, len(self._liste_parties) + 1):
-            raise NumeroError, u"La partie n°%s n'existe pas." % numero
+            raise NumeroError(u"La partie n°%s n'existe pas." % numero)
         else:
             return self._liste_parties[numero - 1]
 
@@ -385,9 +389,9 @@ class Tournoi(object):
         Ajoute et retourne une nouvelle partie.
         """
         if self.statut == T_INSCRIPTION:
-            raise StatutError, u"Impossible de créer une partie (inscriptions en cours)."
+            raise StatutError(u"Impossible de créer une partie (inscriptions en cours).")
         elif self.statut == T_PARTIE_EN_COURS:
-            raise StatutError, u"Impossible de créer une nouvelle partie (partie courante: %s)." % (self.partie_courante().statut)
+            raise StatutError(u"Impossible de créer une nouvelle partie (partie courante: %s)." % (self.partie_courante().statut))
 
         partie = Partie(self)
         self._liste_parties.append(partie)
@@ -397,11 +401,11 @@ class Tournoi(object):
     def suppr_partie(self, numero):
         """
         Supprimer la partie correspondante au numéro spécifié.
-        
+
         numero (int)
         """
         if numero > len(self._liste_parties) or numero < 1:
-            raise NumeroError, u"La partie n°%s n'existe pas." % numero
+            raise NumeroError(u"La partie n°%s n'existe pas." % numero)
         else:
             self.partie(numero).raz()
             self._liste_parties.pop(numero - 1)
@@ -412,19 +416,19 @@ class Tournoi(object):
         Comparer la force de deux équipes. La comparaison se fait en fonction du
         nombre de victoires (si activé), du nombre de points enfin de la durée
         moyenne d'une partie (si activé).
-        
+
         equipe1 (Equipe instance)
         equipe2 (Equipe instance)
-        partie_limite (int) limite pour le calcul du classement
+        partie_limite (int) limite pour le calcul pour la comparaison
         """
         if type(equipe1) != Equipe or type(equipe2) != Equipe:
-            raise TypeError, u"Une équipe doit être comparée à une autre."
+            raise TypeError(u"Une équipe doit être comparée à une autre.")
 
         # priorité 1: comparaison des victoires
         vic = equipe1.total_victoires(partie_limite) + equipe1.total_chapeaux(partie_limite) - equipe2.total_victoires(partie_limite) - equipe2.total_chapeaux(partie_limite)
-        if vic > 0 :
+        if vic > 0:
             vic = 1
-        elif vic < 0 :
+        elif vic < 0:
             vic = -1
 
         if self.cmp_avec_victoires and vic != 0:
@@ -432,9 +436,9 @@ class Tournoi(object):
 
         # priorité 2: comparaison des points
         pts = equipe1.total_points(partie_limite) - equipe2.total_points(partie_limite)
-        if pts > 0 :
+        if pts > 0:
             pts = 1
-        elif pts < 0 :
+        elif pts < 0:
             pts = -1
 
         if pts != 0:
@@ -442,11 +446,11 @@ class Tournoi(object):
 
         # priorité 3: comparaison des durées moyennes
         # (equipe superieure si durée mini)
-        if equipe1.moyenne_duree(partie_limite) < equipe2.moyenne_duree(partie_limite) :
+        if equipe1.moyenne_duree(partie_limite) < equipe2.moyenne_duree(partie_limite):
             dur = 1
         elif equipe1.moyenne_duree(partie_limite) == equipe2.moyenne_duree(partie_limite):
             dur = 0
-        elif equipe1.moyenne_duree(partie_limite) > equipe2.moyenne_duree(partie_limite) :
+        elif equipe1.moyenne_duree(partie_limite) > equipe2.moyenne_duree(partie_limite):
             dur = -1
 
         if self.cmp_avec_duree and dur != 0:
@@ -460,14 +464,15 @@ class Tournoi(object):
         dans le classement. En cas d'égalité, la ou les places
         suivant les ex aequo ne seront plus utilisées afin de garder
         un numéro de place correspondant au nombre d'équipe.
-        
+
         Exemple:
             [(12, 1), (4, 2), (7, 2), (9, 4)...]
-            
+
         avec_victoires (bool): le classement tient compte du nombre de
                                victoires de l'équipe.
         avec_duree (bool)    : le classement tient compte de la durée
                                moyenne d'une partie
+        partie_limite (int)  : limite pour le calcul du classement
         """
         self.cmp_avec_victoires = avec_victoires
         self.cmp_avec_duree = avec_duree
@@ -482,7 +487,7 @@ class Tournoi(object):
             while i < len(l):
                 if self.comparer(l[i - 1], l[i]) != 0:
                     place = i + 1
-                classement.append((l[i] , place))
+                classement.append((l[i], place))
                 i += 1
 
         return classement

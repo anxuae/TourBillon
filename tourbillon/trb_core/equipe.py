@@ -1,19 +1,20 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
 
-__doc__ = """Définition d'une équipe."""
+"""Définition d'une équipe."""
 
 #--- Import --------------------------------------------------------------------
 
-from datetime import datetime, timedelta
+from datetime import timedelta
 from tourbillon.trb_core.exceptions import NumeroError, LimiteError, StatutError
-from tourbillon.trb_core.joueur import Joueur, creer_id, HISTORIQUE
+from tourbillon.trb_core.joueur import Joueur, HISTORIQUE
 from tourbillon.trb_core.manche import Manche
 from tourbillon.trb_core.constantes import (CHAPEAU, GAGNE, PERDU, FORFAIT,
-                                            M_EN_COURS, M_TERMINEE,
-                                            E_INCOMPLETE, E_ATTEND_TIRAGE, E_JOUE)
+                                            M_EN_COURS, E_INCOMPLETE,
+                                            E_ATTEND_TIRAGE, E_JOUE)
 
 #--- Classes -------------------------------------------------------------------
+
 
 class Equipe(object):
     def __init__(self, parent, numero):
@@ -29,7 +30,7 @@ class Equipe(object):
             Points    : %s
             Victoires : %s
             Chapeaux  : %s
-            
+
             Statut    : %s
         """
         noms = " / ".join([" ".join([joueur.prenom, joueur.nom]) for joueur in self._liste_joueurs])
@@ -54,17 +55,17 @@ class Equipe(object):
         """
         Ajouter des résultats par défault pour l'équipe à la partie donnée.
         NE PAS UTILISER !!!!! (Manipulé par les objets Tournoi et Partie)
-        
+
         debut (datetime)    : début de la partie
-        
+
         adversaires (list)  : liste des adversaires rencontrés durant cette partie.
-        
+
         etat (str)          : etat de l'équipe avant la manche: CHAPEAU ou FORFAIT.
-        
+
         piquet (int)        : numéro de piquet où l'équipe joue.
         """
         if self.statut == E_JOUE or self.statut == E_INCOMPLETE:
-            raise StatutError, u"Impossible de créer une partie pour l'équipe %s. (partie en cours: %s)" % (self.numero, len(self._resultats))
+            raise StatutError(u"Impossible de créer une partie pour l'équipe %s. (partie en cours: %s)" % (self.numero, len(self._resultats)))
         else:
             m = Manche(debut, adversaires)
             if etat == CHAPEAU:
@@ -78,12 +79,12 @@ class Equipe(object):
         """
         Supprimer les résultats de l'équipe à la partie donnée.
         NE PAS UTILISER !!!!! (Manipulé par les objets Tournoi et Partie)
-        
+
         num_partie (int)    : numéro de la partie concernée.
         """
         num_partie = int(num_partie)
         if num_partie not in range(1, len(self._resultats) + 1):
-            raise NumeroError, u"Impossible de supprimer la partie %s pour l'équipe %s.(total parties: %s)" % (num_partie, self.numero, len(self._resultats))
+            raise NumeroError(u"Impossible de supprimer la partie %s pour l'équipe %s.(total parties: %s)" % (num_partie, self.numero, len(self._resultats)))
         else:
             self._resultats.pop(num_partie - 1)
 
@@ -91,20 +92,20 @@ class Equipe(object):
         """
         Modifier les résultats de l'équipe à la partie donnée.
         NE PAS UTILISER !!!!! (Manipulé par les objets Tournoi et Partie)
-        
+
         num_partie (int)    : numéro de la partie concernée.
-        
+
         points (int)        : points récoltés par l'équipe durant cette manche.
-        
+
         etat (str)          : etat de l'équipe après la manche: GAGNE, PERDU.
-        
+
         fin (datetime)      : date de fin de la partie.
-        
+
         piquet (int)        : numéro de piquet où l'équipe joue.
         """
         num_partie = int(num_partie)
         if num_partie not in range(1, len(self._resultats) + 1):
-            raise NumeroError, u"La partie %s n'existe pas pour l'équipe %s." % (num_partie, self.numero)
+            raise NumeroError(u"La partie %s n'existe pas pour l'équipe %s." % (num_partie, self.numero))
         else:
             m = self._resultats[num_partie - 1]
 
@@ -113,7 +114,7 @@ class Equipe(object):
 
             if etat == CHAPEAU:
                 m.points = self.tournoi.points_par_manche
-            elif points is not None and etat != FORFAIT :
+            elif points is not None and etat != FORFAIT:
                 m.points = points
 
             if fin is not None:
@@ -136,7 +137,7 @@ class Equipe(object):
     def statut():
         doc = """
         Retourne le status de l'équipe:
-        
+
             E_INCOMPLETE    => il manque des joueurs dans l'équipe
             E_JOUE          => une manche est en cours
             E_ATTEND_TIRAGE => la manche de la dernière partie est terminée
@@ -171,18 +172,19 @@ class Equipe(object):
         """
         return self._liste_joueurs
 
-    def ajout_joueur(self, prenom, nom, age=''):
+    def ajout_joueur(self, prenom, nom, age='', date=None):
         """
         Ajouer un joueur dans l'équipe.
-        
+
         prenom (str)
         nom (str)
         age (str)
+        date (str)  : la date actuelle est utilisée par defaut
         """
         if self.tournoi.joueurs_par_equipe < len(self._liste_joueurs) + 1:
-            raise LimiteError, u"Il ne peut y avoir plus de %s joueurs par équipe." % self.tournoi.joueurs_par_equipe
+            raise LimiteError(u"Il ne peut y avoir plus de %s joueurs par équipe." % self.tournoi.joueurs_par_equipe)
 
-        j = Joueur(prenom, nom, str(age))
+        j = Joueur(prenom, nom, str(age), date_ajout=date)
         self._liste_joueurs.append(j)
         self.tournoi.modifie = True
         return j
@@ -203,7 +205,7 @@ class Equipe(object):
         spécifiée. Sauf cas exceptionel (ajout d'équipes lorsqu'un
         tournoi est déjà commencé), une manche est toujours définie
         pour chaque partie.
-        
+
         num_partie (int)
         """
         try:
@@ -215,12 +217,12 @@ class Equipe(object):
     def resultat(self, num_partie):
         """
         Retourne la manche de la partie concernée.
-        
+
         num_partie (int)
         """
         num_partie = int(num_partie)
         if num_partie not in range(1, len(self._resultats) + 1):
-            raise NumeroError, u"La partie %s n'existe pas pour l'équipe %s." % (num_partie, self.numero)
+            raise NumeroError(u"La partie %s n'existe pas pour l'équipe %s." % (num_partie, self.numero))
         else:
             return self._resultats[num_partie - 1]
 
@@ -228,10 +230,11 @@ class Equipe(object):
         """
         Retourne la liste des adversaires rencontrés depuis la
         première partie jusqu'au numéro de partie donnée.
-        
+
         partie_limite (int)
         """
-        if partie_limite is None:partie_limite = len(self._resultats)
+        if partie_limite is None:
+            partie_limite = len(self._resultats)
         l = []
         for m in self._resultats[:partie_limite]:
             for ad in m.adversaires:
@@ -241,13 +244,14 @@ class Equipe(object):
 
     def manches(self, partie_limite=None):
         """
-        Retourne la liste des numéro des équipes qui se sont 
+        Retourne la liste des numéro des équipes qui se sont
         réncontrées depuis la première partie jusqu'au numéro
         de partie donnée.
-        
+
         partie_limite (int)
         """
-        if partie_limite is None:partie_limite = len(self._resultats)
+        if partie_limite is None:
+            partie_limite = len(self._resultats)
         l = []
         for m in self._resultats[:partie_limite]:
             if m.etat in [GAGNE, PERDU]:
@@ -258,38 +262,44 @@ class Equipe(object):
         return l
 
     def total_points(self, partie_limite=None):
-        if partie_limite is None:partie_limite = len(self._resultats)
+        if partie_limite is None:
+            partie_limite = len(self._resultats)
 
         l = [m.points for m in self._resultats[:partie_limite]]
         return sum(l)
 
     def total_victoires(self, partie_limite=None):
-        if partie_limite is None:partie_limite = len(self._resultats)
+        if partie_limite is None:
+            partie_limite = len(self._resultats)
 
         l = [m.etat for m in self._resultats[:partie_limite] if m.etat == GAGNE]
         return len(l)
 
     def total_forfaits(self, partie_limite=None):
-        if partie_limite is None:partie_limite = len(self._resultats)
+        if partie_limite is None:
+            partie_limite = len(self._resultats)
 
         l = [m.etat for m in self._resultats[:partie_limite] if m.etat == FORFAIT]
         return len(l)
 
     def total_chapeaux(self, partie_limite=None):
-        if partie_limite is None:partie_limite = len(self._resultats)
+        if partie_limite is None:
+            partie_limite = len(self._resultats)
 
         l = [m.etat for m in self._resultats[:partie_limite] if m.etat == CHAPEAU]
         return len(l)
 
     def total_parties(self, partie_limite=None):
-        if partie_limite is None:partie_limite = len(self._resultats)
+        if partie_limite is None:
+            partie_limite = len(self._resultats)
 
         # Les parties FORFAIT ne sont pas prises en compte
         l = [m.etat for m in self._resultats[:partie_limite] if m.etat != FORFAIT]
         return len(l)
 
     def moyenne_billon(self, partie_limite=None):
-        if partie_limite is None:partie_limite = len(self._resultats)
+        if partie_limite is None:
+            partie_limite = len(self._resultats)
         pts = self.total_points(partie_limite)
 
         # Résultat des parties FORFAIT et de la partie incompléte ne sont pas pris en compte
@@ -300,7 +310,8 @@ class Equipe(object):
             return round(pts * 1.0 / parties, 2)
 
     def min_billon(self, partie_limite=None):
-        if partie_limite is None:partie_limite = len(self._resultats)
+        if partie_limite is None:
+            partie_limite = len(self._resultats)
 
         # Résultat des parties FORFAIT et de la partie incompléte ne sont pas pris en compte
         l = [m.points for m in self._resultats[:partie_limite] if m.statut != M_EN_COURS and m.etat != FORFAIT]
@@ -310,7 +321,8 @@ class Equipe(object):
             return min(l)
 
     def max_billon(self, partie_limite=None):
-        if partie_limite is None:partie_limite = len(self._resultats)
+        if partie_limite is None:
+            partie_limite = len(self._resultats)
 
         l = [m.points for m in self._resultats[:partie_limite]]
         if l == []:
@@ -319,7 +331,8 @@ class Equipe(object):
             return max(l)
 
     def moyenne_duree(self, partie_limite=None):
-        if partie_limite is None:partie_limite = len(self._resultats)
+        if partie_limite is None:
+            partie_limite = len(self._resultats)
 
         # Résultat des parties FORFAIT, CHAPEAU et de la partie incompléte ne sont pas pris en compte
         l = [m.duree for m in self._resultats[:partie_limite] if m.duree is not None]
@@ -332,7 +345,8 @@ class Equipe(object):
             return r / len(l)
 
     def min_duree(self, partie_limite=None):
-        if partie_limite is None:partie_limite = len(self._resultats)
+        if partie_limite is None:
+            partie_limite = len(self._resultats)
 
         # Résultat des parties FORFAIT, CHAPEAU et de la partie incompléte ne sont pas pris en compte
         l = [m.duree for m in self._resultats[:partie_limite] if m.duree is not None]
@@ -342,7 +356,8 @@ class Equipe(object):
             return min(l)
 
     def max_duree(self, partie_limite=None):
-        if partie_limite is None:partie_limite = len(self._resultats)
+        if partie_limite is None:
+            partie_limite = len(self._resultats)
 
         # Résultat des parties FORFAIT, CHAPEAU et de la partie incompléte ne sont pas pris en compte
         l = [m.duree for m in self._resultats[:partie_limite] if m.duree is not None]
