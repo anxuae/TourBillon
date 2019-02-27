@@ -5,7 +5,7 @@
 import copy
 from datetime import datetime
 from tourbillon.core.manche import Manche
-from tourbillon.core.exceptions import NumeroError, StatutError, IncoherenceError, ResultatError
+from tourbillon.core.exceptions import StatutError, IncoherenceError, ResultatError
 from tourbillon.core import constantes as cst
 
 
@@ -237,7 +237,7 @@ class Partie(object):
         if self.statut == cst.P_ATTEND_TIRAGE:
             raise StatutError(u"La partie n°%s n'est pas démarrée (utiliser 'demarrer')." % self.numero)
         if equipe.partie_existe(self.numero):
-            raise NumeroError(u"L'équipe n°%s participe déjà à cette partie." % equipe.numero)
+            raise ValueError(u"L'équipe n°%s participe déjà à cette partie." % equipe.numero)
         if etat not in [cst.FORFAIT, cst.CHAPEAU]:
             raise ResultatError(u"Cette fonction ne peut être utilisée que pour ajouter un CHAPEAU ou un FORFAIT.")
         if creer_manche_si_possible and not piquet:
@@ -298,7 +298,8 @@ class Partie(object):
 
         # Vérification: nombre de points
         if gagnants_pts < self.tournoi.points_par_manche:
-            raise ResultatError(u"Au moins une équipe doit avoir un score suppérieur ou égale à %s." % self.tournoi.points_par_manche)
+            raise ResultatError(u"Au moins une équipe doit avoir un score suppérieur ou égale à %s." %
+                                self.tournoi.points_par_manche)
 
         for num in resultat_manche:
             if num in gagnants:
