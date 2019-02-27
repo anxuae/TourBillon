@@ -32,7 +32,9 @@ scripts = [
     ("tourbillon", "tourbillon/trb.py", "run"), ]
 
 dependences = [  # dist_name + contrainte version
-    "pyyaml>=3.0"]
+    "pyyaml>=3.0",
+    "flask>=1.0.2",
+    "flask-restful>=0.3.6"]
 
 ressources = [  # (source, cible, pattern)
     ('', '', ["LICENSE.rst", "LISEZMOI.rst"]),

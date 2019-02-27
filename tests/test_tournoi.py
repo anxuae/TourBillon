@@ -4,7 +4,7 @@ import pytest
 from datetime import datetime, timedelta
 
 from tourbillon.core import tournoi
-from tourbillon.core.exceptions import NumeroError, LimiteError
+from tourbillon.core.exceptions import LimiteError
 from tourbillon.core import constantes as cst
 
 import data2e2j
@@ -40,12 +40,12 @@ def test_nb_equipes(trb2e2j):
 
 
 def test_equipe_inexistante(trb2e2j):
-    with pytest.raises(NumeroError):
+    with pytest.raises(ValueError):
         trb2e2j.equipe(4)
 
 
 def test_suppr_equipe(trb2e2j):
-    with pytest.raises(NumeroError):
+    with pytest.raises(ValueError):
         trb2e2j.suppr_equipe(10)
 
 
@@ -55,7 +55,7 @@ def test_nb_parties(trb2e2j):
 
 
 def test_partie_inexistante(trb2e2j):
-    with pytest.raises(NumeroError):
+    with pytest.raises(ValueError):
         trb2e2j.partie(3)
 
 
@@ -64,7 +64,7 @@ def test_partie_courante(trb2e2j):
 
 
 def test_suppr_partie(trb2e2j):
-    with pytest.raises(NumeroError):
+    with pytest.raises(ValueError):
         trb2e2j.suppr_partie(3)
 
 
@@ -114,20 +114,20 @@ def test_trop_joueurs(trb2e2j):
 def test_changer_numero(trb2e2j):
     # 8 -> 1
     equipe = trb2e2j.equipe(8)
-    with pytest.raises(NumeroError):
+    with pytest.raises(ValueError):
         trb2e2j.modif_numero_equipe(8, 1)
     # 8 -> 3
     trb2e2j.modif_numero_equipe(8, 3)
     assert equipe.numero == 3
     # 8 a disparu
-    with pytest.raises(NumeroError):
+    with pytest.raises(ValueError):
         trb2e2j.equipe(8)
     # 9 -> 3
     equipe = trb2e2j.equipe(9)
     trb2e2j.modif_numero_equipe(9, 6)
     assert equipe.numero == 6
     # 9 a disparu
-    with pytest.raises(NumeroError):
+    with pytest.raises(ValueError):
         trb2e2j.equipe(9)
 
     # Changer le dictionnaire global pour le reste des tests
@@ -203,7 +203,8 @@ def test_enregistrer(trb2e2j, tmpfile):
 
 def test_date_enregistrement(trb2e2j):
     d = datetime.now()
-    d1 = trb2e2j.date_enregistrement - timedelta(0, trb2e2j.date_enregistrement.second, trb2e2j.date_enregistrement.microsecond)
+    d1 = trb2e2j.date_enregistrement - \
+        timedelta(0, trb2e2j.date_enregistrement.second, trb2e2j.date_enregistrement.microsecond)
     d2 = d - timedelta(0, d.second, d.microsecond)
     assert d1 == d2
 

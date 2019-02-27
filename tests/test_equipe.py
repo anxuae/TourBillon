@@ -3,7 +3,7 @@
 import pytest
 from datetime import timedelta
 
-from tourbillon.core.exceptions import NumeroError, StatutError
+from tourbillon.core.exceptions import StatutError
 from tourbillon.core import constantes as cst
 
 import data2e2j
@@ -102,9 +102,10 @@ class TestAjoutParties(object):
         else:
             # L'équipe est CHAPEAU ou FORFAIT
             fin = None
-        with pytest.raises(NumeroError):
+        with pytest.raises(ValueError):
             equ2jn1._modif_partie(10, data_partie['points'], data_partie['etat'], fin)
-        equ2jn1._modif_partie(data2e2j.PARTIES_1.index(data_partie) + 1, data_partie['points'], data_partie['etat'], fin)
+        equ2jn1._modif_partie(data2e2j.PARTIES_1.index(data_partie) + 1,
+                              data_partie['points'], data_partie['etat'], fin)
 
     def test_statistiques_apres_resultat(self, equ2jn1, data_partie, data_stat):
         test_statistiques(equ2jn1, **data_stat)
