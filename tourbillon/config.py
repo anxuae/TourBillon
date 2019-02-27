@@ -13,6 +13,7 @@ from compiler import ast
 from optparse import OptionParser, OptionGroup, Option
 import ConfigParser as cfg
 import tourbillon
+from tourbillon import logger
 from tourbillon.core import tirages
 
 
@@ -69,36 +70,36 @@ def systeme_config():
     try:
         import platform
         info.append(('Plateforme', platform.platform()))
-    except:
+    except ImportError:
         info.append(('Plateforme', 'Non installé'))
 
     try:
         info.append(('Python', platform.python_version()))
-    except:
+    except ImportError:
         info.append(('Python', 'Non installé'))
 
     try:
         import wx
         info.append(('WxPython', wx.__version__))
-    except:
+    except ImportError:
         info.append(('WxPython', 'Non installé'))
 
     try:
         import yaml
         info.append(('PyYAML', yaml.__version__))
-    except:
+    except ImportError:
         info.append(('PyYAML', 'Non installé'))
 
     try:
         import sqlite3
         info.append(('Sqlite3', sqlite3.version))
-    except:
+    except ImportError:
         info.append(('Sqlite3', 'Non installé'))
 
     try:
         import flask
         info.append(('Flask', flask.__version__))
-    except:
+    except ImportError:
         info.append(('Flask', 'Non installé'))
 
     info.append(('Encoding', sys.getdefaultencoding()))
@@ -108,11 +109,9 @@ def systeme_config():
 
 def literal_eval(node_or_string):
     """
-    Safely evaluate an expression node or a string containing a Python
-    expression.  The string or node provided may only consist of the
-    following
-    Python literal structures: strings, numbers, tuples, lists, dicts,
-    booleans, and None.
+    Evaluation securisée d'une chaine de caractères contenant une expression
+    Python. L'expression de peut contenir que l'une des structures suivantes:
+    strings, numbers, tuples, lists, dicts,booleans, and None.
     """
     _safe_names = {'None': None, 'True': True, 'False': False}
     if isinstance(node_or_string, basestring):
@@ -121,21 +120,19 @@ def literal_eval(node_or_string):
         node_or_string = node_or_string.node
 
     def _convert(node):
-        if isinstance(node, ast.Const) and isinstance(node.value,
-                                                      (basestring, int, float, long, complex)):
+        if isinstance(node, ast.Const) and isinstance(node.value, (basestring, int, float, long, complex)):
             return node.value
         elif isinstance(node, ast.Tuple):
-            return tuple(map(_convert, node.nodes))
+            return tuple([_convert(n) for n in node.nodes])
         elif isinstance(node, ast.List):
-            return list(map(_convert, node.nodes))
+            return [_convert(n) for n in node.nodes]
         elif isinstance(node, ast.Dict):
-            return dict((_convert(k), _convert(v)) for k, v
-                        in node.items)
+            return dict((_convert(k), _convert(v)) for k, v in node.items)
         elif isinstance(node, ast.Name):
             if node.name in _safe_names:
                 return _safe_names[node.name]
         elif isinstance(node, ast.UnarySub):
-            return - _convert(node.expr)
+            return -_convert(node.expr)
         raise ValueError('malformed string')
     return _convert(node_or_string)
 
@@ -183,26 +180,28 @@ def enregistrer_config():
         fp.close()
 
 
-def charger_config():
+def charger_config(dossier=None):
     """
     Charger la configuration utilisateur. (créée si non existante)
     """
-    global CONFIG
+    global CONFIG, CONFIGPATH
     CONFIG = TypedConfigParser()
+    if dossier:
+        CONFIGPATH = dossier
 
     # Création du répertoire
     if not osp.exists(configdir()):
         os.makedirs(configdir())
 
     # Lecture du fichier existant
-    chem = configdir('cfg')
-    if osp.isfile(chem):
-        print u"Chargement de la configuration..."
-        fp = codecs.open(chem, 'rb', 'utf-8')
+    fichier = configdir('cfg')
+    if osp.isfile(fichier):
+        logger.debug(u"Chargement de la configuration...")
+        fp = codecs.open(fichier, 'rb', 'utf-8')
         CONFIG.readfp(fp)
         fp.close()
     else:
-        print u"Création de la configuration..."
+        logger.debug(u"Création de la configuration...")
 
     # Création du fichier de configuration interface
     for section, options in DEFAUT.items():
@@ -220,15 +219,15 @@ def charger_config():
                 CONFIG.set(section, opt, unicode(val))
 
     # Création du fichier d'historique des joueurs
-    chem = configdir('hist_jrs')
-    if not osp.isfile(chem):
-        fp = codecs.open(chem, 'wb', 'utf-8')
+    fichier_hist = configdir('hist_jrs')
+    if not osp.isfile(fichier_hist):
+        fp = codecs.open(fichier_hist, 'wb', 'utf-8')
         fp.close()
 
     # Création du fichier d'historique des commandes
-    chem = configdir('hist_cmd')
-    if not osp.isfile(chem):
-        fp = codecs.open(chem, 'wb', 'utf-8')
+    fichier_cmd = configdir('hist_cmd')
+    if not osp.isfile(fichier_cmd):
+        fp = codecs.open(fichier_cmd, 'wb', 'utf-8')
         fp.write(u"_HiStOrY_V2_\n")
         fp.write(u"%alias\n")
         fp.close()
