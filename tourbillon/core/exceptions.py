@@ -19,10 +19,6 @@ class RequeteError(DatabaseError):
     pass
 
 
-class NumeroError(TourBillonError):
-    pass
-
-
 class StatutError(TourBillonError):
     pass
 
@@ -93,6 +89,7 @@ ERREUR_MSG = {100: u"Le nombre de chapeaux donné et superieur au nombre d'équi
 class SolutionTirageError(TirageError):
 
     def __init__(self, code, args):
+        TirageError.__init__()
         self.code = code
         self.args = args
         self.msg = ERREUR_MSG[self.code]

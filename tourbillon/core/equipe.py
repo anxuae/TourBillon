@@ -3,7 +3,7 @@
 """Définition d'une équipe."""
 
 from datetime import timedelta
-from tourbillon.core.exceptions import NumeroError, LimiteError, StatutError
+from tourbillon.core.exceptions import LimiteError, StatutError
 from tourbillon.core.joueur import Joueur, HISTORIQUE
 from tourbillon.core.manche import Manche
 from tourbillon.core.constantes import (CHAPEAU, GAGNE, PERDU, FORFAIT,
@@ -81,7 +81,7 @@ class Equipe(object):
         """
         num_partie = int(num_partie)
         if num_partie not in range(1, len(self._resultats) + 1):
-            raise NumeroError(u"Impossible de supprimer la partie %s pour l'équipe %s.(total parties: %s)" % (num_partie, self.numero, len(self._resultats)))
+            raise ValueError(u"Impossible de supprimer la partie %s pour l'équipe %s.(total parties: %s)" % (num_partie, self.numero, len(self._resultats)))
         else:
             self._resultats.pop(num_partie - 1)
 
@@ -102,7 +102,7 @@ class Equipe(object):
         """
         num_partie = int(num_partie)
         if num_partie not in range(1, len(self._resultats) + 1):
-            raise NumeroError(u"La partie %s n'existe pas pour l'équipe %s." % (num_partie, self.numero))
+            raise ValueError(u"La partie %s n'existe pas pour l'équipe %s." % (num_partie, self.numero))
         else:
             m = self._resultats[num_partie - 1]
 
@@ -219,7 +219,7 @@ class Equipe(object):
         """
         num_partie = int(num_partie)
         if num_partie not in range(1, len(self._resultats) + 1):
-            raise NumeroError(u"La partie %s n'existe pas pour l'équipe %s." % (num_partie, self.numero))
+            raise ValueError(u"La partie %s n'existe pas pour l'équipe %s." % (num_partie, self.numero))
         else:
             return self._resultats[num_partie - 1]
 
