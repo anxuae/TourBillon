@@ -41,9 +41,9 @@ class LoggerHandler(logging.StreamHandler):
         logging.StreamHandler.emit(self, record)
 
     def bilan(self):
-        print "*" * 80
-        print "Résumé de l'éxécution: {errors} error(s), {warnings} warning(s), {infos} info(s)".format(**self.counters)
-        print "*" * 80
+        print("*" * 80)
+        print("Résumé de l'éxécution: {errors} error(s), {warnings} warning(s), {infos} info(s)".format(**self.counters))
+        print("*" * 80)
 
 
 def ajouter_handler(handler, level=logging.INFO, pattern="(%(levelname)s) %(asctime)s - %(message)s"):

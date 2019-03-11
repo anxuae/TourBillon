@@ -36,7 +36,7 @@ sont possibles: "standalone" (par defaut), "shell" ou "backend" (server HTTP RES
 Dépendances
 ===========
 
-* Python 2.7 (requis)
+* Python >= 2.7 (requis)
 * PyYaml version 3.10 (requis)
 * WxPython version 2.8 (optionel: mode "standalone")
 * Flask version 0.10.1 + flask-restful (optionel: mode "serveur")

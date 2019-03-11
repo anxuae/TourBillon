@@ -24,8 +24,8 @@ def run():
     else:
         logger.creer_logger(logger.INFO)
 
-    if sys.version_info[:3] < (2, 6, 0):
-        logger.critical("Python 2.6 (ou supérieure) est requis pour ce programme")
+    if sys.version_info[:3] < (2, 7, 0):
+        logger.critical("Python 2.7 (ou supérieure) est requis pour ce programme")
 
     if options.shell:
         from tourbillon.cli.app import TourBillonCLI

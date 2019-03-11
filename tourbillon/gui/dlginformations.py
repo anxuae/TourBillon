@@ -491,7 +491,8 @@ class GrilleResultats(Grille):
                         noms = u" / ".join(noms)
                         self.SetCellValue(i, 1, noms)
                         # Etat
-                        texte, couleur, _police = grl.etat_style(equipe.resultat(self.tournoi.partie_courante().numero).etat)
+                        texte, couleur, _police = grl.etat_style(
+                            equipe.resultat(self.tournoi.partie_courante().numero).etat)
                         self.SetCellValue(i, 2, texte)
                         self.SetCellTextColour(i, 2, couleur)
                         # Points
@@ -575,7 +576,8 @@ class GrilleResultats(Grille):
                     noms = u" / ".join(noms)
                     self.SetCellValue(i, 1, noms)
                     # Etat
-                    texte, couleur, _police = grl.etat_style(equipe.resultat(self.tournoi.partie_courante().numero).etat)
+                    texte, couleur, _police = grl.etat_style(
+                        equipe.resultat(self.tournoi.partie_courante().numero).etat)
                     self.SetCellValue(i, 2, texte)
                     self.SetCellTextColour(i, 2, couleur)
                     # Points
@@ -626,7 +628,8 @@ class GrilleResultats(Grille):
 class DialogueInformations(wx.Dialog):
 
     def __init__(self, parent, config):
-        wx.Dialog.__init__(self, parent, wx.ID_ANY, title=u"Informations", style=wx.DEFAULT_FRAME_STYLE, pos=wx.DefaultPosition)
+        wx.Dialog.__init__(self, parent, wx.ID_ANY, title=u"Informations",
+                           style=wx.DEFAULT_FRAME_STYLE, pos=wx.DefaultPosition)
         w, h = wx.ScreenDC().GetSizeTuple()
         self.SetSize((w * 0.5, h * 0.5))
         self.SetBackgroundColour(images.couleur('grille'))
