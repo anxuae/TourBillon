@@ -7,17 +7,18 @@ import os
 import sys
 import datetime
 from optparse import OptionParser, Option
-import cPickle
+import pickle
 
+import conv4to5
 from conv4to5 import GlobTrb
-from conv4to5.EqTrb import Equipe
-from conv4to5.ListeEqTrb import ListeEquipes
-from conv4to5.RencTrb import Rencontre
-from conv4to5.ListeRencTrb import ListeRencontres
 
 import tourbillon
-from tourbillon.trb_core import tournoi
-from tourbillon.trb_core import constantes as cst
+from tourbillon.core import tournoi
+from tourbillon.core.manche import Manche
+from tourbillon.core import constantes as cst
+
+# Necessaire pour la sérialisation / desérialisation
+sys.path.insert(0, os.path.dirname(conv4to5.__file__))
 
 #--- Functions -----------------------------------------------------------------
 
@@ -44,7 +45,7 @@ def extraire(chaine, fich):
         if t.strip() == chaine or t.strip() == "<<<<<<<<<<<<<FIN>>>>>>>>>>>":
             break
 
-    data = cPickle.load(fich)         # Lecture de la donnée sérialisée
+    data = pickle.load(fich)         # Lecture de la donnée sérialisée
     return data
 
 
@@ -91,7 +92,6 @@ def charger(fichier):
             parties.append(num)
     parties.sort(reverse=False)
     nb_parties = len(parties)
-    import GlobTrb
     GlobTrb.vg.nbrPart = nb_parties
 
     # statistiques par équipes
@@ -102,18 +102,18 @@ def charger(fichier):
             eqA, eqB = rencontre.numeroEquipes()
             ptsA, ptsB = rencontre.pointsEquipes()
             etA, etB = rencontre.etatEquipes()
-            if etA == u"G":
+            if etA == "G":
                 etA = cst.GAGNE
-            elif etA == u"P":
+            elif etA == "P":
                 etA = cst.PERDU
-            elif etA == u"C":
+            elif etA == "C":
                 etA = cst.CHAPEAU
 
-            if etB == u"G":
+            if etB == "G":
                 etB = cst.GAGNE
-            elif etB == u"P":
+            elif etB == "P":
                 etB = cst.PERDU
-            elif etB == u"C":
+            elif etB == "C":
                 etB = cst.CHAPEAU
 
             if eqB is None:
@@ -136,7 +136,10 @@ def charger(fichier):
 
     # Maj des nouvelles équipes
     for equipe in t.equipes():
-        equipe._resultats = equipes[equipe.numero]
+        for data in equipes[equipe.numero]:
+            m = Manche()
+            m.charger(data)
+            equipe._resultats.append(m)
 
     return t
 
@@ -175,7 +178,7 @@ en fichiers de sauvegarde compatibles 5.x.x."""
     Option.ALWAYS_TYPED_ACTIONS += ('callback',)  # Display metavar also for options with callback
     parser = OptionParser(usage=info, version="TourBillon v %s.%s.%s" % tourbillon.__version__)
     parser.formatter.max_help_position = 45
-    parser.add_option("-f", "--fichier", metavar='<fichier>', dest="fichier", default=None, help=u"fichier de sortie")
+    parser.add_option("-f", "--fichier", metavar='<fichier>', dest="fichier", default=None, help="fichier de sortie")
     Option.ALWAYS_TYPED_ACTIONS = ('store', 'append')
 
     OPTIONS, ARGS = parser.parse_args()
@@ -185,7 +188,7 @@ en fichiers de sauvegarde compatibles 5.x.x."""
     else:
         source = os.path.abspath(ARGS[0])
         nom = os.path.split(source)[1]
-        nom = os.path.splitext(nom)[0] + u"_conv" + u".trb"
+        nom = os.path.splitext(nom)[0] + "_conv" + ".trb"
 
         if OPTIONS.fichier is not None:
             fichier = os.path.abspath(OPTIONS.fichier)
@@ -193,5 +196,5 @@ en fichiers de sauvegarde compatibles 5.x.x."""
             fichier = os.path.abspath(nom)
 
         charger(source)
-        print "Sauvegarde convertie: ", fichier
+        print("Sauvegarde convertie: ", fichier)
         tournoi.enregistrer_tournoi(fichier)

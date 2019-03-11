@@ -14,7 +14,7 @@ __copyright__ = "La Billonnière, 2008"
 #####################################################
 
 import os
-import ConfigParser
+import configparser
 
 #####################################################
 # Définition locale de fonctions :
@@ -34,7 +34,7 @@ def estModif(val=''):
         vg.estModif = False
         vg.fenetreIHM.barre.voyantModif.upDate()
     else:
-        print u"Erreur estModif"
+        print("Erreur estModif")
 
 #####################################################
 # Variables globales de TourBillon :
@@ -44,7 +44,7 @@ def estModif(val=''):
 class vg(object):
     # Instanciation au demarrage de TourBillon
     cheminInstall = os.path.abspath('')
-    config = ConfigParser.ConfigParser()          # Fichier de configuration
+    config = configparser.ConfigParser()          # Fichier de configuration
     if os.path.isfile(cheminInstall + '//TourBillon.cfg') == True:
         config.read(cheminInstall + '//TourBillon.cfg')
     fenetreIHM = ''          # Référence à l'ojet "wx.frame" de la fenêtre principale

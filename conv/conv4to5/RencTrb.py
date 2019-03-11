@@ -12,10 +12,9 @@ __copyright__ = "© La Billonnière, 2008"
 # Importation de Modules ou fonctions externes :
 #####################################################
 
-import types
-from GlobTrb import vg
+from conv4to5.GlobTrb import vg
+from conv4to5 import TransfoDateTrb
 from datetime import datetime, timedelta
-import TransfoDateTrb
 
 #####################################################
 # Definition exceptions :
@@ -54,11 +53,11 @@ class Rencontre():
         if hDebut != None and duree != None:       # Si les données de temps sont entrées à la création de la rencontre,elles ne seront pas modifées par la suite
             # (compteurModif=2) sinon 'compteurModif'=0 donc lors de la création il y a prise du temps de l'ordi pour
             self.compteurModif = 2
-            if type(hDebut) == types.StringType:
+            if type(hDebut) == bytes:
                 self.debutRenc(hDebut, 'chn')
             else:
                 self.debutRenc(hDebut, 'obj')
-            if type(duree) == types.StringType:
+            if type(duree) == bytes:
                 self.dureeRenc(duree, 'chn')
             else:
                 self.dureeRenc(duree, 'obj')
@@ -78,18 +77,18 @@ class Rencontre():
         self.pointsEquipes(ptsEqA, ptsEqB)
 
     def __repr__(self):
-        return u"%s vs %s" % (self.numeroEquipes()[0], self.numeroEquipes()[1])
+        return "%s vs %s" % (self.numeroEquipes()[0], self.numeroEquipes()[1])
 
     def numeroPartie(self, numPart=''):
         """
         Retourner ou modifier le numéro de la partie
         """
         if numPart != '' and numPart != None:
-            if type(numPart) != types.IntType:
-                raise NotIntegerError, u"'%s' => Ce numero de partie n'est pas un entier" % numPart
+            if type(numPart) != int:
+                raise NotIntegerError("'%s' => Ce numero de partie n'est pas un entier" % numPart)
             if not (0 <= numPart <= vg.nbrPart):
-                raise InvalidNumber, u"'%s' => Ce numero de partie n'est pas compris entre 0 et %s" % (
-                    numPart, vg.nbrPart)
+                raise InvalidNumber("'%s' => Ce numero de partie n'est pas compris entre 0 et %s" % (
+                    numPart, vg.nbrPart))
 
         if numPart == '':                     # Retourne le numéro d'équipe
             return self.Renc[0]
@@ -102,15 +101,15 @@ class Rencontre():
         Retourner ou modifier le numéro des deux équipes. Attention, retourne une liste [numEqA,numEqB]
         """
         if numEqA != '' and numEqA != None:
-            if type(numEqA) != types.IntType:
-                raise NotIntegerError, u"'%s' => Ce numero d'equipe n'est pas un entier" % numEqA
+            if type(numEqA) != int:
+                raise NotIntegerError("'%s' => Ce numero d'equipe n'est pas un entier" % numEqA)
             if not numEqA >= 0:
-                raise InvalidNumber, u"'%s' => Ce numero d'equipe est < 0" % numEqA
+                raise InvalidNumber("'%s' => Ce numero d'equipe est < 0" % numEqA)
         if numEqB != '' and numEqB != None:
-            if type(numEqB) != types.IntType:
-                raise NotIntegerError, u"'%s' => Ce numero de d'equipe n'est pas un entier" % numEqB
+            if type(numEqB) != int:
+                raise NotIntegerError("'%s' => Ce numero de d'equipe n'est pas un entier" % numEqB)
             if not numEqB >= 0:
-                raise InvalidNumber, u"'%s' => Ce numero d'equipe est < 0" % numEqB
+                raise InvalidNumber("'%s' => Ce numero d'equipe est < 0" % numEqB)
 
         if numEqA == '' and numEqB == '':       # Retourne les numéros des équipe A et B
             return [self.Renc[1], self.Renc[2]]
@@ -128,33 +127,33 @@ class Rencontre():
         Attention, retourne une liste [ptsEqA,ptsEqB]
         """
         if ptsEqA != '' and ptsEqA != None:
-            if type(ptsEqA) != types.IntType:
-                raise NotIntegerError, u"'%s' => le total des points n'est pas un entier" % ptsEqA
+            if type(ptsEqA) != int:
+                raise NotIntegerError("'%s' => le total des points n'est pas un entier" % ptsEqA)
             if ptsEqA < 0:
-                raise InvalidNumber, u"'%s' => le total des points de l'equipe ne peut pas etre < 0" % ptsEqA
+                raise InvalidNumber("'%s' => le total des points de l'equipe ne peut pas etre < 0" % ptsEqA)
         if ptsEqB != '' and ptsEqB != None:
-            if type(ptsEqB) != types.IntType:
-                raise NotIntegerError, u"'%s' => le total des points n'est pas un entier" % ptsEqB
+            if type(ptsEqB) != int:
+                raise NotIntegerError("'%s' => le total des points n'est pas un entier" % ptsEqB)
             if ptsEqB < 0:
-                raise InvalidNumber, u"'%s' => le total des points de l'equipe ne peut pas etre < 0" % ptsEqB
+                raise InvalidNumber("'%s' => le total des points de l'equipe ne peut pas etre < 0" % ptsEqB)
 
         def affectEtat():
             """
             Affecte les état: 'G' pour l'equipe qui a le plus de points et 'P' pour l'autre
             """
             if self.Renc[1] != None and self.Renc[2] == None:
-                self.Renc[5] = u"C"
+                self.Renc[5] = "C"
                 self.Renc[6] = None
             elif self.Renc[1] != None and self.Renc[2] != None and ptsEqA != None and ptsEqB != None:
                 if ptsEqA < ptsEqB:
-                    self.Renc[5] = u"P"
-                    self.Renc[6] = u"G"
+                    self.Renc[5] = "P"
+                    self.Renc[6] = "G"
                 elif ptsEqA > ptsEqB:
-                    self.Renc[5] = u"G"
-                    self.Renc[6] = u"P"
+                    self.Renc[5] = "G"
+                    self.Renc[6] = "P"
                 elif ptsEqA == ptsEqB and ptsEqA != 0 and ptsEqB != 0:
-                    raise InvalidNumber, u"'%s<>%s' => Lors d'une rencontre, les equipes doivent se departager d'au moins un point" % (
-                        ptsEqA, ptsEqB)
+                    raise InvalidNumber("'%s<>%s' => Lors d'une rencontre, les equipes doivent se departager d'au moins un point" % (
+                        ptsEqA, ptsEqB))
 
         if ptsEqA == '' and ptsEqB == '':       # Retourne les points des équipe A et B
             return [self.Renc[3], self.Renc[4]]

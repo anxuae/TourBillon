@@ -2,20 +2,18 @@
 # Ce module correspond au module principal de TourBillon
 #
 #####################################################
-__author__ = u"La Billonnière"
-__version__ = u"Version : 4.0"
-__date__ = u"Date: 2008/03/09 21:57:19"
-__copyright__ = u"© La Billonnière, 2008"
+__author__ = "La Billonnière"
+__version__ = "Version : 4.0"
+__date__ = "Date: 2008/03/09 21:57:19"
+__copyright__ = "© La Billonnière, 2008"
 #####################################################
 
 #####################################################
 # Importation de Modules ou fonctions externes :
 #####################################################
 
-import types
-from GlobTrb import vg
-from EqTrb import Equipe
-from datetime import datetime, timedelta
+from conv4to5.GlobTrb import vg
+from conv4to5.EqTrb import Equipe
 
 #####################################################
 # Definition fonctions locales :
@@ -81,8 +79,8 @@ class ListeEquipes():
         Supprimer une équipe à partir de son indice si 'ref'='Ind' \
                ou à partir de son numéro si 'ref'='Equ'
         """
-        if type(val) != types.IntType:
-            raise NotIntegerError, u"'%s' => Cet indice ou ce numero d'equipe n'est pas un entier" % val
+        if type(val) != int:
+            raise NotIntegerError("'%s' => Cet indice ou ce numero d'equipe n'est pas un entier" % val)
 
         if ref == 'Equ':
             "... à partir du numéro d'équipe"
@@ -91,13 +89,13 @@ class ListeEquipes():
                 ind = listenum.index(val)                                     # Fournis l'indice de l'équipe
                 del(self.ListeEq[ind])                                      # Supprime l'équipe voulue
             except:
-                raise InvalidNumber, u"'%s' => Ce numero d'equipe n'existe pas" % val
+                raise InvalidNumber("'%s' => Ce numero d'equipe n'existe pas" % val)
         else:
             "...à partir de l'indice de la liste"
             try:
                 del(self.ListeEq[val])                                      # Supprime l'équipe voulue
             except:
-                raise OutOfRangeError, u"'%s' => Cet indice d'equipe n'existe pas" % val
+                raise OutOfRangeError("'%s' => Cet indice d'equipe n'existe pas" % val)
         vg.nbrEq = len(self.ListeEq)                                          # Mettre à jour le nombre d'équipes
 
     def equipe(self, val, ref='Ind'):
@@ -105,8 +103,8 @@ class ListeEquipes():
         Retourner une équipe à partir de son indice si 'ref'='Ind' \n
                ou à partir de son numéro si 'ref'='Equ'
         """
-        if type(val) != types.IntType:
-            raise NotIntegerError, u"'%s' => Cet indice d'equipe n'est pas un entier" % val
+        if type(val) != int:
+            raise NotIntegerError("'%s' => Cet indice d'equipe n'est pas un entier" % val)
 
         if ref == 'Equ':
             "... à partir du numéro d'équipe"
@@ -115,13 +113,13 @@ class ListeEquipes():
                 ind = listenum.index(val)                                     # Fournis l'indice de l'équipe
                 return self.ListeEq[ind]                                    # Retourne l'équipe voulue
             except:
-                raise InvalidNumber, u"'%s' => Ce numero d'equipe n'existe pas" % val
+                raise InvalidNumber("'%s' => Ce numero d'equipe n'existe pas" % val)
         else:
             "...à partir de l'indice de la liste"
             try:
                 return self.ListeEq[val]                                    # Retourne l'équipe voulue
             except:
-                raise OutOfRangeError, u"'%s' => Cet indice d'equipe n'existe pas" % val
+                raise OutOfRangeError("'%s' => Cet indice d'equipe n'existe pas" % val)
 
     def indice(self, numEq):
         """
@@ -142,7 +140,7 @@ class ListeEquipes():
         Trie par ordre croissant les equipes de la liste selon leur numero d'equipe
         """
         if len(self.ListeEq) == 0:
-            raise OutOfRangeError, u"'[]' => Aucune equipe n'est enregistree, le triage de la liste est impossible"
+            raise OutOfRangeError("'[]' => Aucune equipe n'est enregistree, le triage de la liste est impossible")
 
         listenum = [e.numeroEquipe() for e in self.ListeEq if 1 == 1]           # Construit la liste des numéros
         nouvliste = []
@@ -159,8 +157,8 @@ class ListeEquipes():
         """
         Vérifie l'unicité du numéro d'équipe, renvoie 0 si le numéro val n'a pas encore été utilisé
         """
-        if type(numEq) != types.IntType:
-            raise NotIntegerError, u"'%s' => Ce numero d'equipe n'est pas un entier" % numEq
+        if type(numEq) != int:
+            raise NotIntegerError("'%s' => Ce numero d'equipe n'est pas un entier" % numEq)
 
         listenum = [e.numeroEquipe() for e in self.ListeEq if 1 == 1]            # Construit la liste des numéros
         if numEq in listenum:

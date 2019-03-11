@@ -12,9 +12,7 @@ __copyright__ = "La Billonnière, 2008"
 # Importation de Modules ou fonctions externes :
 #####################################################
 
-import types
-from GlobTrb import vg
-from datetime import datetime, timedelta
+from conv4to5.GlobTrb import vg
 
 #####################################################
 # Definition exceptions :
@@ -68,10 +66,10 @@ class Equipe():
         Retourner ou modifier le numéro d'équipe
         """
         if numEq != '' and numEq != None:
-            if type(numEq) != types.IntType:
-                raise NotIntegerError, u"'%s' => Ce numéro d'équipe n'est pas un entier" % numEq
+            if type(numEq) != int:
+                raise NotIntegerError("'%s' => Ce numéro d'équipe n'est pas un entier" % numEq)
             if numEq < 0:
-                raise InvalidNumber, u"'%s' => Ce numéro d'équipe est < 0" % numEq
+                raise InvalidNumber("'%s' => Ce numéro d'équipe est < 0" % numEq)
 
         if numEq == '':                       # Retourne le numéro d'équipe
             return self.Eq[0]
@@ -104,10 +102,10 @@ class Equipe():
         Si oper='-' alors 'totPts' est soustrait du total des points.
         """
         if totPts != '' and totPts != None:
-            if type(totPts) != types.IntType:
-                raise NotIntegerError, u"'%s' => Ce nombre de points n'est pas un entier" % totPts
+            if type(totPts) != int:
+                raise NotIntegerError("'%s' => Ce nombre de points n'est pas un entier" % totPts)
             if totPts < 0:
-                raise InvalidNumber, u"'%s' => Le nombre de points de l'équipe ne peut pas étre < 0" % totPts
+                raise InvalidNumber("'%s' => Le nombre de points de l'équipe ne peut pas étre < 0" % totPts)
 
         if totPts == '':                      # Retourne le total des points de l'équipe
             return self.Eq[3]
@@ -133,11 +131,11 @@ class Equipe():
         Si oper='-' alors 'totVic' est soustrait du total des victoires.
         """
         if totVic != '' and totVic != None:
-            if type(totVic) != types.IntType:
-                raise NotIntegerError, u"'%s' => Ce nombre de victoires n'est pas un entier" % totVic
+            if type(totVic) != int:
+                raise NotIntegerError("'%s' => Ce nombre de victoires n'est pas un entier" % totVic)
             if not (0 <= totVic <= vg.nbrPart):
-                raise InvalidNumber, u"'%s' => Le nombre des victoires de l'équipe doit être compris entre 0 et %s" % (
-                    totVic, vg.nbrPart)
+                raise InvalidNumber("'%s' => Le nombre des victoires de l'équipe doit être compris entre 0 et %s" % (
+                    totVic, vg.nbrPart))
 
         if totVic == '':                      # Retourne le nombre de victoires de l'�quipe
             return self.Eq[4]
@@ -163,11 +161,11 @@ class Equipe():
         Si oper='-' alors 'totChap' est soustrait du total des victoires.
         """
         if totChap != '' and totChap != None:
-            if type(totChap) != types.IntType:
-                raise NotIntegerError, u"'%s' => le total des points doit être un entier" % totChap
+            if type(totChap) != int:
+                raise NotIntegerError("'%s' => le total des points doit être un entier" % totChap)
             if not (0 <= totChap <= vg.nbrPart):
-                raise InvalidNumber, "'%s' => le total des victoires de l'équipe doit être compris entre 0 et %s" % (
-                    totChap, vg.nbrPart)
+                raise InvalidNumber("'%s' => le total des victoires de l'équipe doit être compris entre 0 et %s" % (
+                    totChap, vg.nbrPart))
 
         if totChap == '':                     # Retourne le nombre de chapeaux
             return self.Eq[5]
@@ -190,11 +188,11 @@ class Equipe():
         Retourner ou modifier le classement provisoire de l'équipe
         """
         if palCl != '' and palCl != None:
-            if type(palCl) != types.IntType:
-                raise NotIntegerError, u"'%s' => le classement de l'équipe doit être un entier" % palCl
+            if type(palCl) != int:
+                raise NotIntegerError("'%s' => le classement de l'équipe doit être un entier" % palCl)
             if not (0 <= palCl <= vg.listeEq.nbr()):
-                raise InvalidNumber, u"'%s' => le classement de l'équipe doit être compris entre 0 et %s" % (
-                    palCl, vg.listeEq.nbr())
+                raise InvalidNumber("'%s' => le classement de l'équipe doit être compris entre 0 et %s" % (
+                    palCl, vg.listeEq.nbr()))
         if palCl == '':                       # Retourne le classement provisoire de l'équipe
             return self.Eq[6]
         else:                               # Affecte le classement provisoire de l'équipe (=palCl)

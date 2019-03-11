@@ -13,10 +13,9 @@ __license__ = "Python"
 # Importation de Modules ou fonctions externes :
 #####################################################
 
-import types
-from GlobTrb import vg
-from RencTrb import Rencontre
-from datetime import datetime, timedelta
+from conv4to5.GlobTrb import vg
+from conv4to5.RencTrb import Rencontre
+from datetime import timedelta
 
 #####################################################
 # Definition exceptions :
@@ -68,12 +67,12 @@ class ListeRencontres():
             Si numEq='': Supprimer toutes les rencontres de la partie 'val'
             Si numEq<>'': Supprimer la rencontre de la partie 'val' et qui implique l'équipe n°'numEq'
         """
-        if type(val) != types.IntType:
-            raise NotIntegerError, u"'%s' => Cet indice de rencontre ou numero de partie n'est pas un entier" % val
+        if type(val) != int:
+            raise NotIntegerError("'%s' => Cet indice de rencontre ou numero de partie n'est pas un entier" % val)
         if ref == 'Renc' and not (0 < val <= vg.nbrPart):
-            raise OutOfRangeError, u"'%s' => Ce numero de partie n'est pas compris entre 1 et %s" % (val, vg.nbrPart)
-        if numEq != '' and type(numEq) != types.IntType:
-            raise NotIntegerError, u"'%s' => Ce numero d'equipe n'est pas un entier" % numEq
+            raise OutOfRangeError("'%s' => Ce numero de partie n'est pas compris entre 1 et %s" % (val, vg.nbrPart))
+        if numEq != '' and type(numEq) != int:
+            raise NotIntegerError("'%s' => Ce numero d'equipe n'est pas un entier" % numEq)
 
         if ref == 'Renc':
             # ... à partir du numéro de partie
@@ -84,20 +83,20 @@ class ListeRencontres():
                     li = [e for e in self.ListeRenc if e.numeroPartie() != val]
                     self.ListeRenc = li
                 except:
-                    raise InvalidNumber, u"'%s' => Ce numero de partie n'existe pas" % val
+                    raise InvalidNumber("'%s' => Ce numero de partie n'existe pas" % val)
             else:
                 # ... avec numéro d'équipe
                 try:
                     li = [e for e in self.ListeRenc if e.numeroPartie() != val or e.impliqueEquipes([numEq]) == False]
                     self.ListeRenc = li                                                  # Supprime la rencontre voulue
                 except:
-                    raise InvalidNumber, u"'[%s,%s]' => La rencontre definie par ce couple n'existe pas" % (val, numEq)
+                    raise InvalidNumber("'[%s,%s]' => La rencontre definie par ce couple n'existe pas" % (val, numEq))
         else:
             # ...à partir de l'indice de la liste
             try:
                 del(self.ListeRenc[val])                                                # Supprime la rencontre voulue
             except:
-                raise OutOfRangeError, u"'%s' => Cet indice de rencontre n'existe pas" % val
+                raise OutOfRangeError("'%s' => Cet indice de rencontre n'existe pas" % val)
 
     def rencontre(self, val, numEq='', ref='Ind'):
         """
@@ -106,12 +105,12 @@ class ListeRencontres():
             Si numEq='': Retourne toutes les rencontres de la partie 'val' sous forme d'une liste
             Si numEq<>'': Retourne la rencontre de la partie 'val' et qui implique l'équipe n°'numEq'
         """
-        if type(val) != types.IntType:
-            raise NotIntegerError, u"'%s' => Cet indice de rencontre ou numero de partie n'est pas un entier" % val
+        if type(val) != int:
+            raise NotIntegerError("'%s' => Cet indice de rencontre ou numero de partie n'est pas un entier" % val)
         if ref == 'Renc' and not (0 <= val <= vg.nbrPart):
-            raise OutOfRangeError, u"'%s' => Ce numero de partie n'est pas compris entre 1 et %s" % (val, vg.nbrPart)
-        if numEq != '' and type(numEq) != types.IntType:
-            raise NotIntegerError, u"'%s' => Ce numéro d'equipe n'est pas un entier" % numEq
+            raise OutOfRangeError("'%s' => Ce numero de partie n'est pas compris entre 1 et %s" % (val, vg.nbrPart))
+        if numEq != '' and type(numEq) != int:
+            raise NotIntegerError("'%s' => Ce numéro d'equipe n'est pas un entier" % numEq)
 
         if ref == 'Renc':
             # ... à partir du numéro de Partie
@@ -131,8 +130,8 @@ class ListeRencontres():
                         # Tente de retourner le 1er terme de la liste qui soit dit en passant
                         return li2[0]
                 except:                                             # doit comporter 1 et 1 seul terme. Mais une erreur peut se produire en cas de chapeau
-                    raise InvalidNumber, u"'[Partie %s,Equipe %s]' => La rencontre definie par ce couple n'existe pas" % (
-                        val, numEq)
+                    raise InvalidNumber("'[Partie %s,Equipe %s]' => La rencontre definie par ce couple n'existe pas" % (
+                        val, numEq))
         else:
             # ...à partir de l'indice de la liste
             try:
@@ -141,14 +140,14 @@ class ListeRencontres():
                 else:
                     return self.ListeRenc[val]                          # Retourne la rencontre voulue
             except:
-                raise OutOfRangeError, u"'%s' => Cet indice de rencontre n'existe pas" % val
+                raise OutOfRangeError("'%s' => Cet indice de rencontre n'existe pas" % val)
 
     def equipe(self, numEq, numPart):
         """
         Retourne les résultats (liste d'info) d'une équipe à la partie spécifiée
         """
         if numPart > vg.nbrPart:
-            raise OutOfRangeError, u"'%s' => Ce numero de partie n'existe pas (%s partie)" % (numPart, vg.nbrPart)
+            raise OutOfRangeError("'%s' => Ce numero de partie n'existe pas (%s partie)" % (numPart, vg.nbrPart))
 
         ren = self.rencontre(numPart, numEq, ref='Renc')
         if ren == None:           # La rencontre n'existe pas
@@ -186,8 +185,8 @@ class ListeRencontres():
         Retourne une liste [[minBillon,numPart,maxBillon,numPart],[minDurée,numPart,maxDurée,numPart,duréeTotal]] représentant la meilleur
         performance et la pire de l'équipe 'numEq' au cours d'un tournoi.
         """
-        if type(numEq) != types.IntType:
-            raise NotIntegerError, u"'%s' => Ce numero d'equipe n'est pas un entier" % numEq
+        if type(numEq) != int:
+            raise NotIntegerError("'%s' => Ce numero d'equipe n'est pas un entier" % numEq)
 
         minBill = None
         numPartMinBill = None
@@ -258,11 +257,11 @@ class ListeRencontres():
         """
         Retourne '1' si toutes les données de toutes les rencontres ont été rentrées sinon '0'
         """
-        if type(numPart) != types.IntType:
-            raise NotIntegerError, u"'%s' => Ce numero de partie n'est pas un entier" % numPart
+        if type(numPart) != int:
+            raise NotIntegerError("'%s' => Ce numero de partie n'est pas un entier" % numPart)
         if not (0 < numPart <= vg.nbrPart):
-            raise OutOfRangeError, u"'%s' => Ce numero de partie n'est pas compris entre 1 et %s" % (
-                numPart, vg.nbrPart)
+            raise OutOfRangeError("'%s' => Ce numero de partie n'est pas compris entre 1 et %s" % (
+                numPart, vg.nbrPart))
 
         verif = True
         t = self.rencontre(val=numPart, ref='Renc')

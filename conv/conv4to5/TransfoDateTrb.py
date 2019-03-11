@@ -12,9 +12,8 @@ __copyright__ = "La Billonnière, 2008"
 # Importation de Modules ou fonctions externes :
 #####################################################
 
-import datetime
 import re
-import types
+import datetime
 
 #####################################################
 # Definition exceptions :
@@ -40,18 +39,18 @@ class InvalidChain(TransfoDateError):
 # Corps principal du module 'TransfoDateTrb.py' :
 #####################################################
 
-mois = {1: u"Janvier",
-        2: u"F�vrier",
-        3: u"Mars",
-        4: u"Avril",
-        5: u"Mai",
-        6: u"Juin",
-        7: u"Juillet",
-        8: u"Ao�t",
-        9: u"Septembre",
-        10: u"Octobre",
-        11: u"Novembre",
-        12: u"D�cembre", }
+mois = {1: "Janvier",
+        2: "Février",
+        3: "Mars",
+        4: "Avril",
+        5: "Mai",
+        6: "Juin",
+        7: "Juillet",
+        8: "Août",
+        9: "Septembre",
+        10: "Octobre",
+        11: "Novembre",
+        12: "Décembre", }
 
 
 # Définition de l'expression régulière pour découper une date (chaine) du format iso
@@ -98,13 +97,13 @@ def datetimeENchaine(date, formSortie='iso', com=True):
     Si formSortie='Hfr' heure langue française
     """
     if type(date) != datetime.datetime:
-        raise InvalidDatetime, "'%s' => Cette date n'est pas un objet datetime" % date
+        raise InvalidDatetime("'%s' => Cette date n'est pas un objet datetime" % date)
 
     if formSortie == 'iso':               # Retour la date au format ISO
         return date.isoformat(' ')
 
     elif formSortie == 'Dfr':             # Retourne jour mois ann�e
-        return u"%s %s %s" % (date.day, mois[date.month], date.year)
+        return "%s %s %s" % (date.day, mois[date.month], date.year)
 
     elif formSortie == 'Hfr':             # Retourne heure minute seconde microseconde
 
@@ -112,32 +111,32 @@ def datetimeENchaine(date, formSortie='iso', com=True):
             if date.hour == 0:
                 heure = ''
             else:
-                heure = str(date.hour) + u"hr"
+                heure = str(date.hour) + "hr"
             if date.minute == 0 and date.hour == 0:
                 minute = ''
             else:
-                minute = str(date.minute) + u"min"
-            seconde = str(date.second) + u"sec"
+                minute = str(date.minute) + "min"
+            seconde = str(date.second) + "sec"
             if date.microsecond == 0:
                 microsec = ''
             else:
                 microsec = date.microsecond * 10 ** (-5)
                 microsec = str(microsec) + "'"
 
-            return u"%s %s %s %s" % (heure, minute, seconde, microsec)
+            return "%s %s %s %s" % (heure, minute, seconde, microsec)
 
         elif com == True:                   # Format compact
             heure = str(date.hour)
             if len(heure) == 1:
-                heure = u'0' + heure
+                heure = '0' + heure
             minute = str(date.minute)
             if len(minute) == 1:
-                minute = u'0' + minute
+                minute = '0' + minute
             seconde = str(date.second)
             if len(seconde) == 1:
-                seconde = u'0' + seconde
+                seconde = '0' + seconde
 
-            return u"%s:%s:%s" % (heure, minute, seconde)
+            return "%s:%s:%s" % (heure, minute, seconde)
 
 
 def chaineENdatetime(date):
@@ -145,8 +144,8 @@ def chaineENdatetime(date):
     Retourne la date du systeme sous forme d'un objet date time
     L'argument entré doit être une chaine exprimant une date sous forme iso
     """
-    if type(date) != types.StringType:
-        raise InvalidChain, "'%s' => Cette date n'est pas une chaine de caractères" % date
+    if type(date) != bytes:
+        raise InvalidChain("'%s' => Cette date n'est pas une chaine de caractères" % date)
 
     def ENint(chn):
         if chn == '':
@@ -169,7 +168,7 @@ def timedeltaENchaine(temps, formSortie='iso', jrs=True, hrs=True, mins=True, se
         Affecter arg='' pour ne pas afficher la valeur 'arg' dans la chaine
     """
     if type(temps) != datetime.timedelta and temps != None:
-        raise InvalidTimedelta, "'%s' => Ce temps n'est pas un objet timedelta" % temps
+        raise InvalidTimedelta("'%s' => Ce temps n'est pas un objet timedelta" % temps)
 
     if temps == None:
         return ''
@@ -191,31 +190,31 @@ def timedeltaENchaine(temps, formSortie='iso', jrs=True, hrs=True, mins=True, se
         zeroSups = '0'
 
     if formSortie == 'iso':
-        return u"%s days, %s:%s:%s.%s" % (jours, heures, zeroSupm + minutes, zeroSups + secondes, str(microsecondes))
+        return "%s days, %s:%s:%s.%s" % (jours, heures, zeroSupm + minutes, zeroSups + secondes, str(microsecondes))
 
     elif formSortie == 'fr':
-        chaine = u""
+        chaine = ""
         if jours != '0' and jrs == True:
-            chaine = chaine + jours + u" jr" + u" "
+            chaine = chaine + jours + " jr" + " "
         if heures != '0' and hrs == True:
-            chaine = chaine + heures + u" hr" + u" "
+            chaine = chaine + heures + " hr" + " "
         if minutes != '0' and mins == True:
-            chaine = chaine + minutes + u" min" + u" "
+            chaine = chaine + minutes + " min" + " "
         if secondes != '0' and secs == True:
-            chaine = chaine + secondes + u" sec" + u" "
+            chaine = chaine + secondes + " sec" + " "
         if microsecondes != '0' and msecs == True:
             microsecondes = str(microsecondes * 10 ** (-5))
             chaine = chaine + microsecondes + "'"
 
         if chaine == "":
             if secs == True:
-                chaine = u"0 sec"
+                chaine = "0 sec"
             elif mins == True:
-                chaine = u"0 min"
+                chaine = "0 min"
             elif hrs == True:
-                chaine = u"0 hr"
+                chaine = "0 hr"
             elif jrs == True:
-                chaine = u"0 jr"
+                chaine = "0 jr"
 
         return chaine
 
@@ -225,8 +224,8 @@ def chaineENtimedelta(temps):
     Retourne une différence sous forme d'un objet timedelta
     L'argument entré doit être une chaine exprimant une différence sous forme iso
     """
-    if type(temps) != types.StringType:
-        raise InvalidChain, "'%s' => Ce temps n'est pas une chaine de caractères" % temps
+    if type(temps) != bytes:
+        raise InvalidChain("'%s' => Ce temps n'est pas une chaine de caractères" % temps)
 
     def ENint(chn):
         if chn == '':
