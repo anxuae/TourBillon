@@ -702,7 +702,7 @@ cliquez sur ANNULER si vous ne voulez pas ajouter cette nouvelle équipe."
         if ret == wx.ID_OK:
             for section in dlg.donnees():
                 for nom, valeur in dlg.donnees()[section].items():
-                    self.config.set(section, nom, unicode(valeur))
+                    self.config.set(section, nom, str(valeur))
 
         dlg.Destroy()
         self.fenetre_affichage.configurer(self.config.get_options('AFFICHAGE', upper_keys=True))

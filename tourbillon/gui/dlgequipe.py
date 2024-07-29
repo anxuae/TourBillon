@@ -205,11 +205,10 @@ class EntrerNumero(wx.Panel):
         self.Layout()
 
     def chg_numero(self, numero):
-        numero = unicode(numero)
         if self.combo is True:
-            self.ctl_numero.SetSelection(self.ctl_numero.FindString(numero))
+            self.ctl_numero.SetSelection(self.ctl_numero.FindString(str(numero)))
         else:
-            self.ctl_numero.SetValue(numero)
+            self.ctl_numero.SetValue(str(numero))
 
     def complet(self):
         if self.combo is True:

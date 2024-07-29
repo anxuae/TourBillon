@@ -17,7 +17,7 @@ CNP_CACHE = []
 
 
 def cle_matrice(manche):
-    cle = "_".join([unicode(num) for num in sorted(manche)])
+    cle = "_".join([str(num) for num in sorted(manche)])
     return cle
 
 

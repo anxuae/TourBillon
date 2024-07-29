@@ -53,7 +53,7 @@ def points_style(valeur):
     if valeur is None:
         texte = ""
     else:
-        texte = unicode(valeur)
+        texte = str(valeur)
 
     return texte, couleur, police
 
@@ -230,9 +230,9 @@ class Grille(wx.BoxSizer):
             texte = ""
 
         if col < len(TITRES['partie']):
-            self._grille_partie.SetCellValue(row + 2, col, unicode(texte))
+            self._grille_partie.SetCellValue(row + 2, col, str(texte))
         else:
-            self._grille_statistiques.SetCellValue(row + 2, col - len(TITRES['partie']), unicode(texte))
+            self._grille_statistiques.SetCellValue(row + 2, col - len(TITRES['partie']), str(texte))
 
     def GetGridEvent(self, row, col):
         """
@@ -456,7 +456,7 @@ class GrillePanel(scrolled.ScrolledPanel):
             # Numero
             self.grille.SetCellValue(ligne, 0, equipe.numero)
             # Noms
-            noms = [unicode(joueur) for joueur in equipe.joueurs()]
+            noms = [str(joueur) for joueur in equipe.joueurs()]
             noms = " / ".join(noms)
             self.grille.SetCellValue(ligne, 1, noms)
             # Joker

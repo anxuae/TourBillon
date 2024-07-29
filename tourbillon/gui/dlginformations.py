@@ -103,7 +103,7 @@ class ListeCyclique(object):
             self._nombre = nombre
 
     def __str__(self):
-        return "ListeCyclique%s" % unicode(tuple(self._liste))
+        return f"ListeCyclique{tuple(self._liste)}"
 
     def __eq__(self, other):
         return other._liste == self._liste and self._nombre == other._nombre
@@ -162,7 +162,7 @@ class Grille(grid.Grid):
         grid.Grid.SetRowSize(self, 0, height)
 
     def SetColLabelValue(self, col, value):
-        grid.Grid.SetCellValue(self, 0, col, unicode(value))
+        grid.Grid.SetCellValue(self, 0, col, str(value))
 
     def SetColLabelAttr(self, attr):
         grid.Grid.SetRowAttr(self, 0, attr)
@@ -251,10 +251,10 @@ class GrilleTirage(Grille):
                             equipe = self.manches[self._compteur][0]
                             adversaires = self.manches[self._compteur][1:]
                             # Equipe
-                            self.SetCellValue(i, 0, unicode(equipe))
+                            self.SetCellValue(i, 0, str(equipe))
                             # Adversaires
                             if adversaires:
-                                self.SetCellValue(i, 1, " - ".join([unicode(num) for num in adversaires]))
+                                self.SetCellValue(i, 1, " - ".join([str(num) for num in adversaires]))
                             else:
                                 self.SetCellValue(i, 1, "C")
                                 self.SetCellTextColour(i, 1, images.couleur(cst.CHAPEAU))
@@ -262,7 +262,7 @@ class GrilleTirage(Grille):
                             piquet = tournoi.tournoi().equipe(equipe).resultat(tournoi.tournoi().partie_courante().numero).piquet
                             if not piquet:
                                 piquet = "-"
-                            self.SetCellValue(i, 3, unicode(piquet))
+                            self.SetCellValue(i, 3, str(piquet))
                         else:
                             self.SetCellValue(i, j, "")
                 i += 1
@@ -485,9 +485,9 @@ class GrilleResultats(Grille):
                         num = self.num_equipes[self._compteur]
                         equipe = self.tournoi.equipe(num)
                         # Numéro
-                        self.SetCellValue(i, 0, unicode(num))
+                        self.SetCellValue(i, 0, str(num))
                         # Noms
-                        noms = [unicode(joueur) for joueur in equipe.joueurs()]
+                        noms = [str(joueur) for joueur in equipe.joueurs()]
                         noms = " / ".join(noms)
                         self.SetCellValue(i, 1, noms)
                         # Etat
@@ -496,10 +496,10 @@ class GrilleResultats(Grille):
                         self.SetCellValue(i, 2, texte)
                         self.SetCellTextColour(i, 2, couleur)
                         # Points
-                        self.SetCellValue(i, 3, unicode(equipe.resultat(self.tournoi.partie_courante().numero).points))
+                        self.SetCellValue(i, 3, str(equipe.resultat(self.tournoi.partie_courante().numero).points))
                         self.SetCellTextColour(i, 3, wx.Colour(0, 0, 255))
                         # Nombre de victoires
-                        self.SetCellValue(i, 5, unicode(equipe.victoires()))
+                        self.SetCellValue(i, 5, str(equipe.victoires()))
                     else:
                         self.SetCellValue(i, 0, "")
                         self.SetCellValue(i, 1, "")
@@ -572,7 +572,7 @@ class GrilleResultats(Grille):
                     num = int(num)
                     equipe = self.tournoi.equipe(num)
                     # Noms
-                    noms = [unicode(joueur) for joueur in equipe.joueurs()]
+                    noms = [str(joueur) for joueur in equipe.joueurs()]
                     noms = " / ".join(noms)
                     self.SetCellValue(i, 1, noms)
                     # Etat
@@ -581,10 +581,10 @@ class GrilleResultats(Grille):
                     self.SetCellValue(i, 2, texte)
                     self.SetCellTextColour(i, 2, couleur)
                     # Points
-                    self.SetCellValue(i, 3, unicode(equipe.resultat(self.tournoi.partie_courante().numero).points))
+                    self.SetCellValue(i, 3, str(equipe.resultat(self.tournoi.partie_courante().numero).points))
                     self.SetCellTextColour(i, 3, wx.Colour(0, 0, 255))
                     # Nombre de victoires
-                    self.SetCellValue(i, 5, unicode(equipe.victoires()))
+                    self.SetCellValue(i, 5, str(equipe.victoires()))
 
                 i += 1
 

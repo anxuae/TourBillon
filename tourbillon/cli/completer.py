@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-
 
-import __builtin__
+import builtins
 import __main__
 import keyword
 import os
@@ -143,7 +143,7 @@ class Completer(object):
         match_append = matches.append
         n = len(text)
         for lst in [keyword.kwlist,
-                    __builtin__.__dict__.keys(),
+                    builtins.__dict__.keys(),
                     self.namespace.keys(),
                     self.global_namespace.keys()]:
             for word in lst:

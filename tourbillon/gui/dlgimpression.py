@@ -71,7 +71,7 @@ class DialogueImprimer(printout.PrintTable):
         for equipe, place in classement:
             self.data.append([place,
                               equipe.numero,
-                              " / ".join([unicode(joueur) for joueur in equipe.joueurs()]),
+                              " / ".join([str(joueur) for joueur in equipe.joueurs()]),
                               equipe.victoires(),
                               equipe.points(),
                               equipe.chapeaux(),

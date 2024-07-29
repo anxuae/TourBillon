@@ -436,7 +436,7 @@ class BarreBouton(bp.ButtonPanel):
         return int(float(self.txt_partie.GetLabelText()))
 
     def chg_partie(self, valeur=0):
-        self.txt_partie.SetLabel(unicode(valeur))
+        self.txt_partie.SetLabel(str(valeur))
         self.Refresh()
 
     def FindItemById(self, id):

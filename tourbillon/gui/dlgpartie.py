@@ -1,7 +1,7 @@
 # -*- coding: UTF-8 -*-
 
 import wx
-import wx.wizard as wiz
+import wx.adv as wiz
 from wx import grid
 from wx.lib.mixins import listctrl
 from wx.lib.wordwrap import wordwrap
@@ -43,10 +43,10 @@ class DialogueSupprimerPartie(wx.Dialog):
         self.CenterOnParent()
 
         self.txt_phrase0 = wx.StaticText(self, wx.ID_ANY, "Etes vous sûr de vouloir supprimer la partie n° ")
-        self.ctl_numero = wx.Choice(self, wx.ID_ANY, choices=map(unicode, choix))
+        self.ctl_numero = wx.Choice(self, wx.ID_ANY, choices=map(str, choix))
         self.txt_phrase1 = wx.StaticText(self, wx.ID_ANY, " ?")
         self.txt_phrase2 = wx.StaticText(self, wx.ID_ANY, "(Attention, toutes les données de la partie seront supprimées)")
-        self.ctl_numero.SetSelection(self.ctl_numero.FindString(unicode(numero_affiche)))
+        self.ctl_numero.SetSelection(self.ctl_numero.FindString(str(numero_affiche)))
 
         # Choix
         box_chx = wx.BoxSizer(wx.HORIZONTAL)
@@ -71,8 +71,7 @@ class DialogueSupprimerPartie(wx.Dialog):
         self.Layout()
 
     def chg_numero(self, numero):
-        numero = unicode(numero)
-        self.ctl_numero.SetSelection(self.ctl_numero.FindString(numero))
+        self.ctl_numero.SetSelection(self.ctl_numero.FindString(str(numero)))
 
     def numero(self):
         return self.ctl_numero.GetString(self.ctl_numero.GetSelection())
@@ -85,8 +84,8 @@ class DialogueAfficherTirage(wx.Dialog):
         self.CenterOnParent()
 
         self.txt_phrase = wx.StaticText(self, wx.ID_ANY, "Tirage de la partie n° ")
-        self.ctl_numero = wx.Choice(self, wx.ID_ANY, choices=[unicode(partie.numero) for partie in tournoi.tournoi().parties()])
-        self.ctl_numero.SetSelection(self.ctl_numero.FindString(unicode(numero_affiche)))
+        self.ctl_numero = wx.Choice(self, wx.ID_ANY, choices=[str(partie.numero) for partie in tournoi.tournoi().parties()])
+        self.ctl_numero.SetSelection(self.ctl_numero.FindString(str(numero_affiche)))
 
         # Choix
         box_chx = wx.BoxSizer(wx.HORIZONTAL)
@@ -264,12 +263,12 @@ class ListeEquipesCtrl(wx.ListCtrl, listctrl.CheckListCtrlMixin):
 
         for num in liste_equipes:
             equipe = tournoi.tournoi().equipe(int(num))
-            self.Append([unicode(equipe.numero),
-                         ", ".join([unicode(joueur) for joueur in equipe.joueurs()]),
-                         unicode(equipe.victoires()),
-                         unicode(equipe.points()),
-                         unicode(equipe.chapeaux()),
-                         unicode(classement[equipe])])
+            self.Append([str(equipe.numero),
+                         ", ".join([str(joueur) for joueur in equipe.joueurs()]),
+                         str(equipe.victoires()),
+                         str(equipe.points()),
+                         str(equipe.chapeaux()),
+                         str(classement[equipe])])
             # Cocher si l'équipe étaient cochées avant effacement
             if int(num) in selection:
                 self.CheckItem(self.GetItemCount() - 1)
@@ -414,7 +413,7 @@ class GrilleManchesCtrl(grid.Grid):
             self.SetCellValue(i, 0, "-")
             while j < self.equipes_par_manche:
                 if j < len(chapeaux):
-                    self.SetCellValue(i, j + 1, unicode(chapeaux[j]))
+                    self.SetCellValue(i, j + 1, str(chapeaux[j]))
                 else:
                     self.SetCellValue(i, j + 1, "C")
                     self.SetCellTextColour(i, j + 1, images.couleur(cst.CHAPEAU))
@@ -423,15 +422,15 @@ class GrilleManchesCtrl(grid.Grid):
 
         # Afficher les manches
         for piquet, m in manches.items():
-            self.SetCellValue(i, 0, unicode(piquet))
+            self.SetCellValue(i, 0, str(piquet))
             j = 1
             for e in m:
-                self.SetCellValue(i, j, unicode(e))
+                self.SetCellValue(i, j, str(e))
                 j += 1
             i += 1
 
     def chg_texte(self, ligne, texte):
-        self.SetCellValue(ligne, self.equipes_par_manche + 1, unicode(texte))
+        self.SetCellValue(ligne, self.equipes_par_manche + 1, str(texte))
 
     def echangeable(self):
         return self.select1 is not None and self.select2 is not None
@@ -870,7 +869,7 @@ class LancerTiragePage(wiz.PyWizardPage):
                     self.txt_msg.chg_texte("Le tirage est terminé. Passez à l'étape suivante.", wx.ICON_INFORMATION)
                     nextButton.Enable()
                 else:
-                    self.txt_msg.chg_texte(unicode(self._generateur.erreur), wx.ICON_ERROR)
+                    self.txt_msg.chg_texte(str(self._generateur.erreur), wx.ICON_ERROR)
                     nextButton.Disable()
 
         if event is not None:

@@ -29,7 +29,7 @@ def creer_id(prenom, nom):
         prenom.replace(spe, rep)
         nom.replace(spe, rep)
     nom = nom.replace(' ', '_')
-    return unicode("%s_%s" % (prenom, nom))
+    return "%s_%s" % (prenom, nom)
 
 
 def charger_historique(fichier):
@@ -43,7 +43,7 @@ def charger_historique(fichier):
 
     HISTORIQUE = {}
     for ligne in lignes:
-        ligne = unicode(ligne).strip()
+        ligne = ligne.strip()
         l = ligne.split(',')
 
         HISTORIQUE.setdefault(creer_id(l[1], l[2]), []).append((l[1], l[2], l[3], l[4]))
@@ -132,7 +132,7 @@ class Joueur(object):
         if type(other) == Joueur:
             comparateur = other.cle()
         else:
-            comparateur = unicode(other)
+            comparateur = str(other)
         if self.cle() == comparateur:
             return True
         else:
@@ -142,7 +142,7 @@ class Joueur(object):
         if type(other) == Joueur:
             comparateur = other.cle()
         else:
-            comparateur = unicode(other)
+            comparateur = str(other)
         if self.cle() != comparateur:
             return True
         else:

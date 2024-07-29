@@ -95,7 +95,7 @@ def tirage_texte(statistiques, manches):
         nrc = 0
         for vu in cnp(manche, 2):
             vu = sorted(vu)
-            cle = "_".join([unicode(num) for num in vu])
+            cle = "_".join([str(num) for num in vu])
             semirencontres[cle] = statistiques[vu[1]]['adversaires'].count(vu[0])
 
         r = []

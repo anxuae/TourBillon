@@ -69,11 +69,11 @@ def entete(terminal=False):
         lignes = f.readlines()
         f.close()
         texte = "#" + "#".join(lignes)
-        return unicode(texte).format(**ENTETE_SANS_COULEURS)
+        return texte.format(**ENTETE_SANS_COULEURS)
     else:
         texte = f.read()
         f.close()
-        return unicode(texte).format(**ENTETE_AVEC_COULEURS)
+        return texte.format(**ENTETE_AVEC_COULEURS)
 
 
 # --- Images (GUI) ------------------------------------------------------------

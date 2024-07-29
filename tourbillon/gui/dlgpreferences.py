@@ -563,7 +563,7 @@ class TirageSousPageParametre(wx.Panel):
             attr.SetAlignment(wx.ALIGN_RIGHT, wx.ALIGN_CENTRE)
             self.grille.SetColAttr(1, attr)
 
-        self.grille.SetCellValue(ligne, 1, unicode(valeur))
+        self.grille.SetCellValue(ligne, 1, str(valeur))
 
     def type(self, ligne):
         for vtype, classes in self.EDITEURS.items():
@@ -595,7 +595,7 @@ class TirageSousPageParametre(wx.Panel):
                     valeur = 1
                 else:
                     valeur = ''
-            self.grille.SetCellValue(i, 1, unicode(valeur))
+            self.grille.SetCellValue(i, 1, str(valeur))
             i += 1
 
 

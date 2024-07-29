@@ -39,7 +39,7 @@ class EntrerScore(wx.Panel):
         self.Layout()
 
     def chg_numero(self, numero):
-        numero = unicode(int(numero))
+        numero = str(int(numero))
         if self.combo == True:
             self.ctl_numero.SetSelection(self.ctl_numero.FindString(numero))
         else:
@@ -53,7 +53,7 @@ class EntrerScore(wx.Panel):
             return int(self.ctl_numero.GetLabel().strip())
 
     def chg_points(self, points):
-        self.ctl_points.SetValue(unicode(points))
+        self.ctl_points.SetValue(str(points))
 
     def points(self):
         valeur = self.ctl_points.GetValue()

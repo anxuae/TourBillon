@@ -1,7 +1,7 @@
 # -*- coding: UTF-8 -*-
 
 import sys
-import __builtin__
+import builtins
 from datetime import datetime
 
 import tourbillon
@@ -58,8 +58,8 @@ class Alias(object):
     """
 
     def __init__(self):
-        __builtin__.exit = self.alias_quitter
-        __builtin__.quit = self.alias_quitter
+        builtins.exit = self.alias_quitter
+        builtins.quit = self.alias_quitter
         self._quitter = False
         self.config = None
         self.locals = {}
