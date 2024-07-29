@@ -259,13 +259,13 @@ class BaseThreadTirage(Thread):
             self.demarrer()
             msg = "\nAlgorithme terminé (temps de calcul: %s)." % temps_texte(self._chrono - self._debut)
             self.rapport(100, msg)
-        except SolutionTirageError, e:
-            msg = "\nAlgorithme terminé (%s)." % e
+        except SolutionTirageError as ex:
+            msg = "\nAlgorithme terminé (%s)." % ex
             self.erreur = e
             self.rapport(100, msg)
-        except StopTirageError, e:
+        except StopTirageError as ex:
             msg = "\nAlgorithme terminé (arrêt utilisateur)."
-            self.erreur = e
+            self.erreur = ex
             self.rapport(100, msg)
 
     def demarrer(self):

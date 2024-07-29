@@ -10,7 +10,7 @@ from tourbillon.cli.terminal import TERM
 from tourbillon.images.splash import splash
 try:
     import wx
-except ImportError, e:
+except ImportError:
     # TourBillon est utilisé en mode console
     wx = None
 

@@ -148,8 +148,8 @@ def charger_tournoi(fichier):
         FICHIER_TOURNOI = fichier
         TOURNOI.date_chargement = datetime.now()
         TOURNOI.modifie = False
-    except Exception, e:
-        raise IncoherenceError("Le fichier '%s' est corrompu (%s)." % (fichier, str(e)))
+    except Exception as ex:
+        raise IncoherenceError("Le fichier '%s' est corrompu (%s)." % (fichier, str(ex)))
 
     return TOURNOI
 

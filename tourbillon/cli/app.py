@@ -155,7 +155,7 @@ class Alias(object):
             for space in (Alias, self):
                 try:
                     fn = space.__dict__[nom_fonction]
-                except KeyError, _e:
+                except KeyError:
                     pass
                 else:
                     break
@@ -472,12 +472,11 @@ type `%licence' for details.
                         plus = self._inter.push(cmd)
                     else:
                         plus = self._inter.push(ligne)
-                except KeyboardInterrupt, e:
+                except KeyboardInterrupt:
                     print "\nKeyboardInterrupt"
                     plus = False
-        except EOFError, e:
-            print e
-            sys.exit(1)
+        except EOFError as ex:
+            sys.exit(str(ex))
 
     def ouvrir(self, fichier):
         tournoi.charger_tournoi(fichier)

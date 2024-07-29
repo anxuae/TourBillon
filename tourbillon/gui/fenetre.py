@@ -472,8 +472,8 @@ class FenetrePrincipale(wx.Frame):
             try:
                 tournoi.tournoi().partie(self.barre_bouton.numero() - 1)
                 self.barre_bouton.chg_partie(self.barre_bouton.numero() - 1)
-            except ValueError, e:
-                self.barre_etat.SetStatusText(unicode(e))
+            except ValueError as ex:
+                self.barre_etat.SetStatusText(str(e))
 
             # Rafraichir
             wx.PostEvent(self, evt.RafraichirEvent(self.GetId()))
@@ -485,8 +485,8 @@ class FenetrePrincipale(wx.Frame):
             try:
                 tournoi.tournoi().partie(self.barre_bouton.numero() + 1)
                 self.barre_bouton.chg_partie(self.barre_bouton.numero() + 1)
-            except ValueError, e:
-                self.barre_etat.SetStatusText(unicode(e))
+            except ValueError as ex:
+                self.barre_etat.SetStatusText(str(e))
 
             # Rafraichir
             wx.PostEvent(self, evt.RafraichirEvent(self.GetId()))

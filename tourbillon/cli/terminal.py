@@ -55,8 +55,8 @@ class _Terminal(object):
             import curses
             self.curses = curses
             self._setup_curses()
-        except Exception, e:
-            logger.warning("'curses' n'est pas installé (%s)" % e)
+        except Exception as ex:
+            logger.warning("'curses' n'est pas installé (%s)" % ex)
             self._setup_basic()
 
         # `readline` installé?
@@ -92,8 +92,8 @@ class _Terminal(object):
                     (status, result) = commands.getstatusoutput(
                         "otool -L %s | grep libedit" % readline.__file__)
                     break
-                except IOError, (errno, _strerror):
-                    if errno == 4:
+                except IOError as ex:
+                    if ex.errno == 4:
                         continue
                     else:
                         break

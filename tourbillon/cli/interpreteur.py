@@ -53,8 +53,8 @@ class Interpreteur(code.InteractiveConsole):
             TERM.readline.set_history_length(1000)
             try:
                 TERM.readline.read_history_file(fichier)
-            except Exception, e:
-                logger.warning("L'historique des commandes ne peut pas être lu (%s)" % e)
+            except Exception as ex:
+                logger.warning("L'historique des commandes ne peut pas être lu (%s)" % ex)
             self.fichier_historique = fichier
             atexit.register(self.enregistrer_historique)
 
