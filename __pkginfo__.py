@@ -33,6 +33,7 @@ scripts = [
 
 dependences = [  # dist_name + contrainte version
     "pyyaml>=3.0",
+    "wxpython>=3.0.0",
     "flask>=1.0.2",
     "flask-restful>=0.3.6"]
 

@@ -107,7 +107,7 @@ class Alias(object):
         Retrouver la licence dans sa version complète sur http://www.gnu.org/licenses/gpl.html
         """
 
-        print """
+        print("""
         TourBillon est un logiciel libre distribué sous licence GPL, aussi appelée
         en français Licence Publique Générale GNU. Cette licence vous garantit les
         libertés suivantes :
@@ -131,7 +131,7 @@ class Alias(object):
         vous modifiez TourBillon, vous ne pouvez cependant pas y appliquer une licence
         qui contredirait la licence GPL (par exemple, qui ne donnerait plus le droit à
         autrui de modifier le code source ou de redistribuer le code source modifié).
-        """
+        """)
 
     def alias_alias(self, args_s=''):
         """
@@ -184,7 +184,7 @@ class Alias(object):
         alias_doc = ''.join(alias_doc)
 
         if mode == 'bref':
-            print alias_doc
+            print(alias_doc)
             return
 
         outmsg = """
@@ -200,7 +200,7 @@ Le système d'alias est composé des fonctions suivantes:\n"""
 
         outmsg = ("%s\n%s\n\n" % (outmsg, alias_doc))
 
-        print outmsg
+        print(outmsg)
 
     def alias_nouveau(self, _args_s=''):
         """
@@ -236,8 +236,8 @@ Le système d'alias est composé des fonctions suivantes:\n"""
         self.locals['trb'] = tournoi.nouveau_tournoi(
             equipes_par_manche, points_par_manche, joueurs_par_equipe)
 
-        print tournoi.tournoi()
-        print "NOTE: vous pouvez acceder au tournoi via la variable 'trb'"
+        print(tournoi.tournoi())
+        print("NOTE: vous pouvez acceder au tournoi via la variable 'trb'")
 
     def alias_ouvrir(self, args_s=''):
         """
@@ -252,8 +252,8 @@ Le système d'alias est composé des fonctions suivantes:\n"""
 
         if args_s != '':
             self.locals['trb'] = tournoi.charger_tournoi(args_s)
-            print tournoi.tournoi()
-            print "NOTE: vous pouvez acceder au tournoi via la variable 'trb'"
+            print(tournoi.tournoi())
+            print("NOTE: vous pouvez acceder au tournoi via la variable 'trb'")
 
     def alias_enregistrer(self, args_s=''):
         """
@@ -282,7 +282,7 @@ Le système d'alias est composé des fonctions suivantes:\n"""
             tournoi.enregistrer_tournoi(args_s)
 
         if args_s != '':
-            print "Enregistré (%s)" % args_s
+            print("Enregistré (%s)" % args_s)
 
     def alias_tirage(self, _args_s=''):
         """
@@ -298,7 +298,7 @@ Le système d'alias est composé des fonctions suivantes:\n"""
                Par exemple: 6,12
         """
         if not tournoi.tournoi():
-            print "Pas de tournoi commencé."
+            print("Pas de tournoi commencé.")
             return
 
         choix = tirages.TIRAGES.keys()
@@ -332,24 +332,24 @@ Le système d'alias est composé des fonctions suivantes:\n"""
 
             if generateur.tirage:
                 p.afficher(p.valeur(), '\n' + message)
-                print
-                print "Tirage  : ", generateur.tirage
-                print "Chapeaux: ", generateur.chapeaux
-                print "Validé  : ", generateur.erreur or 'ok'
+                print()  # Pour passer une ligne
+                print("Tirage  : ", generateur.tirage)
+                print("Chapeaux: ", generateur.chapeaux)
+                print("Validé  : ", generateur.erreur or 'ok')
 
         generateur = tirages.creer_generateur(
             algo, tournoi.tournoi().equipes_par_manche, stat, chap, printResulat)
         generateur.configurer(**self.config.get_options(algo))
 
-        print  # Pour passer une ligne
+        print()  # Pour passer une ligne
         generateur.start()
         question()
         generateur.stop()
         generateur.join()
 
         self.locals['tir'] = generateur
-        print generateur
-        print "NOTE: vous pouvez acceder au tirage via la variable 'tir'"
+        print(generateur)
+        print("NOTE: vous pouvez acceder au tirage via la variable 'tir'")
 
     def alias_demarrer(self, _args_s=''):
         """
@@ -357,7 +357,7 @@ Le système d'alias est composé des fonctions suivantes:\n"""
         """
         tirage = self.locals.get('tir')
         if not tirage:
-            print "Pas de tirage réalisé."
+            print("Pas de tirage réalisé.")
             return
 
         partie = tournoi.tournoi().ajout_partie()
@@ -372,11 +372,11 @@ Le système d'alias est composé des fonctions suivantes:\n"""
             l'heure actuelle comme heure de fin.
         """
         if not tournoi.tournoi():
-            print "Pas de tournoi commencé."
+            print("Pas de tournoi commencé.")
         elif not tournoi.tournoi().partie_courante():
-            print "Aucune partie démarrée"
+            print("Aucune partie démarrée")
         elif tournoi.tournoi().partie_courante().statut == cst.P_ATTEND_TIRAGE:
-            print "Le tirage n'a pas été fait."
+            print("Le tirage n'a pas été fait.")
         else:
             r = question("Resultat (ex: 4 12): ")
             r = r.split(' ')
@@ -435,15 +435,15 @@ class TourBillonCLI(Alias):
         except AttributeError:
             sys.ps2 = TERM.formater("{BLUE}... ")
 
-        print "%s  Copyright © 2010  La Billonnière." % tourbillon.__nom__
-        print """
+        print("%s  Copyright © 2010  La Billonnière." % tourbillon.__nom__)
+        print("""
 This program comes with ABSOLUTELY NO WARRANTY; This is a free software, and
 you are welcome to redistribute it under certain conditions;
 
 type `%licence' for details.
-"""
-        print
-        print images.entete(terminal=True)
+""")
+        print()
+        print(images.entete(terminal=True))
 
     def run(self):
         """
@@ -473,7 +473,7 @@ type `%licence' for details.
                     else:
                         plus = self._inter.push(ligne)
                 except KeyboardInterrupt:
-                    print "\nKeyboardInterrupt"
+                    print("\nKeyboardInterrupt")
                     plus = False
         except EOFError as ex:
             sys.exit(str(ex))
@@ -481,4 +481,4 @@ type `%licence' for details.
     def ouvrir(self, fichier):
         tournoi.charger_tournoi(fichier)
         self.locals['trb'] = tournoi.tournoi()
-        print tournoi.tournoi()
+        print(tournoi.tournoi())

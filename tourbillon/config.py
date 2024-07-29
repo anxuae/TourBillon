@@ -90,12 +90,6 @@ def systeme_config():
         info.append(('PyYAML', 'Non installé'))
 
     try:
-        import sqlite3
-        info.append(('Sqlite3', sqlite3.version))
-    except ImportError:
-        info.append(('Sqlite3', 'Non installé'))
-
-    try:
         import flask
         info.append(('Flask', flask.__version__))
     except ImportError:

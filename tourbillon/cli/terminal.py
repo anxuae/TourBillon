@@ -16,6 +16,7 @@
 
 import os
 import sys
+import subprocess
 from tourbillon import logger
 
 
@@ -86,11 +87,9 @@ class _Terminal(object):
         self.utilise_libedit = False
         if sys.platform == 'darwin' and self.readline:
             status, result = None, []
-            import commands
             for _i in range(10):
                 try:
-                    (status, result) = commands.getstatusoutput(
-                        "otool -L %s | grep libedit" % readline.__file__)
+                    (status, result) = subprocess.getstatusoutput("otool -L %s | grep libedit" % readline.__file__)
                     break
                 except IOError as ex:
                     if ex.errno == 4:
