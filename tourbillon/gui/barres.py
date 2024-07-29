@@ -147,7 +147,7 @@ class ButtonInfo(bp.ButtonInfo):
 
 class Menu(wx.Menu):
 
-    def ajouter(self, id, text, help=u"", kind=wx.ITEM_NORMAL, bpm=None):
+    def ajouter(self, id, text, help="", kind=wx.ITEM_NORMAL, bpm=None):
         sous_menu = wx.MenuItem(self, id, text, help, kind)
         if bpm:
             sous_menu.SetBitmap(bpm)
@@ -170,13 +170,13 @@ def styles():
 
 def cree_contexte_menu():
     menu = Menu()
-    menu.ajouter(ID_RESULTATS, u"&Entrer les résultats", u"  Entrer les résultats des manches de la partie en cours",
+    menu.ajouter(ID_RESULTATS, "&Entrer les résultats", "  Entrer les résultats des manches de la partie en cours",
                  bpm=images.bitmap('resultats.png', scale=0.5))
-    menu.ajouter(ID_MODIFIER_E, u"&Modifier", u"  Modifier les données d'une équipe",
+    menu.ajouter(ID_MODIFIER_E, "&Modifier", "  Modifier les données d'une équipe",
                  bpm=images.bitmap('modifier.png', scale=0.5))
-    menu.ajouter(ID_NOUVELLE_E, u"&Nouvelle\tCtrl+E", u"  Inscrire une nouvelle équipe au tournoi",
+    menu.ajouter(ID_NOUVELLE_E, "&Nouvelle\tCtrl+E", "  Inscrire une nouvelle équipe au tournoi",
                  bpm=images.bitmap('equipe.png', scale=0.5))
-    menu.ajouter(ID_SUPPRIMER_E, u"&Supprimer", u"  Supprimer une équipe du tournoi",
+    menu.ajouter(ID_SUPPRIMER_E, "&Supprimer", "  Supprimer une équipe du tournoi",
                  bpm=images.bitmap('supprimer.png', scale=0.5))
 
     for st, val in styles().items():
@@ -193,62 +193,62 @@ class BarreMenu(wx.MenuBar):
 
         # Menu fichier
         self.menu_fichier = Menu()
-        self.menu_fichier.ajouter(wx.ID_NEW, u"&Nouveau\tCtrl+N", u"  Commencer un nouveau tournoi",
+        self.menu_fichier.ajouter(wx.ID_NEW, "&Nouveau\tCtrl+N", "  Commencer un nouveau tournoi",
                                   bpm=images.bitmap('nouveau.png', scale=0.5))
-        self.menu_fichier.ajouter(wx.ID_OPEN, u"&Ouvrir...\tCtrl+O", u"  Ouvrir un tournoi",
+        self.menu_fichier.ajouter(wx.ID_OPEN, "&Ouvrir...\tCtrl+O", "  Ouvrir un tournoi",
                                   bpm=images.bitmap('ouvrir.png', scale=0.5))
         self.menu_fichier.AppendSeparator()
-        self.menu_fichier.ajouter(wx.ID_SAVE, u"&Enregistrer\tCtrl+S", u"  Enregistrer le fichier ouvert",
+        self.menu_fichier.ajouter(wx.ID_SAVE, "&Enregistrer\tCtrl+S", "  Enregistrer le fichier ouvert",
                                   bpm=images.bitmap('enregistrer.png', scale=0.5))
-        self.menu_fichier.ajouter(wx.ID_SAVEAS, u"&Enregistrer sous...", u"  Enregistrer le fichier ouvert",
+        self.menu_fichier.ajouter(wx.ID_SAVEAS, "&Enregistrer sous...", "  Enregistrer le fichier ouvert",
                                   bpm=images.bitmap('enregistrer_sous.png', scale=0.5))
         self.menu_fichier.AppendSeparator()
-        self.menu_fichier.ajouter(wx.ID_PREVIEW_PRINT, u"&Apreçu avant impression", u"  Visualiser le classement avant impression",
+        self.menu_fichier.ajouter(wx.ID_PREVIEW_PRINT, "&Apreçu avant impression", "  Visualiser le classement avant impression",
                                   bpm=images.bitmap('loupe.png', scale=0.5))
-        self.menu_fichier.ajouter(wx.ID_PRINT, u"&Imprimer...\tCtrl+I", u"  Imprimer le classement des équipes",
+        self.menu_fichier.ajouter(wx.ID_PRINT, "&Imprimer...\tCtrl+I", "  Imprimer le classement des équipes",
                                   bpm=images.bitmap('imprimer.png', scale=0.5))
         self.menu_fichier.AppendSeparator()
-        self.menu_fichier.ajouter(wx.ID_EXIT, u"&Quitter\tCtrl+Q", u"  Quitter TourBillon",
+        self.menu_fichier.ajouter(wx.ID_EXIT, "&Quitter\tCtrl+Q", "  Quitter TourBillon",
                                   bpm=images.bitmap('quitter.png', scale=0.5))
 
         # Menu affichage
         self.menu_affichage = wx.Menu()
-        self.menu_affichage.Append(ID_STATISTIQUES, u"Statistiques tournoi", u"  Afficher les statistiques du tournoi", wx.ITEM_CHECK)
-        self.menu_affichage.Append(ID_INFO, u"&Infos Equipes", u"  Afficher les informations des joueurs", wx.ITEM_CHECK)
-        self.menu_affichage.Append(ID_TIRAGE, u"&Tirages", u"  Afficher les tirages")
+        self.menu_affichage.Append(ID_STATISTIQUES, "Statistiques tournoi", "  Afficher les statistiques du tournoi", wx.ITEM_CHECK)
+        self.menu_affichage.Append(ID_INFO, "&Infos Equipes", "  Afficher les informations des joueurs", wx.ITEM_CHECK)
+        self.menu_affichage.Append(ID_TIRAGE, "&Tirages", "  Afficher les tirages")
         self.menu_affichage.AppendSeparator()
-        self.menu_affichage.Append(ID_SHELL, u"Shell Python", u"  Afficher un shell Python pour le débogage", wx.ITEM_CHECK)
+        self.menu_affichage.Append(ID_SHELL, "Shell Python", "  Afficher un shell Python pour le débogage", wx.ITEM_CHECK)
 
         # Menu Tournoi
         self.sous_menu_inscription = Menu()
-        self.sous_menu_inscription.ajouter(ID_NOUVELLE_E, u"&Nouvelle\tCtrl+E", u"  Inscrire une nouvelle équipe au tournoi",
+        self.sous_menu_inscription.ajouter(ID_NOUVELLE_E, "&Nouvelle\tCtrl+E", "  Inscrire une nouvelle équipe au tournoi",
                                            bpm=images.bitmap('equipe.png', scale=0.5))
-        self.sous_menu_inscription.ajouter(ID_MODIFIER_E, u"&Modifier", u"  Modifier les données d'une équipe",
+        self.sous_menu_inscription.ajouter(ID_MODIFIER_E, "&Modifier", "  Modifier les données d'une équipe",
                                            bpm=images.bitmap('modifier.png', scale=0.5))
-        self.sous_menu_inscription.ajouter(ID_SUPPRIMER_E, u"&Supprimer", u"  Supprimer une équipe du tournoi",
+        self.sous_menu_inscription.ajouter(ID_SUPPRIMER_E, "&Supprimer", "  Supprimer une équipe du tournoi",
                                            bpm=images.bitmap('supprimer.png', scale=0.5))
 
         self.sous_menu_partie = Menu()
-        self.sous_menu_partie.ajouter(ID_NOUVELLE_P, u"&Nouvelle\tCtrl+P", u"  Lancer une nouvelle partie",
+        self.sous_menu_partie.ajouter(ID_NOUVELLE_P, "&Nouvelle\tCtrl+P", "  Lancer une nouvelle partie",
                                       bpm=images.bitmap('partie.png', scale=0.5))
-        self.sous_menu_partie.ajouter(ID_RESULTATS, u"&Entrer les résultats", u"  Entrer les résultats des manches de la partie en cours",
+        self.sous_menu_partie.ajouter(ID_RESULTATS, "&Entrer les résultats", "  Entrer les résultats des manches de la partie en cours",
                                       bpm=images.bitmap('resultats.png', scale=0.5))
-        self.sous_menu_partie.ajouter(ID_SUPPRIMER_P, u"&Supprimer", u"  Supprimer une partie",
+        self.sous_menu_partie.ajouter(ID_SUPPRIMER_P, "&Supprimer", "  Supprimer une partie",
                                       bpm=images.bitmap('supprimer.png', scale=0.5))
 
         self.menu_tournoi = Menu()
-        self.menu_tournoi.AppendMenu(ID_INSCRIPTION, u"&Equipes", self.sous_menu_inscription)
-        self.menu_tournoi.AppendMenu(ID_PARTIE, u"&Parties", self.sous_menu_partie)
-        self.menu_tournoi.Append(ID_CLASSEMENT, u"&Classement", u"  Afficher le classement")
+        self.menu_tournoi.AppendMenu(ID_INSCRIPTION, "&Equipes", self.sous_menu_inscription)
+        self.menu_tournoi.AppendMenu(ID_PARTIE, "&Parties", self.sous_menu_partie)
+        self.menu_tournoi.Append(ID_CLASSEMENT, "&Classement", "  Afficher le classement")
         self.menu_tournoi.AppendSeparator()
-        self.menu_tournoi.ajouter(wx.ID_PREFERENCES, u"&Préférences\tCtrl+,", u" Configuration de l'application",
+        self.menu_tournoi.ajouter(wx.ID_PREFERENCES, "&Préférences\tCtrl+,", " Configuration de l'application",
                                   bpm=images.bitmap('preferences.png', scale=0.5))
 
         # Menu Aide
         self.menu_aide = Menu()
-        self.menu_aide.ajouter(wx.ID_PROPERTIES, u"Information Système", u" Configuration du système hôte de TourBillon...",
+        self.menu_aide.ajouter(wx.ID_PROPERTIES, "Information Système", " Configuration du système hôte de TourBillon...",
                                bpm=images.bitmap('systeme.png', scale=0.5))
-        self.menu_aide.ajouter(wx.ID_ABOUT, u"&A propos de TourBillon", u" Pour en savoir plus...",
+        self.menu_aide.ajouter(wx.ID_ABOUT, "&A propos de TourBillon", " Pour en savoir plus...",
                                bpm=images.bitmap('icon.png', scale=0.6))
 
         self.Append(self.menu_fichier, "&Fichier")
@@ -349,7 +349,7 @@ class BarreBouton(bp.ButtonPanel):
         self.box_chercher = wx.SearchCtrl(self, wx.ID_FIND, size=(200, -1), style=wx.TE_PROCESS_ENTER)
 
         menu = wx.Menu()
-        titres = [t[0] for t in grl.TITRES['partie'] if t[0] != u""] + [t[0] for t in grl.TITRES['statistiques'] if t[0] != u""]
+        titres = [t[0] for t in grl.TITRES['partie'] if t[0] != ""] + [t[0] for t in grl.TITRES['statistiques'] if t[0] != ""]
         for texte in titres:
             menu.Append(wx.ID_ANY, texte, "", wx.ITEM_RADIO)
         self.box_chercher.SetMenu(menu)
@@ -481,7 +481,7 @@ class BarreEtat(wx.StatusBar):
         wx.StatusBar.__init__(self, parent)
         self.SetFieldsCount(6)
         self.SetStatusWidths([-1, 180, 100, 100, 200, 35])
-        self.SetStatusText(u"", 5)
+        self.SetStatusText("", 5)
 
         self._voyant_modif = Voyant(self)
         self.Bind(wx.EVT_SIZE, self.reDim, self)
@@ -490,10 +490,10 @@ class BarreEtat(wx.StatusBar):
         """
         NE PAS UTILISER !!!!! (Manipulé par la fenêtre principale)
         """
-        self.SetStatusText(u"  Manches incompletes : %s" % manches_incompletes, 4)
-        self.SetStatusText(u"  Equipes : %s" % equipes, 3)
-        self.SetStatusText(u"  Parties : %s" % parties, 2)
-        self.SetStatusText(u"  Début du tournoi : %s" % debut, 1)
+        self.SetStatusText("  Manches incompletes : %s" % manches_incompletes, 4)
+        self.SetStatusText("  Equipes : %s" % equipes, 3)
+        self.SetStatusText("  Parties : %s" % parties, 2)
+        self.SetStatusText("  Début du tournoi : %s" % debut, 1)
         self._voyant_modif.change(modifie)
 
     def reDim(self, event):

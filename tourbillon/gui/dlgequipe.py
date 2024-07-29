@@ -18,9 +18,9 @@ ID_PRENOM = wx.NewId()
 ID_NOM = wx.NewId()
 ID_NUMERO = wx.NewId()
 
-STYLE_AJOUTER = u"Ajouter"
-STYLE_MOFIFIER = u"Modifier"
-STYLE_SUPPRIMER = u"Supprimer"
+STYLE_AJOUTER = "Ajouter"
+STYLE_MOFIFIER = "Modifier"
+STYLE_SUPPRIMER = "Supprimer"
 
 
 class CompleterPopup(wx.PopupWindow):
@@ -74,16 +74,16 @@ class EntrerJoueur(wx.Panel):
             prenom, nom, age = "  Prenom:", "  Nom   :", "  Age   :"
 
         self.txt_prenom = wx.StaticText(self, wx.ID_ANY, prenom, size=(65, -1))
-        self.ctl_prenom = wx.TextCtrl(self, ID_PRENOM, u"")
-        self.ctl_prenom._selection = u""
+        self.ctl_prenom = wx.TextCtrl(self, ID_PRENOM, "")
+        self.ctl_prenom._selection = ""
 
         self.txt_nom = wx.StaticText(self, wx.ID_ANY, nom, size=(65, -1))
-        self.ctl_nom = wx.TextCtrl(self, ID_NOM, u"")
-        self.ctl_nom._selection = u""
+        self.ctl_nom = wx.TextCtrl(self, ID_NOM, "")
+        self.ctl_nom._selection = ""
 
         self.txt_age = wx.StaticText(self, wx.ID_ANY, age, size=(50, -1))
-        self.ctl_age = wx.TextCtrl(self, wx.ID_ANY, u"", size=(40, -1))
-        self.ctl_age._selection = u""
+        self.ctl_age = wx.TextCtrl(self, wx.ID_ANY, "", size=(40, -1))
+        self.ctl_age._selection = ""
 
         box = wx.BoxSizer(wx.HORIZONTAL)
         box.Add(self.txt_prenom, 0, wx.EXPAND)
@@ -151,7 +151,7 @@ class EntrerJoueur(wx.Panel):
         self.ctl_age.SetEditable(valeur)
 
     def complet(self):
-        if self.ctl_prenom.GetValue() != u"" and self.ctl_nom.GetValue() != u"":
+        if self.ctl_prenom.GetValue() != "" and self.ctl_nom.GetValue() != "":
             return True
         else:
             return False
@@ -192,14 +192,14 @@ class EntrerNumero(wx.Panel):
         self.SetMinSize((-1, 40))
 
         if choix == []:
-            self.ctl_numero = wx.TextCtrl(self, wx.ID_ANY, u"", validator=EquipeValidateur())
+            self.ctl_numero = wx.TextCtrl(self, wx.ID_ANY, "", validator=EquipeValidateur())
             self.combo = False
         else:
             self.ctl_numero = wx.Choice(self, ID_NUMERO, choices=map(unicode, choix))
             self.combo = True
 
         box = wx.BoxSizer(wx.HORIZONTAL)
-        box.Add(wx.StaticText(self, wx.ID_ANY, u"Equipe n° "), 0, wx.ALIGN_CENTER_HORIZONTAL | wx.ALIGN_CENTER_VERTICAL)
+        box.Add(wx.StaticText(self, wx.ID_ANY, "Equipe n° "), 0, wx.ALIGN_CENTER_HORIZONTAL | wx.ALIGN_CENTER_VERTICAL)
         box.Add(self.ctl_numero, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.ALIGN_CENTER_VERTICAL)
         self.SetSizer(box)
         self.Layout()
@@ -215,7 +215,7 @@ class EntrerNumero(wx.Panel):
         if self.combo is True:
             return True
         else:
-            if self.ctl_numero.GetValue() != u"":
+            if self.ctl_numero.GetValue() != "":
                 try:
                     tournoi.tournoi().equipe(int(self.ctl_numero.GetValue()))
                     return False
@@ -234,7 +234,7 @@ class EntrerNumero(wx.Panel):
 class DialogueEquipe(wx.Dialog):
 
     def __init__(self, parent, style=STYLE_AJOUTER, choix=[], numero_affiche=1, completion=True):
-        wx.Dialog.__init__(self, parent, wx.ID_ANY, title=style + u" une équipe", style=wx.DEFAULT_DIALOG_STYLE | wx.CENTER_ON_SCREEN | wx.RESIZE_BORDER)
+        wx.Dialog.__init__(self, parent, wx.ID_ANY, title=style + " une équipe", style=wx.DEFAULT_DIALOG_STYLE | wx.CENTER_ON_SCREEN | wx.RESIZE_BORDER)
         self.SetMinSize((500, 220))
         self.CenterOnParent()
 
@@ -266,7 +266,7 @@ class DialogueEquipe(wx.Dialog):
                                          "les équipes ex-aequo (laisser 0 si pas de departage).")
 
         # Boutons
-        self.btn_gen = platebtn.PlateButton(self, wx.ID_ANY, u"  Joker n° ")
+        self.btn_gen = platebtn.PlateButton(self, wx.ID_ANY, "  Joker n° ")
         self.btn_gen.SetForegroundColour(wx.Colour(0, 0, 200))
         self.btn_gen.SetPressColor(wx.Colour(0, 0, 200))
         self.btn_ok = wx.Button(self, id=wx.ID_OK, label=style, size=(100, -1))
@@ -352,12 +352,12 @@ class DialogueEquipe(wx.Dialog):
 class DialogueMessageEquipe(wx.Dialog):
 
     def __init__(self, parent, equipe):
-        wx.Dialog.__init__(self, parent, wx.ID_ANY, title=u"Tournoi en cours", style=wx.DEFAULT_DIALOG_STYLE | wx.CENTER_ON_SCREEN, pos=wx.DefaultPosition, size=wx.DefaultSize)
+        wx.Dialog.__init__(self, parent, wx.ID_ANY, title="Tournoi en cours", style=wx.DEFAULT_DIALOG_STYLE | wx.CENTER_ON_SCREEN, pos=wx.DefaultPosition, size=wx.DefaultSize)
         self.SetMinSize((500, 220))
         self.SetSize(wx.Size(500, 200))
         self.CenterOnParent()
 
-        texte = u"La partie n° %s est en cours, pour toutes les parties précédentes l'équipe\n\
+        texte = "La partie n° %s est en cours, pour toutes les parties précédentes l'équipe\n\
 sera considérée comme forfait, choisissez l'état de l'équipe n° %s pour la\n\
 partie en cours:" % (tournoi.tournoi().partie_courante().numero, equipe)
         self.txt_info = wx.StaticText(self, wx.ID_ANY, texte, size=wx.Size(-1, 200))
@@ -365,9 +365,9 @@ partie en cours:" % (tournoi.tournoi().partie_courante().numero, equipe)
         self.chk_cree_manche = wx.CheckBox(self, wx.ID_ANY, "Créer une manche avec les équipes chapeaux si possible.")
 
         # Boutons
-        self.btn_ok = wx.Button(self, id=wx.ID_OK, label=u"Valider", size=(100, -1))
+        self.btn_ok = wx.Button(self, id=wx.ID_OK, label="Valider", size=(100, -1))
         self.btn_ok.SetDefault()
-        self.btn_annule = wx.Button(self, id=wx.ID_CANCEL, label=u"Annuler", size=(100, -1))
+        self.btn_annule = wx.Button(self, id=wx.ID_CANCEL, label="Annuler", size=(100, -1))
 
         box_btn = wx.BoxSizer(wx.HORIZONTAL)
         box_btn.AddSpacer((50, 50), 1, wx.EXPAND)

@@ -30,7 +30,7 @@ def creer_generateur(algorithme, equipes_par_manche, statistiques, chapeaux=[], 
                                 du tirage (par défaut vide)
     """
     if algorithme not in TIRAGES:
-        raise TirageError(u"Categorie de tirage '%s' inconnue." % algorithme)
+        raise TirageError("Categorie de tirage '%s' inconnue." % algorithme)
 
     # Création thread tirage
     return TIRAGES[algorithme](equipes_par_manche, statistiques, chapeaux, callback)

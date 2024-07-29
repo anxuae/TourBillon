@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-
 
-u"""Algorithme génétique pseudo aléatoire (choix de la redondance possible)."""
+"""Algorithme génétique pseudo aléatoire (choix de la redondance possible)."""
 
 import random
 from tourbillon.core.tirages.utils import (BaseThreadTirage, nb_chapeaux_necessaires,
@@ -81,9 +81,9 @@ class Tirage(NvTirage):
 
 
 class ThreadTirage(BaseThreadTirage):
-    NOM = u"aleatoire_ag"
+    NOM = "aleatoire_ag"
 
-    DESCRIPTION = u"Aléatoire (Algorithme Génétique)"
+    DESCRIPTION = "Aléatoire (Algorithme Génétique)"
 
     DEFAUT = {'TAILLE_POPULATION_INI': 40,
               'TAILLE_POPULATION': 50,

@@ -62,7 +62,7 @@ class Equipe(object):
         piquet (int)        : numéro de piquet où l'équipe joue.
         """
         if self.statut == E_EN_COURS or self.statut == E_INCOMPLETE:
-            raise StatutError(u"Impossible de créer une partie pour l'équipe %s. (partie en cours: %s)" % (self.numero, len(self._resultats)))
+            raise StatutError("Impossible de créer une partie pour l'équipe %s. (partie en cours: %s)" % (self.numero, len(self._resultats)))
         else:
             m = Manche(debut, adversaires)
             if etat == CHAPEAU:
@@ -81,7 +81,7 @@ class Equipe(object):
         """
         num_partie = int(num_partie)
         if num_partie not in range(1, len(self._resultats) + 1):
-            raise ValueError(u"Impossible de supprimer la partie %s pour l'équipe %s.(total parties: %s)" % (num_partie, self.numero, len(self._resultats)))
+            raise ValueError("Impossible de supprimer la partie %s pour l'équipe %s.(total parties: %s)" % (num_partie, self.numero, len(self._resultats)))
         else:
             self._resultats.pop(num_partie - 1)
 
@@ -102,7 +102,7 @@ class Equipe(object):
         """
         num_partie = int(num_partie)
         if num_partie not in range(1, len(self._resultats) + 1):
-            raise ValueError(u"La partie %s n'existe pas pour l'équipe %s." % (num_partie, self.numero))
+            raise ValueError("La partie %s n'existe pas pour l'équipe %s." % (num_partie, self.numero))
         else:
             m = self._resultats[num_partie - 1]
 
@@ -180,7 +180,7 @@ class Equipe(object):
         date (str)  : la date actuelle est utilisée par defaut
         """
         if self.tournoi.joueurs_par_equipe < len(self._liste_joueurs) + 1:
-            raise LimiteError(u"Il ne peut y avoir plus de %s joueurs par équipe." % self.tournoi.joueurs_par_equipe)
+            raise LimiteError("Il ne peut y avoir plus de %s joueurs par équipe." % self.tournoi.joueurs_par_equipe)
 
         j = Joueur(prenom, nom, str(age), date_ajout=date)
         self._liste_joueurs.append(j)
@@ -219,7 +219,7 @@ class Equipe(object):
         """
         num_partie = int(num_partie)
         if num_partie not in range(1, len(self._resultats) + 1):
-            raise ValueError(u"La partie %s n'existe pas pour l'équipe %s." % (num_partie, self.numero))
+            raise ValueError("La partie %s n'existe pas pour l'équipe %s." % (num_partie, self.numero))
         else:
             return self._resultats[num_partie - 1]
 

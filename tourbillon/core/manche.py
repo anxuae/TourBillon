@@ -83,9 +83,9 @@ class Manche(object):
 
         def fset(self, valeur):
             if type(valeur) != int or valeur < 0:
-                raise TypeError(u"Le nombre de points doit être un entier positif ou nul.")
+                raise TypeError("Le nombre de points doit être un entier positif ou nul.")
             if self.data['etat'] == cst.FORFAIT:
-                raise ValueError(u"Le nombre de points d'une manche FORFAIT ne peut pas être modifié.")
+                raise ValueError("Le nombre de points d'une manche FORFAIT ne peut pas être modifié.")
             self.data['points'] = valeur
 
         return locals()
@@ -97,7 +97,7 @@ class Manche(object):
 
         def fset(self, valeur):
             if valeur not in [cst.CHAPEAU, cst.GAGNE, cst.PERDU, cst.FORFAIT]:
-                raise TypeError(u"L'état doit être une des valeur suivantes : %s." %
+                raise TypeError("L'état doit être une des valeur suivantes : %s." %
                                 ", ".join([cst.CHAPEAU, cst.GAGNE, cst.PERDU, cst.FORFAIT]))
 
             if valeur in [cst.GAGNE, cst.PERDU] and self.data['fin'] is None:
@@ -119,7 +119,7 @@ class Manche(object):
 
         def fset(self, valeur):
             if type(valeur) != datetime:
-                raise TypeError(u"L'heure de début doit être de type 'datetime'.")
+                raise TypeError("L'heure de début doit être de type 'datetime'.")
             self.data['debut'] = valeur
 
         return locals()
@@ -134,9 +134,9 @@ class Manche(object):
 
         def fset(self, valeur):
             if type(valeur) != timedelta:
-                raise TypeError(u"La durée doit être de type 'timedelta'.")
+                raise TypeError("La durée doit être de type 'timedelta'.")
             if self.data['etat'] in [cst.CHAPEAU, cst.FORFAIT]:
-                raise ValueError(u"La durée d'une manche CHAPEAU ou FORFAIT ne peut être modifiée.")
+                raise ValueError("La durée d'une manche CHAPEAU ou FORFAIT ne peut être modifiée.")
             self.data['fin'] = self.data['debut'] + valeur
 
         return locals()
@@ -148,9 +148,9 @@ class Manche(object):
 
         def fset(self, valeur):
             if type(valeur) != datetime:
-                raise TypeError(u"L'heure de fin doit être de type 'datetime'.")
+                raise TypeError("L'heure de fin doit être de type 'datetime'.")
             if self.data['etat'] in [cst.CHAPEAU, cst.FORFAIT]:
-                raise ValueError(u"La fin d'une manche CHAPEAU ou FORFAIT ne peut être modifiée.")
+                raise ValueError("La fin d'une manche CHAPEAU ou FORFAIT ne peut être modifiée.")
             self.data['fin'] = valeur
 
         return locals()
@@ -162,12 +162,12 @@ class Manche(object):
 
         def fset(self, valeur):
             if type(valeur) != list:
-                raise TypeError(u"Les adversaires sont donnés sous forme de liste d'entiers.")
+                raise TypeError("Les adversaires sont donnés sous forme de liste d'entiers.")
             for num in valeur:
                 if type(num) != int:
-                    raise TypeError(u"'%s' n'est pas un entier." % num)
+                    raise TypeError("'%s' n'est pas un entier." % num)
             if self.data['etat'] in [cst.CHAPEAU, cst.FORFAIT]:
-                raise ValueError(u"Il n'y a pas d'adversaires pour une manche CHAPEAU ou FORFAIT.")
+                raise ValueError("Il n'y a pas d'adversaires pour une manche CHAPEAU ou FORFAIT.")
             self.data['adversaires'] = valeur
 
         return locals()

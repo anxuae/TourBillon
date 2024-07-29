@@ -1,15 +1,15 @@
 # -*- coding: UTF-8 -*-
 
-u"""Renvoyer une liste de manches par ordre croissant de numéros d'équipe."""
+"""Renvoyer une liste de manches par ordre croissant de numéros d'équipe."""
 
 from tourbillon.core.tirages.utils import BaseThreadTirage, creer_manches, tri_stat
 from tourbillon.core import constantes as cst
 
 
 class ThreadTirage(BaseThreadTirage):
-    NOM = u"croissant"
+    NOM = "croissant"
 
-    DESCRIPTION = u"Par ordre croissant"
+    DESCRIPTION = "Par ordre croissant"
 
     DEFAUT = {'PAR_NUMERO': True,
               'PAR_POINTS': False,

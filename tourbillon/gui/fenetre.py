@@ -286,7 +286,7 @@ class FenetrePrincipale(wx.Frame):
                 self.barre_bouton.chg_partie()
                 wx.PostEvent(self, evt.RafraichirEvent(self.GetId()))
 
-                logger.info(u"Il est %s, un nouveau tournoi commence..." % tournoi.tournoi().debut.strftime('%Hh%M'))
+                logger.info("Il est %s, un nouveau tournoi commence..." % tournoi.tournoi().debut.strftime('%Hh%M'))
 
     def ouvrir_demande(self, event):
         """
@@ -322,7 +322,7 @@ class FenetrePrincipale(wx.Frame):
         wx.PostEvent(self, evt.RafraichirEvent(self.GetId()))
 
         self.SetTitle("%s - %s" % (tourbillon.__nom__, fichier))
-        logger.info(u"Chargé, prêt à jouer mon commandant!")
+        logger.info("Chargé, prêt à jouer mon commandant!")
 
     def enregister_demande(self):
         """
@@ -332,8 +332,8 @@ class FenetrePrincipale(wx.Frame):
         continuer = wx.ID_OK
         if tournoi.tournoi() is not None:
             if tournoi.tournoi().modifie:
-                dlg = wx.MessageDialog(self, u"Le tournoi en cours n'est pas enregistré, si vous cliquez sur NON, les données seront perdues.",
-                                       caption=u"Voulez-vous enregistrer le tournoi en cours?", style=wx.CANCEL | wx.YES | wx.NO | wx.ICON_QUESTION)
+                dlg = wx.MessageDialog(self, "Le tournoi en cours n'est pas enregistré, si vous cliquez sur NON, les données seront perdues.",
+                                       caption="Voulez-vous enregistrer le tournoi en cours?", style=wx.CANCEL | wx.YES | wx.NO | wx.ICON_QUESTION)
                 ret = dlg.ShowModal()
                 dlg.Destroy()
                 if ret == wx.ID_YES:
@@ -363,7 +363,7 @@ class FenetrePrincipale(wx.Frame):
             f = l[1]
         else:
             d = self.config.get('INTERFACE', 'ENREGISTREMENT')
-            f = u"tournoi_billon_%s.yml" % datetime.now().strftime('%d/%m/%Y')
+            f = "tournoi_billon_%s.yml" % datetime.now().strftime('%d/%m/%Y')
         dlg = wx.FileDialog(self, message="Enregistrer", defaultDir=d, defaultFile=f,
                             wildcard=FILTRE_FICHIER, style=wx.SAVE)
         ret = dlg.ShowModal()
@@ -377,7 +377,7 @@ class FenetrePrincipale(wx.Frame):
 
             # Rafraichir
             wx.PostEvent(self, evt.RafraichirEvent(self.GetId(), 'etat'))
-            logger.info(u"C'est dans la boîte.")
+            logger.info("C'est dans la boîte.")
 
         dlg.Destroy()
         return ret
@@ -518,7 +518,7 @@ class FenetrePrincipale(wx.Frame):
                     self.enregistrer_auto()
                     wx.PostEvent(self, evt.RafraichirEvent(self.GetId()))
 
-                    logger.info(u"Mini holà à l'équipe n°%s.\nHoooollaaaa...!!" % (equipe.numero))
+                    logger.info("Mini holà à l'équipe n°%s.\nHoooollaaaa...!!" % (equipe.numero))
 
                 elif tournoi.tournoi().statut in [cst.T_PARTIE_EN_COURS]:
                     p = tournoi.tournoi().piquets()[-1] + 1
@@ -539,16 +539,16 @@ class FenetrePrincipale(wx.Frame):
                         self.enregistrer_auto()
                         wx.PostEvent(self, evt.RafraichirEvent(self.GetId()))
 
-                        logger.info(u"Un peu tard pour %s, mais ça passe..." % (equipe.numero))
+                        logger.info("Un peu tard pour %s, mais ça passe..." % (equipe.numero))
 
                     dlg.Destroy()
 
                 else:
                     p = tournoi.tournoi().piquets()[-1] + 1
                     # Les parties sont toutes terminées
-                    texte = u"L'équipe sera considérée comme forfait pour toutes les parties déjà jouées,\
+                    texte = "L'équipe sera considérée comme forfait pour toutes les parties déjà jouées,\
 cliquez sur ANNULER si vous ne voulez pas ajouter cette nouvelle équipe."
-                    dlg = wx.MessageDialog(self, texte, caption=u"Tournoi en cours",
+                    dlg = wx.MessageDialog(self, texte, caption="Tournoi en cours",
                                            style=wx.OK | wx.CANCEL | wx.ICON_QUESTION)
                     ret = dlg.ShowModal()
                     dlg.Destroy()
@@ -562,7 +562,7 @@ cliquez sur ANNULER si vous ne voulez pas ajouter cette nouvelle équipe."
                         self.enregistrer_auto()
                         wx.PostEvent(self, evt.RafraichirEvent(self.GetId()))
 
-                        logger.info(u"Un peu tard pour %s, mais ça passe..." % (equipe.numero))
+                        logger.info("Un peu tard pour %s, mais ça passe..." % (equipe.numero))
 
     def modifier_equipe(self, event):
         num = self.grille.selection()
@@ -597,7 +597,7 @@ cliquez sur ANNULER si vous ne voulez pas ajouter cette nouvelle équipe."
             info = dlg.donnees()
 
             equipe = tournoi.tournoi().equipe(info['numero'])
-            logger.info(u"En ce jour exceptionel, l'équipe n°%s nous quitte." % (equipe.numero))
+            logger.info("En ce jour exceptionel, l'équipe n°%s nous quitte." % (equipe.numero))
 
             # Rafraichir
             self.grille.suppr_equipe(equipe)
@@ -621,7 +621,7 @@ cliquez sur ANNULER si vous ne voulez pas ajouter cette nouvelle équipe."
             self.enregistrer_auto()
             wx.PostEvent(self, evt.RafraichirEvent(self.GetId()))
 
-            logger.info(u"C'est Partie mon kiki!")
+            logger.info("C'est Partie mon kiki!")
 
         dlg.Destroy()
 
@@ -644,7 +644,7 @@ cliquez sur ANNULER si vous ne voulez pas ajouter cette nouvelle équipe."
             self.enregistrer_auto()
             wx.PostEvent(self, evt.RafraichirEvent(self.GetId()))
 
-            logger.info(u"La partie n°%s, c'est ce qu'on appelle un 'coupourin'." % dlg.numero())
+            logger.info("La partie n°%s, c'est ce qu'on appelle un 'coupourin'." % dlg.numero())
 
         dlg.Destroy()
 
@@ -675,13 +675,13 @@ cliquez sur ANNULER si vous ne voulez pas ajouter cette nouvelle équipe."
 
                 nb = len(tournoi.tournoi().partie_courante().equipes_incompletes())
                 if nb != 0:
-                    logger.info(u"Manque encore %s équipes." % nb)
+                    logger.info("Manque encore %s équipes." % nb)
                 else:
-                    logger.info(u"Prêt pour casser du billon.")
+                    logger.info("Prêt pour casser du billon.")
 
             dlg.Destroy()
         else:
-            self.barre_etat.SetStatusText(u"Le score d'une équipe %s n'est pas modifiable." % etat)
+            self.barre_etat.SetStatusText("Le score d'une équipe %s n'est pas modifiable." % etat)
 
     def classement(self, event):
         if not dlgpa.DialogueAfficherClassement.single:
@@ -718,9 +718,9 @@ cliquez sur ANNULER si vous ne voulez pas ajouter cette nouvelle équipe."
         grille.CreateGrid(0, 2)
         grille.SetRowLabelSize(0)
         grille.SetDefaultCellBackgroundColour(images.couleur('grille'))
-        grille.SetColLabelValue(0, u"Elément")
+        grille.SetColLabelValue(0, "Elément")
         grille.SetColSize(0, dlg.GetSize()[0] / 2)
-        grille.SetColLabelValue(1, u"Valeur")
+        grille.SetColLabelValue(1, "Valeur")
         grille.SetColSize(1, dlg.GetSize()[0] / 2)
 
         for a, b in systeme_config():
@@ -741,24 +741,24 @@ cliquez sur ANNULER si vous ne voulez pas ajouter cette nouvelle équipe."
         info = wx.AboutDialogInfo()
         info.Name = tourbillon.__nom__
         info.Version = "%s.%s.%s" % tourbillon.__version__
-        info.Copyright = u"%s  Copyright © 2010  La Billonnière." % (tourbillon.__nom__)
+        info.Copyright = "%s  Copyright © 2010  La Billonnière." % (tourbillon.__nom__)
         info.Description = wordwrap(
-            u"TourBillon est un logiciel libre distribué sous licence GPL, aussi appelée "
-            u"en français Licence Publique Générale GNU. Cette licence vous garantit les "
-            u"libertés suivantes :\n"
-            u"\n"
-            u"    -  la liberté d’installer et d’utiliser TourBillon pour quelque usage "
-            u"que ce soit ;\n"
-            u"    -  la liberté d’étudier le fonctionnement de TourBillon et de l’adapter "
-            u"à vos propres besoins en modifiant le code source, auquel vous avez "
-            u"un accès immédiat;\n"
-            u"    -  la liberté de distribuer des copies à qui que ce soit, tant que vous "
-            u"n’altérez ni ne supprimez la licence ;\n"
-            u"    -  la liberté d’améliorer TourBillon et de diffuser vos améliorations au "
-            u"public, de façon à ce que l’ensemble de la communauté puisse en tirer "
-            u"avantage, tant que vous n’altérez ni ne supprimez la licence.", 800, wx.ClientDC(self))
+            "TourBillon est un logiciel libre distribué sous licence GPL, aussi appelée "
+            "en français Licence Publique Générale GNU. Cette licence vous garantit les "
+            "libertés suivantes :\n"
+            "\n"
+            "    -  la liberté d’installer et d’utiliser TourBillon pour quelque usage "
+            "que ce soit ;\n"
+            "    -  la liberté d’étudier le fonctionnement de TourBillon et de l’adapter "
+            "à vos propres besoins en modifiant le code source, auquel vous avez "
+            "un accès immédiat;\n"
+            "    -  la liberté de distribuer des copies à qui que ce soit, tant que vous "
+            "n’altérez ni ne supprimez la licence ;\n"
+            "    -  la liberté d’améliorer TourBillon et de diffuser vos améliorations au "
+            "public, de façon à ce que l’ensemble de la communauté puisse en tirer "
+            "avantage, tant que vous n’altérez ni ne supprimez la licence.", 800, wx.ClientDC(self))
         info.WebSite = ("https://www.facebook.com/labillonniere", "Billon home page")
         info.Developers = ["La Billonnière"]
-        info.License = u"Retrouver la licence dans sa version complète sur http://www.gnu.org/licenses/gpl.html"
+        info.License = "Retrouver la licence dans sa version complète sur http://www.gnu.org/licenses/gpl.html"
 
         wx.AboutBox(info, self)

@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-
 
-u"""Algorithme génétique pour la selection des équipes en fonction de leur niveau."""
+"""Algorithme génétique pour la selection des équipes en fonction de leur niveau."""
 
 import random
 from tourbillon.core.constantes import MINIMISE
@@ -135,7 +135,7 @@ class Environement(object):
         self.generation = 0
         # Execute le fonction à chaque nouvelle génération
         self.rapport = rapport
-        self.message = u"Génération %-" + str(len(str(max_generations))) + u"s - score : %-8.5g"
+        self.message = "Génération %-" + str(len(str(max_generations))) + "s - score : %-8.5g"
 
     def run(self):
         while not self._but():
@@ -400,9 +400,9 @@ class Tirage(Individu):
 
 
 class ThreadTirage(BaseThreadTirage):
-    NOM = u"niveau_ag"
+    NOM = "niveau_ag"
 
-    DESCRIPTION = u"Niveau (Algorithme Génétique)"
+    DESCRIPTION = "Niveau (Algorithme Génétique)"
 
     DEFAUT = {'TAILLE_POPULATION_INI': 50,
               'TAILLE_POPULATION': 60,
@@ -455,9 +455,9 @@ class ThreadTirage(BaseThreadTirage):
                     ponderation += (self.statistiques[equipe]['points'] * 1.0) / parties
 
             self.config['ponderation_victoires'] = ponderation / len(self.statistiques)
-            self.rapport(message=u"Coefficient de pondération des victoires: %s" % self.config['ponderation_victoires'])
+            self.rapport(message="Coefficient de pondération des victoires: %s" % self.config['ponderation_victoires'])
 
-        self.rapport(message=u"Objectif: %s" % self.config['optimum'])
+        self.rapport(message="Objectif: %s" % self.config['optimum'])
         # Créer l'environement
         Tirage.alleles = self.statistiques.keys()
         self._env = Environement(genese(Tirage, self.config['taille_population_ini']), **self.config)

@@ -7,28 +7,28 @@ PERDU = u'perdu'
 FORFAIT = u'forfait'
 
 # Etat d'une manche
-M_EN_COURS = u"en cours"
-M_TERMINEE = u"terminée"
+M_EN_COURS = "en cours"
+M_TERMINEE = "terminée"
 
 # Etat d'une équipe
-E_INCOMPLETE = u"incomplète"
-E_ATTEND_TIRAGE = u"attend tirage"
-E_EN_COURS = u"en cours"
+E_INCOMPLETE = "incomplète"
+E_ATTEND_TIRAGE = "attend tirage"
+E_EN_COURS = "en cours"
 
 # Etat d'une partie
-P_ATTEND_TIRAGE = u"attend tirage"
-P_EN_COURS = u"en cours"
-P_COMPLETE = u"complète"
-P_TERMINEE = u"terminée"
+P_ATTEND_TIRAGE = "attend tirage"
+P_EN_COURS = "en cours"
+P_COMPLETE = "complète"
+P_TERMINEE = "terminée"
 
 # Etat d'un tournoi
-T_INSCRIPTION = u"inscription"
-T_ATTEND_TIRAGE = u"attend tirage"
-T_PARTIE_EN_COURS = u"en cours"
+T_INSCRIPTION = "inscription"
+T_ATTEND_TIRAGE = "attend tirage"
+T_PARTIE_EN_COURS = "en cours"
 
 # Paramètres algorithme génétique
-MAXIMISE = u"maximise"
-MINIMISE = u"minimise"
+MAXIMISE = "maximise"
+MINIMISE = "minimise"
 
 # Clés de tri statistiques
 STAT_POINTS = 'points'

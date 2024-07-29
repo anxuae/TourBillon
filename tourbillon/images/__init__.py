@@ -68,7 +68,7 @@ def entete(terminal=False):
     if not terminal:
         lignes = f.readlines()
         f.close()
-        texte = u"#" + u"#".join(lignes)
+        texte = "#" + "#".join(lignes)
         return unicode(texte).format(**ENTETE_SANS_COULEURS)
     else:
         texte = f.read()

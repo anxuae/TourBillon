@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-
 
-u"""Algorithme déterministe créé en 2008."""
+"""Algorithme déterministe créé en 2008."""
 
 import random
 from tourbillon.core.tirages.utils import (BaseThreadTirage, nb_chapeaux_necessaires, tri_stat,
@@ -53,7 +53,7 @@ def creer_matrices(parametres, statistiques):
     global MC_CACHE, MR_CACHE, CNP_CACHE
 
     total = len_cnp(statistiques.keys(), parametres['equipes_par_manche'])
-    parametres['rapport'](message=u"Création des matrices de coût, de rencontre et de disparité.")
+    parametres['rapport'](message="Création des matrices de coût, de rencontre et de disparité.")
     for manche in cnp(statistiques.keys(), parametres['equipes_par_manche']):
         CNP_CACHE.append(sorted(manche))
 
@@ -103,7 +103,7 @@ def creer_matrices(parametres, statistiques):
 
         # Avancement du calcul (affichage jusque 99% pour éviter d'indiquer la fin de l'algorithme)
         compteur += 1
-        s = u"%-" + str(len(str(total))) + u"s/%s manches évaluées"
+        s = "%-" + str(len(str(total))) + "s/%s manches évaluées"
         # 70% du temps attribué à la creation des matrices
         parametres['rapport'](((compteur * 70.0) / total) - 1, s % (compteur, total))
 
@@ -287,9 +287,9 @@ def select_chapeau(parametres, statistiques):
 
 
 class ThreadTirage(BaseThreadTirage):
-    NOM = u"niveau2008_dt"
+    NOM = "niveau2008_dt"
 
-    DESCRIPTION = u"Niveau (Algorithme Déterministe)"
+    DESCRIPTION = "Niveau (Algorithme Déterministe)"
 
     DEFAUT = {'OPTIMUM': 0.0,
               'REDONDANCE': False,
@@ -336,7 +336,7 @@ class ThreadTirage(BaseThreadTirage):
                     ponderation += (self.statistiques[equipe][cst.STAT_POINTS] * 1.0) / parties
 
             self.config['ponderation_victoires'] = ponderation / len(self.statistiques)
-            self.rapport(message=u"Coefficient de pondération des victoires: %s" % self.config['ponderation_victoires'])
+            self.rapport(message="Coefficient de pondération des victoires: %s" % self.config['ponderation_victoires'])
 
         # Création de la matrice de cout
         creer_matrices(self.config, self.statistiques)

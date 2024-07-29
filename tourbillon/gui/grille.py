@@ -10,22 +10,22 @@ from wx.lib import scrolledpanel as scrolled
 from tourbillon import images
 from tourbillon.core import constantes as cst
 
-TITRES = {'partie': [(u"Equipe", 60),
-                     (u"Noms", 300),
-                     (u"Joker", 60),
-                     (u"Etat", 50),
-                     (u"Score", 50),
-                     (u"Durée", 80)],
+TITRES = {'partie': [("Equipe", 60),
+                     ("Noms", 300),
+                     ("Joker", 60),
+                     ("Etat", 50),
+                     ("Score", 50),
+                     ("Durée", 80)],
 
-          'statistiques': [(u"Victoires", 70),
-                           (u"Points", 70),
-                           (u"Place", 70),
-                           (u"min Billons", 80),
-                           (u"max Billons", 80),
-                           (u"moy Billons", 80),
-                           (u"min Durée", 80),
-                           (u"max Durée", 80),
-                           (u"moy Durée", 80)]}
+          'statistiques': [("Victoires", 70),
+                           ("Points", 70),
+                           ("Place", 70),
+                           ("min Billons", 80),
+                           ("max Billons", 80),
+                           ("moy Billons", 80),
+                           ("min Durée", 80),
+                           ("max Durée", 80),
+                           ("moy Durée", 80)]}
 
 
 def etat_style(valeur):
@@ -33,15 +33,15 @@ def etat_style(valeur):
     couleur = images.couleur(valeur)
 
     if valeur == cst.FORFAIT:
-        texte = u"F"
+        texte = "F"
     elif valeur == cst.CHAPEAU:
-        texte = u"C"
+        texte = "C"
     elif valeur == cst.GAGNE:
-        texte = u"G"
+        texte = "G"
     elif valeur == cst.PERDU:
-        texte = u"P"
+        texte = "P"
     else:
-        texte = u""
+        texte = ""
 
     return texte, couleur, police
 
@@ -51,7 +51,7 @@ def points_style(valeur):
     police = wx.Font(10, wx.SWISS, wx.NORMAL, wx.NORMAL)
 
     if valeur is None:
-        texte = u""
+        texte = ""
     else:
         texte = unicode(valeur)
 
@@ -63,7 +63,7 @@ def duree_style(valeur):
     police = wx.Font(10, wx.SWISS, wx.NORMAL, wx.NORMAL)
 
     if valeur is None:
-        texte = u""
+        texte = ""
     else:
         texte = unicode_timedelta(valeur)
 
@@ -143,7 +143,7 @@ class Grille(wx.BoxSizer):
 
         # Cellule fusionnée
         self._grille_statistiques.SetCellSize(0, 0, 1, 9)
-        self._grille_statistiques.SetCellValue(0, 0, u"Statistiques du tournoi")
+        self._grille_statistiques.SetCellValue(0, 0, "Statistiques du tournoi")
 
         self.Layout()
 
@@ -211,15 +211,15 @@ class Grille(wx.BoxSizer):
         texte = value
         if col == 0:
             self._grille_partie.SetCellFont(row + 2, col, wx.Font(10, wx.SWISS, wx.NORMAL, wx.BOLD))
-        elif col == 3 and texte not in [None, u""]:
+        elif col == 3 and texte not in [None, ""]:
             texte, couleur, police = etat_style(texte)
             self._grille_partie.SetCellTextColour(row + 2, col, couleur)
             self._grille_partie.SetCellFont(row + 2, col, police)
-        elif col == 4 and texte not in [None, u""]:
+        elif col == 4 and texte not in [None, ""]:
             texte, couleur, police = points_style(texte)
             self._grille_partie.SetCellTextColour(row + 2, col, couleur)
             self._grille_partie.SetCellFont(row + 2, col, police)
-        elif col == 5 and texte not in [None, u""]:
+        elif col == 5 and texte not in [None, ""]:
             texte, couleur, police = duree_style(texte)
             self._grille_partie.SetCellTextColour(row + 2, col, couleur)
             self._grille_partie.SetCellFont(row + 2, col, police)
@@ -227,7 +227,7 @@ class Grille(wx.BoxSizer):
         if type(texte) == datetime.timedelta:
             texte = unicode_timedelta(texte)
         elif texte is None:
-            texte = u""
+            texte = ""
 
         if col < len(TITRES['partie']):
             self._grille_partie.SetCellValue(row + 2, col, unicode(texte))
@@ -434,9 +434,9 @@ class GrillePanel(scrolled.ScrolledPanel):
         if partie == 0:
             i = 0
             while i < self.grille.GetNumberRows():
-                self.grille.SetCellValue(i, 3, u"")
-                self.grille.SetCellValue(i, 4, u"")
-                self.grille.SetCellValue(i, 5, u"")
+                self.grille.SetCellValue(i, 3, "")
+                self.grille.SetCellValue(i, 4, "")
+                self.grille.SetCellValue(i, 5, "")
                 i += 1
 
         # MAJ du classement Classement
@@ -444,12 +444,12 @@ class GrillePanel(scrolled.ScrolledPanel):
             if classement == []:
                 i = 0
                 while i < self.grille.GetNumberRows():
-                    self.grille.SetCellValue(i, 7, u"")
+                    self.grille.SetCellValue(i, 7, "")
                     i += 1
             else:
                 for eq, place in classement:
                     i = self.grille.ligne(eq.numero)
-                    self.grille.SetCellValue(i, 8, u"%s" % place)
+                    self.grille.SetCellValue(i, 8, "%s" % place)
 
         if equipe is not None:
             ligne = self.grille.ligne(equipe.numero)
@@ -457,7 +457,7 @@ class GrillePanel(scrolled.ScrolledPanel):
             self.grille.SetCellValue(ligne, 0, equipe.numero)
             # Noms
             noms = [unicode(joueur) for joueur in equipe.joueurs()]
-            noms = u" / ".join(noms)
+            noms = " / ".join(noms)
             self.grille.SetCellValue(ligne, 1, noms)
             # Joker
             self.grille.SetCellValue(ligne, 2, equipe.joker)
@@ -539,7 +539,7 @@ class GrillePanel(scrolled.ScrolledPanel):
         Recherche la prochaine occurence du texte entré
         dans le champ de recherche.
         """
-        if event.GetString().strip() == u"":
+        if event.GetString().strip() == "":
             precedent = -1
         else:
             precedent = self.grille.GetSelectedRows()
@@ -577,7 +577,7 @@ class GrillePanel(scrolled.ScrolledPanel):
                 i += 1
 
             self.grille.InsertRows(i, 1, False)
-            self.grille.SetCellValue(i, 0, u"%s" % equipe.numero)
+            self.grille.SetCellValue(i, 0, "%s" % equipe.numero)
 
         self.Layout()
         self.grille.Thaw()

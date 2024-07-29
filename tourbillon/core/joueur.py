@@ -154,7 +154,7 @@ class Joueur(object):
             if type(date_modification) in [str, unicode]:
                 date_modification = datetime.strptime(date_modification, '%d/%m/%Y')
             elif type(date_modification) != datetime:
-                raise TypeError(u"'%s' doit être de type 'datetime' ou une chaine de format '%d/%m/%Y'" % date_modification)
+                raise TypeError("'%s' doit être de type 'datetime' ou une chaine de format '%d/%m/%Y'" % date_modification)
 
         date = None
         if self.cle() in HISTORIQUE:

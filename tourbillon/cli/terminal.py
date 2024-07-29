@@ -9,7 +9,7 @@
        du terminal.
 
        Exemple d'utilisation:
-            TERM.formater("{BG_BLUE}Texte en fond bleu")
+            TERM.formater("{BG_BLUE}Texte en fond ble")
             TERM.formater("{BLUE}{UNDERLINE}Texte bleu souligné")
             TERM.formater("{BLUE}{BG_YELLOW}{BOLD}Texte")
 """

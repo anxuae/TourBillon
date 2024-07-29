@@ -20,7 +20,7 @@ class EntrerScore(wx.Panel):
         wx.Panel.__init__(self, parent, wx.ID_ANY)
 
         if choix == []:
-            self.ctl_numero = wx.StaticText(self, wx.ID_ANY, u"")
+            self.ctl_numero = wx.StaticText(self, wx.ID_ANY, "")
             self.ctl_numero.SetBackgroundColour(wx.Colour(220, 220, 220))
             self.combo = False
         else:
@@ -29,7 +29,7 @@ class EntrerScore(wx.Panel):
 
         self.ctl_numero.SetMinSize(wx.Size(70, 22))
 
-        self.ctl_points = wx.TextCtrl(self, wx.ID_ANY, u"", style=wx.TE_CENTRE, validator=dlgeq.EquipeValidateur())
+        self.ctl_points = wx.TextCtrl(self, wx.ID_ANY, "", style=wx.TE_CENTRE, validator=dlgeq.EquipeValidateur())
         self.ctl_points.SetMinSize(wx.Size(70, 22))
 
         box = wx.BoxSizer(wx.HORIZONTAL)
@@ -43,7 +43,7 @@ class EntrerScore(wx.Panel):
         if self.combo == True:
             self.ctl_numero.SetSelection(self.ctl_numero.FindString(numero))
         else:
-            self.ctl_numero.SetLabel(u"  " + numero)
+            self.ctl_numero.SetLabel("  " + numero)
             self.Layout()
 
     def numero(self):
@@ -57,7 +57,7 @@ class EntrerScore(wx.Panel):
 
     def points(self):
         valeur = self.ctl_points.GetValue()
-        if valeur == u"":
+        if valeur == "":
             return None
         else:
             return int(valeur)
@@ -66,10 +66,10 @@ class EntrerScore(wx.Panel):
 class DialogueResultat(wx.Dialog):
 
     def __init__(self, parent, numero_partie, numero_affiche=1):
-        wx.Dialog.__init__(self, parent, wx.ID_ANY, title=u"Resultats", style=wx.DEFAULT_DIALOG_STYLE | wx.CENTER_ON_SCREEN | wx.RESIZE_BORDER)
+        wx.Dialog.__init__(self, parent, wx.ID_ANY, title="Resultats", style=wx.DEFAULT_DIALOG_STYLE | wx.CENTER_ON_SCREEN | wx.RESIZE_BORDER)
         self.SetMinSize(wx.Size(280, 170))
         self.SetMaxSize(wx.Size(280, -1))
-        self.SetTitle(u"Resultats de la partie n°%s" % numero_partie)
+        self.SetTitle("Resultats de la partie n°%s" % numero_partie)
         self.CenterOnParent()
 
         self.entrees = []
@@ -77,7 +77,7 @@ class DialogueResultat(wx.Dialog):
         self.tirage = tournoi.tournoi().partie(self.numero_partie).manches()
 
         # Numero de piquet
-        self.lbl_piquet = wx.StaticText(self, wx.ID_ANY, u"", style=wx.ALIGN_CENTER)
+        self.lbl_piquet = wx.StaticText(self, wx.ID_ANY, "", style=wx.ALIGN_CENTER)
         self.lbl_piquet.SetForegroundColour(wx.Colour(0, 0, 200))
 
         # Panel avec les entrées des équipes
@@ -97,10 +97,10 @@ class DialogueResultat(wx.Dialog):
         self.panel.SetupScrolling()
 
         # Check box enregistrement durée de fin
-        self.chx_fin = wx.CheckBox(self, wx.ID_ANY, u"Mettre à jour la durée")
+        self.chx_fin = wx.CheckBox(self, wx.ID_ANY, "Mettre à jour la durée")
 
         # Boutons
-        self.btn_ok = wx.Button(self, id=wx.ID_OK, label=u"Valider", size=(100, -1))
+        self.btn_ok = wx.Button(self, id=wx.ID_OK, label="Valider", size=(100, -1))
         self.btn_ok.SetDefault()
         self.btn_annule = wx.Button(self, id=wx.ID_CANCEL, label="Annuler", size=(100, -1))
         box_btn = wx.BoxSizer(wx.HORIZONTAL)
@@ -150,7 +150,7 @@ class DialogueResultat(wx.Dialog):
 
         # Piquet (identique pour toutes les équipes)
         piquet = m.piquet
-        self.lbl_piquet.SetLabel(u"Piquet %s" % piquet)
+        self.lbl_piquet.SetLabel("Piquet %s" % piquet)
         self.Layout()
 
         if m.statut == cst.M_EN_COURS:

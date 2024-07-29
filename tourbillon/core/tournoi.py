@@ -44,12 +44,12 @@ def enregistrer_tournoi(fichier=None):
     """
     global FICHIER_TOURNOI, TOURNOI
     if TOURNOI is None:
-        raise IOError(u"Pas de tournoi commencé.")
+        raise IOError("Pas de tournoi commencé.")
     elif fichier is None and FICHIER_TOURNOI is None:
-        raise FichierError(u"Pas de fichier spécifié pour l'enregistrement.")
+        raise FichierError("Pas de fichier spécifié pour l'enregistrement.")
     elif fichier is not None:
         if os.path.exists(fichier) and not os.path.isfile(fichier):
-            raise FichierError(u"'%s' est un répertoire." % fichier)
+            raise FichierError("'%s' est un répertoire." % fichier)
         else:
             FICHIER_TOURNOI = fichier
 
@@ -93,9 +93,9 @@ def enregistrer_tournoi(fichier=None):
         f.close()
         TOURNOI.date_enregistrement = d
         TOURNOI.modifie = False
-    except Exception, e:
+    except Exception as ex:
         TOURNOI.date_enregistrement = ancienne_date
-        raise IOError(u"L'enregistrement a échoué (%s)." % str(e))
+        raise IOError("L'enregistrement a échoué (%s)." % ex)
 
 
 def charger_tournoi(fichier):
@@ -104,7 +104,7 @@ def charger_tournoi(fichier):
     """
     global FICHIER_TOURNOI, TOURNOI
     if not os.path.exists(fichier):
-        raise FichierError(u"Le fichier '%s' n'existe pas." % fichier)
+        raise FichierError("Le fichier '%s' n'existe pas." % fichier)
 
     try:
         # Extraction des données
@@ -149,7 +149,7 @@ def charger_tournoi(fichier):
         TOURNOI.date_chargement = datetime.now()
         TOURNOI.modifie = False
     except Exception, e:
-        raise IncoherenceError(u"Le fichier '%s' est corrompu (%s)." % (fichier, str(e)))
+        raise IncoherenceError("Le fichier '%s' est corrompu (%s)." % (fichier, str(e)))
 
     return TOURNOI
 
@@ -278,7 +278,7 @@ class Tournoi(object):
         if type(numero) == Equipe:
             return numero
         elif numero not in self._liste_equipes:
-            raise ValueError(u"L'équipe n°%s n'existe pas." % numero)
+            raise ValueError("L'équipe n°%s n'existe pas." % numero)
         else:
             return self._liste_equipes[numero]
 
@@ -320,7 +320,7 @@ class Tournoi(object):
         if numero is None:
             numero = self.generer_numero_equipe()
         if numero in self._liste_equipes:
-            raise ValueError(u"L'équipe n°%s existe déjà." % numero)
+            raise ValueError("L'équipe n°%s existe déjà." % numero)
 
         eq = Equipe(self, numero, joker)
         self._liste_equipes[eq.numero] = eq
@@ -334,7 +334,7 @@ class Tournoi(object):
         numero (int)
         """
         if numero not in self._liste_equipes:
-            raise ValueError(u"L'équipe n°%s n'existe pas." % numero)
+            raise ValueError("L'équipe n°%s n'existe pas." % numero)
 
         eq = self._liste_equipes.pop(numero)
         self.modifie = True
@@ -349,9 +349,9 @@ class Tournoi(object):
         nouv_numero (int)
         """
         if self.nb_parties() != 0:
-            raise StatutError(u"Le numéro de l'équipe n°%s ne peut pas être changé." % numero)
+            raise StatutError("Le numéro de l'équipe n°%s ne peut pas être changé." % numero)
         if nouv_numero in self._liste_equipes:
-            raise ValueError(u"L'équipe n°%s existe déjà." % nouv_numero)
+            raise ValueError("L'équipe n°%s existe déjà." % nouv_numero)
 
         equipe = self._liste_equipes.pop(numero)
         equipe._num = nouv_numero
@@ -373,7 +373,7 @@ class Tournoi(object):
         if type(numero) == Partie:
             return numero
         elif numero not in range(1, len(self.parties()) + 1):
-            raise ValueError(u"La partie n°%s n'existe pas." % numero)
+            raise ValueError("La partie n°%s n'existe pas." % numero)
         else:
             return self.parties()[numero - 1]
 
@@ -397,9 +397,9 @@ class Tournoi(object):
         Ajoute et retourne une nouvelle partie.
         """
         if self.statut == cst.T_INSCRIPTION:
-            raise StatutError(u"Impossible de créer une partie (inscriptions en cours).")
+            raise StatutError("Impossible de créer une partie (inscriptions en cours).")
         elif self.statut == cst.T_PARTIE_EN_COURS:
-            raise StatutError(u"Impossible de créer une nouvelle partie (partie courante: %s)." %
+            raise StatutError("Impossible de créer une nouvelle partie (partie courante: %s)." %
                               (self.partie_courante().statut))
 
         partie = Partie(self)
@@ -414,7 +414,7 @@ class Tournoi(object):
         numero (int)
         """
         if numero > len(self.parties()) or numero < 1:
-            raise ValueError(u"La partie n°%s n'existe pas." % numero)
+            raise ValueError("La partie n°%s n'existe pas." % numero)
         else:
             self.partie(numero).raz()
             self.parties().pop(numero - 1)
@@ -443,7 +443,7 @@ class Tournoi(object):
         partie_limite (int) limite pour le calcul pour la comparaison
         """
         if type(equipe1) != Equipe or type(equipe2) != Equipe:
-            raise TypeError(u"Une équipe doit être comparée à une autre.")
+            raise TypeError("Une équipe doit être comparée à une autre.")
 
         # priorité 1: comparaison des victoires
         vic = equipe1.victoires(partie_limite) + equipe1.chapeaux(partie_limite) - \

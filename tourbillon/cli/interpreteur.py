@@ -64,7 +64,7 @@ class Interpreteur(code.InteractiveConsole):
         try:
             TERM.readline.write_history_file(self.fichier_historique)
         except:
-            logger.warning(u"Impossible d'enregistrer l'historique des commandes dans: %s" % self.fichier_historique)
+            logger.warning("Impossible d'enregistrer l'historique des commandes dans: %s" % self.fichier_historique)
 
     def push(self, ligne):
         return code.InteractiveConsole.push(self, ligne)

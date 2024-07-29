@@ -11,16 +11,16 @@ from tourbillon.gui import grille as grl
 
 #--- Varibles globales --------------------------------------------------------
 
-TITRES = [(u"Place", 0.5),
-          (u"N°", 0.5),
-          (u"Noms", 4.7),
-          (u"Victoires", 0.5),
-          (u"Points", 0.5),
-          (u"Chapeau", 0.5),
-          (u"Nombre mini de billons en 1 partie", 0.8),
-          (u"Nombre maxi de billons en 1 partie", 0.8),
-          (u"Nombre moyen de billons / partie", 0.8),
-          (u"Durée moyenne / partie", 0.8)]
+TITRES = [("Place", 0.5),
+          ("N°", 0.5),
+          ("Noms", 4.7),
+          ("Victoires", 0.5),
+          ("Points", 0.5),
+          ("Chapea", 0.5),
+          ("Nombre mini de billons en 1 partie", 0.8),
+          ("Nombre maxi de billons en 1 partie", 0.8),
+          ("Nombre moyen de billons / partie", 0.8),
+          ("Durée moyenne / partie", 0.8)]
 
 #--- Dialog imprimer classement -----------------------------------------------
 
@@ -57,9 +57,9 @@ class DialogueImprimerTirage(printout.PrintTable):
         self.SetRowLineSize(0, 2)
         self.SetRowSpacing(5, 5)
         self.text_font = {"Name": "Arial", "Size": 14, "Colour": [0, 0, 0], "Attr": [1, 0, 0]}
-        self.SetHeader(u"Tournoi de Billon du %s - Partie n°%s" % (tournoi.tournoi().debut.strftime('%d/%m/%Y'), num_partie), colour=wx.NamedColour('BLACK'))
-        self.SetHeader(u"Imprimé le : ", type="Date & Time", align=wx.ALIGN_RIGHT, indent=-0.5, colour=wx.NamedColour('BLUE'))
-        self.SetFooter(u"Page ", colour=wx.NamedColour('BLACK'), type="Num")
+        self.SetHeader("Tournoi de Billon du %s - Partie n°%s" % (tournoi.tournoi().debut.strftime('%d/%m/%Y'), num_partie), colour=wx.NamedColour('BLACK'))
+        self.SetHeader("Imprimé le : ", type="Date & Time", align=wx.ALIGN_RIGHT, indent=-0.5, colour=wx.NamedColour('BLUE'))
+        self.SetFooter("Page ", colour=wx.NamedColour('BLACK'), type="Num")
 
 
 class DialogueImprimer(printout.PrintTable):
@@ -101,7 +101,7 @@ class DialogueImprimer(printout.PrintTable):
         self.SetColTextColour(1, wx.NamedColour('BLUE'))
         self.SetColTextColour(2, wx.NamedColour('BLUE'))
 
-        self.SetHeader(u"Tournoi de Billon du %s" % tournoi.tournoi().debut.strftime('%d/%m/%Y'), colour=wx.NamedColour('BLACK'))
+        self.SetHeader("Tournoi de Billon du %s" % tournoi.tournoi().debut.strftime('%d/%m/%Y'), colour=wx.NamedColour('BLACK'))
 
-        self.SetHeader(u"Imprimé le : ", type="Date & Time", align=wx.ALIGN_RIGHT, indent=-0.5, colour=wx.NamedColour('BLUE'))
-        self.SetFooter(u"Page ", colour=wx.NamedColour('BLACK'), type="Num")
+        self.SetHeader("Imprimé le : ", type="Date & Time", align=wx.ALIGN_RIGHT, indent=-0.5, colour=wx.NamedColour('BLUE'))
+        self.SetFooter("Page ", colour=wx.NamedColour('BLACK'), type="Num")

@@ -226,10 +226,10 @@ class GrilleTirage(Grille):
         # Propriétés générales de la gille
         self.SetColLabelAttr(self.attribut('entete'))
         self.SetColLabelSize(30)
-        self.SetColLabelValue(0, u"N°")
-        self.SetColLabelValue(1, u"Adversaire(s)")
-        self.SetColLabelValue(2, u"")
-        self.SetColLabelValue(3, u"Piquet")
+        self.SetColLabelValue(0, "N°")
+        self.SetColLabelValue(1, "Adversaire(s)")
+        self.SetColLabelValue(2, "")
+        self.SetColLabelValue(3, "Piquet")
 
         self.Bind(wx.EVT_TIMER, self._tourner, self._timer)
 
@@ -256,7 +256,7 @@ class GrilleTirage(Grille):
                             if adversaires:
                                 self.SetCellValue(i, 1, " - ".join([unicode(num) for num in adversaires]))
                             else:
-                                self.SetCellValue(i, 1, u"C")
+                                self.SetCellValue(i, 1, "C")
                                 self.SetCellTextColour(i, 1, images.couleur(cst.CHAPEAU))
                             # Piquet
                             piquet = tournoi.tournoi().equipe(equipe).resultat(tournoi.tournoi().partie_courante().numero).piquet
@@ -264,7 +264,7 @@ class GrilleTirage(Grille):
                                 piquet = "-"
                             self.SetCellValue(i, 3, unicode(piquet))
                         else:
-                            self.SetCellValue(i, j, u"")
+                            self.SetCellValue(i, j, "")
                 i += 1
             self._compteur += 1
         else:
@@ -453,12 +453,12 @@ class GrilleResultats(Grille):
         # Propriétés générales de la gille
         self.SetColLabelAttr(self.attribut('entete'))
         self.SetColLabelSize(30)
-        self.SetColLabelValue(0, u"N°")
-        self.SetColLabelValue(1, u"Noms")
-        self.SetColLabelValue(2, u"Etat")
-        self.SetColLabelValue(3, u"Pts")
-        self.SetColLabelValue(4, u"")
-        self.SetColLabelValue(5, u"Vic")
+        self.SetColLabelValue(0, "N°")
+        self.SetColLabelValue(1, "Noms")
+        self.SetColLabelValue(2, "Etat")
+        self.SetColLabelValue(3, "Pts")
+        self.SetColLabelValue(4, "")
+        self.SetColLabelValue(5, "Vic")
 
         self.Bind(wx.EVT_TIMER, self._tourner, self._timer)
 
@@ -488,7 +488,7 @@ class GrilleResultats(Grille):
                         self.SetCellValue(i, 0, unicode(num))
                         # Noms
                         noms = [unicode(joueur) for joueur in equipe.joueurs()]
-                        noms = u" / ".join(noms)
+                        noms = " / ".join(noms)
                         self.SetCellValue(i, 1, noms)
                         # Etat
                         texte, couleur, _police = grl.etat_style(
@@ -501,11 +501,11 @@ class GrilleResultats(Grille):
                         # Nombre de victoires
                         self.SetCellValue(i, 5, unicode(equipe.victoires()))
                     else:
-                        self.SetCellValue(i, 0, u"")
-                        self.SetCellValue(i, 1, u"")
-                        self.SetCellValue(i, 2, u"")
-                        self.SetCellValue(i, 3, u"")
-                        self.SetCellValue(i, 5, u"")
+                        self.SetCellValue(i, 0, "")
+                        self.SetCellValue(i, 1, "")
+                        self.SetCellValue(i, 2, "")
+                        self.SetCellValue(i, 3, "")
+                        self.SetCellValue(i, 5, "")
                 i += 1
             self._compteur += 1
         else:
@@ -573,7 +573,7 @@ class GrilleResultats(Grille):
                     equipe = self.tournoi.equipe(num)
                     # Noms
                     noms = [unicode(joueur) for joueur in equipe.joueurs()]
-                    noms = u" / ".join(noms)
+                    noms = " / ".join(noms)
                     self.SetCellValue(i, 1, noms)
                     # Etat
                     texte, couleur, _police = grl.etat_style(
@@ -628,7 +628,7 @@ class GrilleResultats(Grille):
 class DialogueInformations(wx.Dialog):
 
     def __init__(self, parent, config):
-        wx.Dialog.__init__(self, parent, wx.ID_ANY, title=u"Informations",
+        wx.Dialog.__init__(self, parent, wx.ID_ANY, title="Informations",
                            style=wx.DEFAULT_FRAME_STYLE, pos=wx.DefaultPosition)
         w, h = wx.ScreenDC().GetSizeTuple()
         self.SetSize((w * 0.5, h * 0.5))
@@ -643,10 +643,10 @@ class DialogueInformations(wx.Dialog):
         self.configurer(config.get_options('AFFICHAGE', upper_keys=True))
 
         # Titre
-        self.txt_titre = wx.StaticText(self, wx.ID_ANY, u"", style=wx.ALIGN_CENTER)
+        self.txt_titre = wx.StaticText(self, wx.ID_ANY, "", style=wx.ALIGN_CENTER)
 
         # Texte
-        self.txt_interlude = wx.StaticText(self, wx.ID_ANY, u"", style=wx.ALIGN_CENTER)
+        self.txt_interlude = wx.StaticText(self, wx.ID_ANY, "", style=wx.ALIGN_CENTER)
 
         # Grilles tirages
         self.gri_tirages = DoubleGrilleTirage(self)
@@ -723,7 +723,7 @@ class DialogueInformations(wx.Dialog):
 
             if partie.nb_equipes() == len(partie.equipes_incompletes()) or statut == 'test tirage':
                 # Afficher le grille du tirage
-                self.txt_titre.SetLabel(u"Partie n°%s - Tirage" % tournoi.tournoi().partie_courante().numero)
+                self.txt_titre.SetLabel("Partie n°%s - Tirage" % tournoi.tournoi().partie_courante().numero)
                 # Lecture du tirage
                 l = []
                 for equipe in tournoi.tournoi().equipes():
@@ -738,7 +738,7 @@ class DialogueInformations(wx.Dialog):
                 self.gri_resultats.Show(False)
             else:
                 # Afficher le grille des résultats
-                self.txt_titre.SetLabel(u"Partie n°%s - Résultats" % tournoi.tournoi().partie_courante().numero)
+                self.txt_titre.SetLabel("Partie n°%s - Résultats" % tournoi.tournoi().partie_courante().numero)
                 self.gri_resultats.maj_grille(tournoi.tournoi(), self.grille_lignes, self.grille_police)
                 self.txt_interlude.Show(False)
                 self.gri_tirages.Show(False)
@@ -749,7 +749,7 @@ class DialogueInformations(wx.Dialog):
             self.txt_interlude.Show(True)
             self.gri_tirages.Show(False)
             self.gri_resultats.Show(False)
-            self.txt_titre.SetLabel(u"")
+            self.txt_titre.SetLabel("")
 
             if statut == cst.T_INSCRIPTION or statut == 'test inscription':
                 # Afficher message inscription
@@ -775,7 +775,7 @@ class DialogueInformations(wx.Dialog):
             self.ticker.SetFont(font)
 
             # Texte
-            if self.txt_interlude.IsShown() and self.txt_interlude.GetLabel() != u"":
+            if self.txt_interlude.IsShown() and self.txt_interlude.GetLabel() != "":
                 font = self.txt_interlude.GetFont()
                 font.SetPointSize((self.GetSize()[0] - 100) / (0.5 * len(self.txt_interlude.GetLabel())))
                 self.txt_interlude.SetFont(font)

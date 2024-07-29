@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-
 
-u"""Fonctions utiles à la création d'algorithmes de tirage."""
+"""Fonctions utiles à la création d'algorithmes de tirage."""
 
 from math import factorial
 from itertools import combinations as cnp
@@ -29,7 +29,7 @@ def tri_stat(statistiques, caracteristique):
 
 def nb_chapeaux_necessaires(nb_equipes, nb_par_manche):
     if nb_equipes < nb_par_manche:
-        raise TirageError(u"Pas assez d'équipes (nb équipes: %s, nb par manche: %s)" % (nb_equipes, nb_par_manche))
+        raise TirageError("Pas assez d'équipes (nb équipes: %s, nb par manche: %s)" % (nb_equipes, nb_par_manche))
     else:
         return nb_equipes % nb_par_manche
 
@@ -111,7 +111,7 @@ def tirage_texte(statistiques, manches):
         # dans d'autres manches que celles redondantes
         nrc += 1 - (1.0 * semirencontres.values().count(0) / len_cnp(manche, 2))
 
-        texte.append(u"%-15s: diff points = %-5s, redondance = %-5s, disparité = %-5s" % (manche, dp, nrc, dv))
+        texte.append("%-15s: diff points = %-5s, redondance = %-5s, disparité = %-5s" % (manche, dp, nrc, dv))
 
     return '\n'.join(texte)
 
@@ -122,7 +122,7 @@ def temps_texte(tps):
     """
     minutes = int(tps.total_seconds() / 60)
     secondes = int(tps.total_seconds() % 60)
-    return u"%.2im%.2is" % (minutes, secondes)
+    return "%.2im%.2is" % (minutes, secondes)
 
 
 class NonValide(object):
@@ -183,7 +183,7 @@ class NonValide(object):
         elif v == NV_REDONDANCE.raison() | NV_DISPARITE.raison():
             return NonValide(redondance=1, disparite=2)
         else:
-            raise TypeError(u"unsupported operand type(s) for |: '%s' and '%s'" % (type(self), type(other)))
+            raise TypeError("unsupported operand type(s) for |: '%s' and '%s'" % (type(self), type(other)))
 
     __ror__ = __or__
 
@@ -196,14 +196,14 @@ class BaseThreadTirage(Thread):
     """
     Base de la classe ThreadTirage.
     """
-    NOM = u""
-    DESCRIPTION = u""
+    NOM = ""
+    DESCRIPTION = ""
     DEFAUT = {}
 
     def __init__(self, equipes_par_manche, statistiques, chapeaux=[], callback=None):
         Thread.__init__(self)
         if self.__class__ == BaseThreadTirage:
-            raise NotImplementedError(u"Classe abstraite")
+            raise NotImplementedError("Classe abstraite")
 
         self._stop = Event()
         self._progression = 0
@@ -226,7 +226,7 @@ class BaseThreadTirage(Thread):
 
     def _arret_utilisateur(self):
         if self._stop.isSet() == True:
-            raise StopTirageError(u"Arrêt demmandé par l'utilisateur.")
+            raise StopTirageError("Arrêt demmandé par l'utilisateur.")
 
     def configurer(self, **kwargs):
         self.config.update(kwargs)
@@ -257,14 +257,14 @@ class BaseThreadTirage(Thread):
 
             self._debut = datetime.now()
             self.demarrer()
-            msg = u"\nAlgorithme terminé (temps de calcul: %s)." % temps_texte(self._chrono - self._debut)
+            msg = "\nAlgorithme terminé (temps de calcul: %s)." % temps_texte(self._chrono - self._debut)
             self.rapport(100, msg)
         except SolutionTirageError, e:
-            msg = u"\nAlgorithme terminé (%s)." % e
+            msg = "\nAlgorithme terminé (%s)." % e
             self.erreur = e
             self.rapport(100, msg)
         except StopTirageError, e:
-            msg = u"\nAlgorithme terminé (arrêt utilisateur)."
+            msg = "\nAlgorithme terminé (arrêt utilisateur)."
             self.erreur = e
             self.rapport(100, msg)
 

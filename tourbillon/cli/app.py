@@ -90,7 +90,7 @@ class Alias(object):
         return out
 
     def commande(self, nom_alias, args_s):
-        u"""
+        """
         Retourne la commande à executer dans le shell.
         """
         if nom_alias.startswith(self.ESC_ALIAS):
@@ -102,12 +102,12 @@ class Alias(object):
         return cmd
 
     def alias_licence(self, _args_s=''):
-        u"""Afficher la licence GPL.
+        """Afficher la licence GPL.
 
         Retrouver la licence dans sa version complète sur http://www.gnu.org/licenses/gpl.html
         """
 
-        print u"""
+        print """
         TourBillon est un logiciel libre distribué sous licence GPL, aussi appelée
         en français Licence Publique Générale GNU. Cette licence vous garantit les
         libertés suivantes :
@@ -134,7 +134,7 @@ class Alias(object):
         """
 
     def alias_alias(self, args_s=''):
-        u"""
+        """
         Affiche l'aide des alias de Tourbillon.
 
         options:
@@ -171,12 +171,12 @@ class Alias(object):
                         else:
                             fndoc = lignes[0].rstrip()
                 else:
-                    fndoc = u"Pas de documentation"
+                    fndoc = "Pas de documentation"
             else:
                 if fn.__doc__:
                     fndoc = fn.__doc__.rstrip()
                 else:
-                    fndoc = u"Pas de documentation"
+                    fndoc = "Pas de documentation"
 
             alias_doc.append('%s%s:\n\t%s\n\n' %
                              (self.ESC_ALIAS, nom_alias, fndoc))
@@ -187,7 +187,7 @@ class Alias(object):
             print alias_doc
             return
 
-        outmsg = u"""
+        outmsg = """
 Alias des fonctions de Tourbillon:
 ==================================
 
@@ -203,7 +203,7 @@ Le système d'alias est composé des fonctions suivantes:\n"""
         print outmsg
 
     def alias_nouveau(self, _args_s=''):
-        u"""
+        """
         Commencer un nouveau tournoi.
 
         options:
@@ -212,17 +212,17 @@ Le système d'alias est composé des fonctions suivantes:\n"""
             <manches>        : nombre d'équipes par manche
             <points>         : nombre de points par manche
         """
-        joueurs_par_equipe = question(u"Nombre de joueurs par équipe: ")
+        joueurs_par_equipe = question("Nombre de joueurs par équipe: ")
         if joueurs_par_equipe != '':
             self.config.set(
                 'TOURNOI', 'joueurs_par_equipe', str(int(float(joueurs_par_equipe))))
 
-        equipes_par_manche = question(u"Nombre d'équipes par manche: ")
+        equipes_par_manche = question("Nombre d'équipes par manche: ")
         if equipes_par_manche != '':
             self.config.set(
                 'TOURNOI', 'equipes_par_manche', str(int(float(equipes_par_manche))))
 
-        points_par_manche = question(u"Points par manche: ")
+        points_par_manche = question("Points par manche: ")
         if points_par_manche != '':
             self.config.set(
                 'TOURNOI', 'points_par_manche', str(int(float(points_par_manche))))
@@ -240,7 +240,7 @@ Le système d'alias est composé des fonctions suivantes:\n"""
         print "NOTE: vous pouvez acceder au tournoi via la variable 'trb'"
 
     def alias_ouvrir(self, args_s=''):
-        u"""
+        """
         Charger un tournoi.
 
         options:
@@ -248,7 +248,7 @@ Le système d'alias est composé des fonctions suivantes:\n"""
             <fichier>        : fichier à charger
         """
         if args_s == '':
-            args_s = question(u"Fichier: ", False)
+            args_s = question("Fichier: ", False)
 
         if args_s != '':
             self.locals['trb'] = tournoi.charger_tournoi(args_s)
@@ -256,7 +256,7 @@ Le système d'alias est composé des fonctions suivantes:\n"""
             print "NOTE: vous pouvez acceder au tournoi via la variable 'trb'"
 
     def alias_enregistrer(self, args_s=''):
-        u"""
+        """
         Enregistrer le tournoi en cours.
 
         Les données d'un tournoi sont enregistées dans un fichier texte au format
@@ -275,17 +275,17 @@ Le système d'alias est composé des fonctions suivantes:\n"""
                 args_s = tournoi.FICHIER_TOURNOI
                 tournoi.enregistrer_tournoi()
             else:
-                args_s = question(u"Fichier: ", False)
+                args_s = question("Fichier: ", False)
                 if args_s != '':
                     tournoi.enregistrer_tournoi(args_s)
         else:
             tournoi.enregistrer_tournoi(args_s)
 
         if args_s != '':
-            print u"Enregistré (%s)" % args_s
+            print "Enregistré (%s)" % args_s
 
     def alias_tirage(self, _args_s=''):
-        u"""
+        """
         Créer un nouveau tirage pas à pas:
             1. entrer le type de tirage
 
@@ -298,24 +298,24 @@ Le système d'alias est composé des fonctions suivantes:\n"""
                Par exemple: 6,12
         """
         if not tournoi.tournoi():
-            print u"Pas de tournoi commencé."
+            print "Pas de tournoi commencé."
             return
 
         choix = tirages.TIRAGES.keys()
         algo = question(
-            u"Catégorie %s ([ENTRE] pour %s): " % (choix, choix[0]))
+            "Catégorie %s ([ENTRE] pour %s): " % (choix, choix[0]))
         if not algo:
             algo = choix[0]
         if algo not in tirages.TIRAGES:
-            raise IOError(u"Catégorie invalide.")
+            raise IOError("Catégorie invalide.")
 
-        chap = question(u"Liste des chapeaux ([ENTRE] pour choix auto): ")
+        chap = question("Liste des chapeaux ([ENTRE] pour choix auto): ")
         if chap == '':
             chap = []
         else:
             chap = [int(num) for num in chap.split(',')]
         exclues = question(
-            u"Liste des équipes exclues ([ENTRE] pour choix auto): ")
+            "Liste des équipes exclues ([ENTRE] pour choix auto): ")
         if exclues == '':
             exclues = []
         else:
@@ -328,14 +328,14 @@ Le système d'alias est composé des fonctions suivantes:\n"""
         def printResulat(progression, message, _tps_restant):
             if generateur.erreur is None and message is not None:
                 p.afficher(
-                    progression, '\n' + message + u"\n\nTapez sur [ENTRER] pour arrêter.")
+                    progression, '\n' + message + "\n\nTapez sur [ENTRER] pour arrêter.")
 
             if generateur.tirage:
                 p.afficher(p.valeur(), '\n' + message)
                 print
-                print u"Tirage  : ", generateur.tirage
-                print u"Chapeaux: ", generateur.chapeaux
-                print u"Validé  : ", generateur.erreur or 'ok'
+                print "Tirage  : ", generateur.tirage
+                print "Chapeaux: ", generateur.chapeaux
+                print "Validé  : ", generateur.erreur or 'ok'
 
         generateur = tirages.creer_generateur(
             algo, tournoi.tournoi().equipes_par_manche, stat, chap, printResulat)
@@ -352,12 +352,12 @@ Le système d'alias est composé des fonctions suivantes:\n"""
         print "NOTE: vous pouvez acceder au tirage via la variable 'tir'"
 
     def alias_demarrer(self, _args_s=''):
-        u"""
+        """
         Démarrer une nouvelle partie avec le tirage précédement fait.
         """
         tirage = self.locals.get('tir')
         if not tirage:
-            print u"Pas de tirage réalisé."
+            print "Pas de tirage réalisé."
             return
 
         partie = tournoi.tournoi().ajout_partie()
@@ -366,19 +366,19 @@ Le système d'alias est composé des fonctions suivantes:\n"""
         self.locals.pop('tir')
 
     def alias_resultat(self, _args_s=''):
-        u"""
+        """
         Entrer les résultats d'une équipe (ex: 4 g 12 False)
             Le 4ème argument indique qu'il ne faut pas enregistrer
             l'heure actuelle comme heure de fin.
         """
         if not tournoi.tournoi():
-            print u"Pas de tournoi commencé."
+            print "Pas de tournoi commencé."
         elif not tournoi.tournoi().partie_courante():
-            print u"Aucune partie démarrée"
+            print "Aucune partie démarrée"
         elif tournoi.tournoi().partie_courante().statut == cst.P_ATTEND_TIRAGE:
-            print u"Le tirage n'a pas été fait."
+            print "Le tirage n'a pas été fait."
         else:
-            r = question(u"Resultat (ex: 4 12): ")
+            r = question("Resultat (ex: 4 12): ")
             r = r.split(' ')
             d = {}
             num = int(float(r[0]))
@@ -387,13 +387,13 @@ Le système d'alias est composé des fonctions suivantes:\n"""
 
             manche = tournoi.tournoi().equipe(num).resultat(tournoi.tournoi().partie_courante().numero).adversaires
             for num in manche:
-                r = question(u"Points équipe n°%s: " % num)
+                r = question("Points équipe n°%s: " % num)
                 r = r.strip()
                 pts = int(float(r))
                 d[num] = pts
 
             if tournoi.tournoi().equipe(num).resultat(tournoi.tournoi().partie_courante().numero).duree is not None:
-                r = question(u"Enregistrer l'heure de fin? (o / n) ")
+                r = question("Enregistrer l'heure de fin? (o / n) ")
                 if r.strip() in ['o', 'oui', 'y', 'yes']:
                     fin = datetime.now()
                 else:
@@ -404,7 +404,7 @@ Le système d'alias est composé des fonctions suivantes:\n"""
             tournoi.tournoi().partie_courante().resultat(d, fin)
 
     def alias_quitter(self, _args_s=''):
-        u"""
+        """
         Quitter TourBillon
         """
         cmd = question(u'Quitter TourBillon? (oui / non): ')
@@ -435,8 +435,8 @@ class TourBillonCLI(Alias):
         except AttributeError:
             sys.ps2 = TERM.formater("{BLUE}... ")
 
-        print u"%s  Copyright © 2010  La Billonnière." % tourbillon.__nom__
-        print u"""
+        print "%s  Copyright © 2010  La Billonnière." % tourbillon.__nom__
+        print """
 This program comes with ABSOLUTELY NO WARRANTY; This is a free software, and
 you are welcome to redistribute it under certain conditions;
 

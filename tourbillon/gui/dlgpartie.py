@@ -37,15 +37,15 @@ def ajout_page_titre(wizPg, titre):
 class DialogueSupprimerPartie(wx.Dialog):
 
     def __init__(self, parent, choix=[], numero_affiche=1):
-        wx.Dialog.__init__(self, parent, wx.ID_ANY, title=u"Supprimer une partie", style=wx.DEFAULT_DIALOG_STYLE | wx.CENTER_ON_SCREEN, pos=wx.DefaultPosition, size=wx.DefaultSize)
+        wx.Dialog.__init__(self, parent, wx.ID_ANY, title="Supprimer une partie", style=wx.DEFAULT_DIALOG_STYLE | wx.CENTER_ON_SCREEN, pos=wx.DefaultPosition, size=wx.DefaultSize)
         self.SetMinSize((500, 150))
         self.SetSize(wx.Size(500, 140))
         self.CenterOnParent()
 
-        self.txt_phrase0 = wx.StaticText(self, wx.ID_ANY, u"Etes vous sûr de vouloir supprimer la partie n° ")
+        self.txt_phrase0 = wx.StaticText(self, wx.ID_ANY, "Etes vous sûr de vouloir supprimer la partie n° ")
         self.ctl_numero = wx.Choice(self, wx.ID_ANY, choices=map(unicode, choix))
-        self.txt_phrase1 = wx.StaticText(self, wx.ID_ANY, u" ?")
-        self.txt_phrase2 = wx.StaticText(self, wx.ID_ANY, u"(Attention, toutes les données de la partie seront supprimées)")
+        self.txt_phrase1 = wx.StaticText(self, wx.ID_ANY, " ?")
+        self.txt_phrase2 = wx.StaticText(self, wx.ID_ANY, "(Attention, toutes les données de la partie seront supprimées)")
         self.ctl_numero.SetSelection(self.ctl_numero.FindString(unicode(numero_affiche)))
 
         # Choix
@@ -55,8 +55,8 @@ class DialogueSupprimerPartie(wx.Dialog):
         box_chx.Add(self.txt_phrase1, 0, wx.ALIGN_CENTER_VERTICAL)
 
         # Boutons
-        self.btn_ok = wx.Button(self, id=wx.ID_OK, label=u"Supprimer", size=(100, -1))
-        self.btn_annule = wx.Button(self, id=wx.ID_CANCEL, label=u"Annuler", size=(100, -1))
+        self.btn_ok = wx.Button(self, id=wx.ID_OK, label="Supprimer", size=(100, -1))
+        self.btn_annule = wx.Button(self, id=wx.ID_CANCEL, label="Annuler", size=(100, -1))
         box_btn = wx.BoxSizer(wx.HORIZONTAL)
         box_btn.AddSpacer((50, 50), 1, wx.EXPAND)
         box_btn.Add(self.btn_annule, 0, wx.EAST | wx.ALIGN_CENTER_VERTICAL, 30)
@@ -81,10 +81,10 @@ class DialogueSupprimerPartie(wx.Dialog):
 class DialogueAfficherTirage(wx.Dialog):
 
     def __init__(self, parent, numero_affiche=1):
-        wx.Dialog.__init__(self, parent, wx.ID_ANY, title=u"Tirages", style=wx.DEFAULT_DIALOG_STYLE | wx.CENTER_ON_SCREEN | wx.RESIZE_BORDER | wx.STAY_ON_TOP)
+        wx.Dialog.__init__(self, parent, wx.ID_ANY, title="Tirages", style=wx.DEFAULT_DIALOG_STYLE | wx.CENTER_ON_SCREEN | wx.RESIZE_BORDER | wx.STAY_ON_TOP)
         self.CenterOnParent()
 
-        self.txt_phrase = wx.StaticText(self, wx.ID_ANY, u"Tirage de la partie n° ")
+        self.txt_phrase = wx.StaticText(self, wx.ID_ANY, "Tirage de la partie n° ")
         self.ctl_numero = wx.Choice(self, wx.ID_ANY, choices=[unicode(partie.numero) for partie in tournoi.tournoi().parties()])
         self.ctl_numero.SetSelection(self.ctl_numero.FindString(unicode(numero_affiche)))
 
@@ -97,8 +97,8 @@ class DialogueAfficherTirage(wx.Dialog):
         self.grille = GrilleManchesCtrl(self, {}, chapeaux=[])
 
         # Boutons
-        self.btn_ok = wx.Button(self, id=wx.ID_OK, label=u"Fermer", size=(100, -1))
-        self.btn_imprimer = wx.Button(self, id=wx.ID_PREVIEW_PRINT, label=u"Imprimer...", size=(100, -1))
+        self.btn_ok = wx.Button(self, id=wx.ID_OK, label="Fermer", size=(100, -1))
+        self.btn_imprimer = wx.Button(self, id=wx.ID_PREVIEW_PRINT, label="Imprimer...", size=(100, -1))
         box_btn = wx.BoxSizer(wx.HORIZONTAL)
         box_btn.Add(self.btn_ok, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 20)
         box_btn.Add(self.btn_imprimer, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 20)
@@ -141,24 +141,24 @@ class DialogueAfficherClassement(wx.Dialog):
     single = None
 
     def __init__(self, parent, numero_affiche=1):
-        wx.Dialog.__init__(self, parent, ID_DLG_CLASSEMENT, title=u"Tirages", style=wx.DEFAULT_DIALOG_STYLE | wx.CENTER_ON_SCREEN | wx.RESIZE_BORDER | wx.STAY_ON_TOP)
+        wx.Dialog.__init__(self, parent, ID_DLG_CLASSEMENT, title="Tirages", style=wx.DEFAULT_DIALOG_STYLE | wx.CENTER_ON_SCREEN | wx.RESIZE_BORDER | wx.STAY_ON_TOP)
         DialogueAfficherClassement.single = self
         self.CenterOnParent()
         self.SetSize((300, 600))
 
-        txt_phrase = wx.StaticText(self, wx.ID_ANY, u"Classement des équipes")
+        txt_phrase = wx.StaticText(self, wx.ID_ANY, "Classement des équipes")
 
         # Grille
         self.grille = grid.Grid(self, wx.ID_ANY)
         self.grille.CreateGrid(0, 2)
-        self.grille.SetColLabelValue(0, u"Place")
-        self.grille.SetColLabelValue(1, u"N°")
+        self.grille.SetColLabelValue(0, "Place")
+        self.grille.SetColLabelValue(1, "N°")
         self.grille.SetRowLabelSize(0)
         self.grille.EnableDragColSize(False)
         self.grille.EnableDragRowSize(False)
 
         # Boutons
-        self.btn_ok = wx.Button(self, id=wx.ID_OK, label=u"Fermer", size=(100, -1))
+        self.btn_ok = wx.Button(self, id=wx.ID_OK, label="Fermer", size=(100, -1))
 
         # Assembler
         self.sizer = wx.BoxSizer(wx.VERTICAL)
@@ -190,8 +190,8 @@ class DialogueAfficherClassement(wx.Dialog):
         i = 0
         for equipe, place in classement:
             self.grille.InsertRows(i, 1, False)
-            self.grille.SetCellValue(i, 0, u"%s" % place)
-            self.grille.SetCellValue(i, 1, u"%s" % equipe.numero)
+            self.grille.SetCellValue(i, 0, "%s" % place)
+            self.grille.SetCellValue(i, 1, "%s" % equipe.numero)
             i += 1
 
         self.Layout()
@@ -209,7 +209,7 @@ class BandeTexte(wx.Panel):
         self.btm_icon = wx.StaticBitmap(self, wx.ID_ANY, self._info)
         self.btm_icon.Hide()
 
-        self.txt_message = wx.StaticText(self, wx.ID_ANY, u"")
+        self.txt_message = wx.StaticText(self, wx.ID_ANY, "")
         self.txt_message.SetFont(wx.Font(10, wx.SWISS, wx.NORMAL, wx.NORMAL))
 
         sizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -246,12 +246,12 @@ class ListeEquipesCtrl(wx.ListCtrl, listctrl.CheckListCtrlMixin):
         listctrl.CheckListCtrlMixin.__init__(self)
         self.config = config
 
-        self.InsertColumn(0, u"N°", wx.LIST_FORMAT_CENTRE)
-        self.InsertColumn(1, u"Noms", wx.LIST_FORMAT_LEFT)
-        self.InsertColumn(2, u"Victoires", wx.LIST_FORMAT_CENTRE)
-        self.InsertColumn(3, u"Points", wx.LIST_FORMAT_CENTRE)
-        self.InsertColumn(4, u"Chapeaux", wx.LIST_FORMAT_CENTRE)
-        self.InsertColumn(5, u"Classement", wx.LIST_FORMAT_CENTRE)
+        self.InsertColumn(0, "N°", wx.LIST_FORMAT_CENTRE)
+        self.InsertColumn(1, "Noms", wx.LIST_FORMAT_LEFT)
+        self.InsertColumn(2, "Victoires", wx.LIST_FORMAT_CENTRE)
+        self.InsertColumn(3, "Points", wx.LIST_FORMAT_CENTRE)
+        self.InsertColumn(4, "Chapeaux", wx.LIST_FORMAT_CENTRE)
+        self.InsertColumn(5, "Classement", wx.LIST_FORMAT_CENTRE)
 
     def ajout_equipes(self, liste_equipes):
         selection = [int(self.GetItemText(i)) for i in range(self.GetItemCount()) if self.IsChecked(i)]
@@ -265,7 +265,7 @@ class ListeEquipesCtrl(wx.ListCtrl, listctrl.CheckListCtrlMixin):
         for num in liste_equipes:
             equipe = tournoi.tournoi().equipe(int(num))
             self.Append([unicode(equipe.numero),
-                         u", ".join([unicode(joueur) for joueur in equipe.joueurs()]),
+                         ", ".join([unicode(joueur) for joueur in equipe.joueurs()]),
                          unicode(equipe.victoires()),
                          unicode(equipe.points()),
                          unicode(equipe.chapeaux()),
@@ -311,11 +311,11 @@ class GrilleManchesCtrl(grid.Grid):
         self.SetRowLabelSize(0)
         for i in range(self.GetNumberCols()):
             if i == 0:
-                self.SetColLabelValue(i, u"Piquet")
+                self.SetColLabelValue(i, "Piquet")
             elif i == self.GetNumberCols() - 1:
-                self.SetColLabelValue(self.GetNumberCols() - 1, u"Information")
+                self.SetColLabelValue(self.GetNumberCols() - 1, "Information")
             else:
-                self.SetColLabelValue(i, u"")
+                self.SetColLabelValue(i, "")
         self.EnableDragColSize(False)
         self.EnableDragRowSize(False)
 
@@ -345,11 +345,11 @@ class GrilleManchesCtrl(grid.Grid):
             self._deselectionner(l, c)
             self.select2 = None
         elif self.select1 is None:
-            if self.GetCellValue(l, c) != u"C" and 0 < c < self.equipes_par_manche + 1:
+            if self.GetCellValue(l, c) != "C" and 0 < c < self.equipes_par_manche + 1:
                 self.select1 = (l, c)
                 self._selectionner(l, c)
         elif self.select2 is None:
-            if self.GetCellValue(l, c) != u"C" and 0 < c < self.equipes_par_manche + 1:
+            if self.GetCellValue(l, c) != "C" and 0 < c < self.equipes_par_manche + 1:
                 self.select2 = (l, c)
                 self._selectionner(l, c)
         self.Refresh()
@@ -411,12 +411,12 @@ class GrilleManchesCtrl(grid.Grid):
         i = 0
         j = 0
         if len(chapeaux) != 0:
-            self.SetCellValue(i, 0, u"-")
+            self.SetCellValue(i, 0, "-")
             while j < self.equipes_par_manche:
                 if j < len(chapeaux):
                     self.SetCellValue(i, j + 1, unicode(chapeaux[j]))
                 else:
-                    self.SetCellValue(i, j + 1, u"C")
+                    self.SetCellValue(i, j + 1, "C")
                     self.SetCellTextColour(i, j + 1, images.couleur(cst.CHAPEAU))
                 j += 1
             i += 1
@@ -450,7 +450,7 @@ class GrilleManchesCtrl(grid.Grid):
         m = []
         for j in range(1, self.GetNumberCols() - 1):
             valeur = self.GetCellValue(ligne, j)
-            if valeur != u"C":
+            if valeur != "C":
                 valeur = int(valeur)
             m.append(valeur)
 
@@ -466,8 +466,8 @@ class GrilleManchesCtrl(grid.Grid):
         attention = False
         _piquet, manche = self.manche(ligne)
 
-        if u"C" in manche:
-            manche = [equipe for equipe in manche if equipe != u"C"]
+        if "C" in manche:
+            manche = [equipe for equipe in manche if equipe != "C"]
             # Compter parmis les chapeaux les équipes qui ont déjà été chapeau
             deja_ete_chapeau = []
             for num in manche:
@@ -477,12 +477,12 @@ class GrilleManchesCtrl(grid.Grid):
             # Afficher le message si des équipes ont déjà été chapeau
             if len(deja_ete_chapeau) == 1:
                 attention = True
-                self.chg_texte(ligne, u"!!! L'équipe n°%s a déjà été chapeau." % deja_ete_chapeau[0])
+                self.chg_texte(ligne, "!!! L'équipe n°%s a déjà été chapeau." % deja_ete_chapeau[0])
             elif len(deja_ete_chapeau) > 1:
                 attention = True
-                self.chg_texte(ligne, u"!!! Les équipes n°%s ont déjà été chapeaux." % ", ".join(map(unicode, deja_ete_chapeau)))
+                self.chg_texte(ligne, "!!! Les équipes n°%s ont déjà été chapeaux." % ", ".join(map(unicode, deja_ete_chapeau)))
             else:
-                self.chg_texte(ligne, u"")
+                self.chg_texte(ligne, "")
         else:
             # Pour chaque ligne, afficher si des équipes se sont déjà rencontrées.
             rencontre_faite = False
@@ -507,12 +507,12 @@ class GrilleManchesCtrl(grid.Grid):
             if rencontres != []:
                 attention = True
                 if rencontre_faite:
-                    texte = u"!!! Cette manche a déjà eu lieu"
+                    texte = "!!! Cette manche a déjà eu lie"
                 else:
-                    texte = u"!!! Les rencontres suivantes ont déjà eu lieu: %s" % ", ".join(map(unicode, rencontres))
+                    texte = "!!! Les rencontres suivantes ont déjà eu lieu: %s" % ", ".join(map(unicode, rencontres))
                 self.chg_texte(ligne, texte)
             else:
-                self.chg_texte(ligne, u"")
+                self.chg_texte(ligne, "")
 
         return attention
 
@@ -522,7 +522,7 @@ class SelectionEquipesPage(wiz.PyWizardPage):
     def __init__(self, parent, title):
         wiz.PyWizardPage.__init__(self, parent)
         self.next = self.prev = None
-        self.sizer, self.txt_msg = ajout_page_titre(self, u"Selection des équipes")
+        self.sizer, self.txt_msg = ajout_page_titre(self, "Selection des équipes")
 
         self.liste = ListeEquipesCtrl(self, self.GetParent().config)
         self.liste.ajout_equipes(tournoi.tournoi().equipes())
@@ -530,9 +530,9 @@ class SelectionEquipesPage(wiz.PyWizardPage):
         self._cocher_tout(None)
 
         self.btn_cocher_tout = wx.BitmapButton(self, wx.ID_ANY, images.bitmap('check_on.png'))
-        self.btn_cocher_tout.SetToolTipString(u"Sélectionner toutes les équipes")
+        self.btn_cocher_tout.SetToolTipString("Sélectionner toutes les équipes")
         self.btn_decocher_tout = wx.BitmapButton(self, wx.ID_ANY, images.bitmap('check_off.png'))
-        self.btn_decocher_tout.SetToolTipString(u"Dessélectionner toutes les équipes")
+        self.btn_decocher_tout.SetToolTipString("Dessélectionner toutes les équipes")
 
         self.sizer.Add(self.liste, 1, wx.EXPAND | wx.ALL, 5)
 
@@ -609,7 +609,7 @@ class SelectionEquipesPage(wiz.PyWizardPage):
     def verifier(self, event):
         nextButton = self.GetParent().FindWindowById(wx.ID_FORWARD)
         if len(self.equipes()) < 3:
-            self.txt_msg.chg_texte(u"Au minimum, 3 équipes doivent être séléctionnées.", wx.ICON_ERROR)
+            self.txt_msg.chg_texte("Au minimum, 3 équipes doivent être séléctionnées.", wx.ICON_ERROR)
             nextButton.Disable()
         else:
             self.txt_msg.chg_texte("")
@@ -624,15 +624,15 @@ class SelectionChapeauPage(wiz.PyWizardPage):
     def __init__(self, parent, title):
         wiz.PyWizardPage.__init__(self, parent)
         self.next = self.prev = None
-        self.sizer, self.txt_msg = ajout_page_titre(self, u"Selection des chapeaux")
+        self.sizer, self.txt_msg = ajout_page_titre(self, "Selection des chapeaux")
 
         self.liste = ListeEquipesCtrl(self, self.GetParent().config)
         self.liste.SetSize(wx.Size(600, 300))
 
         self.btn_cocher_tout = wx.BitmapButton(self, -1, images.bitmap('check_on.png'))
-        self.btn_cocher_tout.SetToolTipString(u"Sélectionner toutes les équipes")
+        self.btn_cocher_tout.SetToolTipString("Sélectionner toutes les équipes")
         self.btn_decocher_tout = wx.BitmapButton(self, -1, images.bitmap('check_off.png'))
-        self.btn_decocher_tout.SetToolTipString(u"Dessélectionner toutes les équipes")
+        self.btn_decocher_tout.SetToolTipString("Dessélectionner toutes les équipes")
 
         self.sizer.Add(self.liste, 1, wx.EXPAND | wx.ALL, 5)
 
@@ -684,10 +684,10 @@ class SelectionChapeauPage(wiz.PyWizardPage):
         nb_max = utils.nb_chapeaux_necessaires(self.liste.GetItemCount(), tournoi.tournoi().equipes_par_manche)
 
         if nb_max < len(self.chapeaux()):
-            self.txt_msg.chg_texte(u"Il ne peut pas y avoir plus de %s chapeau(x)." % nb_max, wx.ICON_ERROR)
+            self.txt_msg.chg_texte("Il ne peut pas y avoir plus de %s chapeau(x)." % nb_max, wx.ICON_ERROR)
             nextButton.Disable()
         elif nb_max > len(self.chapeaux()):
-            self.txt_msg.chg_texte(u"Si nécessaire, le reste de la séléction se fera par tirage. (maximum %s chapeau(x))..." % nb_max, wx.ICON_INFORMATION)
+            self.txt_msg.chg_texte("Si nécessaire, le reste de la séléction se fera par tirage. (maximum %s chapeau(x))..." % nb_max, wx.ICON_INFORMATION)
             nextButton.Enable()
         else:
             self.txt_msg.chg_texte("")
@@ -702,7 +702,7 @@ class LancerTiragePage(wiz.PyWizardPage):
     def __init__(self, parent, title):
         wiz.PyWizardPage.__init__(self, parent)
         self.next = self.prev = None
-        self.sizer, self.txt_msg = ajout_page_titre(self, u"Tirage")
+        self.sizer, self.txt_msg = ajout_page_titre(self, "Tirage")
 
         self._generateur = None
 
@@ -711,17 +711,17 @@ class LancerTiragePage(wiz.PyWizardPage):
         self.chx_algorithme = wx.Choice(self, wx.ID_ANY, choices=liste_tirages)
         algorithme = self.GetParent().config.get('TOURNOI', 'ALGORITHME_DEFAUT')
         self.chx_algorithme.SetSelection(tirages.TIRAGES.keys().index(algorithme))
-        self.txt_algorithme = wx.StaticText(self, wx.ID_ANY, u"Choix de l'algorithme utilisé: ")
-        self.btn_options = wx.Button(self, id=wx.ID_PREFERENCES, label=u"Options", size=(100, -1))
+        self.txt_algorithme = wx.StaticText(self, wx.ID_ANY, "Choix de l'algorithme utilisé: ")
+        self.btn_options = wx.Button(self, id=wx.ID_PREFERENCES, label="Options", size=(100, -1))
 
         # Progression
         self.bar_progression = wx.Gauge(self, wx.ID_ANY, 100, size=(-1, 15), style=wx.GA_HORIZONTAL)
-        self.txt_tps_restant = wx.StaticText(self, wx.ID_ANY, u"", size=(40, -1), style=wx.ALIGN_RIGHT)
-        self.txt_progression = wx.TextCtrl(self, wx.ID_ANY, u"", style=wx.TE_MULTILINE)
+        self.txt_tps_restant = wx.StaticText(self, wx.ID_ANY, "", size=(40, -1), style=wx.ALIGN_RIGHT)
+        self.txt_progression = wx.TextCtrl(self, wx.ID_ANY, "", style=wx.TE_MULTILINE)
         self.txt_progression.SetEditable(False)
 
         # Start / Stop
-        self.btn_tirage = wx.Button(self, id=wx.ID_APPLY, label=u"Démarrer", size=(100, -1))
+        self.btn_tirage = wx.Button(self, id=wx.ID_APPLY, label="Démarrer", size=(100, -1))
 
         chx_box = wx.BoxSizer(wx.HORIZONTAL)
         chx_box.Add(self.txt_algorithme, 0, wx.ALIGN_CENTER_VERTICAL)
@@ -798,12 +798,12 @@ class LancerTiragePage(wiz.PyWizardPage):
             if self._generateur.isAlive():
                 self._generateur.stop()
                 self._generateur.join()
-                self.txt_msg.chg_texte(u"")
+                self.txt_msg.chg_texte("")
             else:
                 self._generateur = None
 
         if self._generateur is None:
-            self.txt_msg.chg_texte(u"")
+            self.txt_msg.chg_texte("")
             self.txt_progression.Clear()
             self.bar_progression.SetValue(0)
             font = self.txt_progression.GetFont()
@@ -835,14 +835,14 @@ class LancerTiragePage(wiz.PyWizardPage):
         prevButton = self.GetParent().FindWindowById(wx.ID_BACKWARD)
         cancButton = self.GetParent().FindWindowById(wx.ID_CANCEL)
 
-        self.txt_msg.chg_texte(u"")
+        self.txt_msg.chg_texte("")
         if self._generateur is None:
             # Pas de tirage effectué
             self.chx_algorithme.Enable()
             self.bar_progression.Enable()
             self.btn_options.Enable()
             self.btn_tirage.Enable()
-            self.btn_tirage.SetLabel(u"Démarrer")
+            self.btn_tirage.SetLabel("Démarrer")
             nextButton.Disable()
         else:
             if self._generateur.isAlive():
@@ -851,7 +851,7 @@ class LancerTiragePage(wiz.PyWizardPage):
                 self.bar_progression.Enable()
                 self.btn_options.Disable()
                 self.btn_tirage.Enable()
-                self.btn_tirage.SetLabel(u"Arrêter")
+                self.btn_tirage.SetLabel("Arrêter")
                 nextButton.Disable()
                 prevButton.Disable()
                 cancButton.Disable()
@@ -861,13 +861,13 @@ class LancerTiragePage(wiz.PyWizardPage):
                 self.bar_progression.Enable()
                 self.btn_options.Enable()
                 self.btn_tirage.Enable()
-                self.btn_tirage.SetLabel(u"Démarrer")
+                self.btn_tirage.SetLabel("Démarrer")
                 prevButton.Enable()
                 cancButton.Enable()
 
                 # Passer à la confirmation du tirage
                 if self._generateur.erreur is None:
-                    self.txt_msg.chg_texte(u"Le tirage est terminé. Passez à l'étape suivante.", wx.ICON_INFORMATION)
+                    self.txt_msg.chg_texte("Le tirage est terminé. Passez à l'étape suivante.", wx.ICON_INFORMATION)
                     nextButton.Enable()
                 else:
                     self.txt_msg.chg_texte(unicode(self._generateur.erreur), wx.ICON_ERROR)
@@ -882,13 +882,13 @@ class ConfirmerTiragePage(wiz.PyWizardPage):
     def __init__(self, parent, title):
         wiz.PyWizardPage.__init__(self, parent)
         self.next = self.prev = None
-        self.sizer, self.txt_msg = ajout_page_titre(self, u"Confirmation du tirage")
+        self.sizer, self.txt_msg = ajout_page_titre(self, "Confirmation du tirage")
 
         self.grille = None
 
-        self.btn_echanger = wx.Button(self, wx.ID_ANY, label=u"Echanger", size=(100, -1))
-        self.btn_imprimer = wx.Button(self, id=wx.ID_PREVIEW_PRINT, label=u"Imprimer...", size=(100, -1))
-        self.btn_classement = wx.Button(self, id=wx.ID_ANY, label=u"Classement...", size=(100, -1))
+        self.btn_echanger = wx.Button(self, wx.ID_ANY, label="Echanger", size=(100, -1))
+        self.btn_imprimer = wx.Button(self, id=wx.ID_PREVIEW_PRINT, label="Imprimer...", size=(100, -1))
+        self.btn_classement = wx.Button(self, id=wx.ID_ANY, label="Classement...", size=(100, -1))
         box_btn = wx.BoxSizer(wx.HORIZONTAL)
         box_btn.Add(self.btn_echanger, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 20)
         box_btn.Add(self.btn_imprimer, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 20)
@@ -939,7 +939,7 @@ class ConfirmerTiragePage(wiz.PyWizardPage):
         i = 0
         while i < self.grille.GetNumberRows():
             piquet, manche = self.grille.manche(i)
-            if u"C" not in manche:
+            if "C" not in manche:
                 l[piquet] = manche
             i += 1
 
@@ -947,8 +947,8 @@ class ConfirmerTiragePage(wiz.PyWizardPage):
 
     def chapeaux(self):
         _piquet, manche = self.grille.manche(0)
-        if u"C" in manche:
-            return [equipe for equipe in manche if equipe != u"C"]
+        if "C" in manche:
+            return [equipe for equipe in manche if equipe != "C"]
         else:
             return []
 
@@ -988,9 +988,9 @@ class ConfirmerTiragePage(wiz.PyWizardPage):
                     attention = True
 
             if attention:
-                self.txt_msg.chg_texte(u"Ce tirage contient des redondances.", wx.ICON_WARNING)
+                self.txt_msg.chg_texte("Ce tirage contient des redondances.", wx.ICON_WARNING)
             else:
-                self.txt_msg.chg_texte(u"")
+                self.txt_msg.chg_texte("")
 
         # Verifier unicité des numéro de piquets
         for i in range(len(piquets)):
@@ -1008,15 +1008,15 @@ class ConfirmerTiragePage(wiz.PyWizardPage):
 class DialogueAjouterPartie(wiz.Wizard):
 
     def __init__(self, parent, config):
-        wiz.Wizard.__init__(self, parent, wx.ID_ANY, title=u"Nouvelle partie",
+        wiz.Wizard.__init__(self, parent, wx.ID_ANY, title="Nouvelle partie",
                             style=wx.DEFAULT_FRAME_STYLE, pos=wx.DefaultPosition)
         self.CenterOnParent()
         self.config = config
 
-        self.page1 = SelectionEquipesPage(self, u"Page 1")
-        self.page2 = SelectionChapeauPage(self, u"Page 2")
-        self.page3 = LancerTiragePage(self, u"Page 3")
-        self.page4 = ConfirmerTiragePage(self, u"Page 4")
+        self.page1 = SelectionEquipesPage(self, "Page 1")
+        self.page2 = SelectionChapeauPage(self, "Page 2")
+        self.page3 = LancerTiragePage(self, "Page 3")
+        self.page4 = ConfirmerTiragePage(self, "Page 4")
 
         # Ordre initial des pages
         self.page1.SetNext(self.page2)
@@ -1058,6 +1058,6 @@ class DialogueAjouterPartie(wiz.Wizard):
     def annuler(self, event):
         if self.page3._generateur is not None:
             if self.page3._generateur.isAlive():
-                self.page3.txt_msg.chg_texte(u"Arrêtez le tirage avant de fermer.", wx.ICON_WARNING)
+                self.page3.txt_msg.chg_texte("Arrêtez le tirage avant de fermer.", wx.ICON_WARNING)
                 return
         event.Skip()
