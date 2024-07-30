@@ -10,6 +10,9 @@ from tourbillon import logger
 
 
 def run():
+    """
+    Entry point.
+    """
     config = charger_config()
     options, args = parse_options()
 

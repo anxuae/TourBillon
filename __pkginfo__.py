@@ -29,7 +29,7 @@ version = '.'.join([str(num) for num in tourbillon.__version__])
 
 scripts = [
     # (script après install, chemin, fonction à appeler)
-    ("tourbillon", "tourbillon/trb.py", "run"), ]
+    ("tourbillon", "tourbillon/__main__.py", "run"), ]
 
 dependences = [  # dist_name + contrainte version
     "pyyaml>=3.0",
