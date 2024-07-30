@@ -117,19 +117,11 @@ def parse_options():
                         "TourBillon embarque plusieurs interfaces utilisateur"
                         " pour répondre aux divers besoins des infrastructures."
                         " Par défaut, il demarrera en mode `standalone` (interface graphique).")
-    group.add_option("-s", "--shell", action='store_true', default=False,
-                     help="démarrer TourBillon en ligne de commandes")
     group.add_option("-b", "--backend", action='store_true', default=False,
                      help="démarrer TourBillon en tant que serveur HTTP REST (backend)")
     parser.add_option_group(group)
     Option.ALWAYS_TYPED_ACTIONS = ('store', 'append')
-
-    options, args = parser.parse_args()
-
-    if [options.shell, options.backend].count(True) > 1:
-        parser.error("Les options `--backend` et `--shell` sont mutuellement exclusives")
-
-    return options, args
+    return parser.parse_args()
 
 
 def enregistrer_config():

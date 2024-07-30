@@ -30,7 +30,7 @@ TourBillon
 
 TourBillon est un logiciel libre (distribué sous licence GPL) qui permet d'organiser les
 tournois de billons. Tourbillon s'installe et s'utilise en un tour de main, trois interfaces
-sont possibles: "standalone" (par defaut), "shell" ou "backend" (server HTTP RESTful).
+sont possibles: "standalone" (par defaut) ou "backend" (server HTTP RESTful).
 
 
 Dépendances
@@ -38,9 +38,8 @@ Dépendances
 
 * Python >= 2.7 (requis)
 * PyYaml version 3.10 (requis)
-* WxPython version 2.8 (optionel: mode "standalone")
-* Flask version 0.10.1 + flask-restful (optionel: mode "serveur")
-* Pyreadline version 1.7 (optionel: mode "shell")
+* WxPython version 4.0 (optionel: mode "standalone")
+* cfastapi version 0.111.1 (optionel: mode "serveur")
 
 
 Installation
@@ -59,10 +58,6 @@ ou Mac OSX: *TrourBillon.app*) ou tapez la commande *tourbillon* sur un système
 Pour une utilisation `server`, lancer::
 
     $ tourbillon --backend
-
-Pour une utilisation `shell`, lancer::
-
-    $ tourbillon --shell
 
 Et maintenant, ça tourne! Fantastique! Notez qu'en mode `server`, TourBillon tourne par
 défaut sur le port 14000.

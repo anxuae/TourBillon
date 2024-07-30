@@ -27,10 +27,7 @@ def run():
     if sys.version_info[:3] < (2, 7, 0):
         logger.critical("Python 2.7 (ou supérieure) est requis pour ce programme")
 
-    if options.shell:
-        from tourbillon.cli.app import TourBillonCLI
-        app = TourBillonCLI(config)
-    elif options.backend:
+    if options.backend:
         from tourbillon.server.app import TourBillonServer
         app = TourBillonServer(config)
     else:
