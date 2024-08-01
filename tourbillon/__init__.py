@@ -4,4 +4,4 @@
 le tournoi de Billon qui a lieu chaque année à Floyon, le premier dimanche d'août."""
 
 __nom__ = "TourBillon"
-__version__ = (5, 0, 5)
+__version__ = (6, 0, 0)

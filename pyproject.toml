@@ -1,0 +1,33 @@
+[tool.poetry]
+name = "tourbillon"
+version = "6.0.0"
+description = "TourBillon - by La Billionnière"
+authors = ["La Billonnière"]
+license = "GNU GPL"
+readme = "README.rst"
+homepage = "https://github.com/anxuae/TourBillon"
+repository = "https://github.com/anxuae/TourBillon"
+keywords = ["billon", "game"]
+packages = [
+    { include = "tourbillon" }
+]
+include = [
+    { path = "tests", format = "sdist"},
+    { path = "tourbillon/images/*.txt *.png *.jpg *.ico *.icns"}
+]
+
+
+[tool.poetry.dependencies]
+python = "^3.8"
+PyYAML = "^5.0"
+wxPython = "^4.0.0"
+fastapi = "^0.111.0"
+
+
+[tool.poetry.scripts]
+tourbillon = 'tourbillon.__main__:run'
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

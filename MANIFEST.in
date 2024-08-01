@@ -1,5 +1,0 @@
-# Add resources to sdist
-include LICENSE
-include README.rst
-include __pkginfo__.py
-recursive-include tourbillon/images *.txt *.png *.jpg *.ico *.icns

@@ -29,7 +29,7 @@ TourBillon
 ==========
 
 TourBillon est un logiciel libre (distribué sous licence GPL) qui permet d'organiser les
-tournois de billons. Tourbillon s'installe et s'utilise en un tour de main, trois interfaces
+tournois de billons. Tourbillon s'installe et s'utilise en un tour de main, deux interfaces
 sont possibles: "standalone" (par defaut) ou "backend" (server HTTP RESTful).
 
 
@@ -61,3 +61,6 @@ Pour une utilisation `server`, lancer::
 
 Et maintenant, ça tourne! Fantastique! Notez qu'en mode `server`, TourBillon tourne par
 défaut sur le port 14000.
+
+Changelog
+=========
