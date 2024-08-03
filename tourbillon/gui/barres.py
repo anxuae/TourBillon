@@ -1,9 +1,10 @@
 # -*- coding: UTF-8 -*-
 
 import wx
+import wx.lib.stattext as genstatictext
 from wx.lib.agw import buttonpanel as bp
-from tourbillon import images
 
+from tourbillon import images
 from tourbillon.gui import evenements as evt
 from tourbillon.gui import grille as grl
 from tourbillon.core import constantes as cst
@@ -151,7 +152,7 @@ class Menu(wx.Menu):
         sous_menu = wx.MenuItem(self, id, text, help, kind)
         if bpm:
             sous_menu.SetBitmap(bpm)
-        self.AppendItem(sous_menu)
+        self.Append(sous_menu)
 
 
 def styles():
@@ -237,8 +238,8 @@ class BarreMenu(wx.MenuBar):
                                       bpm=images.bitmap('supprimer.png', scale=0.5))
 
         self.menu_tournoi = Menu()
-        self.menu_tournoi.AppendMenu(ID_INSCRIPTION, "&Equipes", self.sous_menu_inscription)
-        self.menu_tournoi.AppendMenu(ID_PARTIE, "&Parties", self.sous_menu_partie)
+        self.menu_tournoi.Append(ID_INSCRIPTION, "&Equipes", self.sous_menu_inscription)
+        self.menu_tournoi.Append(ID_PARTIE, "&Parties", self.sous_menu_partie)
         self.menu_tournoi.Append(ID_CLASSEMENT, "&Classement", "  Afficher le classement")
         self.menu_tournoi.AppendSeparator()
         self.menu_tournoi.ajouter(wx.ID_PREFERENCES, "&Préférences\tCtrl+,", " Configuration de l'application",
@@ -270,26 +271,25 @@ class BarreMenu(wx.MenuBar):
 class BarreBouton(bp.ButtonPanel):
 
     def __init__(self, parent):
-        bp.ButtonPanel.__init__(self, parent, wx.ID_ANY, text="",
-                                agwStyle=bp.BP_USE_GRADIENT, alignment=bp.BP_ALIGN_LEFT)
+        super().__init__(parent, wx.ID_ANY, text="",
+                         agwStyle=bp.BP_USE_GRADIENT, alignment=bp.BP_ALIGN_LEFT)
         self.controls = []
 
         self.Freeze()
+        self.SetAlignment(bp.BP_ALIGN_RIGHT)
+
         # Bouton partie précédente
         self.btn_precedente = ButtonInfo(self, id=wx.ID_ANY,
                                          bmp=images.bitmap('precedent.png'), kind=wx.ITEM_NORMAL,
                                          shortHelp="Précédente", longHelp="Afficher les données de la partie précédente.")
-
         self.btn_precedente.SetTextAlignment(bp.BP_BUTTONTEXT_ALIGN_RIGHT)
         self.AddButton(self.btn_precedente)
         self.controls.append(self.btn_precedente)
 
         # Partie affichée
-        self.txt_partie = wx.StaticText(self, id=wx.ID_ANY, label="0",
-                                        size=(50, -1), style=wx.ALIGN_CENTER)
-        self.txt_partie.SetToolTipString("Partie affichée")
+        self.txt_partie = genstatictext.GenStaticText(self, wx.ID_ANY, "0", (50, -1))
+        self.txt_partie.SetToolTip("Partie affichée")
         font = wx.Font(35, wx.SWISS, wx.NORMAL, wx.BOLD, False, "Impact")
-
         self.txt_partie.SetFont(font)
         self.txt_partie.SetForegroundColour(wx.Colour(144, 65, 21))
         self.AddControl(self.txt_partie)
@@ -298,19 +298,17 @@ class BarreBouton(bp.ButtonPanel):
         self.btn_suivante = ButtonInfo(self, id=wx.ID_ANY,
                                        bmp=images.bitmap('suivant.png'), kind=wx.ITEM_NORMAL,
                                        shortHelp="Suivante", longHelp="Afficher les données de la partie suivante.")
-
         self.btn_suivante.SetTextAlignment(bp.BP_BUTTONTEXT_ALIGN_RIGHT)
         self.AddButton(self.btn_suivante)
         self.controls.append(self.btn_suivante)
 
         # Ajouter un espace
-        self.AddSpacer((100, 0), 0, wx.ALIGN_RIGHT)
+        self.AddSpacer((100, 0), 0)
 
         # Bouton inscription
         self.btn_equipe = ButtonInfo(self, id=ID_NOUVELLE_E,
                                      bmp=images.bitmap('equipe.png'), kind=wx.ITEM_NORMAL,
                                      shortHelp="Inscription", longHelp="Inscrire des équipes au tournoi.")
-
         self.btn_equipe.SetTextAlignment(bp.BP_BUTTONTEXT_ALIGN_RIGHT)
         self.AddButton(self.btn_equipe)
         self.controls.append(self.btn_equipe)
@@ -319,7 +317,6 @@ class BarreBouton(bp.ButtonPanel):
         self.btn_partie = ButtonInfo(self, id=ID_NOUVELLE_P,
                                      bmp=images.bitmap('partie.png'), kind=wx.ITEM_NORMAL,
                                      shortHelp="Nouvelle partie", longHelp="Démarrer une nouvelle partie.")
-
         self.btn_partie.SetTextAlignment(bp.BP_BUTTONTEXT_ALIGN_RIGHT)
         self.AddButton(self.btn_partie)
         self.controls.append(self.btn_partie)
@@ -328,7 +325,6 @@ class BarreBouton(bp.ButtonPanel):
         self.btn_resultats = ButtonInfo(self, id=ID_RESULTATS,
                                         bmp=images.bitmap('resultats.png'), kind=wx.ITEM_NORMAL,
                                         shortHelp="Résultats", longHelp="Enregistrer le résultat d'une manche.")
-
         self.btn_resultats.SetTextAlignment(bp.BP_BUTTONTEXT_ALIGN_RIGHT)
         self.AddButton(self.btn_resultats)
         self.controls.append(self.btn_resultats)
@@ -340,21 +336,18 @@ class BarreBouton(bp.ButtonPanel):
         self.btn_info = ButtonInfo(self, id=ID_INFO,
                                    bmp=images.bitmap('info.png'), kind=wx.ITEM_CHECK,
                                    shortHelp="Informations", longHelp="Afficher les informations relatives au tournoi en fonction de son statut.")
-
         self.btn_info.SetTextAlignment(bp.BP_BUTTONTEXT_ALIGN_RIGHT)
         self.AddButton(self.btn_info)
         self.controls.append(self.btn_info)
 
         # Chercher
         self.box_chercher = wx.SearchCtrl(self, wx.ID_FIND, size=(200, -1), style=wx.TE_PROCESS_ENTER)
-
         menu = wx.Menu()
         titres = [t[0] for t in grl.TITRES['partie'] if t[0] != ""] + [t[0] for t in grl.TITRES['statistiques'] if t[0] != ""]
         for texte in titres:
             menu.Append(wx.ID_ANY, texte, "", wx.ITEM_RADIO)
         self.box_chercher.SetMenu(menu)
         self.box_chercher.ShowCancelButton(True)
-
         self.AddControl(self.box_chercher, 0, wx.ALIGN_CENTER_VERTICAL)
         self.controls.append(self.box_chercher)
 
@@ -365,14 +358,12 @@ class BarreBouton(bp.ButtonPanel):
         btn = ButtonInfo(self, id=wx.ID_SAVE,
                          bmp=images.bitmap('enregistrer.png'), kind=wx.ITEM_NORMAL,
                          shortHelp="Enregistrer", longHelp="Enregistrer le tournoi en cours.")
-
         btn.SetTextAlignment(bp.BP_BUTTONTEXT_ALIGN_RIGHT)
         self.AddButton(btn)
         self.controls.append(btn)
 
         # Propiétés
         bpArt = self.GetBPArt()
-        self.SetAlignment(bp.BP_ALIGN_RIGHT)
 
         bpArt.SetMetric(bp.BP_SEPARATOR_SIZE, 10)
         bpArt.SetMetric(bp.BP_MARGINS_SIZE, wx.Size(10, 3))
@@ -386,7 +377,7 @@ class BarreBouton(bp.ButtonPanel):
         bpArt.SetColour(bp.BP_BUTTONTEXT_COLOUR, images.couleur('texte_bouton'))
         bpArt.SetColour(bp.BP_SEPARATOR_COLOUR, bp.BrightenColour(images.couleur('separateur'), 0.85))
         bpArt.SetColour(bp.BP_SELECTION_BRUSH_COLOUR, images.couleur('selection'))
-        bpArt.SetColour(bp.BP_SELECTION_PEN_COLOUR, wx.SystemSettings_GetColour(wx.SYS_COLOUR_ACTIVECAPTION))
+        bpArt.SetColour(bp.BP_SELECTION_PEN_COLOUR, wx.SystemSettings.GetColour(wx.SYS_COLOUR_ACTIVECAPTION))
 
         self.Thaw()
         self.DoLayout()

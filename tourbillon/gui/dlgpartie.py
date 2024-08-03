@@ -58,7 +58,7 @@ class DialogueSupprimerPartie(wx.Dialog):
         self.btn_ok = wx.Button(self, id=wx.ID_OK, label="Supprimer", size=(100, -1))
         self.btn_annule = wx.Button(self, id=wx.ID_CANCEL, label="Annuler", size=(100, -1))
         box_btn = wx.BoxSizer(wx.HORIZONTAL)
-        box_btn.AddSpacer((50, 50), 1, wx.EXPAND)
+        box_btn.Add((50, 50), 1, wx.EXPAND)
         box_btn.Add(self.btn_annule, 0, wx.EAST | wx.ALIGN_CENTER_VERTICAL, 30)
         box_btn.Add(self.btn_ok, 0, wx.EAST | wx.ALIGN_CENTER_VERTICAL, 15)
 
@@ -732,7 +732,7 @@ class LancerTiragePage(wiz.PyWizardPage):
 
         prg_box = wx.BoxSizer(wx.HORIZONTAL)
         prg_box.Add(self.bar_progression, 1, wx.ALIGN_CENTER_VERTICAL)
-        prg_box.AddSpacer((10, -1))
+        prg_box.Add((10, -1))
         prg_box.Add(self.txt_tps_restant, 0, wx.ALIGN_CENTER_VERTICAL)
         prg_box.Add((40, 10), 0)
         prg_box.Add(self.btn_tirage, 0)

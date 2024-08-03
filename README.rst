@@ -21,7 +21,7 @@
           #& #&                                                                      | o
           #& #&    ------------------------------------------------------------------- o
           #&     ooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
-          #&                                              Version 5.0.5 © La Billonnière
+          #&                                              Version 6.0.0 © La Billonnière
 
 
 
@@ -61,6 +61,3 @@ Pour une utilisation `server`, lancer::
 
 Et maintenant, ça tourne! Fantastique! Notez qu'en mode `server`, TourBillon tourne par
 défaut sur le port 14000.
-
-Changelog
-=========

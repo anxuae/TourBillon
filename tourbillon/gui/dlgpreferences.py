@@ -81,7 +81,7 @@ class TimeSlider(wx.Panel):
         # position des objets
         sizer = wx.BoxSizer(wx.HORIZONTAL)
 
-        sizer.Add(self.slider, 1, wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
+        sizer.Add(self.slider, 1, wx.ALIGN_CENTER_VERTICAL)
         sizer.Add(self.txt_valeur, 0, wx.EXPAND)
 
         self.SetSizer(sizer)
@@ -195,7 +195,7 @@ class GeneralPage(wx.Panel):
         boit1.Add(btn_parcourir, 0, wx.ALIGN_CENTER_VERTICAL | wx.LEFT, 5)
 
         boit2 = wx.StaticBoxSizer(box2, wx.VERTICAL)
-        boit2.AddSizer(boit1, 1, wx.EXPAND | wx.RIGHT | wx.LEFT | wx.TOP, 5)
+        boit2.Add(boit1, 1, wx.EXPAND | wx.RIGHT | wx.LEFT | wx.TOP, 5)
         boit2.Add(self.cbx_enregistrement_auto, 1, wx.EXPAND | wx.ALL, 5)
         sizer.Add(boit2, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, 10)
 
@@ -206,14 +206,14 @@ class GeneralPage(wx.Panel):
 
         boit4 = wx.BoxSizer(wx.HORIZONTAL)
         boit4.Add(txt_stat_cumule, 0, wx.ALIGN_CENTER_VERTICAL | wx.LEFT, 5)
-        boit4.Add(self.chx_stat, 1, wx.EXPAND | wx.ALIGN_CENTER_VERTICAL | wx.LEFT, 5)
+        boit4.Add(self.chx_stat, 1, wx.ALIGN_CENTER_VERTICAL | wx.LEFT, 5)
 
         boit5 = wx.StaticBoxSizer(box3, wx.VERTICAL)
-        boit5.AddSizer(boit3, 1, wx.EXPAND | wx.RIGHT | wx.LEFT | wx.TOP, 5)
+        boit5.Add(boit3, 1, wx.EXPAND | wx.RIGHT | wx.LEFT | wx.TOP, 5)
         boit5.Add(self.cbx_plein_ecran, 1, wx.EXPAND | wx.RIGHT | wx.LEFT | wx.TOP, 5)
         boit5.Add(self.cbx_bavarde, 1, wx.EXPAND | wx.RIGHT | wx.LEFT | wx.TOP, 5)
         boit5.Add(self.cbx_nouveau_affiche_preferences, 1, wx.EXPAND | wx.RIGHT | wx.LEFT | wx.TOP, 5)
-        boit5.AddSizer(boit4, 0, wx.EXPAND | wx.ALL, 5)
+        boit5.Add(boit4, 0, wx.EXPAND | wx.ALL, 5)
         sizer.Add(boit5, 0, wx.EXPAND | wx.RIGHT | wx.LEFT | wx.TOP, 10)
 
         self.SetSizer(sizer)
@@ -370,7 +370,7 @@ class TournoiPage(wx.Panel):
         boit1.Add(btn_parcourir, 0, wx.ALIGN_CENTER_VERTICAL | wx.LEFT, 5)
 
         boit2 = wx.StaticBoxSizer(box1, wx.VERTICAL)
-        boit2.AddSizer(boit1, 1, wx.EXPAND | wx.RIGHT | wx.LEFT | wx.TOP, 5)
+        boit2.Add(boit1, 1, wx.EXPAND | wx.RIGHT | wx.LEFT | wx.TOP, 5)
         boit2.Add(self.cbx_joueur_completion, 1, wx.ALL, 5)
         sizer.Add(boit2, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, 10)
 
@@ -379,19 +379,19 @@ class TournoiPage(wx.Panel):
         boit3.Add(self.spn_joueurs_par_equipe, 1, wx.ALIGN_CENTER_VERTICAL)
 
         boit4 = wx.BoxSizer(wx.HORIZONTAL)
-        boit4.AddSpacer((20, 5))
+        boit4.Add((20, 5))
         boit4.Add(self.cbx_classement_victoires, 0, wx.ALIGN_CENTER_VERTICAL)
-        boit4.AddSpacer((20, 5))
+        boit4.Add((20, 5))
         boit4.Add(txt_classement_points, 0, wx.ALIGN_CENTER_VERTICAL)
-        boit4.AddSpacer((20, 5))
+        boit4.Add((20, 5))
         boit4.Add(self.cbx_classement_joker, 0, wx.ALIGN_CENTER_VERTICAL)
-        boit4.AddSpacer((20, 5))
+        boit4.Add((20, 5))
         boit4.Add(self.cbx_classement_duree, 0, wx.ALIGN_CENTER_VERTICAL)
 
         boit5 = wx.StaticBoxSizer(box2, wx.VERTICAL)
-        boit5.AddSizer(boit3, 1, wx.EXPAND | wx.RIGHT | wx.LEFT | wx.TOP, 5)
+        boit5.Add(boit3, 1, wx.EXPAND | wx.RIGHT | wx.LEFT | wx.TOP, 5)
         boit5.Add(txt_classement, 1, wx.EXPAND | wx.RIGHT | wx.LEFT | wx.TOP, 5)
-        boit5.AddSizer(boit4, 1, wx.EXPAND | wx.ALL, 5)
+        boit5.Add(boit4, 1, wx.EXPAND | wx.ALL, 5)
         sizer.Add(boit5, 0, wx.EXPAND | wx.RIGHT | wx.LEFT | wx.TOP, 10)
 
         boit6 = wx.BoxSizer(wx.HORIZONTAL)
@@ -403,8 +403,8 @@ class TournoiPage(wx.Panel):
         boit7.Add(self.spn_equipes_par_manche, 1, wx.ALIGN_CENTER_VERTICAL)
 
         boit8 = wx.StaticBoxSizer(box3, wx.VERTICAL)
-        boit8.AddSizer(boit6, 1, wx.EXPAND | wx.RIGHT | wx.LEFT | wx.TOP, 5)
-        boit8.AddSizer(boit7, 1, wx.EXPAND | wx.ALL, 5)
+        boit8.Add(boit6, 1, wx.EXPAND | wx.RIGHT | wx.LEFT | wx.TOP, 5)
+        boit8.Add(boit7, 1, wx.EXPAND | wx.ALL, 5)
         sizer.Add(boit8, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, 10)
 
         self.SetSizer(sizer)
@@ -466,7 +466,7 @@ class TiragePage(wx.Panel):
             self.choicebook.AddPage(page, generateur.DESCRIPTION)
 
         algorithme = config.get('TOURNOI', 'ALGORITHME_DEFAUT')
-        self.choicebook.SetSelection(tirages.TIRAGES.keys().index(algorithme))
+        self.choicebook.SetSelection(list(tirages.TIRAGES.keys()).index(algorithme))
 
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(self.choicebook, 1, wx.EXPAND | wx.ALL, 10)
@@ -523,9 +523,7 @@ class TirageSousPageParametre(wx.Panel):
 
         i = 0
         config = config.get_options(self.section)
-        parametres = config.keys()
-        parametres.sort()
-        for nom in parametres:
+        for nom in sorted(config.keys()):
             valeur = config[nom]
             # Nom de le variable
             self.grille.SetCellValue(i, 0, nom)
@@ -626,12 +624,12 @@ class AffichagePage(wx.Panel):
 
         boit1 = wx.BoxSizer(wx.HORIZONTAL)
         boit1.Add(self.cbx_dimension_auto, 0, wx.EXPAND)
-        boit1.AddSpacer((10, 10), 1)
+        boit1.Add((10, 10), 1)
         boit1.Add(self.btn_test, 0, wx.ALIGN_CENTER_VERTICAL)
 
         sizer.Add(self.notebook, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, 10)
-        sizer.AddSpacer((10, 20), 0, wx.EXPAND)
-        sizer.AddSizer(boit1, 0, wx.EXPAND | wx.LEFT | wx.RIGHT, 10)
+        sizer.Add((10, 20), 0, wx.EXPAND)
+        sizer.Add(boit1, 0, wx.EXPAND | wx.LEFT | wx.RIGHT, 10)
 
         self.SetSizer(sizer)
         self.Layout()
@@ -719,12 +717,12 @@ class AffichageSousPageMessage(wx.Panel):
         boit3.Add(self.btn_variables, 0)
 
         sizer.Add(self.cbx_message_visible, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, 10)
-        sizer.AddSpacer((20, 20), 0, wx.EXPAND)
+        sizer.Add((20, 20), 0, wx.EXPAND)
         sizer.Add(boit3, 0, wx.EXPAND | wx.LEFT | wx.RIGHT, 10)
-        sizer.AddSpacer((20, 20), 0, wx.EXPAND)
-        sizer.AddSizer(boit1, 0, wx.EXPAND | wx.LEFT | wx.RIGHT, 10)
-        sizer.AddSpacer((20, 20), 0, wx.EXPAND)
-        sizer.AddSizer(boit2, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
+        sizer.Add((20, 20), 0, wx.EXPAND)
+        sizer.Add(boit1, 0, wx.EXPAND | wx.LEFT | wx.RIGHT, 10)
+        sizer.Add((20, 20), 0, wx.EXPAND)
+        sizer.Add(boit2, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
         self.SetSizer(sizer)
         self.Layout()
@@ -806,11 +804,11 @@ class AffichageSousPageInterlude(wx.Panel):
         boit3.Add(self.btn_texte_police, 1, wx.ALIGN_CENTER_VERTICAL)
         boit3.Add(self.btn_texte_couleur, 0, wx.ALIGN_CENTER_VERTICAL | wx.LEFT, 20)
 
-        sizer.AddSizer(boit1, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, 10)
-        sizer.AddSpacer((20, 20), 0, wx.EXPAND)
-        sizer.AddSizer(boit2, 0, wx.EXPAND | wx.LEFT | wx.RIGHT, 10)
-        sizer.AddSpacer((20, 20), 0, wx.EXPAND)
-        sizer.AddSizer(boit3, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
+        sizer.Add(boit1, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, 10)
+        sizer.Add((20, 20), 0, wx.EXPAND)
+        sizer.Add(boit2, 0, wx.EXPAND | wx.LEFT | wx.RIGHT, 10)
+        sizer.Add((20, 20), 0, wx.EXPAND)
+        sizer.Add(boit3, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
         self.SetSizer(sizer)
         self.Layout()
@@ -920,17 +918,17 @@ class AffichageSousPageGrille(wx.Panel):
         boit6.Add(self.btn_sens_horizontal, 0, wx.ALIGN_CENTER_VERTICAL | wx.LEFT | wx.RIGHT, 40)
         boit6.Add(self.btn_sens_vertical, 0, wx.ALIGN_CENTER_VERTICAL | wx.LEFT | wx.RIGHT, 40)
 
-        sizer.AddSizer(boit1, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, 10)
-        sizer.AddSpacer((20, 20), 0, wx.EXPAND)
-        sizer.AddSizer(boit2, 0, wx.EXPAND | wx.LEFT | wx.RIGHT, 10)
-        sizer.AddSpacer((20, 20), 0, wx.EXPAND)
-        sizer.AddSizer(boit3, 0, wx.EXPAND | wx.LEFT | wx.RIGHT, 10)
-        sizer.AddSpacer((20, 20), 0, wx.EXPAND)
-        sizer.AddSizer(boit4, 0, wx.EXPAND | wx.LEFT | wx.RIGHT, 10)
-        sizer.AddSpacer((20, 20), 0, wx.EXPAND)
-        sizer.AddSizer(boit5, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
-        sizer.AddSpacer((20, 10), 0, wx.EXPAND)
-        sizer.AddSizer(boit6, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
+        sizer.Add(boit1, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, 10)
+        sizer.Add((20, 20), 0, wx.EXPAND)
+        sizer.Add(boit2, 0, wx.EXPAND | wx.LEFT | wx.RIGHT, 10)
+        sizer.Add((20, 20), 0, wx.EXPAND)
+        sizer.Add(boit3, 0, wx.EXPAND | wx.LEFT | wx.RIGHT, 10)
+        sizer.Add((20, 20), 0, wx.EXPAND)
+        sizer.Add(boit4, 0, wx.EXPAND | wx.LEFT | wx.RIGHT, 10)
+        sizer.Add((20, 20), 0, wx.EXPAND)
+        sizer.Add(boit5, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
+        sizer.Add((20, 10), 0, wx.EXPAND)
+        sizer.Add(boit6, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
         self.SetSizer(sizer)
         self.Layout()

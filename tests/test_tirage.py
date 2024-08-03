@@ -23,7 +23,7 @@ def test_inscription(trb4e1j, numero):
 
 class TestAjoutParie(object):
 
-    scenarios = [('partie2', {'type_tirage': 'niveau2008_dt'}),
+    scenarios = [('partie2', {'type_tirage': 'niveau_dt'}),
                  ('partie3', {'type_tirage': 'aleatoire_ag'}),
                  ('partie4', {'type_tirage': 'niveau_ag'}),
                  ('partie5', {'type_tirage': 'croissant'})]

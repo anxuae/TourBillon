@@ -738,7 +738,7 @@ cliquez sur ANNULER si vous ne voulez pas ajouter cette nouvelle équipe."
         dlg.Destroy()
 
     def a_propos_de(self, event):
-        info = wx.AboutDialogInfo()
+        info = wx.adv.AboutDialogInfo()
         info.Name = tourbillon.__nom__
         info.Version = "%s.%s.%s" % tourbillon.__version__
         info.Copyright = "%s  Copyright © 2010  La Billonnière." % (tourbillon.__nom__)
@@ -761,4 +761,4 @@ cliquez sur ANNULER si vous ne voulez pas ajouter cette nouvelle équipe."
         info.Developers = ["La Billonnière"]
         info.License = "Retrouver la licence dans sa version complète sur http://www.gnu.org/licenses/gpl.html"
 
-        wx.AboutBox(info, self)
+        wx.adv.AboutBox(info, self)

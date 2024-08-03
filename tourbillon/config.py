@@ -60,7 +60,7 @@ DEFAUT = {'INTERFACE': {'GEOMETRIE': (0, 0, 1000, 600),
                       'CLASSEMENT_JOKER': True,
                       'POINTS_PAR_MANCHE': 12,
                       'EQUIPES_PAR_MANCHE': 2,
-                      'ALGORITHME_DEFAUT': 'niveau2008_dt', }
+                      'ALGORITHME_DEFAUT': 'niveau_dt', }
           }
 
 

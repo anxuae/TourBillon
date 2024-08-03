@@ -4,16 +4,16 @@ version = "6.0.0"
 description = "TourBillon - by La Billionnière"
 authors = ["La Billonnière"]
 license = "GNU GPL"
-readme = "README.rst"
+readme = ["README.rst", "CHANGELOG.rst"]
 homepage = "https://github.com/anxuae/TourBillon"
 repository = "https://github.com/anxuae/TourBillon"
-keywords = ["billon", "game"]
+keywords = ["billon", "game", "France"]
 packages = [
     { include = "tourbillon" }
 ]
 include = [
     { path = "tests", format = "sdist"},
-    { path = "tourbillon/images/*.txt *.png *.jpg *.ico *.icns"}
+    { path = "LICENSE", format = "sdist"}
 ]
 
 

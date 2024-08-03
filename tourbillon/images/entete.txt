@@ -1,21 +1,21 @@
-        {CADRE}oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo{NORMAL}
-        {CADRE}o ---------------------------------------------------------------------------- o{NORMAL}
-        {CADRE}o |{FOND}                                                                          {CADRE}| o{NORMAL}
-        {CADRE}o |{FOND}    {CHAPEAU}oTTTo{FOND}                                                                 {CADRE}| o{NORMAL}
-        {CADRE}o{NORMAL}  {FOND}  {CHAPEAU}oTTTo{FOND}                                                                   {CADRE}| o{NORMAL}
-           {CHAPEAU}oTTTo{PIQUET}#&{FOND}  {BILLON}////{FOND}                                                             {CADRE}| o{NORMAL}
-         {CHAPEAU}oTTTo{PIQUET}&{FOND} {PIQUET}#&{BILLON}//////{FOND}                     {LB}BBBBBBB{FOND}                                 {CADRE}| o{NORMAL}
-       {CHAPEAU}oTTTo{FOND} {PIQUET}#&{FOND} {BILLON}//////{FOND}                       {LB}BB{FOND}     {LB}BB{FOND}       {TEXTE}LL{FOND}  {TEXTE}LL{FOND}                  {CADRE}| o{NORMAL}
-          {PIQUET}#&{FOND} {PIQUET}#&{BILLON}/////{FOND}                         {LB}BB{FOND}      {LB}BB{FOND}      {TEXTE}LL{FOND}  {TEXTE}LL{FOND}                  {CADRE}| o{NORMAL}
-          {PIQUET}#&{BILLON}/{PIQUET}#&{BILLON}//{PIQUET}&{FOND}                           {LB}BB{FOND}      {LB}BB{FOND}      {TEXTE}LL{FOND}  {TEXTE}LL{FOND}                  {CADRE}| o{NORMAL}
-         {BILLON}/{PIQUET}#&{BILLON}/{PIQUET}#&{FOND} {PIQUET}#&{FOND}                           {LB}BB{FOND}     {LB}BB{FOND}   {TEXTE}OO{FOND}  {TEXTE}LL{FOND}  {TEXTE}LL{FOND}                  {CADRE}| o{NORMAL}
-       {BILLON}///{PIQUET}#&{FOND} {PIQUET}#&{FOND} {PIQUET}#&{FOND}                           {LB}BBBBBBBB{FOND}        {TEXTE}LL{FOND}  {TEXTE}LL{FOND}                  {CADRE}| o{NORMAL}
-     {BILLON}///{NORMAL}  {PIQUET}#&{FOND} {PIQUET}#&{FOND} {PIQUET}#&{FOND}   {TEXTE}OOOO{FOND}   {TEXTE}UU{FOND}  {TEXTE}UU{FOND}  {TEXTE}RR{FOND} {TEXTE}RRR{FOND}   {LB}BB{FOND}     {LB}BB{FOND}   {TEXTE}II{FOND}  {TEXTE}LL{FOND}  {TEXTE}LL{FOND}   {TEXTE}OOOO{FOND}   {TEXTE}N{FOND} {TEXTE}NNNN{FOND}  {CADRE}| o{NORMAL}
-   {BILLON}//{NORMAL}     {PIQUET}#&{FOND} {PIQUET}#&{FOND} {PIQUET}#&{FOND}  {TEXTE}OO{FOND}  {TEXTE}OO{FOND}  {TEXTE}UU{FOND}  {TEXTE}UU{FOND}  {TEXTE}RRR{FOND}  {TEXTE}RR{FOND}  {LB}BB{FOND}      {LB}BB{FOND}  {TEXTE}II{FOND}  {TEXTE}LL{FOND}  {TEXTE}LL{FOND}  {TEXTE}OO{FOND}  {TEXTE}OO{FOND}  {TEXTE}NNN{FOND} {TEXTE}NN{FOND}  {CADRE}| o{NORMAL}
-  o       {PIQUET}#&{FOND} {PIQUET}#&{FOND} {PIQUET}#&{FOND}  {TEXTE}OO{FOND}  {TEXTE}OO{FOND}  {TEXTE}UU{FOND}  {TEXTE}UU{FOND}  {TEXTE}RR{FOND}       {LB}BB{FOND}      {LB}BB{FOND}  {TEXTE}II{FOND}  {TEXTE}LL{FOND}  {TEXTE}LL{FOND}  {TEXTE}OO{FOND}  {TEXTE}OO{FOND}  {TEXTE}NN{FOND}  {TEXTE}NN{FOND}  {CADRE}| o{NORMAL}
-          {PIQUET}#&{FOND} {PIQUET}#&{FOND} {PIQUET}#&{FOND}  {TEXTE}OO{FOND}  {TEXTE}OO{FOND}  {TEXTE}UU{FOND}  {TEXTE}UU{FOND}  {TEXTE}RR{FOND}       {LB}BB{FOND}     {LB}BB{FOND}   {TEXTE}II{FOND}  {TEXTE}LL{FOND}  {TEXTE}LL{FOND}  {TEXTE}OO{FOND}  {TEXTE}OO{FOND}  {TEXTE}NN{FOND}  {TEXTE}NN{FOND}  {CADRE}| o{NORMAL}
-          {PIQUET}#&{FOND} {PIQUET}#&{FOND} {PIQUET}#&{FOND}   {TEXTE}OOOO{FOND}    {TEXTE}UUUU{FOND}   {TEXTE}RR{FOND}       {LB}BBBBBBB{FOND}     {TEXTE}II{FOND}  {TEXTE}LL{FOND}  {TEXTE}LL{FOND}   {TEXTE}OOOO{FOND}   {TEXTE}NN{FOND}  {TEXTE}NN{FOND}  {CADRE}| o{NORMAL}
-          {PIQUET}#&{FOND} {PIQUET}#&{FOND}                                                                      {CADRE}| o{NORMAL}
-          {PIQUET}#&{NORMAL} {PIQUET}#&{NORMAL}    {CADRE}------------------------------------------------------------------- o{NORMAL}
-          {PIQUET}#&{NORMAL}     {CADRE}ooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo{NORMAL}
-          {PIQUET}#&{NORMAL}                                              Version {VERSION} © La Billonnière
+        oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
+        o ---------------------------------------------------------------------------- o
+        o |                                                                          | o
+        o |    oTTTo                                                                 | o
+        o    oTTTo                                                                   | o
+           oTTTo#&  ////                                                             | o
+         oTTTo& #&//////                     BBBBBBB                                 | o
+       oTTTo #& //////                       BB     BB       LL  LL                  | o
+          #& #&/////                         BB      BB      LL  LL                  | o
+          #&/#&//&                           BB      BB      LL  LL                  | o
+         /#&/#& #&                           BB     BB   OO  LL  LL                  | o
+       ///#& #& #&                           BBBBBBBB        LL  LL                  | o
+     ///  #& #& #&   OOOO   UU  UU  RR RRR   BB     BB   II  LL  LL   OOOO   N NNNN  | o
+   //     #& #& #&  OO  OO  UU  UU  RRR  RR  BB      BB  II  LL  LL  OO  OO  NNN NN  | o
+  o       #& #& #&  OO  OO  UU  UU  RR       BB      BB  II  LL  LL  OO  OO  NN  NN  | o
+          #& #& #&  OO  OO  UU  UU  RR       BB     BB   II  LL  LL  OO  OO  NN  NN  | o
+          #& #& #&   OOOO    UUUU   RR       BBBBBBB     II  LL  LL   OOOO   NN  NN  | o
+          #& #&                                                                      | o
+          #& #&    ------------------------------------------------------------------- o
+          #&     ooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
+          #&                                              Version {version} © La Billonnière

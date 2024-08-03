@@ -2,89 +2,38 @@
 
 import os
 import glob
-import imp
 import codecs
 import tourbillon
 from tourbillon.core import constantes as cst
-from tourbillon.cli.terminal import TERM
 from tourbillon.images.splash import splash
 try:
     import wx
 except ImportError:
-    # TourBillon est utilisé en mode console
+    # TourBillon est utilisé en mode server
     wx = None
 
-IMAGES_REP = [os.path.dirname(os.path.abspath(__file__))]
-
-# Trouver un eventuel fichier terminé par '_rc' qui indique d'autre
-# répertoires contenant des ressources (images, texte...)
-images_rc = None
-d = os.path.splitdrive(os.path.dirname(os.path.abspath(__file__)))[1]
-while d != os.path.sep and d != '':
-    for fichier in glob.glob(os.path.join(d, '*_rc')):
-        if os.path.isfile(fichier):
-            images_rc = fichier
-            break
-    if images_rc is not None:
-        break
-    else:
-        d = os.path.splitdrive(os.path.abspath(os.path.join(d, os.path.pardir)))[1]
-
-if images_rc is not None:
-    base = os.path.dirname(os.path.abspath(images_rc))
-    f = open(images_rc, 'r')
-    reps = f.readlines()
-    f.close()
-    for rep in reps:
-        IMAGES_REP.append(os.path.join(base, rep.strip()))
-
-# --- Entete (CLI ou Fichier texte)--------------------------------------------
-
-ENTETE_AVEC_COULEURS = {'CADRE': TERM.RED,
-                        'FOND': TERM.NORMAL,
-                        'CHAPEAU': TERM.NORMAL + TERM.BLUE,
-                        'PIQUET': TERM.NORMAL + TERM.BG_BLUE,
-                        'BILLON': TERM.NORMAL + TERM.YELLOW,
-                        'LB': TERM.BG_GREEN,
-                        'TEXTE': TERM.BG_GREEN,
-                        'NORMAL': TERM.NORMAL,
-                        'VERSION': "%s.%s.%s" % tourbillon.__version__}
-
-ENTETE_SANS_COULEURS = {}
-
-for p in ENTETE_AVEC_COULEURS:
-    if p != 'VERSION':
-        ENTETE_SANS_COULEURS[p] = ''
-    else:
-        ENTETE_SANS_COULEURS[p] = ENTETE_AVEC_COULEURS[p]
+IMAGES_PATHS = [os.path.dirname(os.path.abspath(__file__))]
 
 
-def entete(terminal=False):
+def entete():
     """
-    Retourne l'entête. Si terminal == True, l'entête sera formatée pour
-    être affichée dans le terminal.
+    Return banner as ASCII Art.
     """
-    f = codecs.open(chemin('entete.txt'), 'r', 'utf-8')
-    if not terminal:
-        lignes = f.readlines()
-        f.close()
-        texte = "#" + "#".join(lignes)
-        return texte.format(**ENTETE_SANS_COULEURS)
-    else:
-        texte = f.read()
-        f.close()
-        return texte.format(**ENTETE_AVEC_COULEURS)
+    with open(chemin('entete.txt'), encoding='utf-8') as fp:
+        lignes = fp.readlines()
+    texte = "#" + "#".join(lignes)
+    return texte.format(version="%s.%s.%s" % tourbillon.__version__)
 
 
 # --- Images (GUI) ------------------------------------------------------------
 
 
 def chemin(*nom):
-    for chem in IMAGES_REP:
-        c = os.path.normpath(os.path.join(chem, *nom))
-        if os.path.exists(c):
-            return c
-    raise IOError("No such file or directory: '%s'" % c)
+    for path in IMAGES_PATHS:
+        path = os.path.normpath(os.path.join(path, *nom))
+        if os.path.exists(path):
+            return path
+    raise IOError(f"No such file or directory: '{path}'")
 
 
 def scale_bitmap(bitmap, largeur, hauteur):
@@ -122,7 +71,7 @@ def bitmap(nom, force_alpha=False, scale=-1):
 
 
 def TourBillon_icon():
-    icon = wx.EmptyIcon()
+    icon = wx.Icon()
     icon.CopyFromBitmap(wx.Bitmap(chemin('icon.png'), wx.BITMAP_TYPE_ANY))
     return icon
 

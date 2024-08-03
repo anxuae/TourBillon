@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
 
-#--- Import --------------------------------------------------------------------
+# --- Import --------------------------------------------------------------------
 
 from random import choice
 from datetime import datetime
@@ -17,13 +17,13 @@ from tourbillon.core.tirages import utils
 from tourbillon import images
 from tourbillon.gui import grille as grl
 
-#--- Variables globales -------------------------------------------------------
+# --- Variables globales -------------------------------------------------------
 
 VARIABLES = {'date': '',
              'partie': 0,
              'partie suivante': 1}
 
-#--- Fonctions ----------------------------------------------------------------
+# --- Fonctions ----------------------------------------------------------------
 
 
 def tournoi_factice(equipes_par_manche, joueurs_par_equipe, nombre_equipes):
@@ -41,7 +41,7 @@ def tournoi_factice(equipes_par_manche, joueurs_par_equipe, nombre_equipes):
     num = 1
     while num <= nombre_equipes:
         equipe = t.ajout_equipe(num)
-        for i in xrange(joueurs_par_equipe):
+        for i in range(joueurs_par_equipe):
             equipe.ajout_joueur(choice(prenoms), choice(noms))
         num += 1
 
@@ -58,7 +58,7 @@ def tournoi_factice(equipes_par_manche, joueurs_par_equipe, nombre_equipes):
     i = 0
     while i < len(tirage) / 2:
         d = {}
-        for j in xrange(equipes_par_manche):
+        for j in range(equipes_par_manche):
             if j == 0:
                 d[tirage[i][j]] = 12
             else:
@@ -87,7 +87,7 @@ def string_en_wxFont(texte):
                    int(attr[3]), int(attr[4]), attr[5], int(attr[6]))
 
 
-#--- Classes -------------------------------------------------------------------
+# --- Classes -------------------------------------------------------------------
 
 
 class ListeCyclique(object):
@@ -359,18 +359,18 @@ class DoubleGrilleTirage(wx.BoxSizer):
     """
 
     def __init__(self, parent):
-        wx.BoxSizer.__init__(self, wx.HORIZONTAL)
+        super().__init__(wx.HORIZONTAL)
         self.grilles = [GrilleTirage(parent), GrilleTirage(parent)]
         self.separateur = wx.StaticText(parent, size=(10, -1))
         self.separateur.SetBackgroundColour(parent.titre_couleur)
 
-        self.AddSpacer((50, 10), 1, wx.EXPAND)
+        self.Add((50, 10), 1, wx.EXPAND)
         self.Add(self.grilles[0])
-        self.AddSpacer((10, 10), 1, wx.EXPAND)
+        self.Add((10, 10), 1, wx.EXPAND)
         self.Add(self.separateur, 0, wx.EXPAND | wx.BOTTOM, 10)
-        self.AddSpacer((10, 10), 1, wx.EXPAND)
+        self.Add((10, 10), 1, wx.EXPAND)
         self.Add(self.grilles[1])
-        self.AddSpacer((50, 10), 1, wx.EXPAND)
+        self.Add((50, 10), 1, wx.EXPAND)
 
         self.nombre_lignes_max = 30
         self._liste = ListeCyclique([], self.nombre_lignes_max)
@@ -630,7 +630,11 @@ class DialogueInformations(wx.Dialog):
     def __init__(self, parent, config):
         wx.Dialog.__init__(self, parent, wx.ID_ANY, title="Informations",
                            style=wx.DEFAULT_FRAME_STYLE, pos=wx.DefaultPosition)
-        w, h = wx.ScreenDC().GetSizeTuple()
+
+        # Get screen size
+        displays = [wx.Display(i) for i in range(wx.Display.GetCount())]
+        display = displays[wx.Display.GetFromWindow(parent)]
+        w, h = display.GetGeometry().GetSize()
         self.SetSize((w * 0.5, h * 0.5))
         self.SetBackgroundColour(images.couleur('grille'))
 
@@ -655,9 +659,9 @@ class DialogueInformations(wx.Dialog):
         # Grille resultats
         self.gri_resultats = GrilleResultats(self)
         gri_resultats_box = wx.BoxSizer(wx.HORIZONTAL)
-        gri_resultats_box.AddSpacer((20, 10), 1, wx.EXPAND)
+        gri_resultats_box.Add((20, 10), 1, wx.EXPAND)
         gri_resultats_box.Add(self.gri_resultats)
-        gri_resultats_box.AddSpacer((20, 10), 1, wx.EXPAND)
+        gri_resultats_box.Add((20, 10), 1, wx.EXPAND)
         self.gri_resultats.Show(False)
 
         # Texte défilant
@@ -666,11 +670,11 @@ class DialogueInformations(wx.Dialog):
         # Position des widgets
         self.sizer = wx.BoxSizer(wx.VERTICAL)
         self.sizer.Add((10, 10), 0, wx.EXPAND)
-        self.sizer.Add(self.txt_titre, 0, wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
+        self.sizer.Add(self.txt_titre, 0, wx.EXPAND)
         self.sizer.Add((20, 20), 1)
-        self.sizer.Add(self.txt_interlude, 0, wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
-        self.sizer.Add(self.gri_tirages, 0, wx.EXPAND | wx.ALIGN_CENTER)
-        self.sizer.Add(gri_resultats_box, 0, wx.EXPAND | wx.ALIGN_CENTER)
+        self.sizer.Add(self.txt_interlude, 0, wx.EXPAND)
+        self.sizer.Add(self.gri_tirages, 0, wx.EXPAND)
+        self.sizer.Add(gri_resultats_box, 0, wx.EXPAND)
         self.sizer.Add((20, 20), 1)
         self.sizer.Add(self.ticker, 0, wx.EXPAND)
         self.SetSizer(self.sizer)

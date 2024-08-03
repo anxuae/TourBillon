@@ -104,14 +104,14 @@ class DialogueResultat(wx.Dialog):
         self.btn_ok.SetDefault()
         self.btn_annule = wx.Button(self, id=wx.ID_CANCEL, label="Annuler", size=(100, -1))
         box_btn = wx.BoxSizer(wx.HORIZONTAL)
-        box_btn.AddSpacer((50, 50), 1, wx.EXPAND)
+        box_btn.Add((50, 50), 1, wx.EXPAND)
         box_btn.Add(self.btn_annule, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 10)
         box_btn.Add(self.btn_ok, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 10)
-        box_btn.AddSpacer((50, 50), 1, wx.EXPAND)
+        box_btn.Add((50, 50), 1, wx.EXPAND)
 
         # Assembler
         box = wx.BoxSizer(wx.VERTICAL)
-        box.AddSpacer((-1, 10), 0, wx.EXPAND)
+        box.Add((-1, 10), 0, wx.EXPAND)
         box.Add(self.lbl_piquet, 0, wx.EXPAND)
         box.Add(self.panel, 1, wx.EXPAND)
         box.Add(self.chx_fin, 0, wx.EXPAND | wx.LEFT, 14)

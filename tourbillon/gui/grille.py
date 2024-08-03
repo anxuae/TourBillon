@@ -96,7 +96,7 @@ class Grille(wx.BoxSizer):
         self.Add(self._grille_partie)
 
         # Espace entre grilles
-        self._espace = self.AddSpacer((50, 50), 1)
+        self._espace = self.Add((50, 50), 1)
 
         # Initialisation de la grille des statistiques du tournoi
         self._grille_statistiques = grid.Grid(parent, wx.ID_ANY)
@@ -377,7 +377,7 @@ class GrillePanel(scrolled.ScrolledPanel):
 
         self.grille = Grille(self)
         box = wx.BoxSizer(wx.VERTICAL)
-        box.AddSpacer((1, 20), 0, wx.ALL)
+        box.Add((1, 20), 0, wx.ALL)
         box.Add(self.grille, 0, wx.LEFT | wx.RIGHT | wx.ALIGN_CENTER, 20)
         self.SetSizer(box)
 

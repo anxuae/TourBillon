@@ -287,7 +287,7 @@ def select_chapeau(parametres, statistiques):
 
 
 class ThreadTirage(BaseThreadTirage):
-    NOM = "niveau2008_dt"
+    NOM = "niveau_dt"
 
     DESCRIPTION = "Niveau (Algorithme Déterministe)"
 
