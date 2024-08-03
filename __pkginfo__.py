@@ -29,12 +29,12 @@ version = '.'.join([str(num) for num in tourbillon.__version__])
 
 scripts = [
     # (script après install, chemin, fonction à appeler)
-    ("tourbillon", "tourbillon/trb.py", "run"), ]
+    ("tourbillon", "tourbillon/trb.py", "run")
+]
 
 dependences = [  # dist_name + contrainte version
-    "pyyaml>=3.0",
-    "flask>=1.0.2",
-    "flask-restful>=0.3.6"]
+    "pyyaml>=3.0"
+]
 
 ressources = [  # (source, cible, pattern)
     ('', '', ["LICENSE.rst", "LISEZMOI.rst"]),
