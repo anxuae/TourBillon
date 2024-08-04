@@ -179,7 +179,7 @@ class FenetrePrincipale(wx.Frame):
             if self.grille.selection() is not None:
                 menu = barres.cree_contexte_menu()
                 self.PopupMenu(menu, wx.GetMousePosition() - self.GetPosition() -
-                               (self.grille.GetPosition().x / 2, self.grille.GetPosition().y / 2))
+                               (self.grille.GetPosition().x // 2, self.grille.GetPosition().y // 2))
                 menu.Destroy()
 
     def rafraichir(self, event):
@@ -217,7 +217,7 @@ class FenetrePrincipale(wx.Frame):
                         if equipe.resultat(num_partie).etat is None:
                             nb_incompletes += 1
                 self.barre_etat._rafraichir(t.debut.strftime('%Hh%M'), t.nb_parties(), t.nb_equipes(),
-                                            nb_incompletes / tournoi.tournoi().equipes_par_manche, t.modifie)
+                                            nb_incompletes // tournoi.tournoi().equipes_par_manche, t.modifie)
 
         p = self.barre_bouton.numero()
 
@@ -719,9 +719,9 @@ cliquez sur ANNULER si vous ne voulez pas ajouter cette nouvelle équipe."
         grille.SetRowLabelSize(0)
         grille.SetDefaultCellBackgroundColour(images.couleur('grille'))
         grille.SetColLabelValue(0, "Elément")
-        grille.SetColSize(0, dlg.GetSize()[0] / 2)
+        grille.SetColSize(0, dlg.GetSize()[0] // 2)
         grille.SetColLabelValue(1, "Valeur")
-        grille.SetColSize(1, dlg.GetSize()[0] / 2)
+        grille.SetColSize(1, dlg.GetSize()[0] // 2)
 
         for a, b in systeme_config():
             grille.AppendRows(1)

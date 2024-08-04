@@ -52,7 +52,7 @@ class DialogueImprimerTirage(printout.PrintTable):
 
         total = sum(self.set_column)
         for j in range(0, grille.GetNumberCols()):
-            self.set_column[j] = self.set_column[j] * 6.0 / total
+            self.set_column[j] = self.set_column[j] * 6 / total
 
         self.SetRowLineSize(0, 2)
         self.SetRowSpacing(5, 5)

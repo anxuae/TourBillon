@@ -304,7 +304,7 @@ class Equipe(object):
         if parties == 0:
             return 0
         else:
-            return round(pts * 1.0 / parties, 2)
+            return round(pts / parties, 2)
 
     def min_billon(self, partie_limite=None):
         if partie_limite is None:
@@ -339,7 +339,7 @@ class Equipe(object):
             r = timedelta(0)
             for t in l:
                 r += t
-            return r / len(l)
+            return r // len(l)
 
     def min_duree(self, partie_limite=None):
         if partie_limite is None:

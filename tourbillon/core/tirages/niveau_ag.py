@@ -141,7 +141,7 @@ class Environement(object):
         while not self._but():
             self.pas()
             if callable(self.rapport):
-                evolution = self.generation * 100 / self.max_generations
+                evolution = self.generation * 100 // self.max_generations
                 self.rapport(evolution, self.message % (self.generation, self.elite.score))
         if callable(self.rapport):
             self.rapport(99, "")
@@ -254,7 +254,7 @@ def cle_manche(manche):
 
 def nb_parties(statistiques, equipe, equipes_par_manche):
     adversaires = len(statistiques[equipe]['adversaires'])
-    return adversaires / (equipes_par_manche - 1)
+    return adversaires // (equipes_par_manche - 1)
 
 
 def comanche(parametres, statistiques, manche):
@@ -304,7 +304,7 @@ def comanche(parametres, statistiques, manche):
 
     # Completer avec un un nombre < 1 pour les rencontres 2 à 2 effectuées
     # dans d'autres manches que celles redondantes
-    nrc += 1 - (1.0 * rencontres.values().count(0) / len_cnp(manche, 2))
+    nrc += 1 - (rencontres.values().count(0) / len_cnp(manche, 2))
 
     valeur += parametres['ponderation_victoires'] * nrc
 
@@ -452,7 +452,7 @@ class ThreadTirage(BaseThreadTirage):
                 if parties == 0:
                     ponderation += 12.0
                 else:
-                    ponderation += (self.statistiques[equipe]['points'] * 1.0) / parties
+                    ponderation += self.statistiques[equipe]['points'] / parties
 
             self.config['ponderation_victoires'] = ponderation / len(self.statistiques)
             self.rapport(message="Coefficient de pondération des victoires: %s" % self.config['ponderation_victoires'])

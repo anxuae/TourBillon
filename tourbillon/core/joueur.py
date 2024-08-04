@@ -87,7 +87,8 @@ class NomCompleteur(object):
             ids = sorted(HISTORIQUE.keys())
             debut, fin = 0, len(HISTORIQUE) - 1
             while debut <= fin:
-                milieu = (debut + fin) / 2
+                milieu = (debut + fin) // 2
+                print(milieu, len(ids))
                 if ids[milieu].startswith(texte):
                     trouve = milieu
                     # L'élément du milieu de la liste correspond

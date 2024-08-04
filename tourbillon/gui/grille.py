@@ -297,7 +297,7 @@ class Grille(wx.BoxSizer):
         """
         debut, fin = 2, self._grille_partie.GetNumberRows() - 1
         while debut <= fin:
-            milieu = (debut + fin) / 2
+            milieu = (debut + fin) // 2
             num = int(self._grille_partie.GetCellValue(milieu, 0))
             if num == numero:
                 # L'élément du milieu de l'intervalle [debut, fin] correspond
@@ -412,8 +412,8 @@ class GrillePanel(scrolled.ScrolledPanel):
         if self._fond:
             w = self._fond.GetWidth()
             h = self._fond.GetHeight()
-            xPos = (cliWidth - w) / 2
-            yPos = (cliHeight - h) / 2
+            xPos = (cliWidth - w) // 2
+            yPos = (cliHeight - h) // 2
             dc.DrawBitmap(self._fond, xPos, yPos)
 
     def chg_fond(self, bmp):

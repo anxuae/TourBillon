@@ -98,14 +98,14 @@ def creer_matrices(parametres, statistiques):
 
         # Completer avec un un nombre < 1 pour les rencontres 2 à 2 effectuées
         # dans d'autres manches que celles redondantes
-        nb_vu += 1 - (1.0 * rencontres.values().count(0) / len_cnp(manche, 2))
+        nb_vu += 1 - (rencontres.values().count(0) / len_cnp(manche, 2))
         MR_CACHE[cle] = nb_vu
 
         # Avancement du calcul (affichage jusque 99% pour éviter d'indiquer la fin de l'algorithme)
         compteur += 1
         s = "%-" + str(len(str(total))) + "s/%s manches évaluées"
         # 70% du temps attribué à la creation des matrices
-        parametres['rapport'](((compteur * 70.0) / total) - 1, s % (compteur, total))
+        parametres['rapport'](((compteur * 70) / total) - 1, s % (compteur, total))
 
     parametres['rapport'](message="")
 
@@ -155,7 +155,7 @@ def comanche(parametres, manche, redondance=False, disparite=False):
             md = NV_DISPARITE
         else:
             # Pénalisation si écart sur le nombre de victoires dépase la disparité max autorisée
-            md = 1 + MD_CACHE[cle] / (1.0 + MR_CACHE[cle])
+            md = 1 + MD_CACHE[cle] / (1 + MR_CACHE[cle])
 
     if mr == NV and md == NV:
         return NV_REDONDANCE | NV_DISPARITE
@@ -244,7 +244,7 @@ def premier(statistiques, equipes):
 
 def nb_parties(statistiques, equipe, equipes_par_manche):
     adversaires = len(statistiques[equipe][cst.STAT_ADVERSAIRES])
-    return adversaires / (equipes_par_manche - 1)
+    return adversaires // (equipes_par_manche - 1)
 
 
 def select_chapeau(parametres, statistiques):
@@ -333,9 +333,9 @@ class ThreadTirage(BaseThreadTirage):
                 if parties == 0:
                     ponderation += 12.0
                 else:
-                    ponderation += (self.statistiques[equipe][cst.STAT_POINTS] * 1.0) / parties
+                    ponderation += self.statistiques[equipe][cst.STAT_POINTS] / parties
 
-            self.config['ponderation_victoires'] = ponderation / len(self.statistiques)
+            self.config['ponderation_victoires'] = ponderation // len(self.statistiques)
             self.rapport(message="Coefficient de pondération des victoires: %s" % self.config['ponderation_victoires'])
 
         # Création de la matrice de cout
@@ -390,7 +390,7 @@ class ThreadTirage(BaseThreadTirage):
                 tirage_temp.append(manche)
                 # 30% attribué au choix des équipes
                 self.rapport(70 + (len(self.tirage) * self.equipes_par_manche + len(tirage_temp) * self.equipes_par_manche +
-                                   len(self.chapeaux)) * 30.0 / len(self.statistiques))
+                                   len(self.chapeaux)) * 30 / len(self.statistiques))
 
         for manche in tirage_temp:
             # Passage des manches de la liste temporaire vers la liste définitive

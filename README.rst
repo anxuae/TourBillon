@@ -28,42 +28,42 @@
 TourBillon
 ==========
 
-TourBillon est un logiciel libre (distribué sous licence GPL) qui permet d'organiser les
-tournois de billons. Tourbillon s'installe et s'utilise en un tour de main, deux interfaces
-sont possibles: "standalone" (par defaut) ou "backend" (server HTTP RESTful).
+Tourbillon is free software (distributed under LPG license) which makes it possible to organize the
+Billons tournaments. Tourbillon settles and is used in a jiffy. Two interfaces
+are possible: "standalone" (out of default) or "backend" (server http restful).
 
 
-Dépendances
-===========
-
-* Python >= 3.8 (requis)
-* PyYaml >= 5.0 (requis)
-* WxPython >= 4.0 (optionnel: mode "standalone")
-* fastapi >= 0.111.1 (optionnel: mode "serveur")
-
-
-Installation
+Dependencies
 ============
 
-Télécharger les binaires correspondant à votre système d'exploitation depuis la page
-`releases <https://github.com/anxuae/tourbillon-gui/releases>`_ 
+* Python >= 3.8 (mandatory)
+* PyYaml >= 5.0 (mandatory)
+* WxPython >= 4.0 (optional: used for `standelone` mode)
+* fastapi >= 0.111.1 (optional: used for `server` mode)
 
-Ou installer depuis le dossier source téléchargé sur GitHub::
+
+Install
+=======
+
+Download the binaries corresponding to your operating system from the page
+`releases <https://github.com/anxuae/tourbillon-gui/releases>` _
+
+Or install from the source downloaded on Github ::
 
     $ pip install poetry
     $ poetry install
 
 
-Démarrage rapide
-================
+Quick start
+===========
 
-Pour une utilisation `standelone`, lancer::
+To start the `standelone` mode, run::
 
     $ poetry run tourbillon
 
-Pour une utilisation `server`, lancer::
+To start the `server` mode, run::
 
     $ poetry run tourbillon --backend
 
-Et maintenant, ça tourne! Fantastique! Notez qu'en mode `server`, TourBillon tourne par
-défaut sur le port 59219.
+And now it turns! Fantastic! Note that in `server` mode, Tourbillon runs by
+default on port 59219.

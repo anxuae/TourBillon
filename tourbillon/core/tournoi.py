@@ -246,7 +246,7 @@ class Tournoi(object):
 
         Pas de piquet prévu pour les chapeaux.
         """
-        nombre = self.nb_equipes() / self.equipes_par_manche
+        nombre = self.nb_equipes() // self.equipes_par_manche
         piquets = []
         i = 1
         if self.partie_courante():

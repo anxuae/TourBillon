@@ -56,7 +56,7 @@ def tournoi_factice(equipes_par_manche, joueurs_par_equipe, nombre_equipes):
     partie.demarrer(dict(zip(range(len(tirage)), tirage)), chapeaux)
 
     i = 0
-    while i < len(tirage) / 2:
+    while i < len(tirage) // 2:
         d = {}
         for j in range(equipes_par_manche):
             if j == 0:
@@ -153,7 +153,7 @@ class Grille(grid.Grid):
         self.SetRowPenColor(self._horizontal_line_color)
 
     def GetNumberRows(self):
-        return (grid.Grid.GetNumberRows(self) / 2) - 1
+        return (grid.Grid.GetNumberRows(self) // 2) - 1
 
     def GetNumberCols(self):
         return grid.Grid.GetNumberCols(self)
@@ -271,7 +271,7 @@ class GrilleTirage(Grille):
             self._timer.Stop()
 
     def redim(self, largeur, hauteur, redim_police=True):
-        h = (hauteur - 100) / (self.GetNumberRows() + 1)
+        h = (hauteur - 100) // (self.GetNumberRows() + 1)
         l = (largeur - 100)
         if h > 80:
             h = 80
@@ -284,7 +284,7 @@ class GrilleTirage(Grille):
 
         self.SetColAttr(2, self.attribut('espace'))
         for colonne in range(self.GetNumberCols()):
-            self.SetColSize(colonne, (self._largeur_clonne[colonne] * l) / sum(self._largeur_clonne))
+            self.SetColSize(colonne, (self._largeur_clonne[colonne] * l) // sum(self._largeur_clonne))
 
         for ligne in range(self.GetNumberRows()):
             self.SetRowSize(ligne, h)
@@ -419,7 +419,7 @@ class DoubleGrilleTirage(wx.BoxSizer):
         return l0, l1
 
     def redim(self, largeur, hauteur, redim_police=True):
-        largeur = (largeur - 150) / 2
+        largeur = (largeur - 150) // 2
         for grille in self.grilles:
             grille.redim(largeur, hauteur, redim_police)
 
@@ -512,7 +512,7 @@ class GrilleResultats(Grille):
             self._timer.Stop()
 
     def redim(self, largeur, hauteur, redim_police=True):
-        h = (hauteur - 100) / (self.GetNumberRows() + 1)
+        h = (hauteur - 100) // (self.GetNumberRows() + 1)
         l = (largeur - 100)
         if h > 80:
             h = 80

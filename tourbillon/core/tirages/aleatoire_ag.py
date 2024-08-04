@@ -49,7 +49,7 @@ def comanche(parametres, statistiques, manche):
     if vu == total:
         return 1
     else:
-        return vu * 1.0 / total
+        return vu / total
 
 
 class Tirage(NvTirage):

@@ -92,12 +92,12 @@ class TimeSlider(wx.Panel):
         self.maj_texte(None)
 
     def maj_texte(self, event):
-        valeur = int(round(self.slider.GetValue() / float(self.increment))) * self.increment
+        valeur = int(round(self.slider.GetValue() / self.increment)) * self.increment
         self.slider.SetValue(valeur)
-        sec = valeur / 1000.
+        sec = valeur // 1000.
         if sec - int(sec) == 0:
             sec = int(sec)
-        minimum = (int(sec) - (int(sec) % 60)) / 60
+        minimum = (int(sec) - (int(sec) % 60)) // 60
         texte = ""
         if minimum > 0:
             texte += "%sm" % minimum

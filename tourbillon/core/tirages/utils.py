@@ -16,7 +16,7 @@ def len_cnp(n, p):
     """
     if isinstance(n, list) or isinstance(n, tuple):
         n = len(n)
-    return factorial(n) / (factorial(p) * factorial(n - p))
+    return factorial(n) // (factorial(p) * factorial(n - p))
 
 
 def tri_stat(statistiques, caracteristique):
@@ -109,7 +109,7 @@ def tirage_texte(statistiques, manches):
 
         # Completer avec un un nombre < 1 pour les rencontres 2 à 2 effectuées
         # dans d'autres manches que celles redondantes
-        nrc += 1 - (1.0 * semirencontres.values().count(0) / len_cnp(manche, 2))
+        nrc += 1 - (semirencontres.values().count(0) / len_cnp(manche, 2))
 
         texte.append("%-15s: diff points = %-5s, redondance = %-5s, disparité = %-5s" % (manche, dp, nrc, dv))
 
@@ -293,7 +293,7 @@ class BaseThreadTirage(Thread):
                 self.callback(self._progression, message, tps_restant)
         elif diff >= 5 or valeur == 100:
             self._progression = int(valeur)
-            tps_restant = (((self._chrono - self._debut) * 100) / self._progression) - (self._chrono - self._debut)
+            tps_restant = (((self._chrono - self._debut) * 100) // self._progression) - (self._chrono - self._debut)
             if self.callback:
                 self.callback(self._progression, message, tps_restant)
 
