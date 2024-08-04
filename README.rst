@@ -36,10 +36,9 @@ sont possibles: "standalone" (par defaut), "shell" ou "backend" (server HTTP RES
 Dépendances
 ===========
 
-* Python >= 2.7 (requis)
+* Python version 2.7 (requis)
 * PyYaml version 3.10 (requis)
 * WxPython version 2.8 (optionel: mode "standalone")
-* Flask version 0.10.1 + flask-restful (optionel: mode "serveur")
 * Pyreadline version 1.7 (optionel: mode "shell")
 
 
@@ -54,7 +53,10 @@ Démarrage rapide
 ================
 
 Pour une utilisation `standelone`, double-clickez sur l'executable (Windows: *TrourBillon.exe*
-ou Mac OSX: *TrourBillon.app*) ou tapez la commande *tourbillon* sur un système unix.
+ou Mac OSX: *TrourBillon.app*) ou installez le package Python, en lançant dans
+le dossier sources préalablement téléchargé::
+  
+  $ pip install tourbillon -e .
 
 Pour une utilisation `server`, lancer::
 
