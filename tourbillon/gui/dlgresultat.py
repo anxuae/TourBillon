@@ -66,11 +66,10 @@ class EntrerScore(wx.Panel):
 class DialogueResultat(wx.Dialog):
 
     def __init__(self, parent, numero_partie, numero_affiche=1):
-        wx.Dialog.__init__(self, parent, wx.ID_ANY, title="Resultats", style=wx.DEFAULT_DIALOG_STYLE | wx.CENTER_ON_SCREEN | wx.RESIZE_BORDER)
+        wx.Dialog.__init__(self, parent, wx.ID_ANY, title="Resultats", style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER)
         self.SetMinSize(wx.Size(280, 170))
         self.SetMaxSize(wx.Size(280, -1))
         self.SetTitle("Resultats de la partie n°%s" % numero_partie)
-        self.CenterOnParent()
 
         self.entrees = []
         self.numero_partie = numero_partie
@@ -115,10 +114,12 @@ class DialogueResultat(wx.Dialog):
         box.Add(self.lbl_piquet, 0, wx.EXPAND)
         box.Add(self.panel, 1, wx.EXPAND)
         box.Add(self.chx_fin, 0, wx.EXPAND | wx.LEFT, 14)
-        box.AddSizer(box_btn, 0, wx.EXPAND)
+        box.Add(box_btn, 0, wx.EXPAND)
 
         self.SetSizer(box)
         self.Layout()
+        self.CenterOnParent()
+
         self._selection_equipe(None)
         self.verifier(None)
 

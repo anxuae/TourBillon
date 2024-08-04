@@ -37,10 +37,9 @@ def ajout_page_titre(wizPg, titre):
 class DialogueSupprimerPartie(wx.Dialog):
 
     def __init__(self, parent, choix=[], numero_affiche=1):
-        wx.Dialog.__init__(self, parent, wx.ID_ANY, title="Supprimer une partie", style=wx.DEFAULT_DIALOG_STYLE | wx.CENTER_ON_SCREEN, pos=wx.DefaultPosition, size=wx.DefaultSize)
+        wx.Dialog.__init__(self, parent, wx.ID_ANY, title="Supprimer une partie", style=wx.DEFAULT_DIALOG_STYLE, pos=wx.DefaultPosition, size=wx.DefaultSize)
         self.SetMinSize((500, 150))
         self.SetSize(wx.Size(500, 140))
-        self.CenterOnParent()
 
         self.txt_phrase0 = wx.StaticText(self, wx.ID_ANY, "Etes vous sûr de vouloir supprimer la partie n° ")
         self.ctl_numero = wx.Choice(self, wx.ID_ANY, choices=map(str, choix))
@@ -64,11 +63,12 @@ class DialogueSupprimerPartie(wx.Dialog):
 
         # Assembler
         box = wx.BoxSizer(wx.VERTICAL)
-        box.AddSizer(box_chx, 1, wx.LEFT, 30)
+        box.Add(box_chx, 1, wx.LEFT, 30)
         box.Add(self.txt_phrase2, 1, wx.LEFT | wx.ALIGN_CENTER_VERTICAL, 30)
-        box.AddSizer(box_btn, 0, wx.EXPAND)
+        box.Add(box_btn, 0, wx.EXPAND)
         self.SetSizer(box)
         self.Layout()
+        self.CenterOnParent()
 
     def chg_numero(self, numero):
         self.ctl_numero.SetSelection(self.ctl_numero.FindString(str(numero)))
@@ -80,9 +80,7 @@ class DialogueSupprimerPartie(wx.Dialog):
 class DialogueAfficherTirage(wx.Dialog):
 
     def __init__(self, parent, numero_affiche=1):
-        wx.Dialog.__init__(self, parent, wx.ID_ANY, title="Tirages", style=wx.DEFAULT_DIALOG_STYLE | wx.CENTER_ON_SCREEN | wx.RESIZE_BORDER | wx.STAY_ON_TOP)
-        self.CenterOnParent()
-
+        wx.Dialog.__init__(self, parent, wx.ID_ANY, title="Tirages", style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER | wx.STAY_ON_TOP)
         self.txt_phrase = wx.StaticText(self, wx.ID_ANY, "Tirage de la partie n° ")
         self.ctl_numero = wx.Choice(self, wx.ID_ANY, choices=[str(partie.numero) for partie in tournoi.tournoi().parties()])
         self.ctl_numero.SetSelection(self.ctl_numero.FindString(str(numero_affiche)))
@@ -106,10 +104,11 @@ class DialogueAfficherTirage(wx.Dialog):
         self.sizer = wx.BoxSizer(wx.VERTICAL)
         self.sizer.Add(box_chx, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.ALL, 20)
         self.sizer.Add(self.grille, 1, wx.EXPAND | wx.ALL, 5)
-        self.sizer.AddSizer((10, 10), 0, wx.EXPAND)
-        self.sizer.AddSizer(box_btn, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.ALL, 20)
+        self.sizer.Add((10, 10), 0, wx.EXPAND)
+        self.sizer.Add(box_btn, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.ALL, 20)
         self.SetSizer(self.sizer)
         self.Layout()
+        self.CenterOnScreen()
 
         self._maj(None)
         self.Bind(wx.EVT_CHOICE, self._maj, self.ctl_numero)
@@ -140,9 +139,8 @@ class DialogueAfficherClassement(wx.Dialog):
     single = None
 
     def __init__(self, parent, numero_affiche=1):
-        wx.Dialog.__init__(self, parent, ID_DLG_CLASSEMENT, title="Tirages", style=wx.DEFAULT_DIALOG_STYLE | wx.CENTER_ON_SCREEN | wx.RESIZE_BORDER | wx.STAY_ON_TOP)
+        wx.Dialog.__init__(self, parent, ID_DLG_CLASSEMENT, title="Tirages", style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER | wx.STAY_ON_TOP)
         DialogueAfficherClassement.single = self
-        self.CenterOnParent()
         self.SetSize((300, 600))
 
         txt_phrase = wx.StaticText(self, wx.ID_ANY, "Classement des équipes")
@@ -163,10 +161,11 @@ class DialogueAfficherClassement(wx.Dialog):
         self.sizer = wx.BoxSizer(wx.VERTICAL)
         self.sizer.Add(txt_phrase, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.ALL, 20)
         self.sizer.Add(self.grille, 1, wx.EXPAND | wx.ALL, 5)
-        self.sizer.AddSizer((10, 10), 0, wx.EXPAND)
+        self.sizer.Add((10, 10), 0, wx.EXPAND)
         self.sizer.Add(self.btn_ok, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.ALL, 20)
         self.SetSizer(self.sizer)
         self.Layout()
+        self.CenterOnScreen()
 
         self._maj(None)
         self.Bind(wx.EVT_ACTIVATE, self._maj)
@@ -529,9 +528,9 @@ class SelectionEquipesPage(wiz.PyWizardPage):
         self._cocher_tout(None)
 
         self.btn_cocher_tout = wx.BitmapButton(self, wx.ID_ANY, images.bitmap('check_on.png'))
-        self.btn_cocher_tout.SetToolTipString("Sélectionner toutes les équipes")
+        self.btn_cocher_tout.SetToolTip("Sélectionner toutes les équipes")
         self.btn_decocher_tout = wx.BitmapButton(self, wx.ID_ANY, images.bitmap('check_off.png'))
-        self.btn_decocher_tout.SetToolTipString("Dessélectionner toutes les équipes")
+        self.btn_decocher_tout.SetToolTip("Dessélectionner toutes les équipes")
 
         self.sizer.Add(self.liste, 1, wx.EXPAND | wx.ALL, 5)
 
@@ -539,7 +538,7 @@ class SelectionEquipesPage(wiz.PyWizardPage):
         box_btn.Add(self.btn_cocher_tout)
         box_btn.Add(self.btn_decocher_tout)
 
-        self.sizer.AddSizer(box_btn, 0, wx.LEFT, 5)
+        self.sizer.Add(box_btn, 0, wx.LEFT, 5)
 
         # Décocher les équipes forfait de la partie précédente
         if tournoi.tournoi().partie_courante() is not None:
@@ -629,9 +628,9 @@ class SelectionChapeauPage(wiz.PyWizardPage):
         self.liste.SetSize(wx.Size(600, 300))
 
         self.btn_cocher_tout = wx.BitmapButton(self, -1, images.bitmap('check_on.png'))
-        self.btn_cocher_tout.SetToolTipString("Sélectionner toutes les équipes")
+        self.btn_cocher_tout.SetToolTip("Sélectionner toutes les équipes")
         self.btn_decocher_tout = wx.BitmapButton(self, -1, images.bitmap('check_off.png'))
-        self.btn_decocher_tout.SetToolTipString("Dessélectionner toutes les équipes")
+        self.btn_decocher_tout.SetToolTip("Dessélectionner toutes les équipes")
 
         self.sizer.Add(self.liste, 1, wx.EXPAND | wx.ALL, 5)
 
@@ -639,7 +638,7 @@ class SelectionChapeauPage(wiz.PyWizardPage):
         box_btn.Add(self.btn_cocher_tout)
         box_btn.Add(self.btn_decocher_tout)
 
-        self.sizer.AddSizer(box_btn, 0, wx.LEFT, 5)
+        self.sizer.Add(box_btn, 0, wx.LEFT, 5)
 
         self.Bind(wx.EVT_BUTTON, self._cocher_tout, self.btn_cocher_tout)
         self.Bind(wx.EVT_BUTTON, self._decocher_tout, self.btn_decocher_tout)
@@ -727,7 +726,7 @@ class LancerTiragePage(wiz.PyWizardPage):
         chx_box.Add(self.chx_algorithme, 1, wx.LEFT, 10)
         chx_box.Add((40, 10), 0)
         chx_box.Add(self.btn_options, 0)
-        self.sizer.AddSizer(chx_box, 0, wx.EXPAND | wx.ALL, 5)
+        self.sizer.Add(chx_box, 0, wx.EXPAND | wx.ALL, 5)
         self.sizer.Add((10, 10), 0, wx.EXPAND | wx.ALL, 5)
 
         prg_box = wx.BoxSizer(wx.HORIZONTAL)
@@ -736,9 +735,9 @@ class LancerTiragePage(wiz.PyWizardPage):
         prg_box.Add(self.txt_tps_restant, 0, wx.ALIGN_CENTER_VERTICAL)
         prg_box.Add((40, 10), 0)
         prg_box.Add(self.btn_tirage, 0)
-        self.sizer.AddSizer(prg_box, 0, wx.EXPAND | wx.ALL, 5)
+        self.sizer.Add(prg_box, 0, wx.EXPAND | wx.ALL, 5)
 
-        self.sizer.AddSizer(self.txt_progression, 1, wx.EXPAND | wx.ALL, 5)
+        self.sizer.Add(self.txt_progression, 1, wx.EXPAND | wx.ALL, 5)
 
         self.Bind(wx.EVT_BUTTON, self._modifier_options, self.btn_options)
         self.Bind(wx.EVT_BUTTON, self.demarrer_arreter_tirage, self.btn_tirage)
@@ -893,7 +892,7 @@ class ConfirmerTiragePage(wiz.PyWizardPage):
         box_btn.Add(self.btn_imprimer, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 20)
         box_btn.Add(self.btn_classement, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 20)
 
-        self.sizer.AddSizer(box_btn, 0, wx.LEFT | wx.BOTTOM, 5)
+        self.sizer.Add(box_btn, 0, wx.LEFT | wx.BOTTOM, 5)
         self.Layout()
 
         self.Bind(wx.EVT_BUTTON, self.echanger, self.btn_echanger)

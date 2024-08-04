@@ -172,7 +172,7 @@ class GeneralPage(wx.Panel):
                 fond.SetBitmapLabel(images.scale_bitmap(bp, 60, 40))
                 if defaut_chemin_fond == fond.path:
                     fond.SetValue(True)
-                wx.EVT_BUTTON(self, fond.GetId(), self.parcourir_fond)
+                self.Bind(wx.EVT_BUTTON, self.parcourir_fond, id=fond.GetId())
                 self.fonds.append(fond)
 
         fondcustom = buttons.GenBitmapToggleButton(self, -1, None, size=(60, 40))
@@ -183,7 +183,7 @@ class GeneralPage(wx.Panel):
         else:
             fondcustom.SetBitmapLabel(images.scale_bitmap(images.bitmap(images.chemin('loupe.png')), 60, 40))
             fondcustom.SetValue(False)
-        wx.EVT_BUTTON(self, fondcustom.GetId(), self.parcourir_fond)
+        self.Bind(wx.EVT_BUTTON, self.parcourir_fond, id=fondcustom.GetId())
         self.fonds.append(fondcustom)
 
         # position des objets

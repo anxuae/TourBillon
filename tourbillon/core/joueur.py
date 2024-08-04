@@ -3,7 +3,6 @@
 """Définitions des joueurs."""
 
 import os.path as osp
-import codecs
 from datetime import datetime
 import atexit
 
@@ -35,9 +34,8 @@ def creer_id(prenom, nom):
 def charger_historique(fichier):
     global HISTORIQUE, FICHIER_HISTORIQUE
     if osp.isfile(fichier):
-        f = codecs.open(fichier, 'rb', 'utf-8')
-        lignes = f.readlines()
-        f.close()
+        with open(fichier, 'r', encoding='utf-8') as fp:
+            lignes = fp.readlines()
     else:
         lignes = []
 
@@ -56,15 +54,12 @@ def charger_historique(fichier):
 
 def enregistrer_historique():
     if HISTORIQUE:
-        ids = HISTORIQUE.keys()
-        ids.sort()
-
-        f = codecs.open(FICHIER_HISTORIQUE, 'wb', 'utf-8')
-        for joueur_id in ids:
-            for donnee in HISTORIQUE[joueur_id]:
-                ligne = joueur_id + ',' + ','.join(donnee) + "\n"
-                f.write(ligne)
-        f.close()
+        ids = sorted(HISTORIQUE.keys())
+        with open(FICHIER_HISTORIQUE, 'w', encoding='utf-8') as fp:
+            for joueur_id in ids:
+                for donnee in HISTORIQUE[joueur_id]:
+                    ligne = joueur_id + ',' + ','.join(donnee) + "\n"
+                    fp.write(ligne)
 
 
 class NomCompleteur(object):
@@ -89,9 +84,7 @@ class NomCompleteur(object):
     def _dichotomie(self, texte):
         match = []
         if HISTORIQUE and texte != '':
-            ids = HISTORIQUE.keys()
-            ids.sort()
-
+            ids = sorted(HISTORIQUE.keys())
             debut, fin = 0, len(HISTORIQUE) - 1
             while debut <= fin:
                 milieu = (debut + fin) / 2

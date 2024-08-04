@@ -711,7 +711,7 @@ cliquez sur ANNULER si vous ne voulez pas ajouter cette nouvelle équipe."
         return ret
 
     def info_systeme(self, event):
-        dlg = wx.Dialog(self, style=wx.DEFAULT_DIALOG_STYLE | wx.CENTER_ON_SCREEN)
+        dlg = wx.Dialog(self, style=wx.DEFAULT_DIALOG_STYLE)
         dlg.CenterOnScreen()
 
         grille = grid.Grid(dlg, wx.ID_ANY)

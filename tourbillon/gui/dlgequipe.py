@@ -160,10 +160,10 @@ class EntrerJoueur(wx.Panel):
         return (self.ctl_prenom.GetValue(), self.ctl_nom.GetValue(), self.ctl_age.GetValue())
 
 
-class EquipeValidateur(wx.PyValidator):
+class EquipeValidateur(wx.Validator):
 
     def __init__(self, pyVar=None):
-        wx.PyValidator.__init__(self)
+        wx.Validator.__init__(self)
         self.Bind(wx.EVT_CHAR, self.OnChar)
 
     def Clone(self):
@@ -233,10 +233,8 @@ class EntrerNumero(wx.Panel):
 class DialogueEquipe(wx.Dialog):
 
     def __init__(self, parent, style=STYLE_AJOUTER, choix=[], numero_affiche=1, completion=True):
-        wx.Dialog.__init__(self, parent, wx.ID_ANY, title=style + " une équipe", style=wx.DEFAULT_DIALOG_STYLE | wx.CENTER_ON_SCREEN | wx.RESIZE_BORDER)
+        wx.Dialog.__init__(self, parent, wx.ID_ANY, title=style + " une équipe", style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER)
         self.SetMinSize((500, 220))
-        self.CenterOnParent()
-
         self.entrees = []
         self.choix = choix
 
@@ -261,8 +259,8 @@ class DialogueEquipe(wx.Dialog):
         self.spin_joker.SetRange(0, 1000)
         self.spin_joker.SetValue(0)
         self.spin_joker.SetMaxSize((50, -1))
-        self.spin_joker.SetToolTipString("Ce numéro 'Joker' est utilisé pour départager\n"
-                                         "les équipes ex-aequo (laisser 0 si pas de departage).")
+        self.spin_joker.SetToolTip("Ce numéro 'Joker' est utilisé pour départager\n"
+                                   "les équipes ex-aequo (laisser 0 si pas de departage).")
 
         # Boutons
         self.btn_gen = platebtn.PlateButton(self, wx.ID_ANY, "  Joker n° ")
@@ -293,10 +291,11 @@ class DialogueEquipe(wx.Dialog):
         box = wx.BoxSizer(wx.VERTICAL)
         box.Add(self.txt_numero, 0, wx.ALIGN_CENTER_HORIZONTAL)
         box.Add(self.panel, 1, wx.EXPAND)
-        box.AddSizer(box_btn, 0, wx.EXPAND)
+        box.Add(box_btn, 0, wx.EXPAND)
 
         self.SetSizer(box)
         self.Layout()
+        self.CenterOnParent()
 
         hauteur_necessaire = (self.entrees[0].GetSize()[1] + 30) * len(self.entrees) + 130
         if hauteur_necessaire < wx.GetDisplaySize()[1]:
@@ -351,10 +350,9 @@ class DialogueEquipe(wx.Dialog):
 class DialogueMessageEquipe(wx.Dialog):
 
     def __init__(self, parent, equipe):
-        wx.Dialog.__init__(self, parent, wx.ID_ANY, title="Tournoi en cours", style=wx.DEFAULT_DIALOG_STYLE | wx.CENTER_ON_SCREEN, pos=wx.DefaultPosition, size=wx.DefaultSize)
+        wx.Dialog.__init__(self, parent, wx.ID_ANY, title="Tournoi en cours", style=wx.DEFAULT_DIALOG_STYLE, pos=wx.DefaultPosition, size=wx.DefaultSize)
         self.SetMinSize((500, 220))
         self.SetSize(wx.Size(500, 200))
-        self.CenterOnParent()
 
         texte = "La partie n° %s est en cours, pour toutes les parties précédentes l'équipe\n\
 sera considérée comme forfait, choisissez l'état de l'équipe n° %s pour la\n\
@@ -378,10 +376,11 @@ partie en cours:" % (tournoi.tournoi().partie_courante().numero, equipe)
         box.Add(self.txt_info, 1, wx.ALL, 20)
         box.Add(self.chx_etat, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.ALIGN_CENTER_VERTICAL)
         box.Add(self.chk_cree_manche, 1, wx.LEFT | wx.ALIGN_CENTER_VERTICAL, 20)
-        box.AddSizer(box_btn, 0, wx.EXPAND)
+        box.Add(box_btn, 0, wx.EXPAND)
 
         self.SetSizer(box)
         self.Layout()
+        self.CenterOnParent()
 
         self.Bind(wx.EVT_CHOICE, self.modif_etat, self.chx_etat)
         self.Bind(wx.EVT_CHECKBOX, self.modif_option, self.chk_cree_manche)

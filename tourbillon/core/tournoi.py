@@ -511,7 +511,7 @@ class Tournoi(object):
         self.cmp_avec_victoires = avec_victoires
         self.cmp_avec_joker = avec_joker
         self.cmp_avec_duree = avec_duree
-        l = sorted(self.equipes(), cmp=partial(self.comparer, partie_limite=partie_limite), reverse=True)
+        l = sorted(self.equipes(), key=partial(self.comparer, partie_limite=partie_limite), reverse=True)
 
         classement = []
 

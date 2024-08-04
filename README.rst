@@ -38,8 +38,8 @@ Dépendances
 
 * Python >= 3.8 (requis)
 * PyYaml >= 5.0 (requis)
-* WxPython >= 4.0 (optionel: mode "standalone")
-* fastapi >= 0.111.1 (optionel: mode "serveur")
+* WxPython >= 4.0 (optionnel: mode "standalone")
+* fastapi >= 0.111.1 (optionnel: mode "serveur")
 
 
 Installation
