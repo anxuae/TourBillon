@@ -39,9 +39,9 @@ def chemin(*nom):
 def scale_bitmap(bitmap, largeur, hauteur):
     if bitmap == wx.NullBitmap:
         return wx.NullBitmap
-    image = wx.ImageFromBitmap(bitmap)
+    image = wx.Bitmap.ConvertToImage(bitmap)
     image = image.Scale(largeur, hauteur, wx.IMAGE_QUALITY_HIGH)
-    result = wx.BitmapFromImage(image)
+    result = wx.Bitmap(image)
     return result
 
 

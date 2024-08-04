@@ -36,28 +36,34 @@ sont possibles: "standalone" (par defaut) ou "backend" (server HTTP RESTful).
 Dépendances
 ===========
 
-* Python >= 2.7 (requis)
-* PyYaml version 3.10 (requis)
-* WxPython version 4.0 (optionel: mode "standalone")
-* cfastapi version 0.111.1 (optionel: mode "serveur")
+* Python >= 3.8 (requis)
+* PyYaml >= 5.0 (requis)
+* WxPython >= 4.0 (optionel: mode "standalone")
+* fastapi >= 0.111.1 (optionel: mode "serveur")
 
 
 Installation
 ============
 
 Télécharger les binaires correspondant à votre système d'exploitation depuis la page
-`releases <https://github.com/anxuae/tourbillon-gui/releases>`_
+`releases <https://github.com/anxuae/tourbillon-gui/releases>`_ 
+
+Ou installer depuis le dossier source téléchargé sur GitHub::
+
+    $ pip install poetry
+    $ poetry install
 
 
 Démarrage rapide
 ================
 
-Pour une utilisation `standelone`, double-clickez sur l'executable (Windows: *TrourBillon.exe*
-ou Mac OSX: *TrourBillon.app*) ou tapez la commande *tourbillon* sur un système unix.
+Pour une utilisation `standelone`, lancer::
+
+    $ poetry run tourbillon
 
 Pour une utilisation `server`, lancer::
 
-    $ tourbillon --backend
+    $ poetry run tourbillon --backend
 
 Et maintenant, ça tourne! Fantastique! Notez qu'en mode `server`, TourBillon tourne par
-défaut sur le port 14000.
+défaut sur le port 59219.
