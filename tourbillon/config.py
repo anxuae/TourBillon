@@ -7,7 +7,6 @@ import os
 import sys
 import os.path as osp
 import atexit
-import codecs
 import ast
 from optparse import OptionParser, OptionGroup, Option
 import configparser as cfg
@@ -129,10 +128,8 @@ def enregistrer_config():
     Sauver la configuration utilisateur.
     """
     if CONFIG is not None:
-        chem = configdir('cfg')
-        fp = codecs.open(chem, 'wb', 'utf-8')
-        CONFIG.write(fp)
-        fp.close()
+        with open(configdir('cfg'), 'w', encoding='utf-8') as fp:
+            CONFIG.write(fp)
 
 
 def charger_config(dossier=None):
@@ -152,9 +149,8 @@ def charger_config(dossier=None):
     fichier = configdir('cfg')
     if osp.isfile(fichier):
         logger.debug("Chargement de la configuration...")
-        fp = codecs.open(fichier, 'rb', 'utf-8')
-        CONFIG.readfp(fp)
-        fp.close()
+        with open(fichier, 'r', encoding='utf-8') as fp:
+            CONFIG.read_file(fp)
     else:
         logger.debug("Création de la configuration...")
 
@@ -176,16 +172,15 @@ def charger_config(dossier=None):
     # Création du fichier d'historique des joueurs
     fichier_hist = configdir('hist_jrs')
     if not osp.isfile(fichier_hist):
-        fp = codecs.open(fichier_hist, 'wb', 'utf-8')
-        fp.close()
+        with open(fichier_hist, 'w', encoding='utf-8') as fp:
+            pass # Create empty file
 
     # Création du fichier d'historique des commandes
     fichier_cmd = configdir('hist_cmd')
     if not osp.isfile(fichier_cmd):
-        fp = codecs.open(fichier_cmd, 'wb', 'utf-8')
-        fp.write("_HiStOrY_V2_\n")
-        fp.write("%alias\n")
-        fp.close()
+        with open(fichier_cmd, 'w', encoding='utf-8') as fp:
+            fp.write("_HiStOrY_V2_\n")
+            fp.write("%alias\n")
 
     # Traitement des chemins
     CONFIG.set('INTERFACE', 'historique', osp.abspath(osp.expanduser(CONFIG.get('INTERFACE', 'historique'))))

@@ -3,11 +3,11 @@
 import pytest
 from datetime import datetime, timedelta
 
-from tourbillon.core import tournoi
-from tourbillon.core.exceptions import LimiteError
-from tourbillon.core import constantes as cst
+from tourbillon.core import cst, tournament
+from tourbillon.core.exception import BoundError
 
 import data2e2j
+
 
 EQUIPES = {1: data2e2j.JOUEURS_1,
            2: data2e2j.JOUEURS_2,
@@ -107,7 +107,7 @@ def test_nb_joueurs(trb2e2j):
 
 def test_trop_joueurs(trb2e2j):
     for equipe in trb2e2j.equipes():
-        with pytest.raises(LimiteError):
+        with pytest.raises(BoundError):
             equipe.ajout_joueur("Prenom", "Nom", "00")
 
 
@@ -197,7 +197,7 @@ def test_max_duree(trb2e2j):
 
 def test_enregistrer(trb2e2j, tmpfile):
     assert trb2e2j.modifie
-    tournoi.enregistrer_tournoi(tmpfile('trb2e2j.yml'))
+    tournament.enregistrer_tournoi(tmpfile('trb2e2j.yml'))
     assert not trb2e2j.modifie
 
 
@@ -210,32 +210,32 @@ def test_date_enregistrement(trb2e2j):
 
 
 def test_charger(tmpfile):
-    tournoi.charger_tournoi(tmpfile('trb2e2j.yml'))
-    assert not tournoi.tournoi().modifie
+    tournament.charger_tournoi(tmpfile('trb2e2j.yml'))
+    assert not tournament.tournoi().modifie
 
 
 def test_date_chargement():
     d = datetime.now()
-    d1 = tournoi.tournoi().date_chargement - timedelta(0, 0, tournoi.tournoi().date_chargement.microsecond)
+    d1 = tournament.tournoi().date_chargement - timedelta(0, 0, tournament.tournoi().date_chargement.microsecond)
     d2 = d - timedelta(0, 0, d.microsecond)
     assert d1 == d2
 
 
 def test_nb_equipes_apres_chargement():
-    assert tournoi.tournoi().nb_equipes() == NB_EQUIPES
+    assert tournament.tournoi().nb_equipes() == NB_EQUIPES
 
 
 def test_nb_parties_apres_chargement():
-    assert tournoi.tournoi().nb_parties() == 0
+    assert tournament.tournoi().nb_parties() == 0
 
 
 def test_nb_joueurs_apres_chargement():
-    for equipe in tournoi.tournoi().equipes():
+    for equipe in tournament.tournoi().equipes():
         assert equipe.nb_joueurs() == data2e2j.JOUEURS_PAR_EQUIPE
 
 
 def test_nom_prenom_joueurs():
-    for equipe in tournoi.tournoi().equipes():
+    for equipe in tournament.tournoi().equipes():
         ind_joueur = 0
         for joueur in equipe.joueurs():
             eq_ref = EQUIPES[equipe.numero]

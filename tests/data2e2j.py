@@ -1,7 +1,7 @@
 # -*- coding: UTF-8 -*-
 
 from datetime import datetime, timedelta
-from tourbillon.core.constantes import (CHAPEAU, GAGNE, PERDU, FORFAIT)
+from tourbillon.core.cst import (CHAPEAU, GAGNE, PERDU, FORFAIT)
 
 #--- Tournoi pour extraction de donnée ----------------------------------------
 

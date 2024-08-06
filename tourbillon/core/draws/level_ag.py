@@ -1,13 +1,13 @@
 # -*- coding: UTF-8 -*-
 
-"""Algorithme génétique pour la selection des équipes en fonction de leur niveau."""
+"""Genetic algorithm to build matches according to teams level"""
 
 import random
-from tourbillon.core.constantes import MINIMISE
+from tourbillon.core.cst import MINIMISE
 from tourbillon.core.tirages.utils import (BaseThreadTirage, nb_chapeaux_necessaires, tri_stat,
                                            creer_manches, NV, NV_REDONDANCE, NV_DISPARITE,
                                            tirage_texte, dernieres_equipes, cnp, len_cnp)
-from tourbillon.core.exceptions import SolutionTirageError
+from tourbillon.core.exception import DrawResultError
 
 
 def genese(individu_type, taille=20):
@@ -26,7 +26,7 @@ def genese(individu_type, taille=20):
     return population
 
 
-class Individu(object):
+class Individu:
     alleles = []  # Version d'un gène
     optimization = MINIMISE
 
@@ -110,7 +110,7 @@ class Individu(object):
         self._remplacer(gene)
 
 
-class Environement(object):
+class Environement:
 
     def __init__(self, population, taille_population=100, max_generations=1000,
                  taux_croiser=0.90, taux_muter=0.01, optimum=None, rapport=None, **kwrds):
@@ -238,11 +238,11 @@ def select_chapeau(parametres, statistiques):
             else:
                 #  ERREUR 101: Toutes les équipes on été chapeaux une fois.
                 args = [cle_tri[0], cle_tri[-1]]
-                raise SolutionTirageError(101, args)
+                raise DrawResultError(101, args)
         else:
             #  ERREUR 101: Toutes les équipes on été chapeaux une fois.
             args = [cle_tri[0], cle_tri[-1]]
-            raise SolutionTirageError(101, args)
+            raise DrawResultError(101, args)
 
     return num
 
@@ -478,15 +478,15 @@ class ThreadTirage(BaseThreadTirage):
             if nb != 1:
                 args.append((equipe, nb))
         if len(args) != 0:
-            raise SolutionTirageError(150, args)
+            raise DrawResultError(150, args)
 
         elif self._env.elite.score >= 1e36:
             if self._env.elite.nv == NV_REDONDANCE:
                 # ERREUR 154: La redondance n'est pas autorisée.
-                raise SolutionTirageError(154, "")
+                raise DrawResultError(154, "")
             elif self._env.elite.nv == NV_DISPARITE:
                 # ERREUR 155: La disparité est trop faible pour trouver une solution.
-                raise SolutionTirageError(155, "")
+                raise DrawResultError(155, "")
             else:
                 # ERREUR 156: La disparité doit être augmentée ou la redondance autorisée.
-                raise SolutionTirageError(156, "")
+                raise DrawResultError(156, "")

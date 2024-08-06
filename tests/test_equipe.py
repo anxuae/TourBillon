@@ -3,9 +3,8 @@
 import pytest
 from datetime import timedelta
 
-from tourbillon.core.exceptions import StatutError
-from tourbillon.core import constantes as cst
-
+from tourbillon.core import cst
+from tourbillon.core.exception import StatusError
 import data2e2j
 
 
@@ -51,7 +50,7 @@ def test_statistiques_equipe_complete(equ2jn1):
     test_statistiques(equ2jn1)
 
 
-class TestAjoutParties(object):
+class TestAjoutParties:
 
     scenarios = [('parie%s' % i, {'data_partie': data2e2j.PARTIES_1[i], 'data_stat': data2e2j.STATISTIQUES_1[i]})
                  for i in range(len(data2e2j.PARTIES_1))]
@@ -64,7 +63,7 @@ class TestAjoutParties(object):
         if data_partie['etat'] != cst.FORFAIT and data_partie['etat'] != cst.CHAPEAU:
             # L'état est inconnu et la manche est en cours
             equ2jn1._ajout_partie(data_partie['debut'], data_partie['adversaires'], None, 1)
-            with pytest.raises(StatutError):
+            with pytest.raises(StatusError):
                 equ2jn1._ajout_partie(data_partie['debut'], data_partie['adversaires'], None, 1)
         else:
             equ2jn1._ajout_partie(data_partie['debut'], data_partie['adversaires'], data_partie['etat'], 1)

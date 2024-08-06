@@ -3,14 +3,15 @@
 """Définition d'une manche."""
 
 from datetime import datetime, timedelta
-from tourbillon.core import constantes as cst
+
+from tourbillon.core import cst
 
 
 def Property(func):
     return property(**func())
 
 
-class Manche(object):
+class Match:
 
     def __init__(self, debut=datetime.now(), adversaires=[]):
         self.data = {'points': 0,

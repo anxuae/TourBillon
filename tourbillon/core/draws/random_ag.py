@@ -6,7 +6,7 @@ import random
 from tourbillon.core.tirages.utils import (BaseThreadTirage, nb_chapeaux_necessaires,
                                            tri_stat, creer_manches, tirage_texte, cnp, len_cnp)
 from tourbillon.core.tirages.niveau_ag import Tirage as NvTirage, Environement, genese
-from tourbillon.core.exceptions import SolutionTirageError
+from tourbillon.core.exception import DrawResultError
 
 
 def select_chapeau(statistiques, redondance):
@@ -27,7 +27,7 @@ def select_chapeau(statistiques, redondance):
         else:
             #  ERREUR 101: Toutes les équipes on été chapeaux une fois.
             args = [cle_tri[0], cle_tri[-1]]
-            raise SolutionTirageError(101, args)
+            raise DrawResultError(101, args)
 
 
 def comanche(parametres, statistiques, manche):
@@ -136,7 +136,7 @@ class ThreadTirage(BaseThreadTirage):
                 nb = self._env.elite.chromosome.count(equipe)
                 if nb != 1:
                     args.append((equipe, nb))
-            raise SolutionTirageError(150, args)
+            raise DrawResultError(150, args)
 
         elif self.config['redondance'] == False and self._env.elite.score >= 1:
             # ERREUR 151: Au moins une manche qui a déjà été disputée se trouve dans le tirage et
@@ -148,4 +148,4 @@ class ThreadTirage(BaseThreadTirage):
                     nb_vu += self.statistiques[vu[1]]['adversaires'].count(vu[0])
                 if nb_vu >= len_cnp(manche, 2):
                     args.append(manche)
-            raise SolutionTirageError(151, args)
+            raise DrawResultError(151, args)

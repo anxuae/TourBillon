@@ -5,7 +5,7 @@ import os.path as osp
 
 import data2e2j
 from tourbillon import config
-from tourbillon.core import tournoi, equipe
+from tourbillon.core import team, tournament
 
 
 def pytest_generate_tests(metafunc):
@@ -46,7 +46,7 @@ def equ2jn1():
     """
     Equipe n°1 vide (cfg: 2 équipes par manches, 2 joueurs par équipe)
     """
-    return equipe.Equipe(tournoi.Tournoi(data2e2j.EQUIPES_PAR_MANCHE,
+    return team.Team(tournament.Tournament(data2e2j.EQUIPES_PAR_MANCHE,
                                          data2e2j.POINTS_PAR_MANCHE,
                                          data2e2j.JOUEURS_PAR_EQUIPE), 1)
 
@@ -57,7 +57,7 @@ def part3e2j():
     Partie vide: (cfg: 2 équipes par manches, 2 joueurs par équipe)
     """
     # On crée un tournoi avec des équipes car Partie n'est qu'un proxy sur Equipe
-    trb = tournoi.Tournoi(data2e2j.EQUIPES_PAR_MANCHE,
+    trb = tournament.Tournament(data2e2j.EQUIPES_PAR_MANCHE,
                           data2e2j.POINTS_PAR_MANCHE,
                           data2e2j.JOUEURS_PAR_EQUIPE)
 
@@ -73,7 +73,7 @@ def trb2e2j():
     """
     Tournoi vide (cfg: 2 équipes par manches, 2 joueurs par équipe)
     """
-    return tournoi.nouveau_tournoi(data2e2j.EQUIPES_PAR_MANCHE,
+    return tournament.nouveau_tournoi(data2e2j.EQUIPES_PAR_MANCHE,
                                    data2e2j.POINTS_PAR_MANCHE,
                                    data2e2j.JOUEURS_PAR_EQUIPE)
 
@@ -83,4 +83,4 @@ def trb4e1j():
     """
     Tournoi avec 5 parties: 4 équipes par manche, 1 joueur par équipe
     """
-    return tournoi.charger_tournoi(osp.join(osp.dirname(__file__), 'data4e1j.yml'))
+    return tournament.charger_tournoi(osp.join(osp.dirname(__file__), 'data4e1j.yml'))

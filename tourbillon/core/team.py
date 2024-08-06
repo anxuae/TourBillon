@@ -3,15 +3,14 @@
 """Définition d'une équipe."""
 
 from datetime import timedelta
-from tourbillon.core.exceptions import LimiteError, StatutError
-from tourbillon.core.joueur import Joueur, HISTORIQUE
-from tourbillon.core.manche import Manche
-from tourbillon.core.constantes import (CHAPEAU, GAGNE, PERDU, FORFAIT,
-                                        M_EN_COURS, E_INCOMPLETE,
-                                        E_ATTEND_TIRAGE, E_EN_COURS)
+
+from tourbillon.core.exception import BoundError, StatusError
+from tourbillon.core import cst
+from tourbillon.core.match import Match
+from tourbillon.core.player import Player, HISTORIQUE
 
 
-class Equipe(object):
+class Team:
 
     def __init__(self, parent, numero, joker=0):
         self.tournoi = parent
@@ -61,11 +60,11 @@ class Equipe(object):
 
         piquet (int)        : numéro de piquet où l'équipe joue.
         """
-        if self.statut == E_EN_COURS or self.statut == E_INCOMPLETE:
-            raise StatutError("Impossible de créer une partie pour l'équipe %s. (partie en cours: %s)" % (self.numero, len(self._resultats)))
+        if self.statut == cst.E_EN_COURS or self.statut == cst.E_INCOMPLETE:
+            raise StatusError("Impossible de créer une partie pour l'équipe %s. (partie en cours: %s)" % (self.numero, len(self._resultats)))
         else:
-            m = Manche(debut, adversaires)
-            if etat == CHAPEAU:
+            m = Match(debut, adversaires)
+            if etat == cst.CHAPEAU:
                 m.points = self.tournoi.points_par_manche
             if etat:
                 m.etat = etat
@@ -109,9 +108,9 @@ class Equipe(object):
             if etat is not None:
                 m.etat = etat
 
-            if etat == CHAPEAU:
+            if etat == cst.CHAPEAU:
                 m.points = self.tournoi.points_par_manche
-            elif points is not None and etat != FORFAIT:
+            elif points is not None and etat != cst.FORFAIT:
                 m.points = points
 
             if fin is not None:
@@ -143,16 +142,16 @@ class Equipe(object):
 
         def fget(self):
             if self.tournoi.joueurs_par_equipe != len(self._liste_joueurs):
-                return E_INCOMPLETE
+                return cst.E_INCOMPLETE
             else:
                 if len(self._resultats) == 0:
-                    return E_ATTEND_TIRAGE
+                    return cst.E_ATTEND_TIRAGE
                 else:
                     m = self._resultats[-1]
-                    if m.statut == M_EN_COURS:
-                        return E_EN_COURS
+                    if m.statut == cst.M_EN_COURS:
+                        return cst.E_EN_COURS
                     else:
-                        return E_ATTEND_TIRAGE
+                        return cst.E_ATTEND_TIRAGE
 
         return locals()
 
@@ -180,9 +179,9 @@ class Equipe(object):
         date (str)  : la date actuelle est utilisée par defaut
         """
         if self.tournoi.joueurs_par_equipe < len(self._liste_joueurs) + 1:
-            raise LimiteError("Il ne peut y avoir plus de %s joueurs par équipe." % self.tournoi.joueurs_par_equipe)
+            raise BoundError("Il ne peut y avoir plus de %s joueurs par équipe." % self.tournoi.joueurs_par_equipe)
 
-        j = Joueur(prenom, nom, str(age), date_ajout=date)
+        j = Player(prenom, nom, str(age), date_ajout=date)
         self._liste_joueurs.append(j)
         self.tournoi.modifie = True
         return j
@@ -251,7 +250,7 @@ class Equipe(object):
             partie_limite = len(self._resultats)
         l = []
         for m in self._resultats[:partie_limite]:
-            if m.etat in [GAGNE, PERDU]:
+            if m.etat in [cst.GAGNE, cst.PERDU]:
                 manche = m.adversaires + [self.numero]
                 manche.sort()
                 l.append(manche)
@@ -269,21 +268,21 @@ class Equipe(object):
         if partie_limite is None:
             partie_limite = len(self._resultats)
 
-        l = [m.etat for m in self._resultats[:partie_limite] if m.etat == GAGNE]
+        l = [m.etat for m in self._resultats[:partie_limite] if m.etat == cst.GAGNE]
         return len(l)
 
     def forfaits(self, partie_limite=None):
         if partie_limite is None:
             partie_limite = len(self._resultats)
 
-        l = [m.etat for m in self._resultats[:partie_limite] if m.etat == FORFAIT]
+        l = [m.etat for m in self._resultats[:partie_limite] if m.etat == cst.FORFAIT]
         return len(l)
 
     def chapeaux(self, partie_limite=None):
         if partie_limite is None:
             partie_limite = len(self._resultats)
 
-        l = [m.etat for m in self._resultats[:partie_limite] if m.etat == CHAPEAU]
+        l = [m.etat for m in self._resultats[:partie_limite] if m.etat == cst.CHAPEAU]
         return len(l)
 
     def parties(self, partie_limite=None):
@@ -291,7 +290,7 @@ class Equipe(object):
             partie_limite = len(self._resultats)
 
         # Les parties FORFAIT ne sont pas prises en compte
-        l = [m.etat for m in self._resultats[:partie_limite] if m.etat != FORFAIT]
+        l = [m.etat for m in self._resultats[:partie_limite] if m.etat != cst.FORFAIT]
         return len(l)
 
     def moyenne_billon(self, partie_limite=None):
@@ -300,7 +299,7 @@ class Equipe(object):
         pts = self.points(partie_limite)
 
         # Résultat des parties FORFAIT et de la partie incompléte ne sont pas pris en compte
-        parties = len([m.etat for m in self._resultats[:partie_limite] if m.statut != M_EN_COURS and m.etat != FORFAIT])
+        parties = len([m.etat for m in self._resultats[:partie_limite] if m.statut != cst.M_EN_COURS and m.etat != cst.FORFAIT])
         if parties == 0:
             return 0
         else:
@@ -311,7 +310,7 @@ class Equipe(object):
             partie_limite = len(self._resultats)
 
         # Résultat des parties FORFAIT et de la partie incompléte ne sont pas pris en compte
-        l = [m.points for m in self._resultats[:partie_limite] if m.statut != M_EN_COURS and m.etat != FORFAIT]
+        l = [m.points for m in self._resultats[:partie_limite] if m.statut != cst.M_EN_COURS and m.etat != cst.FORFAIT]
         if l == []:
             return 0
         else:

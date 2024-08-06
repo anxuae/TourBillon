@@ -13,9 +13,8 @@ from wx.lib.wordwrap import wordwrap
 import tourbillon
 from tourbillon import images, logger
 from tourbillon.config import systeme_config, configdir
-from tourbillon.core import constantes as cst
-from tourbillon.core import tournoi
-from tourbillon.core import exceptions as expt
+from tourbillon.core import cst
+from tourbillon.core import tournament
 
 from tourbillon.gui import barres
 from tourbillon.gui import evenements as evt
@@ -77,7 +76,7 @@ class FenetrePrincipale(wx.Frame):
 
         # Creation d'un shell Python (utile pour le debug)
         self.shell = Shell(self, introText='',
-                           locals={'intf': self, 'trb': tournoi.tournoi(), 'cfg': self.config, 'cst': cst},
+                           locals={'intf': self, 'trb': tournament.tournoi(), 'cfg': self.config, 'cst': cst},
                            InterpClass=None,
                            startupScript=None,
                            execStartupScript=True)
@@ -163,10 +162,10 @@ class FenetrePrincipale(wx.Frame):
             - "Ajout de Joueur" si le tournoi n'est pas commencé
             - "Entrer les Résultats" si le tournoi est commencé
         """
-        if tournoi.tournoi() is not None:
+        if tournament.tournoi() is not None:
             if self.grille.selection() is not None:
-                statut = tournoi.tournoi().statut
-                if statut == cst.T_INSCRIPTION or (statut == cst.T_ATTEND_TIRAGE and tournoi.tournoi().nb_parties() == 0):
+                statut = tournament.tournoi().statut
+                if statut == cst.T_INSCRIPTION or (statut == cst.T_ATTEND_TIRAGE and tournament.tournoi().nb_parties() == 0):
                     self.modifier_equipe(event)
                 else:
                     self.entrer_resultats(event)
@@ -175,7 +174,7 @@ class FenetrePrincipale(wx.Frame):
         """
         Ouvre le menu contextuel
         """
-        if tournoi.tournoi() is not None:
+        if tournament.tournoi() is not None:
             if self.grille.selection() is not None:
                 menu = barres.cree_contexte_menu()
                 self.PopupMenu(menu, wx.GetMousePosition() - self.GetPosition() -
@@ -186,11 +185,11 @@ class FenetrePrincipale(wx.Frame):
         """
         Appelle la methode 'rafraichir' de chaque widget qui a besoin de l'être.
         """
-        t = tournoi.tournoi()
+        t = tournament.tournoi()
 
         # Titre
-        if tournoi.FICHIER_TOURNOI is not None:
-            self.SetTitle("%s - %s" % (tourbillon.__nom__, tournoi.FICHIER_TOURNOI))
+        if tournament.FICHIER_TOURNOI is not None:
+            self.SetTitle("%s - %s" % (tourbillon.__nom__, tournament.FICHIER_TOURNOI))
         else:
             self.SetTitle(tourbillon.__nom__)
 
@@ -213,11 +212,11 @@ class FenetrePrincipale(wx.Frame):
                 nb_incompletes = 0
                 num_partie = self.barre_bouton.numero()
                 if self.barre_bouton.numero() > 0:
-                    for equipe in tournoi.tournoi().partie(num_partie).equipes():
+                    for equipe in tournament.tournoi().partie(num_partie).equipes():
                         if equipe.resultat(num_partie).etat is None:
                             nb_incompletes += 1
                 self.barre_etat._rafraichir(t.debut.strftime('%Hh%M'), t.nb_parties(), t.nb_equipes(),
-                                            nb_incompletes // tournoi.tournoi().equipes_par_manche, t.modifie)
+                                            nb_incompletes // tournament.tournoi().equipes_par_manche, t.modifie)
 
         p = self.barre_bouton.numero()
 
@@ -228,23 +227,23 @@ class FenetrePrincipale(wx.Frame):
 
         # Equipes
         if event.quoi == 'tout':
-            if tournoi.tournoi() is None:
+            if tournament.tournoi() is None:
                 self.grille._rafraichir()
             else:
-                for equipe in tournoi.tournoi().equipes():
+                for equipe in tournament.tournoi().equipes():
                     self.grille._rafraichir(equipe=equipe, partie=p, partie_limite=limite)
 
         elif event.quoi.startswith('equipe'):
             num = int(event.quoi.split('_')[1])
-            self.grille._rafraichir(equipe=tournoi.tournoi().equipe(num), partie=p, partie_limite=limite)
+            self.grille._rafraichir(equipe=tournament.tournoi().equipe(num), partie=p, partie_limite=limite)
 
         # Classement
         if event.quoi == 'classement' or event.quoi == 'tout':
-            if tournoi.tournoi() is not None:
+            if tournament.tournoi() is not None:
                 avec_victoires = self.config.get_typed('TOURNOI', 'CLASSEMENT_VICTOIRES')
                 avec_joker = self.config.get_typed('TOURNOI', 'CLASSEMENT_JOKER')
                 avec_duree = self.config.get_typed('TOURNOI', 'CLASSEMENT_DUREE')
-                self.grille._rafraichir(classement=tournoi.tournoi().classement(
+                self.grille._rafraichir(classement=tournament.tournoi().classement(
                     avec_victoires, avec_joker, avec_duree, limite))
             else:
                 self.grille._rafraichir(classement={})
@@ -276,7 +275,7 @@ class FenetrePrincipale(wx.Frame):
                 ret = wx.ID_OK
 
             if ret == wx.ID_OK:
-                self.shell.interp.locals['trb'] = tournoi.nouveau_tournoi(self.config.get_typed("TOURNOI", "EQUIPES_PAR_MANCHE"),
+                self.shell.interp.locals['trb'] = tournament.nouveau_tournoi(self.config.get_typed("TOURNOI", "EQUIPES_PAR_MANCHE"),
                                                                           self.config.get_typed(
                                                                               "TOURNOI", "POINTS_PAR_MANCHE"),
                                                                           self.config.get_typed("TOURNOI", "JOUEURS_PAR_EQUIPE"))
@@ -286,7 +285,7 @@ class FenetrePrincipale(wx.Frame):
                 self.barre_bouton.chg_partie()
                 wx.PostEvent(self, evt.RafraichirEvent(self.GetId()))
 
-                logger.info("Il est %s, un nouveau tournoi commence..." % tournoi.tournoi().debut.strftime('%Hh%M'))
+                logger.info("Il est %s, un nouveau tournoi commence..." % tournament.tournoi().debut.strftime('%Hh%M'))
 
     def ouvrir_demande(self, event):
         """
@@ -295,8 +294,8 @@ class FenetrePrincipale(wx.Frame):
         ret = self.enregister_demande()
 
         if ret != wx.ID_CANCEL:
-            if tournoi.FICHIER_TOURNOI is not None:
-                l = os.path.split(tournoi.FICHIER_TOURNOI)
+            if tournament.FICHIER_TOURNOI is not None:
+                l = os.path.split(tournament.FICHIER_TOURNOI)
                 d = l[0]
                 f = l[1]
             else:
@@ -313,12 +312,12 @@ class FenetrePrincipale(wx.Frame):
             dlg.Destroy()
 
     def ouvrir(self, fichier):
-        self.shell.interp.locals['trb'] = tournoi.charger_tournoi(fichier)
+        self.shell.interp.locals['trb'] = tournament.charger_tournoi(fichier)
 
         # Rafraichir
-        self.barre_bouton.chg_partie(tournoi.tournoi().nb_parties())
+        self.barre_bouton.chg_partie(tournament.tournoi().nb_parties())
         self.grille.effacer()
-        self.grille.ajout_equipe(*tournoi.tournoi().equipes())
+        self.grille.ajout_equipe(*tournament.tournoi().equipes())
         wx.PostEvent(self, evt.RafraichirEvent(self.GetId()))
 
         self.SetTitle("%s - %s" % (tourbillon.__nom__, fichier))
@@ -330,8 +329,8 @@ class FenetrePrincipale(wx.Frame):
         tournoi courrant.
         """
         continuer = wx.ID_OK
-        if tournoi.tournoi() is not None:
-            if tournoi.tournoi().modifie:
+        if tournament.tournoi() is not None:
+            if tournament.tournoi().modifie:
                 dlg = wx.MessageDialog(self, "Le tournoi en cours n'est pas enregistré, si vous cliquez sur NON, les données seront perdues.",
                                        caption="Voulez-vous enregistrer le tournoi en cours?", style=wx.CANCEL | wx.YES | wx.NO | wx.ICON_QUESTION)
                 ret = dlg.ShowModal()
@@ -344,21 +343,21 @@ class FenetrePrincipale(wx.Frame):
         return continuer
 
     def enregistrer(self, event):
-        if tournoi.FICHIER_TOURNOI is None:
+        if tournament.FICHIER_TOURNOI is None:
             self.enregistrer_sous(event)
         else:
-            tournoi.enregistrer_tournoi()
+            tournament.enregistrer_tournoi()
 
         # Rafraichir
         wx.PostEvent(self, evt.RafraichirEvent(self.GetId(), 'etat'))
 
     def enregistrer_auto(self):
-        if self.config.get_typed('INTERFACE', 'ENREGISTREMENT_AUTO') and tournoi.FICHIER_TOURNOI is not None:
+        if self.config.get_typed('INTERFACE', 'ENREGISTREMENT_AUTO') and tournament.FICHIER_TOURNOI is not None:
             self.enregistrer(None)
 
     def enregistrer_sous(self, event):
-        if tournoi.FICHIER_TOURNOI is not None:
-            l = os.path.split(tournoi.FICHIER_TOURNOI)
+        if tournament.FICHIER_TOURNOI is not None:
+            l = os.path.split(tournament.FICHIER_TOURNOI)
             d = l[0]
             f = l[1]
         else:
@@ -373,7 +372,7 @@ class FenetrePrincipale(wx.Frame):
             _p, ext = os.path.splitext(fichier)
             if ext not in ['.trb', '.yml']:
                 fichier += '.yml'
-            tournoi.enregistrer_tournoi(fichier)
+            tournament.enregistrer_tournoi(fichier)
 
             # Rafraichir
             wx.PostEvent(self, evt.RafraichirEvent(self.GetId(), 'etat'))
@@ -386,14 +385,14 @@ class FenetrePrincipale(wx.Frame):
         avec_victoires = self.config.get_typed('TOURNOI', 'CLASSEMENT_VICTOIRES')
         avec_joker = self.config.get_typed('TOURNOI', 'CLASSEMENT_JOKER')
         avec_duree = self.config.get_typed('TOURNOI', 'CLASSEMENT_DUREE')
-        dlg = dlgim.DialogueImprimer(self, tournoi.tournoi().classement(avec_victoires, avec_joker, avec_duree))
+        dlg = dlgim.DialogueImprimer(self, tournament.tournoi().classement(avec_victoires, avec_joker, avec_duree))
         dlg.Preview()
 
     def imprimer(self, event):
         avec_victoires = self.config.get_typed('TOURNOI', 'CLASSEMENT_VICTOIRES')
         avec_joker = self.config.get_typed('TOURNOI', 'CLASSEMENT_JOKER')
         avec_duree = self.config.get_typed('TOURNOI', 'CLASSEMENT_DUREE')
-        dlg = dlgim.DialogueImprimer(self, tournoi.tournoi().classement(avec_victoires, avec_joker, avec_duree))
+        dlg = dlgim.DialogueImprimer(self, tournament.tournoi().classement(avec_victoires, avec_joker, avec_duree))
         dlg.Print()
 
     def quitter(self, event):
@@ -466,11 +465,11 @@ class FenetrePrincipale(wx.Frame):
         dlg.Show()
 
     def afficher_partie_prec(self, event):
-        if tournoi.tournoi() is None:
+        if tournament.tournoi() is None:
             self.barre_bouton.chg_partie()
         else:
             try:
-                tournoi.tournoi().partie(self.barre_bouton.numero() - 1)
+                tournament.tournoi().partie(self.barre_bouton.numero() - 1)
                 self.barre_bouton.chg_partie(self.barre_bouton.numero() - 1)
             except ValueError as ex:
                 self.barre_etat.SetStatusText(str(e))
@@ -479,11 +478,11 @@ class FenetrePrincipale(wx.Frame):
             wx.PostEvent(self, evt.RafraichirEvent(self.GetId()))
 
     def afficher_partie_suiv(self, event):
-        if tournoi.tournoi() is None:
+        if tournament.tournoi() is None:
             self.barre_bouton.chg_partie()
         else:
             try:
-                tournoi.tournoi().partie(self.barre_bouton.numero() + 1)
+                tournament.tournoi().partie(self.barre_bouton.numero() + 1)
                 self.barre_bouton.chg_partie(self.barre_bouton.numero() + 1)
             except ValueError as ex:
                 self.barre_etat.SetStatusText(str(e))
@@ -495,13 +494,13 @@ class FenetrePrincipale(wx.Frame):
         ret = wx.ID_OK
 
         def creer(info):
-            equipe = tournoi.tournoi().ajout_equipe(info['numero'], info['joker'])
+            equipe = tournament.tournoi().ajout_equipe(info['numero'], info['joker'])
             for joueur in info['joueurs']:
                 equipe.ajout_joueur(joueur[0], joueur[1], joueur[2])
             return equipe
 
         while ret == wx.ID_OK:
-            dlg = dlgeq.DialogueEquipe(self, dlgeq.STYLE_AJOUTER, numero_affiche=tournoi.tournoi(
+            dlg = dlgeq.DialogueEquipe(self, dlgeq.STYLE_AJOUTER, numero_affiche=tournament.tournoi(
             ).generer_numero_equipe(), completion=self.config.get_typed('TOURNOI', 'joueur_completion'))
             ret = dlg.ShowModal()
             info = dlg.donnees()
@@ -509,7 +508,7 @@ class FenetrePrincipale(wx.Frame):
 
             if ret == wx.ID_OK:
 
-                if tournoi.tournoi().nb_parties() == 0:
+                if tournament.tournoi().nb_parties() == 0:
                     # Le tournoi n'est pas commencé
                     equipe = creer(info)
 
@@ -520,15 +519,15 @@ class FenetrePrincipale(wx.Frame):
 
                     logger.info("Mini holà à l'équipe n°%s.\nHoooollaaaa...!!" % (equipe.numero))
 
-                elif tournoi.tournoi().statut in [cst.T_PARTIE_EN_COURS]:
-                    p = tournoi.tournoi().piquets()[-1] + 1
+                elif tournament.tournoi().statut in [cst.T_PARTIE_EN_COURS]:
+                    p = tournament.tournoi().piquets()[-1] + 1
                     # Une partie est en cours: choix etat pour la partie en cours
                     dlg = dlgeq.DialogueMessageEquipe(self, info['numero'])
                     ret = dlg.ShowModal()
                     if ret == wx.ID_OK:
                         equipe = creer(info)
-                        for partie in tournoi.tournoi().parties():
-                            if partie != tournoi.tournoi().partie_courante():
+                        for partie in tournament.tournoi().parties():
+                            if partie != tournament.tournoi().partie_courante():
                                 # L'équipe est FORFAIT pour les autres parties.
                                 partie.ajout_equipe(equipe, cst.FORFAIT, piquet=p)
                             else:
@@ -544,7 +543,7 @@ class FenetrePrincipale(wx.Frame):
                     dlg.Destroy()
 
                 else:
-                    p = tournoi.tournoi().piquets()[-1] + 1
+                    p = tournament.tournoi().piquets()[-1] + 1
                     # Les parties sont toutes terminées
                     texte = "L'équipe sera considérée comme forfait pour toutes les parties déjà jouées,\
 cliquez sur ANNULER si vous ne voulez pas ajouter cette nouvelle équipe."
@@ -554,7 +553,7 @@ cliquez sur ANNULER si vous ne voulez pas ajouter cette nouvelle équipe."
                     dlg.Destroy()
                     if ret == wx.ID_OK:
                         equipe = creer(info)
-                        for partie in tournoi.tournoi().parties():
+                        for partie in tournament.tournoi().parties():
                             partie.ajout_equipe(equipe, cst.FORFAIT, piquet=p)
 
                         # Rafraichir
@@ -566,13 +565,13 @@ cliquez sur ANNULER si vous ne voulez pas ajouter cette nouvelle équipe."
 
     def modifier_equipe(self, event):
         num = self.grille.selection()
-        dlg = dlgeq.DialogueEquipe(self, dlgeq.STYLE_MOFIFIER, choix=[int(e) for e in tournoi.tournoi().equipes()],
+        dlg = dlgeq.DialogueEquipe(self, dlgeq.STYLE_MOFIFIER, choix=[int(e) for e in tournament.tournoi().equipes()],
                                    numero_affiche=num, completion=self.config.get_typed('TOURNOI', 'joueur_completion'))
         ret = dlg.ShowModal()
 
         if ret == wx.ID_OK:
             info = dlg.donnees()
-            equipe = tournoi.tournoi().equipe(info['numero'])
+            equipe = tournament.tournoi().equipe(info['numero'])
             equipe.suppr_joueurs()
             for joueur in info['joueurs']:
                 equipe.ajout_joueur(joueur[0], joueur[1], joueur[2])
@@ -590,18 +589,18 @@ cliquez sur ANNULER si vous ne voulez pas ajouter cette nouvelle équipe."
         num = self.grille.selection()
 
         dlg = dlgeq.DialogueEquipe(self, dlgeq.STYLE_SUPPRIMER, choix=map(
-            int, tournoi.tournoi().equipes()), numero_affiche=num)
+            int, tournament.tournoi().equipes()), numero_affiche=num)
         ret = dlg.ShowModal()
 
         if ret == wx.ID_OK:
             info = dlg.donnees()
 
-            equipe = tournoi.tournoi().equipe(info['numero'])
+            equipe = tournament.tournoi().equipe(info['numero'])
             logger.info("En ce jour exceptionel, l'équipe n°%s nous quitte." % (equipe.numero))
 
             # Rafraichir
             self.grille.suppr_equipe(equipe)
-            tournoi.tournoi().suppr_equipe(equipe.numero)
+            tournament.tournoi().suppr_equipe(equipe.numero)
             self.enregistrer_auto()
             wx.PostEvent(self, evt.RafraichirEvent(self.GetId()))
 
@@ -613,7 +612,7 @@ cliquez sur ANNULER si vous ne voulez pas ajouter cette nouvelle équipe."
         ret = dlg.ShowModal()
 
         if ret is True:
-            partie = tournoi.tournoi().ajout_partie()
+            partie = tournament.tournoi().ajout_partie()
             partie.demarrer(dlg.tirage(), dlg.chapeaux())
 
             # Rafraichir
@@ -628,17 +627,17 @@ cliquez sur ANNULER si vous ne voulez pas ajouter cette nouvelle équipe."
     def supprimer_partie(self, event):
         num = self.barre_bouton.numero()
 
-        dlg = dlgpa.DialogueSupprimerPartie(self, map(int, tournoi.tournoi().parties()), num)
+        dlg = dlgpa.DialogueSupprimerPartie(self, map(int, tournament.tournoi().parties()), num)
         ret = dlg.ShowModal()
 
         if ret == wx.ID_OK:
-            tournoi.tournoi().suppr_partie(int(dlg.numero()))
-            if tournoi.tournoi().nb_parties() == 0:
+            tournament.tournoi().suppr_partie(int(dlg.numero()))
+            if tournament.tournoi().nb_parties() == 0:
                 self.barre_bouton.chg_partie(0)
-            elif tournoi.tournoi().nb_parties() >= num:
+            elif tournament.tournoi().nb_parties() >= num:
                 self.barre_bouton.chg_partie(num)
             else:
-                self.barre_bouton.chg_partie(tournoi.tournoi().nb_parties())
+                self.barre_bouton.chg_partie(tournament.tournoi().nb_parties())
 
             # Rafraichir
             self.enregistrer_auto()
@@ -655,7 +654,7 @@ cliquez sur ANNULER si vous ne voulez pas ajouter cette nouvelle équipe."
             num_equipe = 1
         else:
             num_equipe = int(num_equipe)
-        etat = tournoi.tournoi().equipe(num_equipe).resultat(num_partie).etat
+        etat = tournament.tournoi().equipe(num_equipe).resultat(num_partie).etat
 
         if etat != cst.FORFAIT and etat != cst.CHAPEAU:
             dlg = dlgre.DialogueResultat(self, num_partie, num_equipe)
@@ -667,13 +666,13 @@ cliquez sur ANNULER si vous ne voulez pas ajouter cette nouvelle équipe."
                     fin = datetime.now()
                 else:
                     fin = None
-                tournoi.tournoi().partie(num_partie).resultat(d, fin)
+                tournament.tournoi().partie(num_partie).resultat(d, fin)
 
                 # Rafraichir
                 self.enregistrer_auto()
                 wx.PostEvent(self, evt.RafraichirEvent(self.GetId(), 'tout'))
 
-                nb = len(tournoi.tournoi().partie_courante().equipes_incompletes())
+                nb = len(tournament.tournoi().partie_courante().equipes_incompletes())
                 if nb != 0:
                     logger.info("Manque encore %s équipes." % nb)
                 else:

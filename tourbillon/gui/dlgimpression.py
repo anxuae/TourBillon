@@ -6,7 +6,8 @@
 import wx
 import wx.lib.printout as printout
 
-from tourbillon.core import tournoi
+from tourbillon.core import tournament
+
 from tourbillon.gui import grille as grl
 
 #--- Varibles globales --------------------------------------------------------
@@ -57,7 +58,7 @@ class DialogueImprimerTirage(printout.PrintTable):
         self.SetRowLineSize(0, 2)
         self.SetRowSpacing(5, 5)
         self.text_font = {"Name": "Arial", "Size": 14, "Colour": [0, 0, 0], "Attr": [1, 0, 0]}
-        self.SetHeader("Tournoi de Billon du %s - Partie n°%s" % (tournoi.tournoi().debut.strftime('%d/%m/%Y'), num_partie), colour=wx.NamedColour('BLACK'))
+        self.SetHeader("Tournoi de Billon du %s - Partie n°%s" % (tournament.tournoi().debut.strftime('%d/%m/%Y'), num_partie), colour=wx.NamedColour('BLACK'))
         self.SetHeader("Imprimé le : ", type="Date & Time", align=wx.ALIGN_RIGHT, indent=-0.5, colour=wx.NamedColour('BLUE'))
         self.SetFooter("Page ", colour=wx.NamedColour('BLACK'), type="Num")
 
@@ -101,7 +102,7 @@ class DialogueImprimer(printout.PrintTable):
         self.SetColTextColour(1, wx.NamedColour('BLUE'))
         self.SetColTextColour(2, wx.NamedColour('BLUE'))
 
-        self.SetHeader("Tournoi de Billon du %s" % tournoi.tournoi().debut.strftime('%d/%m/%Y'), colour=wx.NamedColour('BLACK'))
+        self.SetHeader("Tournoi de Billon du %s" % tournament.tournoi().debut.strftime('%d/%m/%Y'), colour=wx.NamedColour('BLACK'))
 
         self.SetHeader("Imprimé le : ", type="Date & Time", align=wx.ALIGN_RIGHT, indent=-0.5, colour=wx.NamedColour('BLUE'))
         self.SetFooter("Page ", colour=wx.NamedColour('BLACK'), type="Num")

@@ -6,7 +6,8 @@ from math import factorial
 from itertools import combinations as cnp
 from datetime import datetime, timedelta
 from threading import Thread, Event
-from tourbillon.core.exceptions import TirageError, StopTirageError, SolutionTirageError
+
+from tourbillon.core.exception import DrawError, DrawStopError, DrawResultError
 
 
 def len_cnp(n, p):
@@ -29,7 +30,7 @@ def tri_stat(statistiques, caracteristique):
 
 def nb_chapeaux_necessaires(nb_equipes, nb_par_manche):
     if nb_equipes < nb_par_manche:
-        raise TirageError("Pas assez d'équipes (nb équipes: %s, nb par manche: %s)" % (nb_equipes, nb_par_manche))
+        raise DrawError("Pas assez d'équipes (nb équipes: %s, nb par manche: %s)" % (nb_equipes, nb_par_manche))
     else:
         return nb_equipes % nb_par_manche
 
@@ -125,7 +126,7 @@ def temps_texte(tps):
     return "%.2im%.2is" % (minutes, secondes)
 
 
-class NonValide(object):
+class NonValide:
 
     """
     Cette classe represent une manche non valide et embarque
@@ -226,7 +227,7 @@ class BaseThreadTirage(Thread):
 
     def _arret_utilisateur(self):
         if self._stop.isSet() == True:
-            raise StopTirageError("Arrêt demmandé par l'utilisateur.")
+            raise DrawStopError("Arrêt demmandé par l'utilisateur.")
 
     def configurer(self, **kwargs):
         self.config.update(kwargs)
@@ -248,22 +249,22 @@ class BaseThreadTirage(Thread):
             if len(self.chapeaux) >= self.equipes_par_manche:
                 # ERREUR 100: Le nombre de chapeaux ne peu pas être égale au nombre d'équipes par manche
                 args = [len(self.chapeaux), self.equipes_par_manche]
-                raise SolutionTirageError(100, args)
+                raise DrawResultError(100, args)
 
             if nb_chapeaux - len(self.chapeaux) < 0:
                 # ERREUR 102: Nombre de chapeaux fourni incorrecte
                 args = (nb_chapeaux_necessaires(nb_eq, self.equipes_par_manche) - len(self.chapeaux),)
-                raise SolutionTirageError(102, args)
+                raise DrawResultError(102, args)
 
             self._debut = datetime.now()
             self.demarrer()
             msg = "\nAlgorithme terminé (temps de calcul: %s)." % temps_texte(self._chrono - self._debut)
             self.rapport(100, msg)
-        except SolutionTirageError as ex:
+        except DrawResultError as ex:
             msg = "\nAlgorithme terminé (%s)." % ex
             self.erreur = e
             self.rapport(100, msg)
-        except StopTirageError as ex:
+        except DrawStopError as ex:
             msg = "\nAlgorithme terminé (arrêt utilisateur)."
             self.erreur = ex
             self.rapport(100, msg)

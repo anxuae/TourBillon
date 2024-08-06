@@ -1,10 +1,10 @@
 # -*- coding: UTF-8 -*-
 
 # Résultat d'une manche
-CHAPEAU = u'chapeau'
-GAGNE = u'gagné'
-PERDU = u'perdu'
-FORFAIT = u'forfait'
+CHAPEAU = 'chapeau'
+GAGNE = 'gagné'
+PERDU = 'perdu'
+FORFAIT = 'forfait'
 
 # Etat d'une manche
 M_EN_COURS = "en cours"

@@ -4,8 +4,7 @@ import pytest
 import random
 import datetime
 
-from tourbillon.core import constantes as cst
-from tourbillon.core import tirages
+from tourbillon.core import cst, tirages
 
 
 def trace(prog, msg, tps):
@@ -21,7 +20,7 @@ def test_inscription(trb4e1j, numero):
     assert trb4e1j.nb_equipes() == 92
 
 
-class TestAjoutParie(object):
+class TestAjoutParie:
 
     scenarios = [('partie2', {'type_tirage': 'niveau_dt'}),
                  ('partie3', {'type_tirage': 'aleatoire_ag'}),

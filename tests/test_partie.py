@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-
 
-from tourbillon.core import constantes as cst
+from tourbillon.core import cst
 
 import data2e2j
 

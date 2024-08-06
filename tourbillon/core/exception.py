@@ -1,47 +1,39 @@
 # -*- coding: UTF-8 -*-
 
-"""Définitions des exceptions spécifiques à Tourbillon."""
+"""Definitions of specific exceptions to TourBillon"""
 
 
 class TourBillonError(Exception):
     pass
 
 
-class FichierError(TourBillonError):
+class FileError(TourBillonError):
     pass
 
 
-class DatabaseError(TourBillonError):
+class StatusError(TourBillonError):
     pass
 
 
-class RequeteError(DatabaseError):
+class BoundError(TourBillonError):
     pass
 
 
-class StatutError(TourBillonError):
+class InconsistencyError(TourBillonError):
     pass
 
 
-class LimiteError(TourBillonError):
-    pass
-
-
-class IncoherenceError(TourBillonError):
-    pass
-
-
-class ResultatError(TourBillonError):
+class ResultError(TourBillonError):
     pass
 
 
 # ARRET TIRAGE: erreur sur les paramètres
-class TirageError(TourBillonError):
+class DrawError(TourBillonError):
     pass
 
 
 # ARRET TIRAGE: utilisateur
-class StopTirageError(TirageError):
+class DrawStopError(DrawError):
     pass
 
 
@@ -86,10 +78,10 @@ ERREUR_MSG = {100: "Le nombre de chapeaux donné et superieur au nombre d'équip
 #                   args:
 
 
-class SolutionTirageError(TirageError):
+class DrawResultError(DrawError):
 
     def __init__(self, code, args):
-        TirageError.__init__()
+        DrawError.__init__()
         self.code = code
         self.args = args
         self.msg = ERREUR_MSG[self.code]

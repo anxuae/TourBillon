@@ -62,7 +62,7 @@ def enregistrer_historique():
                     fp.write(ligne)
 
 
-class NomCompleteur(object):
+class NomCompleteur:
 
     def __init__(self):
         pass
@@ -88,7 +88,6 @@ class NomCompleteur(object):
             debut, fin = 0, len(HISTORIQUE) - 1
             while debut <= fin:
                 milieu = (debut + fin) // 2
-                print(milieu, len(ids))
                 if ids[milieu].startswith(texte):
                     trouve = milieu
                     # L'élément du milieu de la liste correspond
@@ -110,7 +109,7 @@ class NomCompleteur(object):
                     debut = milieu + 1
 
 
-class Joueur(object):
+class Player:
 
     def __init__(self, prenom, nom, age, **kwrd):
         self._pn = prenom
@@ -123,7 +122,7 @@ class Joueur(object):
         return "%s %s" % (self.data[1], self.data[2])
 
     def __eq__(self, other):
-        if type(other) == Joueur:
+        if type(other) == Player:
             comparateur = other.cle()
         else:
             comparateur = str(other)
@@ -133,7 +132,7 @@ class Joueur(object):
             return False
 
     def __ne__(self, other):
-        if type(other) == Joueur:
+        if type(other) == Player:
             comparateur = other.cle()
         else:
             comparateur = str(other)

@@ -1,13 +1,13 @@
 # -*- coding: UTF-8 -*-
 
-"""Algorithme déterministe créé en 2008."""
+"""Determinist algorithm to build matches according to teams level"""
 
 import random
+from tourbillon.core import cst
 from tourbillon.core.tirages.utils import (BaseThreadTirage, nb_chapeaux_necessaires, tri_stat,
                                            creer_liste, NV, NV_REDONDANCE, NV_DISPARITE,
                                            tirage_texte, dernieres_equipes, cnp, len_cnp)
-from tourbillon.core.exceptions import SolutionTirageError
-from tourbillon.core import constantes as cst
+from tourbillon.core.exception import DrawResultError
 
 
 MC_CACHE = {}
@@ -277,11 +277,11 @@ def select_chapeau(parametres, statistiques):
             else:
                 #  ERREUR 101: Toutes les équipes on été chapeaux une fois.
                 args = [cle_tri[0], cle_tri[-1]]
-                raise SolutionTirageError(101, args)
+                raise DrawResultError(101, args)
         else:
             #  ERREUR 101: Toutes les équipes on été chapeaux une fois.
             args = [cle_tri[0], cle_tri[-1]]
-            raise SolutionTirageError(101, args)
+            raise DrawResultError(101, args)
 
     return num
 
@@ -372,13 +372,13 @@ class ThreadTirage(BaseThreadTirage):
 
                     if manche == NV_REDONDANCE:
                         # ERREUR 154: La redondance n'est pas autorisée.
-                        raise SolutionTirageError(154, "")
+                        raise DrawResultError(154, "")
                     elif manche == NV_DISPARITE:
                         # ERREUR 155: La disparité est trop faible pour trouver une solution.
-                        raise SolutionTirageError(155, "")
+                        raise DrawResultError(155, "")
                     else:
                         # ERREUR 156: La disparité doit être augmentée ou la redondance autorisée.
-                        raise SolutionTirageError(156, "")
+                        raise DrawResultError(156, "")
 
                 # Ces rencontres sont tirées une fois pour toute
                 map(equipes_disponibles.remove, manche)

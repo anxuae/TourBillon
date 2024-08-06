@@ -2,11 +2,11 @@
 
 """Définitions des équipes."""
 
-import sys
 import os
-import re
-from tourbillon.core.exceptions import TirageError
+
+from tourbillon.core.exception import DrawError
 from tourbillon.core.tirages import aleatoire_ag, niveau_ag, niveau_dt, croissant
+
 
 ICI = os.path.dirname(os.path.abspath(__file__))
 TIRAGES = {croissant.ThreadTirage.NOM: croissant.ThreadTirage,
@@ -29,7 +29,7 @@ def creer_generateur(algorithme, equipes_par_manche, statistiques, chapeaux=[], 
                                 du tirage (par défaut vide)
     """
     if algorithme not in TIRAGES:
-        raise TirageError("Categorie de tirage '%s' inconnue." % algorithme)
+        raise DrawError("Categorie de tirage '%s' inconnue." % algorithme)
 
     # Création thread tirage
     return TIRAGES[algorithme](equipes_par_manche, statistiques, chapeaux, callback)

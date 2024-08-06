@@ -6,10 +6,12 @@
 import wx
 from wx.lib import scrolledpanel as scrolled
 
-from tourbillon.gui import dlgequipe as dlgeq
-from tourbillon.core import tournoi
+from tourbillon.core import cst
+from tourbillon.core import tournament
 from tourbillon.core.tirages import utils
-from tourbillon.core import constantes as cst
+
+from tourbillon.gui import dlgequipe as dlgeq
+
 
 #--- Entrée score --------------------------------------------------------------
 
@@ -73,7 +75,7 @@ class DialogueResultat(wx.Dialog):
 
         self.entrees = []
         self.numero_partie = numero_partie
-        self.tirage = tournoi.tournoi().partie(self.numero_partie).manches()
+        self.tirage = tournament.tournoi().partie(self.numero_partie).manches()
 
         # Numero de piquet
         self.lbl_piquet = wx.StaticText(self, wx.ID_ANY, "", style=wx.ALIGN_CENTER)
@@ -83,7 +85,7 @@ class DialogueResultat(wx.Dialog):
         self.panel = scrolled.ScrolledPanel(self, wx.ID_ANY, style=wx.TAB_TRAVERSAL)
         box_panel = wx.BoxSizer(wx.VERTICAL)
 
-        for i in range(tournoi.tournoi().equipes_par_manche):
+        for i in range(tournament.tournoi().equipes_par_manche):
             if i == 0:
                 liste = utils.creer_liste(self.tirage)
                 e = EntrerScore(self.panel, sorted(liste))
@@ -140,7 +142,7 @@ class DialogueResultat(wx.Dialog):
                 break
         i = 1
         for equipe in manche:
-            m = tournoi.tournoi().equipe(equipe).resultat(self.numero_partie)
+            m = tournament.tournoi().equipe(equipe).resultat(self.numero_partie)
 
             if equipe == num:
                 self.entrees[0].chg_points(m.points)
@@ -180,7 +182,7 @@ class DialogueResultat(wx.Dialog):
 
         if len(valeurs) == len(self.entrees):
             m = max(valeurs)
-            if m < tournoi.tournoi().points_par_manche:
+            if m < tournament.tournoi().points_par_manche:
                 self.btn_ok.Disable()
             else:
                 self.btn_ok.Enable()

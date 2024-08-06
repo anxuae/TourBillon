@@ -1,9 +1,9 @@
 # -*- coding: UTF-8 -*-
 
-"""Renvoyer une liste de manches par ordre croissant de numéros d'équipe."""
+"""Return a list of matches in growing order of team numbers"""
 
+from tourbillon.core import cst
 from tourbillon.core.tirages.utils import BaseThreadTirage, creer_manches, tri_stat
-from tourbillon.core import constantes as cst
 
 
 class ThreadTirage(BaseThreadTirage):

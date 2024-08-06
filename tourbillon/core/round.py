@@ -4,12 +4,13 @@
 
 import copy
 from datetime import datetime
-from tourbillon.core.manche import Manche
-from tourbillon.core.exceptions import StatutError, IncoherenceError, ResultatError
-from tourbillon.core import constantes as cst
+
+from tourbillon.core import cst
+from tourbillon.core.match import Match
+from tourbillon.core.exception import StatusError, InconsistencyError, ResultError
 
 
-class Partie(object):
+class Round:
     """
     Représente une partie. Cette classe manipule les données des équipes,
     elle ne conserve aucunes données (C'est un proxy!).
@@ -45,7 +46,7 @@ class Partie(object):
             if self in self.tournoi.parties():
                 return self.tournoi.parties().index(self) + 1
             else:
-                raise IncoherenceError("Cette partie n'appartient pas au tournoi en cours.")
+                raise InconsistencyError("Cette partie n'appartient pas au tournoi en cours.")
         return locals()
 
     numero = property(**numero())
@@ -199,9 +200,9 @@ class Partie(object):
         """
         if self.statut != cst.P_ATTEND_TIRAGE:
             if self.statut == cst.P_TERMINEE:
-                raise StatutError("La partie n°%s est terminée." % self.numero)
+                raise StatusError("La partie n°%s est terminée." % self.numero)
             else:
-                raise StatutError("La partie n°%s est en cours." % self.numero)
+                raise StatusError("La partie n°%s est en cours." % self.numero)
         debut = datetime.now()
 
         l = []
@@ -235,11 +236,11 @@ class Partie(object):
             equipe = self.tournoi.equipe(equipe)
 
         if self.statut == cst.P_ATTEND_TIRAGE:
-            raise StatutError("La partie n°%s n'est pas démarrée (utiliser 'demarrer')." % self.numero)
+            raise StatusError("La partie n°%s n'est pas démarrée (utiliser 'demarrer')." % self.numero)
         if equipe.partie_existe(self.numero):
             raise ValueError("L'équipe n°%s participe déjà à cette partie." % equipe.numero)
         if etat not in [cst.FORFAIT, cst.CHAPEAU]:
-            raise ResultatError("Cette fonction ne peut être utilisée que pour ajouter un CHAPEAU ou un FORFAIT.")
+            raise ResultError("Cette fonction ne peut être utilisée que pour ajouter un CHAPEAU ou un FORFAIT.")
         if creer_manche_si_possible and not piquet:
             piquet = self.piquets()[-1] + 1
 
@@ -255,7 +256,7 @@ class Partie(object):
                     chapeaux = [eq.numero for eq in self.chapeaux()]
                     # Modifier tous les chapeaux existant
                     for adv in self.chapeaux():
-                        m = Manche(self.debut(), [equipe.numero] + [num for num in chapeaux if num != adv.numero])
+                        m = Match(self.debut(), [equipe.numero] + [num for num in chapeaux if num != adv.numero])
                         m.piquet = piquet
                         adv._resultats[self.numero - 1] = m
 
@@ -276,18 +277,18 @@ class Partie(object):
     def resultat(self, resultat_manche, fin=None):
         # Vérification: partie commencée
         if self.statut == cst.P_ATTEND_TIRAGE:
-            raise StatutError("La partie n°%s n'est pas commencée." % self.numero)
+            raise StatusError("La partie n°%s n'est pas commencée." % self.numero)
 
         # Vérification de l'existance de la manche
         manche = resultat_manche.keys()
         manche.sort()
 
         if manche not in self.manches():
-            raise ResultatError("La manche '%s' n'existe pas." % (manche))
+            raise ResultError("La manche '%s' n'existe pas." % (manche))
 
         # Verification pas une manche chapeau
         if cst.CHAPEAU in manche:
-            raise ResultatError("Le score des équipes chapeaux ne peut pas être modifié.")
+            raise ResultError("Le score des équipes chapeaux ne peut pas être modifié.")
 
         # Recherche des gagnants
         gagnants = []
@@ -298,7 +299,7 @@ class Partie(object):
 
         # Vérification: nombre de points
         if gagnants_pts < self.tournoi.points_par_manche:
-            raise ResultatError("Au moins une équipe doit avoir un score suppérieur ou égale à %s." %
+            raise ResultError("Au moins une équipe doit avoir un score suppérieur ou égale à %s." %
                                 self.tournoi.points_par_manche)
 
         for num in resultat_manche:

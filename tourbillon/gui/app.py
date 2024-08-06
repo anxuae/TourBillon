@@ -7,7 +7,7 @@ from wx.lib.agw import advancedsplash as aspl
 from wx.lib.agw import toasterbox as toast
 
 import tourbillon
-from tourbillon.core import joueur
+from tourbillon.core import player
 from tourbillon.gui import fenetre
 from tourbillon import images, logger
 
@@ -86,7 +86,7 @@ class TourBillonGUI(wx.App):
         self._timer = wx.Timer(self)
         self.Bind(wx.EVT_TIMER, self.OnShow, self._timer)
 
-        joueur.charger_historique(self.config.get_typed('TOURNOI', 'historique'))
+        player.charger_historique(self.config.get_typed('TOURNOI', 'historique'))
 
         def splash():
             self.splash = FentetreSplash(None, wx.ID_ANY)
