@@ -1,4 +1,4 @@
-
+|PythonVersions| |PypiPackage| |Downloads| |Pylint| |Tests| |Codecov|
 ::
 
         oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
@@ -22,7 +22,6 @@
           #& #&    ------------------------------------------------------------------- o
           #&     ooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
           #&                                              Version 6.0.0 © La Billonnière
-
 
 
 TourBillon
@@ -78,3 +77,28 @@ To start the `server` mode, run::
 
 And now it turns! Note that in `server` mode, Tourbillon runs by
 default on port 59290.
+
+
+.. |PythonVersions| image:: https://img.shields.io/badge/python-3.8+-red.svg
+   :target: https://www.python.org/downloads
+   :alt: Python 3.8+
+
+.. |PypiPackage| image:: https://badge.fury.io/py/tourbillon.svg
+   :target: https://pypi.org/project/tourbillon
+   :alt: PyPi package
+
+.. |Downloads| image:: https://img.shields.io/pypi/dm/tourbillon?color=purple
+   :target: https://pypi.org/project/tourbillon
+   :alt: PyPi downloads
+
+.. |Pylint| image:: https://github.com/anxuae/TourBillon/actions/runs/10316603069/artifacts/1794212304/pylint/badge.svg
+   :target: https://github.com/anxuae/TourBillon/actions/workflows/pylint.yml
+   :alt: Pylint
+
+.. |Tests| image:: https://github.com/anxuae/TourBillon/actions/workflows/tests.yml/badge.svg
+   :target: https://github.com/anxuae/TourBillon/actions/workflows/tests.yml
+   :alt: Tests
+
+.. |Codecov| image:: https://codecov.io/gh/anxuae/TourBillon/branch/master/graph/badge.svg
+    :target: https://codecov.io/gh/anxuae/TourBillon
+    :alt: Codecov
