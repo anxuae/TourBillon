@@ -20,14 +20,15 @@ jobs:
         pip install pylint anybadge
     - name: Analysing the code with pylint
       run: |
-        pylint $(git ls-files '*.py') --exit-zero --output=./output/pylint.txt
+        mkdir -p output
+        pylint $(git ls-files '*.py') --exit-zero --output=output/pylint.txt
     - name: Make the badge
       run: |
         PYLINT_SCORE=$(sed -n 's/^Your code has been rated at \([-0-9.]*\)\/.*/\1/p' pylint.txt)
         echo "Pylint score was $PYLINT_SCORE"
-        anybadge --label pylint --value $PYLINT_SCORE --file ./output/badge.svg 2=red 4=orange 8=yellow 10=green
+        anybadge --label pylint --value $PYLINT_SCORE --file output/badge.svg 2=red 4=orange 8=yellow 10=green
     - name: Archive generated files
       uses: actions/upload-artifact@v4
       with:
         name: pylint
-        path: ./output/
+        path: output/
