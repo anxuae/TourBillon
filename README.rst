@@ -29,8 +29,17 @@ TourBillon
 ==========
 
 Tourbillon is free software (distributed under LPG license) which makes it possible to organize the
-Billons tournaments. Tourbillon settles and is used in a jiffy. Two interfaces
-are possible: "standalone" (out of default) or "backend" (server http restful).
+Billons tournaments. This software is a **Swiss-style Tournament Manager** for teams of one or more
+player(s).
+
+Swiss-style tournaments generally have three rules:
+ - Teams are paired with opponents who have similar scores.
+ - Teams cannot play the same opponent twice.
+ - Teams are never eliminated.
+
+The winner is the team with the highest aggregate points earned in all rounds.
+
+For 32 to 64 teams, is is recomended to perform between 5 and 6 rounds per tournament.
 
 
 Dependencies
@@ -56,6 +65,8 @@ Or install from the source downloaded on Github ::
 
 Quick start
 ===========
+
+Tourbillon settles and is used in a jiffy. Two interfaces are possible:
 
 To start the `standelone` mode, run::
 

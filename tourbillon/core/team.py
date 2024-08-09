@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-
 
-"""Définition d'une équipe."""
+"""Team class definition"""
 
 from datetime import timedelta
 

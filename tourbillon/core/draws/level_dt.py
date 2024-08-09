@@ -3,10 +3,11 @@
 """Determinist algorithm to build matches according to teams level"""
 
 import random
+
 from tourbillon.core import cst
-from tourbillon.core.tirages.utils import (BaseThreadTirage, nb_chapeaux_necessaires, tri_stat,
-                                           creer_liste, NV, NV_REDONDANCE, NV_DISPARITE,
-                                           tirage_texte, dernieres_equipes, cnp, len_cnp)
+from tourbillon.core.draws.utils import (BaseThreadTirage, nb_chapeaux_necessaires, tri_stat,
+                                         creer_liste, NV, NV_REDONDANCE, NV_DISPARITE,
+                                         tirage_texte, dernieres_equipes, cnp, len_cnp)
 from tourbillon.core.exception import DrawResultError
 
 
@@ -287,7 +288,7 @@ def select_chapeau(parametres, statistiques):
 
 
 class ThreadTirage(BaseThreadTirage):
-    NOM = "niveau_dt"
+    NOM = __name__.rsplit('.', maxsplit=1)[-1]
 
     DESCRIPTION = "Niveau (Algorithme Déterministe)"
 

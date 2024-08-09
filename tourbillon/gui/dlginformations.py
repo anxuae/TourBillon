@@ -12,7 +12,7 @@ from wx.lib import ticker
 
 from tourbillon.core import cst
 from tourbillon.core import tournament
-from tourbillon.core.tirages import utils
+from tourbillon.core.draws import utils
 
 from tourbillon import images
 from tourbillon.gui import grille as grl

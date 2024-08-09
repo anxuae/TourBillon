@@ -1,36 +1,36 @@
 # -*- coding: UTF-8 -*-
 
-# Résultat d'une manche
+# Match result
 CHAPEAU = 'chapeau'
 GAGNE = 'gagné'
 PERDU = 'perdu'
 FORFAIT = 'forfait'
 
-# Etat d'une manche
+# State of match
 M_EN_COURS = "en cours"
 M_TERMINEE = "terminée"
 
-# Etat d'une équipe
+# State of a team
 E_INCOMPLETE = "incomplète"
 E_ATTEND_TIRAGE = "attend tirage"
 E_EN_COURS = "en cours"
 
-# Etat d'une partie
+# State of a round
 P_ATTEND_TIRAGE = "attend tirage"
 P_EN_COURS = "en cours"
 P_COMPLETE = "complète"
 P_TERMINEE = "terminée"
 
-# Etat d'un tournoi
+# State of a tournament
 T_INSCRIPTION = "inscription"
 T_ATTEND_TIRAGE = "attend tirage"
 T_PARTIE_EN_COURS = "en cours"
 
-# Paramètres algorithme génétique
+# Genetic algorithm parameter
 MAXIMISE = "maximise"
 MINIMISE = "minimise"
 
-# Clés de tri statistiques
+# Sorting key to display statistics view
 STAT_POINTS = 'points'
 STAT_VICTOIRES = 'victoires'
 STAT_CHAPEAUX = 'chapeaux'

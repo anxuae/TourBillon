@@ -12,7 +12,7 @@ from optparse import OptionParser, OptionGroup, Option
 import configparser as cfg
 import tourbillon
 from tourbillon import logger
-from tourbillon.core import tirages
+from tourbillon.core import draws
 
 
 def configdir(*names):
@@ -59,7 +59,7 @@ DEFAUT = {'INTERFACE': {'GEOMETRIE': (0, 0, 1000, 600),
                       'CLASSEMENT_JOKER': True,
                       'POINTS_PAR_MANCHE': 12,
                       'EQUIPES_PAR_MANCHE': 2,
-                      'ALGORITHME_DEFAUT': 'niveau_dt', }
+                      'ALGORITHME_DEFAUT': 'level_dt', }
           }
 
 
@@ -162,7 +162,7 @@ def charger_config(dossier=None):
             if not CONFIG.has_option(section, opt):
                 CONFIG.set(section, opt, str(val))
 
-    for section, generateur in list(tirages.TIRAGES.items()):
+    for section, generateur in list(draws.TIRAGES.items()):
         if not CONFIG.has_section(section):
             CONFIG.add_section(section)
         for opt, val in list(generateur.DEFAUT.items()):

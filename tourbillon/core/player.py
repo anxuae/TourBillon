@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-
 
-"""Définitions des joueurs."""
+"""Player class definition"""
 
 import os.path as osp
 from datetime import datetime

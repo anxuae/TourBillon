@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-
 
-"""Fonctions utiles à la création d'algorithmes de tirage."""
+"""Utility functions fro draws"""
 
 from math import factorial
 from itertools import combinations as cnp
@@ -220,7 +220,7 @@ class BaseThreadTirage(Thread):
         self.callback = callback
 
         # Parametres par défaut de l'algorithme
-        self.configurer(**dict([(cle.lower(), valeur) for cle, valeur in self.DEFAUT.iteritems()]))
+        self.configurer(**dict([(cle.lower(), valeur) for cle, valeur in self.DEFAUT.items()]))
 
     def __str__(self):
         return "<generateur %s>" % self.NOM

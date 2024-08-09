@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-
 
-"""Definition des tournois."""
+"""Tournament and TournamentManager classes definition"""
 
 import os
 import random

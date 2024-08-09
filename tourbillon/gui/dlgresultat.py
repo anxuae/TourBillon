@@ -8,7 +8,7 @@ from wx.lib import scrolledpanel as scrolled
 
 from tourbillon.core import cst
 from tourbillon.core import tournament
-from tourbillon.core.tirages import utils
+from tourbillon.core.draws import utils
 
 from tourbillon.gui import dlgequipe as dlgeq
 

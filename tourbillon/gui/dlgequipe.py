@@ -185,6 +185,12 @@ class EquipeValidateur(wx.Validator):
             wx.Bell()
         return
 
+    def TransferToWindow(self):
+        return True
+ 
+    def TransfertFromWindow(self):
+        return True
+
 
 class EntrerNumero(wx.Panel):
 

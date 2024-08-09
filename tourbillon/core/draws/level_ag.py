@@ -3,10 +3,11 @@
 """Genetic algorithm to build matches according to teams level"""
 
 import random
+
 from tourbillon.core.cst import MINIMISE
-from tourbillon.core.tirages.utils import (BaseThreadTirage, nb_chapeaux_necessaires, tri_stat,
-                                           creer_manches, NV, NV_REDONDANCE, NV_DISPARITE,
-                                           tirage_texte, dernieres_equipes, cnp, len_cnp)
+from tourbillon.core.draws.utils import (BaseThreadTirage, nb_chapeaux_necessaires, tri_stat,
+                                         creer_manches, NV, NV_REDONDANCE, NV_DISPARITE,
+                                         tirage_texte, dernieres_equipes, cnp, len_cnp)
 from tourbillon.core.exception import DrawResultError
 
 
@@ -400,7 +401,7 @@ class Tirage(Individu):
 
 
 class ThreadTirage(BaseThreadTirage):
-    NOM = "niveau_ag"
+    NOM = __name__.rsplit('.', maxsplit=1)[-1]
 
     DESCRIPTION = "Niveau (Algorithme Génétique)"
 

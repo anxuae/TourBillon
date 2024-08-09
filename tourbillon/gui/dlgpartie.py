@@ -9,8 +9,8 @@ from wx.lib.wordwrap import wordwrap
 from tourbillon import images
 from tourbillon.core import cst
 from tourbillon.core import tournament
-from tourbillon.core.tirages import utils
-from tourbillon.core import tirages
+from tourbillon.core.draws import utils
+from tourbillon.core import draws
 
 from tourbillon.gui import evenements as evt
 from tourbillon.gui.dlgimpression import DialogueImprimerTirage
@@ -705,10 +705,10 @@ class LancerTiragePage(wiz.PyWizardPage):
         self._generateur = None
 
         # Choix de l'algorithme
-        liste_tirages = [generateur.DESCRIPTION for _nom, generateur in tirages.TIRAGES.items()]
+        liste_tirages = [generateur.DESCRIPTION for _nom, generateur in draws.TIRAGES.items()]
         self.chx_algorithme = wx.Choice(self, wx.ID_ANY, choices=liste_tirages)
         algorithme = self.GetParent().config.get('TOURNOI', 'ALGORITHME_DEFAUT')
-        self.chx_algorithme.SetSelection(tirages.TIRAGES.keys().index(algorithme))
+        self.chx_algorithme.SetSelection(draws.TIRAGES.keys().index(algorithme))
         self.txt_algorithme = wx.StaticText(self, wx.ID_ANY, "Choix de l'algorithme utilisé: ")
         self.btn_options = wx.Button(self, id=wx.ID_PREFERENCES, label="Options", size=(100, -1))
 
@@ -785,7 +785,7 @@ class LancerTiragePage(wiz.PyWizardPage):
         if event.message is not None:
             self.txt_progression.WriteText(event.message + u'\n')
         if event.tps_restant is not None:
-            self.txt_tps_restant.SetLabel(tirages.utils.temps_texte(event.tps_restant))
+            self.txt_tps_restant.SetLabel(utils.temps_texte(event.tps_restant))
 
         if self._generateur.erreur or event.valeur == 100:
             self._generateur.isAlive = lambda: False
@@ -814,14 +814,14 @@ class LancerTiragePage(wiz.PyWizardPage):
             chapeaux = self.GetParent().page2.chapeaux()
 
             # Création du thread tirage
-            self._generateur = tirages.creer_generateur(tirages.TIRAGES.items()[self.chx_algorithme.GetCurrentSelection()][0],
+            self._generateur = draws.creer_generateur(draws.TIRAGES.items()[self.chx_algorithme.GetCurrentSelection()][0],
                                                         tournament.tournoi().equipes_par_manche,
                                                         statistiques,
                                                         chapeaux,
                                                         self.progression_event)
 
             # Configuration du tirage
-            config = self.GetParent().config.get_options(tirages.TIRAGES.items()[self.chx_algorithme.GetCurrentSelection()][0])
+            config = self.GetParent().config.get_options(draws.TIRAGES.items()[self.chx_algorithme.GetCurrentSelection()][0])
             self._generateur.configurer(**config)
 
             # Démarrer le tirage

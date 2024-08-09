@@ -5,14 +5,14 @@
 import os
 
 from tourbillon.core.exception import DrawError
-from tourbillon.core.tirages import aleatoire_ag, niveau_ag, niveau_dt, croissant
+from tourbillon.core.draws import ascending, random_ag, level_ag, level_dt
 
 
 ICI = os.path.dirname(os.path.abspath(__file__))
-TIRAGES = {croissant.ThreadTirage.NOM: croissant.ThreadTirage,
-           aleatoire_ag.ThreadTirage.NOM: aleatoire_ag.ThreadTirage,
-           niveau_ag.ThreadTirage.NOM: niveau_ag.ThreadTirage,
-           niveau_dt.ThreadTirage.NOM: niveau_dt.ThreadTirage}
+TIRAGES = {ascending.ThreadTirage.NOM: ascending.ThreadTirage,
+           random_ag.ThreadTirage.NOM: random_ag.ThreadTirage,
+           level_ag.ThreadTirage.NOM: level_ag.ThreadTirage,
+           level_dt.ThreadTirage.NOM: level_dt.ThreadTirage}
 
 
 def creer_generateur(algorithme, equipes_par_manche, statistiques, chapeaux=[], callback=None):

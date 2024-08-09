@@ -3,9 +3,10 @@
 """Algorithme génétique pseudo aléatoire (choix de la redondance possible)."""
 
 import random
-from tourbillon.core.tirages.utils import (BaseThreadTirage, nb_chapeaux_necessaires,
-                                           tri_stat, creer_manches, tirage_texte, cnp, len_cnp)
-from tourbillon.core.tirages.niveau_ag import Tirage as NvTirage, Environement, genese
+
+from tourbillon.core.draws.utils import (BaseThreadTirage, nb_chapeaux_necessaires,
+                                         tri_stat, creer_manches, tirage_texte, cnp, len_cnp)
+from tourbillon.core.draws.level_ag import Tirage as NvTirage, Environement, genese
 from tourbillon.core.exception import DrawResultError
 
 
@@ -81,7 +82,7 @@ class Tirage(NvTirage):
 
 
 class ThreadTirage(BaseThreadTirage):
-    NOM = "aleatoire_ag"
+    NOM = __name__.rsplit('.', maxsplit=1)[-1]
 
     DESCRIPTION = "Aléatoire (Algorithme Génétique)"
 

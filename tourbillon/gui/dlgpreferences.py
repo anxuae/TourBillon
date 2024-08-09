@@ -14,7 +14,7 @@ import shutil
 from tourbillon import images
 from tourbillon.gui.dlginformations import VARIABLES, DialogueInformations, string_en_wxFont, wxFont_en_string
 from tourbillon import config as cfg
-from tourbillon.core import tirages
+from tourbillon.core import draws
 
 
 def selectioner_variable(event, ctl_texte):
@@ -461,12 +461,12 @@ class TiragePage(wx.Panel):
 
         self.choicebook = wx.Choicebook(self, wx.ID_ANY)
 
-        for nom, generateur in tirages.TIRAGES.items():
+        for nom, generateur in draws.TIRAGES.items():
             page = TirageSousPageParametre(self.choicebook, nom, config)
             self.choicebook.AddPage(page, generateur.DESCRIPTION)
 
         algorithme = config.get('TOURNOI', 'ALGORITHME_DEFAUT')
-        self.choicebook.SetSelection(list(tirages.TIRAGES.keys()).index(algorithme))
+        self.choicebook.SetSelection(list(draws.TIRAGES.keys()).index(algorithme))
 
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(self.choicebook, 1, wx.EXPAND | wx.ALL, 10)
@@ -587,7 +587,7 @@ class TirageSousPageParametre(wx.Panel):
         """
         i = 0
         while i < self.grille.GetNumberRows():
-            valeur = tirages.TIRAGES[self.section].DEFAUT[self.grille.GetCellValue(i, 0).upper()]
+            valeur = draws.TIRAGES[self.section].DEFAUT[self.grille.GetCellValue(i, 0).upper()]
             if type(valeur) == bool:
                 if valeur is True:
                     valeur = 1

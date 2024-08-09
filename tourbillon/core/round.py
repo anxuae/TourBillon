@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-
 
-"""Définitions des parties."""
+"""Round class definition"""
 
 import copy
 from datetime import datetime
@@ -207,7 +207,7 @@ class Round:
 
         l = []
         # Ajout des manches
-        for lieu, manche in manches.iteritems():
+        for lieu, manche in manches.items():
             for num in manche:
                 l.append(num)
                 adversaires = [equipe for equipe in manche if equipe != num]

@@ -74,8 +74,8 @@ ERREUR_MSG = {100: "Le nombre de chapeaux donné et superieur au nombre d'équip
               #
               #                   args:
               156: "La disparité doit être augmentée ou la redondance autorisée.", }
-#
-#                   args:
+              #
+              #                   args:
 
 
 class DrawResultError(DrawError):

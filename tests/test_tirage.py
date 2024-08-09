@@ -4,7 +4,7 @@ import pytest
 import random
 import datetime
 
-from tourbillon.core import cst, tirages
+from tourbillon.core import cst, draws
 
 
 def trace(prog, msg, tps):
@@ -22,15 +22,15 @@ def test_inscription(trb4e1j, numero):
 
 class TestAjoutParie:
 
-    scenarios = [('partie2', {'type_tirage': 'niveau_dt'}),
-                 ('partie3', {'type_tirage': 'aleatoire_ag'}),
-                 ('partie4', {'type_tirage': 'niveau_ag'}),
-                 ('partie5', {'type_tirage': 'croissant'})]
+    scenarios = [('partie2', {'type_tirage': 'level_dt'}),
+                 ('partie3', {'type_tirage': 'random_ag'}),
+                 ('partie4', {'type_tirage': 'level_ag'}),
+                 ('partie5', {'type_tirage': 'ascending'})]
 
     gen = None
 
     def test_nouveau_tirage(self, trb4e1j, cfg, type_tirage):
-        TestAjoutParie.gen = tirages.creer_generateur(type_tirage, trb4e1j.equipes_par_manche, trb4e1j.statistiques(), callback=trace)
+        TestAjoutParie.gen = draws.creer_generateur(type_tirage, trb4e1j.equipes_par_manche, trb4e1j.statistiques(), callback=trace)
         TestAjoutParie.gen.configurer(**cfg.get_options(type_tirage))
         TestAjoutParie.gen.start(True)
 
@@ -40,14 +40,14 @@ class TestAjoutParie:
         assert not tir.chapeaux  # Nombre d'équipe pair
         for manche in tir.tirage:
             assert len(manche) == trb4e1j.equipes_par_manche
-        if 'niveau' in type_tirage:
+        if 'level' in type_tirage:
             for manche in tir.tirage:
                 assert sorted(manche) not in trb4e1j.manches()
-                for combi2a2 in tirages.utils.cnp(manche, 2):
+                for combi2a2 in draws.utils.cnp(manche, 2):
                     vic0 = trb4e1j.equipe(combi2a2[0]).victoires()
                     vic1 = trb4e1j.equipe(combi2a2[1]).victoires()
                     assert abs(vic0 - vic1) <= opts['max_disparite']
-        elif 'croissant' in type_tirage:
+        elif 'ascending' in type_tirage:
             clmt = sorted(trb4e1j.equipes())
             for manche in tir.tirage:
                 m = [eq.numero for eq in clmt[:trb4e1j.equipes_par_manche]]
