@@ -24,7 +24,7 @@ jobs:
         pylint $(git ls-files '*.py') --exit-zero --output=output/pylint.txt
     - name: Make the badge
       run: |
-        PYLINT_SCORE=$(sed -n 's/^Your code has been rated at \([-0-9.]*\)\/.*/\1/p' pylint.txt)
+        PYLINT_SCORE=$(sed -n 's/^Your code has been rated at \([-0-9.]*\)\/.*/\1/p' output/pylint.txt)
         echo "Pylint score was $PYLINT_SCORE"
         anybadge --label pylint --value $PYLINT_SCORE --file output/badge.svg 2=red 4=orange 8=yellow 10=green
     - name: Archive generated files
