@@ -17,8 +17,14 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install pylint
-    - uses: Silleellie/pylint-github-action@v2
+        pip install pylint anybadge
+    - name: Make the badge
+      run: |
+        PYLINT_SCORE=$(sed -n 's/^Your code has been rated at \([-0-9.]*\)\/.*/\1/p' output/pylint.txt)
+        echo "Pylint score was $PYLINT_SCORE"
+        anybadge --label pylint --value $PYLINT_SCORE --file output/badge.svg 2=red 4=orange 8=yellow 10=green
+    - name: Archive generated files
+      uses: actions/upload-artifact@v4
       with:
-        lint-path: tourbillon
-        python-version: 3.11
+        name: pylint
+        path: output/
