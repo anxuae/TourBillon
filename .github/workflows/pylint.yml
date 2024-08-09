@@ -17,7 +17,22 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install pylint
+        pip install pylint anybadge
     - name: Analysing the code with pylint
       run: |
-        pylint $(git ls-files '*.py') --exit-zero
+        pylint $(git ls-files '*.py') --exit-zero --output=pylint.txt
+    - name: Archive Pylint result
+      uses: actions/upload-artifact@v4
+      with:
+        name: pylint
+        path: pylint.txt
+    - name: Make the badge
+      run: |
+        score=$(sed -n 's/^Your code has been rated at \([-0-9.]*\)\/.*/\1/p' pylint.txt)
+        echo "Pylint score was $score"
+        anybadge --value=$score --file=badges/pylint.svg pylint
+    - name: Archive badges
+      uses: actions/upload-artifact@v4
+      with:
+        name: badges
+        path: badges/*.svg
