@@ -39,7 +39,7 @@ Swiss-style tournaments generally have three rules:
 
 The winner is the team with the highest aggregate points earned in all rounds.
 
-For 32 to 64 teams, is is recomended to perform between 5 and 6 rounds per tournament.
+From 32 to 64 teams, it is recomended to perform between 5 and 6 rounds per tournament.
 
 
 Dependencies
@@ -55,7 +55,7 @@ Install
 =======
 
 Download the binaries corresponding to your operating system from the page
-`releases <https://github.com/anxuae/tourbillon-gui/releases>` _
+`releases <https://github.com/anxuae/tourbillon-gui/releases>`_
 
 Or install from the source downloaded on Github ::
 
@@ -76,5 +76,5 @@ To start the `server` mode, run::
 
     $ poetry run tourbillon --backend
 
-And now it turns! Fantastic! Note that in `server` mode, Tourbillon runs by
-default on port 59219.
+And now it turns! Note that in `server` mode, Tourbillon runs by
+default on port 59290.
