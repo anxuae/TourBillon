@@ -35,9 +35,6 @@ class LoggerHandler(logging.StreamHandler):
             self.stream = sys.stdout
 
         self.format(record)
-        self.afficher(record)
-
-    def afficher(self, record):
         logging.StreamHandler.emit(self, record)
 
     def bilan(self):
@@ -57,7 +54,7 @@ def ajouter_handler(handler, level=logging.INFO, pattern="(%(levelname)s) %(asct
     return handler
 
 
-def creer_logger(level=logging.INFO, logdir=None):
+def init_logger(level=logging.INFO, logdir=None):
     """
     Initialiser le système de logging et retourner le handler.
 

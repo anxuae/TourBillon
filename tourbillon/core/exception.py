@@ -37,43 +37,35 @@ class DrawStopError(DrawError):
     pass
 
 
-# ARRET TIRAGE: pas de solution acceptable
+# STOP DRAW: no acceptable pairing found
 #
-ERREUR_MSG = {100: "Le nombre de chapeaux donné et superieur au nombre d'équipes par manche.",
+ERREUR_MSG = {100: "Number of BYE shall be lower than the number of teams per round",
               #
               #                   args: nb_chapeaux_donnés, nb_equipes_par_manche
               #
-              101: "Toutes les équipes on déjà été chapeau au moins une fois et la redondance n'est pas autorisée.",
+              101: "All teams have already been BYE at least once and redundancy is not allowed",
               #
               #                   args: nb_chapeaux_min, nb_chapeaux_max
               #
-              102: "Le nombre de chapeaux donné ne correspond pas au nombre attendu.",
+              102: "Number of BYE given does not correspond to the expected number",
               #
               #                   args: nb_chapeaux_attendu - nb_chapeaux_donnés
               #
-              150: "Une même équipe apparaît plusieurs fois dans le tirage.",
+              150: "Same team appears several times in the same draw",
               #
               #                   args: (equipe1, nb_occurrence), (equipe2, nb_occurrence), ...
               #
-              151: "Au moins une manche qui a déjà été disputée se trouve dans le tirage et la redondance n'est pas autorisée.",
+              151: "At least one identical match has already been done and redundancy is not allowed",
               #
               #                   args: manche1, manche2, ...
               #
-              152: "Une des manches du tirage ne comporte pas le bon nombre d'équipes.",
-              #
-              #                   args: manche, nb_equipes_par_manche
-              #
-              153: "Au moins une des équipes données n'existe pas.",
-              #
-              #                   args: equipe1, equipe2, ...
-              #
-              154: "Toutes les équipes se sont rencontrées, la redondance doit être autorisée.",
+              154: "All the teams have met, redundancy must be authorized",
               #
               #                   args:
-              155: "La disparité est trop faible pour trouver une solution.",
+              155: "The disparity is too low to find a correct draw",
               #
               #                   args:
-              156: "La disparité doit être augmentée ou la redondance autorisée.", }
+              156: "The disparity must be increased or the redundancy authorized", }
               #
               #                   args:
 
@@ -87,4 +79,4 @@ class DrawResultError(DrawError):
         self.msg = ERREUR_MSG[self.code]
 
     def __str__(self):
-        return "Erreur %s: %s (%s)" % (self.code, self.msg, self.args)
+        return "Error %s: %s (%s)" % (self.code, self.msg, self.args)

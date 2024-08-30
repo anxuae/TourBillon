@@ -247,7 +247,7 @@ class BaseThreadTirage(Thread):
         nb_chapeaux = nb_chapeaux_necessaires(nb_eq, self.equipes_par_manche)
         try:
             if len(self.chapeaux) >= self.equipes_par_manche:
-                # ERREUR 100: Le nombre de chapeaux ne peu pas être égale au nombre d'équipes par manche
+                # ERREUR 100: Le nombre de chapeaux ne peut pas être égale au nombre d'équipes par manche
                 args = [len(self.chapeaux), self.equipes_par_manche]
                 raise DrawResultError(100, args)
 

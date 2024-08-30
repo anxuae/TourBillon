@@ -12,7 +12,7 @@ from wx.lib.wordwrap import wordwrap
 
 import tourbillon
 from tourbillon import images, logger
-from tourbillon.config import systeme_config, configdir
+from tourbillon.config import system_config, configdir
 from tourbillon.core import cst
 from tourbillon.core import tournament
 
@@ -722,7 +722,7 @@ cliquez sur ANNULER si vous ne voulez pas ajouter cette nouvelle équipe."
         grille.SetColLabelValue(1, "Valeur")
         grille.SetColSize(1, dlg.GetSize()[0] // 2)
 
-        for a, b in systeme_config():
+        for a, b in system_config():
             grille.AppendRows(1)
             index = grille.GetNumberRows() - 1
             grille.SetCellValue(index, 0, " %s" % a)

@@ -38,7 +38,7 @@ def tmpfile(tmpdir_factory):
 @pytest.fixture(scope='session')
 def cfg(tmpfile):
     config.CONFIGPATH = tmpfile('config')
-    return config.charger_config()
+    return config.load()
 
 
 @pytest.fixture(scope="module")

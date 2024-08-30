@@ -12,5 +12,5 @@ class TourBillonServer:
     def run(self):
         logger.critical("Pas inplementé: dev serveur backend (Flask RESTfull server)")
 
-    def ouvrir(self, fichier):
+    def load(self, fichier):
         tournament.charger_tournoi(fichier)

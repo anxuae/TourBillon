@@ -7,7 +7,7 @@ license = "GNU GPL"
 readme = ["README.rst", "CHANGELOG.rst"]
 homepage = "https://github.com/anxuae/TourBillon"
 repository = "https://github.com/anxuae/TourBillon"
-keywords = ["billon", "game", "France"]
+keywords = ["billon", "game", "France", "Nord"]
 packages = [
     { include = "tourbillon" }
 ]

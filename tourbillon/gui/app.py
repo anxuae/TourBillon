@@ -131,7 +131,7 @@ class TourBillonGUI(wx.App):
         Appelé quand un fichier est déposé sur l'icon située dans le
         dock ou ouvert via le menu contextuel du Finder.
         """
-        self.ouvrir(fichier)
+        self.load(fichier)
 
     def BringWindowToFront(self):
         try:  # it's possible for this event to come when the frame is closed
@@ -152,5 +152,5 @@ class TourBillonGUI(wx.App):
     def run(self):
         self.MainLoop()
 
-    def ouvrir(self, fichier):
+    def load(self, fichier):
         self.fenetre.ouvrir(fichier)

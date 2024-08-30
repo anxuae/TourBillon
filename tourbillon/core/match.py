@@ -128,8 +128,6 @@ class Match:
 
         :param value: start timestamp as datetime instance
         """
-        if not isinstance(value, datetime):
-            raise TypeError("L'heure de début doit être de type 'datetime'")
         self.data['debut'] = value
 
     @property
@@ -149,8 +147,6 @@ class Match:
 
         :param value: match duration
         """
-        if not isinstance(value, timedelta):
-            raise TypeError("La durée doit être de type 'timedelta'")
         if self.data['etat'] in [cst.CHAPEAU, cst.FORFAIT]:
             raise ValueError("La durée d'une manche CHAPEAU ou FORFAIT ne peut être modifiée")
         self.data['fin'] = self.data['debut'] + value
@@ -169,8 +165,6 @@ class Match:
 
         :param value: end timestamp as datetime instance
         """
-        if not isinstance(value, datetime):
-            raise TypeError("L'heure de fin doit être de type 'datetime'")
         if self.data['etat'] in [cst.CHAPEAU, cst.FORFAIT]:
             raise ValueError("La fin d'une manche CHAPEAU ou FORFAIT ne peut être modifiée")
         self.data['fin'] = value
@@ -187,8 +181,6 @@ class Match:
         """
         Set competitors list.
         """
-        if not isinstance(value, (list, tuple)):
-            raise TypeError("Les adversaires sont donnés sous forme de liste d'entiers")
         for num in value:
             if not isinstance(num, int):
                 raise TypeError(f"'{num}' n'est pas un entier")

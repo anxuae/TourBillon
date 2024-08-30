@@ -6,6 +6,7 @@ import os.path as osp
 from datetime import datetime
 import atexit
 
+
 HISTORIQUE = {}
 FICHIER_HISTORIQUE = None
 CARACTERES_SPECIAUX = {'é': 'e',
@@ -16,19 +17,20 @@ CARACTERES_SPECIAUX = {'é': 'e',
                        'ç': 'c',
                        'ï': 'i',
                        'î': 'i',
-                       ' ': '_'}
+                       ' ': '-'}
 
 
-def creer_id(prenom, nom):
-    prenom = prenom.lower()
-    prenom = prenom.strip()
-    nom = nom.lower()
-    nom = nom.strip()
+def make_history_key(prenom: str, nom: str) -> str:
+    """
+    Sanitize firstname and lastname to build an key for the players
+    history.
+    """
+    prenom = prenom.lower().strip()
+    nom = nom.lower().strip()
     for spe, rep in CARACTERES_SPECIAUX.items():
         prenom.replace(spe, rep)
         nom.replace(spe, rep)
-    nom = nom.replace(' ', '_')
-    return "%s_%s" % (prenom, nom)
+    return f"{prenom}_{nom}"
 
 
 def charger_historique(fichier):
@@ -44,7 +46,7 @@ def charger_historique(fichier):
         ligne = ligne.strip()
         l = ligne.split(',')
 
-        HISTORIQUE.setdefault(creer_id(l[1], l[2]), []).append((l[1], l[2], l[3], l[4]))
+        HISTORIQUE.setdefault(make_history_key(l[1], l[2]), []).append((l[1], l[2], l[3], l[4]))
 
     FICHIER_HISTORIQUE = osp.abspath(fichier)
 
@@ -68,7 +70,7 @@ class NomCompleteur:
         pass
 
     def completer(self, prenom, nom=''):
-        debut_id = creer_id(prenom, nom)
+        debut_id = make_history_key(prenom, nom)
         if debut_id.endswith('_'):
             debut_id = debut_id[:-1]
 
@@ -115,16 +117,16 @@ class Player:
         self._pn = prenom
         self._n = nom
         self._a = age
-        self.data = [creer_id(prenom, nom), prenom, nom, age]
+        self.data = [make_history_key(prenom, nom), prenom, nom, age]
         self._enregistrer(kwrd.get('date_ajout'))
 
     def __str__(self):
-        return "%s %s" % (self.data[1], self.data[2])
+        return f"{self.data[1]} {self.data[2]}"
 
     def __eq__(self, other):
-        if type(other) == Player:
+        if isinstance(other, Player):
             comparateur = other.cle()
-        else:
+        else:   
             comparateur = str(other)
         if self.cle() == comparateur:
             return True
@@ -132,7 +134,7 @@ class Player:
             return False
 
     def __ne__(self, other):
-        if type(other) == Player:
+        if isinstance(other, Player):
             comparateur = other.cle()
         else:
             comparateur = str(other)
@@ -142,12 +144,12 @@ class Player:
             return False
 
     def _enregistrer(self, date_modification=None):
-        joueur_id = creer_id(self._pn, self._n)
+        joueur_id = make_history_key(self._pn, self._n)
         if date_modification is not None:
-            if type(date_modification) in [str, unicode]:
+            if isinstance(date_modification, str):
                 date_modification = datetime.strptime(date_modification, '%d/%m/%Y')
-            elif type(date_modification) != datetime:
-                raise TypeError("'%s' doit être de type 'datetime' ou une chaine de format '%d/%m/%Y'" % date_modification)
+            elif not isinstance(date_modification, datetime):
+                raise TypeError(f"'{date_modification}' doit être de type 'datetime' ou une chaine de format '%d/%m/%Y'")
 
         date = None
         if self.cle() in HISTORIQUE:
