@@ -17,14 +17,6 @@ from tourbillon import logger
 from tourbillon.core import draws
 
 
-def configdir(*names: str) -> str:
-    """
-    Return path based on configuration directory.
-    """
-    return osp.join(CONFIGPATH, *names)
-
-
-CONFIGPATH = osp.join(os.environ.get('APPDATA', osp.expanduser("~")), '.trb')
 DEFAUT = {'INTERFACE': {'GEOMETRIE': (0, 0, 1000, 600),
                         'MAXIMISER': True,
                         'PLEIN_ECRAN': False,
@@ -55,7 +47,7 @@ DEFAUT = {'INTERFACE': {'GEOMETRIE': (0, 0, 1000, 600),
                         'GRILLE_TEMPS_DEFILEMENT': 100,
                         'GRILLE_DEFILEMENT_VERTICAL': True},
 
-          'TOURNOI': {'HISTORIQUE': configdir('hist_jrs'),
+          'TOURNOI': {'HISTORIQUE': '',
                       'JOUEUR_COMPLETION': True,
                       'JOUEURS_PAR_EQUIPE': 2,
                       'CLASSEMENT_VICTOIRES': True,
@@ -129,71 +121,9 @@ def parse_options():
     return parser.parse_args()
 
 
-def save():
-    """
-    Sauver la configuration utilisateur.
-    """
-    cfg = TypedConfigParser()
-    with open(configdir('cfg'), 'w', encoding='utf-8') as fp:
-        cfg.write(fp)
-
-
-def load(dossier=None):
-    """
-    Charger la configuration utilisateur. (créée si non existante)
-    """
-    global CONFIGPATH
-    cfg = TypedConfigParser()
-    if dossier:
-        CONFIGPATH = dossier
-
-    # Création du répertoire
-    if not osp.exists(configdir()):
-        os.makedirs(configdir())
-
-    # Lecture du fichier existant
-    fichier = configdir('cfg')
-    if osp.isfile(fichier):
-        logger.debug("Chargement de la configuration...")
-        with open(fichier, 'r', encoding='utf-8') as fp:
-            cfg.read_file(fp)
-    else:
-        logger.debug("Création de la configuration...")
-
-    # Création du fichier de configuration interface
-    for section, options in list(DEFAUT.items()):
-        if not cfg.has_section(section):
-            cfg.add_section(section)
-        for opt, val in list(options.items()):
-            if not cfg.has_option(section, opt):
-                cfg.set(section, opt, str(val))
-
-    for section, generateur in list(draws.TIRAGES.items()):
-        if not cfg.has_section(section):
-            cfg.add_section(section)
-        for opt, val in list(generateur.DEFAUT.items()):
-            if not cfg.has_option(section, opt):
-                cfg.set(section, opt, str(val))
-
-    # Création du fichier d'historique des joueurs
-    fichier_hist = configdir('hist_jrs')
-    if not osp.isfile(fichier_hist):
-        with open(fichier_hist, 'w', encoding='utf-8') as fp:
-            pass # Create empty file
-
-    # Traitement des chemins
-    cfg.set('INTERFACE', 'enregistrement', osp.abspath(osp.expanduser(cfg.get('INTERFACE', 'enregistrement'))))
-    if cfg.get('INTERFACE', 'image'):
-        cfg.set('INTERFACE', 'image', osp.abspath(osp.expanduser(cfg.get('INTERFACE', 'image'))))
-    cfg.set('TOURNOI', 'historique', osp.abspath(osp.expanduser(cfg.get('TOURNOI', 'historique'))))
-
-    # Enregistrer la configuration avant de quitter
-    atexit.register(save)
-    return cfg
-
-
 class Singleton(ABCMeta):
     _instances = {}
+
     def __call__(cls, *args, **kwargs):
         if cls not in cls._instances:
             cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
@@ -202,11 +132,68 @@ class Singleton(ABCMeta):
 
 class TypedConfigParser(configparser.SafeConfigParser, metaclass=Singleton):
 
-    def get_options(self, section, try_literal_eval=True, upper_keys=False):
+    def __init__(self, filename, load=True):
+        super().__init__()
+        self.filename = osp.abspath(osp.expanduser(filename))
+        if osp.isfile(self.filename) and load:
+            self.load(self.filename)
+
+    def load(self, filename: str):
+        """
+        Load configuration from file.
+        """
+        # Create config folder
+        path = osp.dirname(osp.abspath(filename))
+        if not osp.exists(path):
+            os.makedirs(path)
+
+        # Read file if exists
+        if osp.isfile(filename):
+            logger.debug("Configuration loading...")
+            with open(filename, 'r', encoding='utf-8') as fp:
+                self.read_file(fp)
+        else:
+            logger.debug("Creating configuration...")
+
+        # Create default values for missing options
+        for section, options in list(DEFAUT.items()):
+            if not self.has_section(section):
+                self.add_section(section)
+            for opt, val in list(options.items()):
+                if not self.has_option(section, opt):
+                    self.set(section, opt, str(val))
+
+        for section, generateur in list(draws.TIRAGES.items()):
+            if not self.has_section(section):
+                self.add_section(section)
+            for opt, val in list(generateur.DEFAUT.items()):
+                if not self.has_option(section, opt):
+                    self.set(section, opt, str(val))
+
+        # Traitement des chemins
+        self.set('INTERFACE', 'enregistrement', osp.abspath(osp.expanduser(self.get('INTERFACE', 'enregistrement'))))
+        if self.get('INTERFACE', 'image'):
+            self.set('INTERFACE', 'image', osp.abspath(osp.expanduser(self.get('INTERFACE', 'image'))))
+
+        # Save config before exit
+        atexit.register(self.save)
+        return self
+
+    def save(self) -> None:
+        """
+        Save the current or default values into the configuration file.
+        """
+        with open(self.filename, 'w', encoding='utf-8') as fp:
+            self.write(fp)
+
+    def get_options(self, section: str, typed: bool = True, upper_keys: bool = False) -> dict:
+        """
+        Return all options from a given section.
+        """
         d = {}
         for key, value in self.items(section, raw=True):
 
-            if try_literal_eval:
+            if typed:
                 try:
                     value = ast.literal_eval(value)
                 except (ValueError, SyntaxError):
@@ -219,17 +206,40 @@ class TypedConfigParser(configparser.SafeConfigParser, metaclass=Singleton):
 
         return d
 
-    def get_typed(self, section, option):
-        """Get a value from config and try to convert it in a native Python
+    def get_typed(self, section: str, option: str):
+        """
+        Get a value from config and try to convert it in a native Python
         type (using the :py:mod:`ast` module).
 
         :param section: config section name
-        :type section: str
         :param option: option name
-        :type option: str
         """
         value = self.get(section, option)
         try:
             return ast.literal_eval(value)
         except (ValueError, SyntaxError):
             return value
+
+    def get_path(self, section: str, option: str) -> str:
+        """
+        Get a path from config. If option is a relative path, this method return
+        an absolute path evaluated from configuration file path.
+
+        :param section: config section name
+        :param option: option name
+        """
+        path = self.get(section, option)
+        if not path:  # Empty string, don't process it as it is not a path
+            return path
+        path = osp.expanduser(path)
+        if not osp.isabs(path):
+            path = osp.join(osp.relpath(osp.dirname(self.filename), '.'), path)
+        return osp.abspath(path)
+
+    def join_path(self, *names: str) -> str:
+        """Return the directory path of the configuration file
+        and join it the given names.
+
+        :param names: names to join to the directory path
+        """
+        return osp.join(osp.dirname(self.filename), *names)

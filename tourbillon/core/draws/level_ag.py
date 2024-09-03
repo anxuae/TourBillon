@@ -4,11 +4,11 @@
 
 import random
 
-from tourbillon.core.cst import MINIMISE
-from tourbillon.core.draws.utils import (BaseThreadTirage, nb_chapeaux_necessaires, tri_stat,
-                                         creer_manches, NV, NV_REDONDANCE, NV_DISPARITE,
-                                         tirage_texte, dernieres_equipes, cnp, len_cnp)
-from tourbillon.core.exception import DrawResultError
+from ..cst import MINIMISE
+from .utils import (BaseThreadTirage, nb_chapeaux_necessaires, tri_stat,
+                    creer_manches, NV, NV_REDONDANCE, NV_DISPARITE,
+                    tirage_texte, dernieres_equipes, cnp, len_cnp)
+from ..exception import DrawResultError
 
 
 def genese(individu_type, taille=20):

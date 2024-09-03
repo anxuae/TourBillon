@@ -9,13 +9,12 @@ from functools import partial
 
 import yaml
 
-from tourbillon.core import cst
-from tourbillon.core.exception import FileError, StatusError, InconsistencyError
-from tourbillon.core.match import Match
-from tourbillon.core.team import Team
-from tourbillon.core.round import Round
-
-from tourbillon.images import entete
+from . import cst
+from .exception import FileError, StatusError, InconsistencyError
+from .match import Match
+from .team import Team
+from .round import Round
+from ..images import entete
 
 
 TOURNOI = None

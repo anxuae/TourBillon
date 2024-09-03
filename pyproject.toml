@@ -24,6 +24,14 @@ wxPython = "^4.0.0"
 fastapi = "^0.111.0"
 
 
+[tool.poetry.group.tests]
+optional = true
+
+
+[tool.poetry.group.tests.dependencies]
+pytest = "^8.0"
+
+
 [tool.poetry.scripts]
 tourbillon = 'tourbillon.__main__:run'
 

@@ -6,7 +6,7 @@ import os
 import sys
 import importlib.util
 
-from tourbillon.core.exception import DrawError
+from ..exception import DrawError
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 TIRAGES = {}

@@ -1,17 +1,29 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
 
+import os
 import sys
+import os.path as osp
 
-from tourbillon import config, logger
+from . import config, logger
+from .core import player
 
 
 def run():
     """
     Entry point.
     """
-    cfg = config.load()
+    # Parse command line options
     options = config.parse_options()
+
+    # Initialize configuration file
+    cfg = config.TypedConfigParser(osp.join(os.environ.get('APPDATA', osp.expanduser("~")), '.trb', 'cfg'))
+
+    # Initialize players history
+    if cfg.get_path('TOURNOI', 'HISTORIQUE'):
+        player.PlayerHistory(cfg.get_path('TOURNOI', 'HISTORIQUE'))
+    else:
+        player.PlayerHistory(cfg.join_path('hist_jrs'))
 
     # Configure logging
     if options.logging_level is None:

@@ -4,11 +4,11 @@
 
 import random
 
-from tourbillon.core import cst
-from tourbillon.core.draws.utils import (BaseThreadTirage, nb_chapeaux_necessaires, tri_stat,
-                                         creer_liste, NV, NV_REDONDANCE, NV_DISPARITE,
-                                         tirage_texte, dernieres_equipes, cnp, len_cnp)
-from tourbillon.core.exception import DrawResultError
+from .. import cst
+from .utils import (BaseThreadTirage, nb_chapeaux_necessaires, tri_stat,
+                    creer_liste, NV, NV_REDONDANCE, NV_DISPARITE,
+                    tirage_texte, dernieres_equipes, cnp, len_cnp)
+from ..exception import DrawResultError
 
 
 MC_CACHE = {}
@@ -369,7 +369,8 @@ class ThreadTirage(BaseThreadTirage):
                 if manche == NV:
                     # La plus forte équipe n'a aucune possibilité de rencontre, on teste avec les paramètres utilisateur
                     # Fonction de coût peut être augmentée (dépend des paramètres utilisateur)
-                    manche = max_cout(self.config, equipes_disponibles, self.config['redondance'], self.config['depassement_max_disparite'], equipe=p)
+                    manche = max_cout(self.config, equipes_disponibles,
+                                      self.config['redondance'], self.config['depassement_max_disparite'], equipe=p)
 
                     if manche == NV_REDONDANCE:
                         # ERREUR 154: La redondance n'est pas autorisée.

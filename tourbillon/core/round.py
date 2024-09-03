@@ -5,9 +5,9 @@
 import copy
 from datetime import datetime
 
-from tourbillon.core import cst
-from tourbillon.core.match import Match
-from tourbillon.core.exception import StatusError, InconsistencyError, ResultError
+from . import cst
+from .match import Match
+from .exception import StatusError, InconsistencyError, ResultError
 
 
 class Round:

@@ -4,10 +4,10 @@
 
 import random
 
-from tourbillon.core.draws.utils import (BaseThreadTirage, nb_chapeaux_necessaires,
-                                         tri_stat, creer_manches, tirage_texte, cnp, len_cnp)
-from tourbillon.core.draws.level_ag import Tirage as NvTirage, Environement, genese
-from tourbillon.core.exception import DrawResultError
+from .utils import (BaseThreadTirage, nb_chapeaux_necessaires,
+                    tri_stat, creer_manches, tirage_texte, cnp, len_cnp)
+from .level_ag import Tirage as NvTirage, Environement, genese
+from ..exception import DrawResultError
 
 
 def select_chapeau(statistiques, redondance):

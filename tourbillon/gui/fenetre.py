@@ -12,7 +12,7 @@ from wx.lib.wordwrap import wordwrap
 
 import tourbillon
 from tourbillon import images, logger
-from tourbillon.config import system_config, configdir
+from tourbillon.config import system_config
 from tourbillon.core import cst
 from tourbillon.core import tournament
 
@@ -65,7 +65,7 @@ class FenetrePrincipale(wx.Frame):
 
         # Créer la grille
         if self.config.get_typed('INTERFACE', 'image'):
-            chemin_image = glob(configdir('fond_perso*'))[0]
+            chemin_image = glob(self.config.join_path('fond_perso*'))[0]
         else:
             chemin_image = ""
         self.grille = grl.GrillePanel(self, images.bitmap(chemin_image))
@@ -260,7 +260,7 @@ class FenetrePrincipale(wx.Frame):
         # fond
         if event.quoi == 'fond':
             if self.config.get_typed('INTERFACE', 'image'):
-                chemin_image = glob(configdir('fond_perso*'))[0]
+                chemin_image = glob(self.config.join_path('fond_perso*'))[0]
             else:
                 chemin_image = ""
             self.grille.chg_fond(images.bitmap(chemin_image))
@@ -303,7 +303,7 @@ class FenetrePrincipale(wx.Frame):
                 f = ''
 
             dlg = wx.FileDialog(self, message="Ouvrir", defaultDir=d, defaultFile=f,
-                                wildcard=FILTRE_FICHIER, style=wx.OPEN)
+                                wildcard=FILTRE_FICHIER, style=wx.FD_OPEN)
             ret = dlg.ShowModal()
 
             if ret == wx.ID_OK:
@@ -404,7 +404,7 @@ class FenetrePrincipale(wx.Frame):
                 self.config.set('INTERFACE', 'MAXIMISER', 'True')
             else:
                 self.config.set('INTERFACE', 'MAXIMISER', 'False')
-                self.config.set('INTERFACE', 'GEOMETRIE', str(self.GetPositionTuple() + self.GetSizeTuple()))
+                self.config.set('INTERFACE', 'GEOMETRIE', str(tuple(self.GetPosition()) + tuple(self.GetSize())))
             self.config.set('INTERFACE', 'afficher_statistiques', str(
                 self.barre_menu.FindItemById(barres.ID_STATISTIQUES).IsChecked()))
             self.config.set('INTERFACE', 'afficher_shell', str(

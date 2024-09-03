@@ -4,12 +4,12 @@
 
 from datetime import datetime, timedelta
 
-from tourbillon.core import cst
+from . import cst
 
 
 class Match:
     """
-    A represent a match result for a team on a given round.
+    A match represent a match result for a team on a given round.
     """
 
     def __init__(self, debut=datetime.now(), adversaires=()):

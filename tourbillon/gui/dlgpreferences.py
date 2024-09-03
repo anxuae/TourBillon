@@ -125,6 +125,7 @@ class GeneralPage(wx.Panel):
     def __init__(self, parent, section, config):
         wx.Panel.__init__(self, parent, wx.ID_ANY)
         self.section = section
+        self.config = config
 
         # Boite encadrée
         box2 = wx.StaticBox(self, wx.ID_ANY, "Enregistrement")
@@ -276,11 +277,11 @@ class GeneralPage(wx.Panel):
                 break
 
         if chemin_image:
-            for fichier in glob(cfg.configdir('fond_perso*')):
+            for fichier in glob(self.config.join_path('fond_perso*')):
                 # Suppression de l'image précédente
                 os.remove(fichier)
             _, ext = osp.splitext(chemin_image)
-            destination = cfg.configdir('fond_perso' + ext)
+            destination = self.config.join_path('fond_perso' + ext)
             # Copie en cache de l'image
             shutil.copy2(chemin_image, destination)
 

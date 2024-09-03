@@ -4,10 +4,10 @@
 
 from datetime import timedelta
 
-from tourbillon.core.exception import BoundError, StatusError
-from tourbillon.core import cst
-from tourbillon.core.match import Match
-from tourbillon.core.player import Player, HISTORIQUE
+from . import cst
+from .exception import BoundError, StatusError
+from .match import Match
+from .player import Player, PlayerHistory
 
 
 class Team:
@@ -191,7 +191,7 @@ class Team:
         Suppression de tous les joueurs de l'équipe.
         """
         for joueur in self._liste_joueurs:
-            HISTORIQUE.pop(joueur.cle(), None)
+            PlayerHistory().remove(joueur.cle())
         self._liste_joueurs = []
         self.tournoi.modifie = True
 

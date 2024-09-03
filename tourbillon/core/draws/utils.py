@@ -7,7 +7,7 @@ from itertools import combinations as cnp
 from datetime import datetime, timedelta
 from threading import Thread, Event
 
-from tourbillon.core.exception import DrawError, DrawStopError, DrawResultError
+from ..exception import DrawError, DrawStopError, DrawResultError
 
 
 def len_cnp(n, p):
@@ -187,6 +187,7 @@ class NonValide:
             raise TypeError("unsupported operand type(s) for |: '%s' and '%s'" % (type(self), type(other)))
 
     __ror__ = __or__
+
 
 NV = NonValide
 NV_REDONDANCE = NonValide(redondance=1)

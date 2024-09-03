@@ -1,7 +1,7 @@
 # -*- coding: UTF-8 -*-
 
-from tourbillon import logger
-from tourbillon.core import tournament
+from .. import logger
+from ..core import tournament
 
 
 class TourBillonServer:

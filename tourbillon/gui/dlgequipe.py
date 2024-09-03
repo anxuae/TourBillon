@@ -106,8 +106,7 @@ class EntrerJoueur(wx.Panel):
 
     def montrer_popup(self, event):
         if self._completion:
-            c = player.NomCompleteur()
-            choix = c.completer(self.ctl_prenom.GetValue(), self.ctl_nom.GetValue())
+            choix = player.PlayerHistory().complete(self.ctl_prenom.GetValue(), self.ctl_nom.GetValue())
 
             if not choix and self._popup:
                 self._popup.Hide()
@@ -179,11 +178,6 @@ class EquipeValidateur(wx.Validator):
 
         if chr(key) in string.digits:
             event.Skip()
-            return
-
-        if not wx.Validator_IsSilent():
-            wx.Bell()
-        return
 
     def TransferToWindow(self):
         return True

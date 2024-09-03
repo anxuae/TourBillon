@@ -2,8 +2,8 @@
 
 """Return a list of matches in growing order of team numbers"""
 
-from tourbillon.core import cst
-from tourbillon.core.draws.utils import BaseThreadTirage, creer_manches, tri_stat
+from .. import cst
+from .utils import BaseThreadTirage, creer_manches, tri_stat
 
 
 class ThreadTirage(BaseThreadTirage):
