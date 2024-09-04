@@ -41,8 +41,8 @@ def dernieres_equipes(statistiques, n=1):
     """
     r = []
     d = tri_stat(statistiques, 'place')
-    places = d.keys()
-    places.sort()
+    places = sorted(d.keys())
+
     for p in places:
         r += d[p]
 

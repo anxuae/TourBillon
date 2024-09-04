@@ -28,8 +28,8 @@ TourBillon
 ==========
 
 Tourbillon is free software (distributed under LPG license) which makes it possible to organize the
-Billons tournaments. This software is a **Swiss-style Tournament Manager** for teams of one or more
-player(s).
+`Billons tournaments <https://www.facebook.com/labillonniere>`_.
+This software is a **Swiss-style Tournament Manager** for teams of one or more player(s).
 
 Swiss-style tournaments generally have three rules:
  - Teams are paired with opponents who have similar scores.

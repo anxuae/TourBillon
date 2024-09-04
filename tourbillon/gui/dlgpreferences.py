@@ -568,7 +568,7 @@ class TirageSousPageParametre(wx.Panel):
         for vtype, classes in self.EDITEURS.items():
             if isinstance(self.grille.GetCellEditor(ligne, 1), classes[0]):
                 return vtype
-        return unicode
+        return str
 
     def donnees(self):
         """

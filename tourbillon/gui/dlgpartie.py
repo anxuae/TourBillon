@@ -478,14 +478,14 @@ class GrilleManchesCtrl(grid.Grid):
                 self.chg_texte(ligne, "!!! L'équipe n°%s a déjà été chapeau." % deja_ete_chapeau[0])
             elif len(deja_ete_chapeau) > 1:
                 attention = True
-                self.chg_texte(ligne, "!!! Les équipes n°%s ont déjà été chapeaux." % ", ".join(map(unicode, deja_ete_chapeau)))
+                self.chg_texte(ligne, "!!! Les équipes n°%s ont déjà été chapeaux." % ", ".join([str(i) for i in deja_ete_chapeau]))
             else:
                 self.chg_texte(ligne, "")
         else:
             # Pour chaque ligne, afficher si des équipes se sont déjà rencontrées.
             rencontre_faite = False
             rencontres = []
-            manche.sort()
+            manche = sorted(manche)
 
             for num in manche:
                 for manche_prec in self.statistiques[num]['manches']:
@@ -507,7 +507,7 @@ class GrilleManchesCtrl(grid.Grid):
                 if rencontre_faite:
                     texte = "!!! Cette manche a déjà eu lie"
                 else:
-                    texte = "!!! Les rencontres suivantes ont déjà eu lieu: %s" % ", ".join(map(unicode, rencontres))
+                    texte = "!!! Les rencontres suivantes ont déjà eu lieu: %s" % ", ".join([str(i) for i in rencontres])
                 self.chg_texte(ligne, texte)
             else:
                 self.chg_texte(ligne, "")

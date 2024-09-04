@@ -96,7 +96,6 @@ def test_ajout_joueurs(trb2e2j, numero, joueurs):
         j = e.ajout_joueur(joueur[0], joueur[1], joueur[2])
         assert j.prenom == joueur[0]
         assert j.nom == joueur[1]
-        assert j.age == joueur[2]
     assert e.statut == cst.E_ATTEND_TIRAGE
 
 
@@ -241,5 +240,4 @@ def test_nom_prenom_joueurs():
             eq_ref = EQUIPES[equipe.numero]
             assert joueur.prenom == eq_ref[ind_joueur][0]
             assert joueur.nom == eq_ref[ind_joueur][1]
-            assert joueur.age == eq_ref[ind_joueur][2]
             ind_joueur += 1

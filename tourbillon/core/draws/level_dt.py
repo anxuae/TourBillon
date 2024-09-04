@@ -255,8 +255,7 @@ def select_chapeau(parametres, statistiques):
     for equipe in equipes:
         stat[equipe] = statistiques[equipe]
     d = tri_stat(stat, cst.STAT_CHAPEAUX)
-    cle_tri = d.keys()
-    cle_tri.sort()
+    cle_tri = sorted(d.keys())
 
     if parametres['redondance'] == True:
         # Tirage aléatoire parmis les moins chapeau des n dernières équipes

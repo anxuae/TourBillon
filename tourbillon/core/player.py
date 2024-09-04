@@ -2,9 +2,10 @@
 
 """Player class definition"""
 
+import difflib
+import atexit
 import os.path as osp
 from datetime import datetime
-import atexit
 
 from ..config import Singleton
 
@@ -27,6 +28,9 @@ class PlayerHistory(metaclass=Singleton):
         self.history = {}
         if filename:
             self.load(filename)
+
+        # Save history before exit
+        atexit.register(self.save)
 
     @classmethod
     def make_history_key(cls, prenom: str, nom: str) -> str:
@@ -59,14 +63,11 @@ class PlayerHistory(metaclass=Singleton):
 
         self.filename = osp.abspath(filename)
 
-        # Save history before exit
-        atexit.register(self.save)
-
     def save(self):
         """
         Save history file.
         """
-        if self.history:
+        if self.history and self.filename:
             ids = sorted(self.history.keys())
             with open(self.filename, 'w', encoding='utf-8') as fp:
                 for player_id in ids:
@@ -82,12 +83,12 @@ class PlayerHistory(metaclass=Singleton):
             return self.history[history_key]
         return self.history.get(history_key, default)
 
-    def add(self, prenom: str, nom: str, age: int, date: str) -> str:
+    def add(self, prenom: str, nom: str, date: str) -> str:
         """
         Add new history entry and retrun the associated history key.
         """
         history_key = self.make_history_key(prenom, nom)
-        self.history.setdefault(history_key, []).append([prenom, nom, str(age), date])
+        self.history.setdefault(history_key, []).append([prenom, nom, "", date])
         return history_key
 
     def remove(self, history_key: str):
@@ -96,84 +97,51 @@ class PlayerHistory(metaclass=Singleton):
         """
         return self.history.pop(history_key, None)
 
-    def complete(self, firstname, lastname=''):
+    def complete(self, firstname, lastname='', n=3):
         """
         Find best match for given player firstname/lastname.
         """
-        debut_id = self.make_history_key(firstname, lastname)
-        if debut_id.endswith('_'):
-            debut_id = debut_id[:-1]
-
-        joueur_ids = self._dichotomie(debut_id)
-
-        if joueur_ids is None:
-            return []
-        else:
-            l = []
-            map(l.extend, [self.history[ji] for ji in joueur_ids])
-            return l
-
-    def _dichotomie(self, texte):
-        match = []
-        if self.history and texte != '':
-            ids = sorted(self.history.keys())
-            debut, fin = 0, len(self.history) - 1
-            while debut <= fin:
-                milieu = (debut + fin) // 2
-                if ids[milieu].startswith(texte):
-                    trouve = milieu
-                    # L'élément du milieu de la liste correspond
-                    while milieu >= 0 and ids[milieu].startswith(texte):
-                        # Recherche du premier element correspondant
-                        match.append(ids[milieu])
-                        milieu -= 1
-                    milieu = trouve + 1
-                    while milieu >= 0 and ids[milieu].startswith(texte):
-                        # Recherche du dernier element correspondant
-                        match.append(ids[milieu])
-                        milieu += 1
-                    return match
-                elif texte < ids[milieu]:
-                    # Recherche avant le milieu
-                    fin = milieu - 1
-                else:
-                    # Recherche après le milieu
-                    debut = milieu + 1
+        search_key = self.make_history_key(firstname, lastname)
+        matches = []
+        for key in difflib.get_close_matches(search_key, self.history.keys(), n=n, cutoff=0.65):
+            if key == search_key:
+                return self.history[key]
+            matches.extend(self.history[key])
+        return matches
 
 
 class Player:
 
-    def __init__(self, prenom, nom, age, date_ajout=None):
+    def __init__(self, prenom, nom, date_ajout=None):
         self.data = []
-        self._update(prenom, nom, age, date_ajout)
+        self._update(prenom, nom, date_ajout)
 
     def __str__(self):
         return f"{self.data[1]} {self.data[2]}"
 
     def __eq__(self, other):
         if isinstance(other, Player):
-            comparateur = other.cle()
+            comparateur = other.key
         else:
             comparateur = str(other)
-        if self.cle() == comparateur:
+        if self.key == comparateur:
             return True
         else:
             return False
 
     def __ne__(self, other):
         if isinstance(other, Player):
-            comparateur = other.cle()
+            comparateur = other.key
         else:
             comparateur = str(other)
-        if self.cle() != comparateur:
+        if self.key != comparateur:
             return True
         else:
             return False
 
-    def _update(self, prenom=None, nom=None, age=None, date_modification=None):
+    def _update(self, prenom=None, nom=None, date_modification=None):
         new_prenom = prenom if prenom is not None else self.prenom
         new_nom = nom if nom is not None else self.nom
-        new_age = age if age is not None else self.age
         if date_modification is not None:
             if isinstance(date_modification, str):
                 date_modification = datetime.strptime(date_modification, '%d/%m/%Y')
@@ -183,17 +151,17 @@ class Player:
 
         date = None
         hist = PlayerHistory()
-        if self.data and hist.get(self.cle(), None):
+        if self.data and hist.get(self.key, None):
             # Remove previous ID if exists
             i = 0
             index = None
-            for donnee in hist.get(self.cle()):
+            for donnee in hist.get(self.key):
                 if donnee[0] == self.data[1] and donnee[1] == self.data[2]:
                     index = i
                     break
                 i += 1
             if index is not None:
-                old_data = hist.get(self.cle()).pop(index)
+                old_data = hist.get(self.key).pop(index)
                 # If a date is given, keep the oldest
                 # by comparing with that of the history (allows
                 # to create a history by loading history files)
@@ -205,10 +173,11 @@ class Player:
         elif date is None:
             date = datetime.now().strftime('%d/%m/%Y')
 
-        new_history_key = hist.add(new_prenom, new_nom, new_age, date)
-        self.data = [new_history_key, new_prenom, new_nom, new_age]
+        new_history_key = hist.add(new_prenom, new_nom, date)
+        self.data = [new_history_key, new_prenom, new_nom]
 
-    def cle(self):
+    @property
+    def key(self):
         """
         Text without special characters representing the player.
         Note: the key may not be unique
@@ -242,17 +211,3 @@ class Player:
         Set the player lastname.
         """
         self._update(nom=value)
-
-    @property
-    def age(self) -> int:
-        """
-        Return the player age.
-        """
-        return self.data[3]
-
-    @age.setter
-    def age(self, value: int) -> None:
-        """
-        Set the player age.
-        """
-        self._update(age=value)

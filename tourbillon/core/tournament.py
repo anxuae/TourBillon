@@ -80,7 +80,7 @@ def enregistrer_tournoi(fichier=None):
                 y['inscription'][equipe.numero] = []
                 y['jokers'][equipe.numero] = equipe.joker
                 for joueur in equipe.joueurs():
-                    y['inscription'][equipe.numero].append([joueur.prenom, joueur.nom, joueur.age])
+                    y['inscription'][equipe.numero].append([joueur.prenom, joueur.nom])
             yaml.dump(y, fp, default_flow_style=False)
 
             # Info parties
@@ -124,7 +124,7 @@ def charger_tournoi(fichier):
         for num in y['inscription']:
             equipe = TOURNOI.ajout_equipe(num, y.get('jokers', {}).get(num, 0))
             for joueur in y['inscription'][num]:
-                equipe.ajout_joueur(joueur[0], joueur[1], joueur[2], TOURNOI.debut)
+                equipe.ajout_joueur(joueur[0], joueur[1], TOURNOI.debut)
 
         # Info parties
         for num in y['parties']:

@@ -19,7 +19,7 @@ PARTIES_1 = [{'points': 12, 'etat': GAGNE, 'debut': datetime(2010, 6, 20, 12), '
              {'points': 10, 'etat': PERDU, 'debut': datetime(2010, 6, 20, 16), 'duree': timedelta(0, 2500), 'adversaires': [5]}]
 
 
-JOUEURS_1 = [("Guillaume", "Cuicui", "27"), ("Thomas", "Rourou", "28")]
+JOUEURS_1 = [("Guillaume", "Cuicui"), ("Thomas", "Rourou")]
 
 # Statistiques après chaque fin de partie
 STATISTIQUES_1 = [{'adversaires': [4], 'points': 12, 'chapeaux': 0, 'victoires': 1, 'parties': 1, 'forfaits': 0,
@@ -53,7 +53,7 @@ PARTIES_2 = [{'points': 9, 'etat': PERDU, 'debut': datetime(2010, 6, 20, 12), 'd
              {'points': 5, 'etat': PERDU, 'debut': datetime(2010, 6, 20, 16), 'duree': timedelta(0, 1050), 'adversaires': [9]}]
 
 
-JOUEURS_2 = [("Christophe", "Dudu", "35"), ("Christophe", "Rourou", "31")]
+JOUEURS_2 = [("Christophe", "Dudu"), ("Christophe", "Rourou")]
 
 # Statistiques après chaque fin de partie
 STATISTIQUES_2 = [{'adversaires': [8], 'points': 9, 'chapeaux': 0, 'victoires': 0, 'parties': 1, 'forfaits': 0,
@@ -88,7 +88,7 @@ PARTIES_4 = [{'points': 7, 'etat': PERDU, 'debut': datetime(2010, 6, 20, 12), 'd
              {'points': 8, 'etat': PERDU, 'debut': datetime(2010, 6, 20, 16), 'duree': timedelta(0, 1800), 'adversaires': [8]}]
 
 
-JOUEURS_4 = [("Jean-Philipe", "Rourou", "22"), ("Erwan", "Rourou", "20")]
+JOUEURS_4 = [("Jean-Philipe", "Rourou"), ("Erwan", "Rourou")]
 
 # Statistiques après chaque fin de partie
 STATISTIQUES_4 = [{'adversaires': [1], 'points': 7, 'chapeaux': 0, 'victoires': 0, 'parties': 1, 'forfaits': 0,
@@ -123,7 +123,7 @@ PARTIES_5 = [{'points': 12, 'etat': GAGNE, 'debut': datetime(2010, 6, 20, 12), '
              {'points': 13, 'etat': GAGNE, 'debut': datetime(2010, 6, 20, 16), 'duree': timedelta(0, 2500), 'adversaires': [1]}]
 
 
-JOUEURS_5 = [("Marie", "Rourou", "25"), ("Anaïs", "Gaga", "24")]
+JOUEURS_5 = [("Marie", "Rourou"), ("Anaïs", "Gaga")]
 
 # Statistiques après chaque fin de partie
 STATISTIQUES_5 = [{'adversaires': [9], 'points': 12, 'chapeaux': 0, 'victoires': 1, 'parties': 1, 'forfaits': 0,
@@ -158,7 +158,7 @@ PARTIES_8 = [{'points': 12, 'etat': GAGNE, 'debut': datetime(2010, 6, 20, 12), '
              {'points': 12, 'etat': GAGNE, 'debut': datetime(2010, 6, 20, 16), 'duree': timedelta(0, 1800), 'adversaires': [4]}]
 
 
-JOUEURS_8 = [("Thibaut", "Cuicui", "24"), ("Antoine", "Rourou", "26")]
+JOUEURS_8 = [("Thibaut", "Cuicui"), ("Antoine", "Rourou")]
 
 # Statistiques après chaque fin de partie
 STATISTIQUES_8 = [{'adversaires': [2], 'points': 12, 'chapeaux': 0, 'victoires': 1, 'parties': 1, 'forfaits': 0,
@@ -192,7 +192,7 @@ PARTIES_9 = [{'points': 10, 'etat': PERDU, 'debut': datetime(2010, 6, 20, 12), '
              {'points': 12, 'etat': GAGNE, 'debut': datetime(2010, 6, 20, 16), 'duree': timedelta(0, 1050), 'adversaires': [2]}]
 
 
-JOUEURS_9 = [("Jean-Louis", "Gaugau", "35"), ("Carole", "Rourou", "33")]
+JOUEURS_9 = [("Jean-Louis", "Gaugau"), ("Carole", "Rourou")]
 
 # Statistiques après chaque fin de partie
 STATISTIQUES_9 = [{'adversaires': [5], 'points': 10, 'chapeaux': 0, 'victoires': 0, 'parties': 1, 'forfaits': 0,

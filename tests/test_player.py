@@ -4,37 +4,42 @@ from datetime import datetime
 from tourbillon.core import player
 
 DATE = datetime.now()
+PLAYER1 = ["Toto", "LeRigolo", "", DATE.strftime('%d/%m/%Y')]
+PLAYER2 = ["Tata", "LeRigolo", "", DATE.strftime('%d/%m/%Y')]
+PLAYER3 = ["Toto", "LéRigolo", "", DATE.strftime('%d/%m/%Y')]
 
 
 def test_create_player():
-    p = player.Player("Toto", "LeRigolo", 12, DATE)
-
-    assert p.prenom == "Toto"
-    assert p.nom == "LeRigolo"
-    assert p.age == 12
+    p = player.Player(PLAYER1[0], PLAYER1[1], DATE)
+    assert p.prenom == PLAYER1[0]
+    assert p.nom == PLAYER1[1]
 
 
 def test_change_player():
-    p = player.Player("Tutu", "LeRigolo", 12, DATE)
+    p = player.Player("Tutu", "LeRigolo", DATE)
 
-    p.prenom = "Tata"
-    assert p.prenom == "Tata"
+    p.prenom = PLAYER2[0]
+    assert p.prenom == PLAYER2[0]
 
-    p.nom = "LeRigolo"
-    assert p.nom == "LeRigolo"
+    p.nom = PLAYER2[1]
+    assert p.nom == PLAYER2[1]
 
-    p.age = 20
-    assert p.age == 20
+
+def test_history_singleton(players_history):
+    assert players_history == player.PlayerHistory()
+    assert players_history.filename == player.PlayerHistory().filename
 
 
 def test_history(players_history):
-    assert players_history.get("toto_lerigolo") == [["Toto", "LeRigolo", "12", DATE.strftime('%d/%m/%Y')]]
+    assert players_history.get("toto_lerigolo") == [PLAYER1]
+    assert players_history.get("tutu_lerigolo") == []
 
 
 def test_duplicate_history_key(players_history):
-    player.Player("Toto", "LéRigolo", 24, DATE)
+    player.Player(PLAYER3[0], PLAYER3[1], DATE)
+    assert players_history.get("toto_lerigolo") == [PLAYER1, PLAYER3]
 
-    assert players_history.get("toto_lerigolo") == [
-        ["Toto", "LeRigolo", "12", DATE.strftime('%d/%m/%Y')],
-        ["Toto", "LéRigolo", "24", DATE.strftime('%d/%m/%Y')]
-    ]
+
+def test_history_complete(players_history):
+    assert players_history.complete("Tata", "LeRigolo") == [PLAYER2]
+    assert players_history.complete("Ta", "LeRigolo") == [PLAYER2, PLAYER1, PLAYER3]

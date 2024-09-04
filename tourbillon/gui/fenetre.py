@@ -500,11 +500,13 @@ class FenetrePrincipale(wx.Frame):
             return equipe
 
         while ret == wx.ID_OK:
-            dlg = dlgeq.DialogueEquipe(self, dlgeq.STYLE_AJOUTER, numero_affiche=tournament.tournoi(
-            ).generer_numero_equipe(), completion=self.config.get_typed('TOURNOI', 'joueur_completion'))
+            dlg = dlgeq.DialogueEquipe(self, dlgeq.STYLE_AJOUTER,
+                                       numero_affiche=tournament.tournoi().generer_numero_equipe(),
+                                       completion=self.config.get_typed('TOURNOI', 'joueur_completion'))
             ret = dlg.ShowModal()
             info = dlg.donnees()
             dlg.Destroy()
+            print(info)
 
             if ret == wx.ID_OK:
 

@@ -169,8 +169,7 @@ class Environement:
         la population. Le pourcentage donné par 'taux_elite' indique la probabilité
         de choisir l'élite parmi l'échantillon.
         """
-        competitors = [random.choice(self.population) for _i in range(taille)]
-        competitors.sort()
+        competitors = sorted([random.choice(self.population) for _i in range(taille)])
         if random.random() < taux_elite:
             return competitors[0]
         else:
@@ -180,7 +179,7 @@ class Environement:
         return self._tournoi()
 
     def pas(self):
-        self.population.sort()
+        self.population = sorted(self.population)
         next_population = [self.elite.copier()]
 
         while len(next_population) < self.taille:
@@ -216,8 +215,7 @@ def select_chapeau(parametres, statistiques):
     for equipe in equipes:
         stat[equipe] = statistiques[equipe]
     d = tri_stat(stat, 'chapeaux')
-    cle_tri = d.keys()
-    cle_tri.sort()
+    cle_tri = sorted(d.keys())
 
     if parametres['redondance'] == True:
         # Tirage aléatoire parmis les moins chapeau des n dernières équipes
@@ -274,7 +272,7 @@ def comanche(parametres, statistiques, manche):
 
     (la disparité est incluse dans le terme "kv * (max_nv - min_nv)")
     """
-    manche.sort()
+    manche = sorted(manche)
     pts = []
     nv = []
     for equipe in manche:

@@ -26,7 +26,7 @@ class EntrerScore(wx.Panel):
             self.ctl_numero.SetBackgroundColour(wx.Colour(220, 220, 220))
             self.combo = False
         else:
-            self.ctl_numero = wx.Choice(self, dlgeq.ID_NUMERO, choices=map(unicode, choix))
+            self.ctl_numero = wx.Choice(self, dlgeq.ID_NUMERO, choices=[str(i) for i in choix])
             self.combo = True
 
         self.ctl_numero.SetMinSize(wx.Size(70, 22))

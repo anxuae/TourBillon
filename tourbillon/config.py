@@ -138,6 +138,9 @@ class TypedConfigParser(configparser.SafeConfigParser, metaclass=Singleton):
         if osp.isfile(self.filename) and load:
             self.load(self.filename)
 
+        # Save config before exit
+        atexit.register(self.save)
+
     def load(self, filename: str):
         """
         Load configuration from file.
@@ -175,16 +178,15 @@ class TypedConfigParser(configparser.SafeConfigParser, metaclass=Singleton):
         if self.get('INTERFACE', 'image'):
             self.set('INTERFACE', 'image', osp.abspath(osp.expanduser(self.get('INTERFACE', 'image'))))
 
-        # Save config before exit
-        atexit.register(self.save)
         return self
 
     def save(self) -> None:
         """
         Save the current or default values into the configuration file.
         """
-        with open(self.filename, 'w', encoding='utf-8') as fp:
-            self.write(fp)
+        if self.filename:
+            with open(self.filename, 'w', encoding='utf-8') as fp:
+                self.write(fp)
 
     def get_options(self, section: str, typed: bool = True, upper_keys: bool = False) -> dict:
         """

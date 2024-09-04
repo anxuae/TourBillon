@@ -169,19 +169,18 @@ class Team:
         """
         return self._liste_joueurs
 
-    def ajout_joueur(self, prenom, nom, age='', date=None):
+    def ajout_joueur(self, prenom: str, nom: str, date=None):
         """
         Ajouer un joueur dans l'équipe.
 
         prenom (str)
         nom (str)
-        age (str)
         date (str)  : la date actuelle est utilisée par defaut
         """
         if self.tournoi.joueurs_par_equipe < len(self._liste_joueurs) + 1:
             raise BoundError("Il ne peut y avoir plus de %s joueurs par équipe." % self.tournoi.joueurs_par_equipe)
 
-        j = Player(prenom, nom, str(age), date_ajout=date)
+        j = Player(prenom, nom, date_ajout=date)
         self._liste_joueurs.append(j)
         self.tournoi.modifie = True
         return j
@@ -191,7 +190,7 @@ class Team:
         Suppression de tous les joueurs de l'équipe.
         """
         for joueur in self._liste_joueurs:
-            PlayerHistory().remove(joueur.cle())
+            PlayerHistory().remove(joueur.key)
         self._liste_joueurs = []
         self.tournoi.modifie = True
 
@@ -251,8 +250,7 @@ class Team:
         l = []
         for m in self._resultats[:partie_limite]:
             if m.etat in [cst.GAGNE, cst.PERDU]:
-                manche = m.adversaires + [self.numero]
-                manche.sort()
+                manche = sorted(m.adversaires + [self.numero])
                 l.append(manche)
 
         return l

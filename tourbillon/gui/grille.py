@@ -75,9 +75,9 @@ def unicode_timedelta(timedelta):
     heures, reste = divmod(timedelta.seconds, 3600)
     minutes, secondes = divmod(reste, 60)
     if jours == 0:
-        return u'%02d:%02d:%02d' % (heures, minutes, secondes)
+        return '%02d:%02d:%02d' % (heures, minutes, secondes)
     else:
-        return u'%sj %02d:%02d:%02d' % (jours, heures, minutes, secondes)
+        return '%sj %02d:%02d:%02d' % (jours, heures, minutes, secondes)
 
 
 class Grille(wx.BoxSizer):

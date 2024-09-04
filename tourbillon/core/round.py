@@ -280,8 +280,7 @@ class Round:
             raise StatusError("La partie n°%s n'est pas commencée." % self.numero)
 
         # Vérification de l'existance de la manche
-        manche = resultat_manche.keys()
-        manche.sort()
+        manche = sorted(resultat_manche.keys())
 
         if manche not in self.manches():
             raise ResultError("La manche '%s' n'existe pas." % (manche))

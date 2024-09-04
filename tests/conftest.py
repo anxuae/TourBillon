@@ -37,7 +37,7 @@ def cfg(tmpfile):
     return config.TypedConfigParser(tmpfile('config'))
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope='session', autouse=True)
 def players_history(tmpfile):
     return player.PlayerHistory(tmpfile('history'))
 

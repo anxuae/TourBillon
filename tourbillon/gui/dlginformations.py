@@ -548,8 +548,8 @@ class GrilleResultats(Grille):
             m = equipe.resultat(self.tournoi.partie_courante().numero)
             if m.etat != cst.FORFAIT:
                 l.append(equipe.numero)
-        l.sort()
-        l = ListeCyclique(l, self.nombre_lignes_max)
+
+        l = ListeCyclique(sorted(l), self.nombre_lignes_max)
         if l != self._liste:
             self._liste = l
 
@@ -734,9 +734,8 @@ class DialogueInformations(wx.Dialog):
                     m = equipe.resultat(tournament.tournoi().partie_courante().numero)
                     if m.etat != cst.FORFAIT:
                         l.append([equipe.numero] + m.adversaires)
-                l.sort()
 
-                self.gri_tirages.maj_grille(l, self.grille_lignes, self.grille_police, self.grille_defilement_vertical)
+                self.gri_tirages.maj_grille(sorted(l), self.grille_lignes, self.grille_police, self.grille_defilement_vertical)
                 self.txt_interlude.Show(False)
                 self.gri_tirages.Show(True)
                 self.gri_resultats.Show(False)

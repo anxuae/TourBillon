@@ -12,8 +12,8 @@ from ..exception import DrawResultError
 
 def select_chapeau(statistiques, redondance):
     d = tri_stat(statistiques, 'chapeaux')
-    cle_tri = d.keys()
-    cle_tri.sort()
+    cle_tri = sorted(d.keys())
+
     if redondance:
         moins_chapeaux = d[cle_tri[0]]
         num = random.choice(moins_chapeaux)
