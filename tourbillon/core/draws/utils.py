@@ -30,7 +30,7 @@ def tri_stat(statistiques, caracteristique):
 
 def nb_chapeaux_necessaires(nb_equipes, nb_par_manche):
     if nb_equipes < nb_par_manche:
-        raise DrawError("Pas assez d'équipes (nb équipes: %s, nb par manche: %s)" % (nb_equipes, nb_par_manche))
+        raise DrawError(f"Not enough teams (nb teams: {nb_equipes}, nb required by match: {nb_par_manche})")
     else:
         return nb_equipes % nb_par_manche
 
@@ -184,7 +184,7 @@ class NonValide:
         elif v == NV_REDONDANCE.raison() | NV_DISPARITE.raison():
             return NonValide(redondance=1, disparite=2)
         else:
-            raise TypeError("unsupported operand type(s) for |: '%s' and '%s'" % (type(self), type(other)))
+            raise TypeError(f"Unsupported operand type(s) for |: '{type(self)}' and '{type(other)}'")
 
     __ror__ = __or__
 
@@ -205,7 +205,7 @@ class BaseThreadTirage(Thread):
     def __init__(self, equipes_par_manche, statistiques, chapeaux=[], callback=None):
         Thread.__init__(self)
         if self.__class__ == BaseThreadTirage:
-            raise NotImplementedError("Classe abstraite")
+            raise NotImplementedError("Abstract class")
 
         self._stop = Event()
         self._progression = 0
@@ -228,7 +228,7 @@ class BaseThreadTirage(Thread):
 
     def _arret_utilisateur(self):
         if self._stop.isSet() == True:
-            raise DrawStopError("Arrêt demmandé par l'utilisateur.")
+            raise DrawStopError("Abort requested by user")
 
     def configurer(self, **kwargs):
         self.config.update(kwargs)
@@ -275,7 +275,7 @@ class BaseThreadTirage(Thread):
         Cette methode DOIT être surchargée. Elle démarre l'algorithme
         de tirage.
         """
-        raise NotImplementedError('Cette methode DOIT être surchargée')
+        raise NotImplementedError('Method SHALL be overridden')
 
     def rapport(self, valeur=-1, message=None):
         """

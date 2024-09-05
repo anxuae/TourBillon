@@ -11,29 +11,29 @@ def test_status(part3e2j, debut=None, manches=[], equipes=[], chapeaux=[],
     assert part3e2j.debut() == debut
     assert part3e2j.manches() == manches
     assert [eq.numero for eq in part3e2j.equipes()] == equipes
-    assert part3e2j.chapeaux() == chapeaux
-    assert part3e2j.forfaits() == forfaits
+    assert [eq.numero for eq in part3e2j.chapeaux()] == chapeaux
+    assert [eq.numero for eq in part3e2j.forfaits()] == forfaits
     assert [eq.numero for eq in part3e2j.equipes_incompletes()] == incompletes
-    assert part3e2j.piquets() == piquets
+    assert part3e2j.locations() == piquets
 
 
 def test_demarrer(part3e2j):
     assert part3e2j.statut == cst.P_ATTEND_TIRAGE
     assert part3e2j.nb_equipes() == 0
-    assert part3e2j.piquet_est_disponible(11) == True
+    assert part3e2j.is_location_available(11) == True
 
     part3e2j.demarrer({11: [1, 2]})
     assert part3e2j.statut == cst.P_EN_COURS
     assert part3e2j.nb_equipes() == 2
-    assert part3e2j.piquet_est_disponible(11) == False
+    assert part3e2j.is_location_available(11) == False
 
     debut = part3e2j.equipes()[0].resultat(part3e2j.numero).debut
     test_status(part3e2j, debut, manches=[[1, 2]], equipes=[1, 2, 3],
                 forfaits=[3], incompletes=[1, 2], piquets=[11])
 
 
-def test_raz(part3e2j):
-    part3e2j.raz()
+def test_delete(part3e2j):
+    part3e2j.delete()
     test_status(part3e2j)
 
 
@@ -41,7 +41,7 @@ def test_demarrer_avec_chapeau(part3e2j):
     part3e2j.demarrer({1: [3, 2]}, [1])
     assert part3e2j.statut == cst.P_EN_COURS
     assert part3e2j.nb_equipes() == 2
-    assert part3e2j.piquet_est_disponible(11) == True
+    assert part3e2j.is_location_available(11) == True
 
     debut = part3e2j.equipes()[0].resultat(part3e2j.numero).debut
     test_status(part3e2j, debut, manches=[[2, 3]], equipes=[1, 2, 3], chapeaux=[1],
@@ -49,7 +49,7 @@ def test_demarrer_avec_chapeau(part3e2j):
 
 
 def test_resultat(part3e2j):
-    part3e2j.resultat({3: 12, 2: 9})
+    part3e2j.add_result({3: 12, 2: 9})
     assert part3e2j.statut == cst.P_COMPLETE
 
     debut = part3e2j.equipes()[0].resultat(part3e2j.numero).debut
@@ -66,7 +66,7 @@ def test_equipe_apres_demarrage(part3e2j):
     test_status(part3e2j, debut, manches=[[2, 3]], equipes=[1, 2, 3], chapeaux=[1],
                 forfaits=[], incompletes=[], piquets=[1])
 
-    part3e2j.ajout_equipe(eq, cst.CHAPEAU)
+    part3e2j.add_team(eq, cst.CHAPEAU)
     assert part3e2j.statut == cst.P_EN_COURS
     assert part3e2j.nb_equipes() == 4
 

@@ -23,10 +23,10 @@ SPECIAL_CHAR = {'é': 'e',
 
 class PlayerHistory(metaclass=Singleton):
 
-    def __init__(self, filename=None):
+    def __init__(self, filename=None, load=True):
         self.filename = None
         self.history = {}
-        if filename:
+        if filename and load:
             self.load(filename)
 
         # Save history before exit
@@ -111,6 +111,9 @@ class PlayerHistory(metaclass=Singleton):
 
 
 class Player:
+    """
+    Class which represent a player for a tournament.
+    """
 
     def __init__(self, prenom, nom, date_ajout=None):
         self.data = []
@@ -139,15 +142,14 @@ class Player:
         else:
             return False
 
-    def _update(self, prenom=None, nom=None, date_modification=None):
+    def _update(self, prenom: str = None, nom: str = None, date_modification=None):
         new_prenom = prenom if prenom is not None else self.prenom
         new_nom = nom if nom is not None else self.nom
         if date_modification is not None:
             if isinstance(date_modification, str):
                 date_modification = datetime.strptime(date_modification, '%d/%m/%Y')
             elif not isinstance(date_modification, datetime):
-                raise TypeError(
-                    f"'{date_modification}' doit être de type 'datetime' ou une chaine de format '%d/%m/%Y'")
+                raise TypeError(f"'{date_modification}' shall be 'datetime' or '%d/%m/%Y' string formated")
 
         date = None
         hist = PlayerHistory()

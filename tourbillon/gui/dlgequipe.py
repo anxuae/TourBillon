@@ -263,7 +263,7 @@ class DialogueEquipe(wx.Dialog):
         self.btn_ok = wx.Button(self, id=wx.ID_OK, label=style, size=(100, -1))
         self.btn_ok.SetDefault()
         self.btn_cancel = wx.Button(self, id=wx.ID_CANCEL, label="Annuler", size=(100, -1))
-        box_btn = wx.StdDialogButtonSizer()
+        box_btn = wx.BoxSizer(wx.HORIZONTAL)
         box_btn.Add(self.btn_gen, 0, wx.WEST | wx.ALIGN_CENTER_VERTICAL, 15)
         box_btn.Add(self.spin_joker, 0, wx.WEST | wx.ALIGN_CENTER_VERTICAL)
         box_btn.Add((50, 50), 1, wx.EXPAND)

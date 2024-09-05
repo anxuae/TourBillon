@@ -357,7 +357,8 @@ class ThreadTirage(BaseThreadTirage):
                 # Réinitialisation de la liste des équipes disponibles avant le début de
                 # l'algorithme moins les équipes définitivement tirées
                 equipes_disponibles = self.statistiques.keys()
-                map(equipes_disponibles.remove, creer_liste(self.tirage))
+                for num in creer_liste(self.tirage):
+                    equipes_disponibles.remove(num)
 
                 # Réinitialisation de la liste temporaire
                 tirage_temp = []
@@ -382,12 +383,14 @@ class ThreadTirage(BaseThreadTirage):
                         raise DrawResultError(156, "")
 
                 # Ces rencontres sont tirées une fois pour toute
-                map(equipes_disponibles.remove, manche)
+                for num in manche:
+                    equipes_disponibles.remove(num)
                 self.tirage.append(manche)
             else:
                 # Ajout à la liste temporaire qui sera à effacer si une erreur est trouvée
                 # (équipe sans solution)
-                map(equipes_disponibles.remove, manche)
+                for num in manche:
+                    equipes_disponibles.remove(num)
                 tirage_temp.append(manche)
                 # 30% attribué au choix des équipes
                 self.rapport(70 + (len(self.tirage) * self.equipes_par_manche + len(tirage_temp) * self.equipes_par_manche +

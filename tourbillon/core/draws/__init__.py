@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-
 
-"""Définitions des équipes."""
+"""Draws collection"""
 
 import os
 import sys
@@ -22,21 +22,17 @@ for filename in os.listdir(HERE):
         TIRAGES[module.ThreadTirage.NOM] = module.ThreadTirage
 
 
-def creer_generateur(algorithme, equipes_par_manche, statistiques, chapeaux=[], callback=None):
-    """Crée un nouveau générateur de tirage (objet Thread). Le tirage est
-    configuré avec ses parametes par defaut, la methode 'configurer' du générateur
-    permet de les mettre à jour.
-
-    algorithme (str)          : nom de l'algorithme à utiliser
-    equipes_par_manche (int)  : nombre d'équipe dans une manche (i.e. nb adversaires)
-    statistiques (dict)       : données de toutes les parties précédentes
-    chapeaux (list)           : liste des équipes à mettre au chapeaux si besoin
-                                (par défaut vide pour choix automatique)
-    callback (callable)       : fonction à appeler après la fin de la génération
-                                du tirage (par défaut vide)
+def build(name: str, teams_by_match: int, all_rounds_data: dict, bye_teams: list = (), callback=None):
     """
-    if algorithme not in TIRAGES:
-        raise DrawError("Categorie de tirage '%s' inconnue." % algorithme)
+    Create a new draw generator (Thread object). The draw is configured with its default
+    parameters. The "configure" method of the generator allows them to be updated.
 
-    # Création thread tirage
-    return TIRAGES[algorithme](equipes_par_manche, statistiques, chapeaux, callback)
+    :param name: name of the algorithm to use
+    :param teams_by_match: number of teams in a match (i.e. nb opponents)
+    :param all_rounds_data: data from all previous rounds
+    :param bye_teams: list of teams to be set as BYE if necessary (let empty for automatic choice)
+    :param callback: function to call after the end of the draw generation
+    """
+    if name not in TIRAGES:
+        raise DrawError(f"Unknown draw name '{name}'")
+    return TIRAGES[name](teams_by_match, all_rounds_data, bye_teams, callback)

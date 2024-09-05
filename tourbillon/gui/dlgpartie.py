@@ -37,14 +37,16 @@ def ajout_page_titre(wizPg, titre):
 class DialogueSupprimerPartie(wx.Dialog):
 
     def __init__(self, parent, choix=[], numero_affiche=1):
-        wx.Dialog.__init__(self, parent, wx.ID_ANY, title="Supprimer une partie", style=wx.DEFAULT_DIALOG_STYLE, pos=wx.DefaultPosition, size=wx.DefaultSize)
+        wx.Dialog.__init__(self, parent, wx.ID_ANY, title="Supprimer une partie",
+                           style=wx.DEFAULT_DIALOG_STYLE, pos=wx.DefaultPosition, size=wx.DefaultSize)
         self.SetMinSize((500, 150))
         self.SetSize(wx.Size(500, 140))
 
         self.txt_phrase0 = wx.StaticText(self, wx.ID_ANY, "Etes vous sûr de vouloir supprimer la partie n° ")
-        self.ctl_numero = wx.Choice(self, wx.ID_ANY, choices=map(str, choix))
+        self.ctl_numero = wx.Choice(self, wx.ID_ANY, choices=[str(i) for i in choix])
         self.txt_phrase1 = wx.StaticText(self, wx.ID_ANY, " ?")
-        self.txt_phrase2 = wx.StaticText(self, wx.ID_ANY, "(Attention, toutes les données de la partie seront supprimées)")
+        self.txt_phrase2 = wx.StaticText(
+            self, wx.ID_ANY, "(Attention, toutes les données de la partie seront supprimées)")
         self.ctl_numero.SetSelection(self.ctl_numero.FindString(str(numero_affiche)))
 
         # Choix
@@ -80,9 +82,11 @@ class DialogueSupprimerPartie(wx.Dialog):
 class DialogueAfficherTirage(wx.Dialog):
 
     def __init__(self, parent, numero_affiche=1):
-        wx.Dialog.__init__(self, parent, wx.ID_ANY, title="Tirages", style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER | wx.STAY_ON_TOP)
+        wx.Dialog.__init__(self, parent, wx.ID_ANY, title="Tirages",
+                           style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER | wx.STAY_ON_TOP)
         self.txt_phrase = wx.StaticText(self, wx.ID_ANY, "Tirage de la partie n° ")
-        self.ctl_numero = wx.Choice(self, wx.ID_ANY, choices=[str(partie.numero) for partie in tournament.tournoi().parties()])
+        self.ctl_numero = wx.Choice(self, wx.ID_ANY, choices=[str(
+            partie.numero) for partie in tournament.tournoi().parties()])
         self.ctl_numero.SetSelection(self.ctl_numero.FindString(str(numero_affiche)))
 
         # Choix
@@ -118,9 +122,9 @@ class DialogueAfficherTirage(wx.Dialog):
         partie = tournament.tournoi().partie(int(self.ctl_numero.GetStringSelection()))
         d = {}
         for m in partie.manches():
-            piquet = tournament.tournoi().equipe(m[0]).resultat(partie.numero).piquet
-            d[piquet] = m
-        self.grille.maj(d, [eq.numero for eq in partie.chapeaux()], tournament.tournoi().statistiques(partie_limite=partie.numero - 1))
+            d[tournament.tournoi().equipe(m[0]).resultat(partie.numero).location] = m
+        self.grille.maj(d, [eq.numero for eq in partie.chapeaux()],
+                        tournament.tournoi().statistiques(partie_limite=partie.numero - 1))
 
         for i in range(self.grille.GetNumberRows()):
             self.grille.verifier_ligne(i)
@@ -139,7 +143,8 @@ class DialogueAfficherClassement(wx.Dialog):
     single = None
 
     def __init__(self, parent, numero_affiche=1):
-        wx.Dialog.__init__(self, parent, ID_DLG_CLASSEMENT, title="Tirages", style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER | wx.STAY_ON_TOP)
+        wx.Dialog.__init__(self, parent, ID_DLG_CLASSEMENT, title="Tirages",
+                           style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER | wx.STAY_ON_TOP)
         DialogueAfficherClassement.single = self
         self.SetSize((300, 600))
 
@@ -420,8 +425,8 @@ class GrilleManchesCtrl(grid.Grid):
             i += 1
 
         # Afficher les manches
-        for piquet, m in manches.items():
-            self.SetCellValue(i, 0, str(piquet))
+        for location, m in manches.items():
+            self.SetCellValue(i, 0, str(location))
             j = 1
             for e in m:
                 self.SetCellValue(i, j, str(e))
@@ -462,7 +467,7 @@ class GrilleManchesCtrl(grid.Grid):
 
     def verifier_ligne(self, ligne):
         attention = False
-        _piquet, manche = self.manche(ligne)
+        _location, manche = self.manche(ligne)
 
         if "C" in manche:
             manche = [equipe for equipe in manche if equipe != "C"]
@@ -478,7 +483,8 @@ class GrilleManchesCtrl(grid.Grid):
                 self.chg_texte(ligne, "!!! L'équipe n°%s a déjà été chapeau." % deja_ete_chapeau[0])
             elif len(deja_ete_chapeau) > 1:
                 attention = True
-                self.chg_texte(ligne, "!!! Les équipes n°%s ont déjà été chapeaux." % ", ".join([str(i) for i in deja_ete_chapeau]))
+                self.chg_texte(ligne, "!!! Les équipes n°%s ont déjà été chapeaux." %
+                               ", ".join([str(i) for i in deja_ete_chapeau]))
             else:
                 self.chg_texte(ligne, "")
         else:
@@ -507,7 +513,8 @@ class GrilleManchesCtrl(grid.Grid):
                 if rencontre_faite:
                     texte = "!!! Cette manche a déjà eu lie"
                 else:
-                    texte = "!!! Les rencontres suivantes ont déjà eu lieu: %s" % ", ".join([str(i) for i in rencontres])
+                    texte = "!!! Les rencontres suivantes ont déjà eu lieu: %s" % ", ".join(
+                        [str(i) for i in rencontres])
                 self.chg_texte(ligne, texte)
             else:
                 self.chg_texte(ligne, "")
@@ -685,7 +692,8 @@ class SelectionChapeauPage(wiz.PyWizardPage):
             self.txt_msg.chg_texte("Il ne peut pas y avoir plus de %s chapeau(x)." % nb_max, wx.ICON_ERROR)
             nextButton.Disable()
         elif nb_max > len(self.chapeaux()):
-            self.txt_msg.chg_texte("Si nécessaire, le reste de la séléction se fera par tirage. (maximum %s chapeau(x))..." % nb_max, wx.ICON_INFORMATION)
+            self.txt_msg.chg_texte(
+                "Si nécessaire, le reste de la séléction se fera par tirage. (maximum %s chapeau(x))..." % nb_max, wx.ICON_INFORMATION)
             nextButton.Enable()
         else:
             self.txt_msg.chg_texte("")
@@ -814,14 +822,15 @@ class LancerTiragePage(wiz.PyWizardPage):
             chapeaux = self.GetParent().page2.chapeaux()
 
             # Création du thread tirage
-            self._generateur = draws.creer_generateur(draws.TIRAGES.items()[self.chx_algorithme.GetCurrentSelection()][0],
-                                                        tournament.tournoi().equipes_par_manche,
-                                                        statistiques,
-                                                        chapeaux,
-                                                        self.progression_event)
+            self._generateur = draws.build(draws.TIRAGES.items()[self.chx_algorithme.GetCurrentSelection()][0],
+                                           tournament.tournoi().equipes_par_manche,
+                                           statistiques,
+                                           chapeaux,
+                                           self.progression_event)
 
             # Configuration du tirage
-            config = self.GetParent().config.get_options(draws.TIRAGES.items()[self.chx_algorithme.GetCurrentSelection()][0])
+            config = self.GetParent().config.get_options(draws.TIRAGES.items()[
+                self.chx_algorithme.GetCurrentSelection()][0])
             self._generateur.configurer(**config)
 
             # Démarrer le tirage
@@ -923,9 +932,9 @@ class ConfirmerTiragePage(wiz.PyWizardPage):
             self.sizer.Remove(self.grille)
 
         d = {}
-        piquets = tournament.tournoi().piquets()
+        locations = tournament.tournoi().locations()
         for m in tirage:
-            d[piquets.pop(0)] = m
+            d[locations.pop(0)] = m
         self.grille = GrilleManchesCtrl(self, d, chapeaux)
         self.Bind(grid.EVT_GRID_CELL_LEFT_CLICK, self.verifier)
         self.sizer.Insert(3, self.grille, 1, wx.EXPAND | wx.ALL, 5)
@@ -936,15 +945,15 @@ class ConfirmerTiragePage(wiz.PyWizardPage):
         l = {}
         i = 0
         while i < self.grille.GetNumberRows():
-            piquet, manche = self.grille.manche(i)
+            location, manche = self.grille.manche(i)
             if "C" not in manche:
-                l[piquet] = manche
+                l[location] = manche
             i += 1
 
         return l
 
     def chapeaux(self):
-        _piquet, manche = self.grille.manche(0)
+        _location, manche = self.grille.manche(0)
         if "C" in manche:
             return [equipe for equipe in manche if equipe != "C"]
         else:
@@ -966,7 +975,7 @@ class ConfirmerTiragePage(wiz.PyWizardPage):
         DialogueAfficherClassement.single.Raise()
 
     def verifier(self, event):
-        piquets = []
+        locations = []
         if self.grille is not None:
             if self.grille.echangeable():
                 self.btn_echanger.Enable()
@@ -981,7 +990,7 @@ class ConfirmerTiragePage(wiz.PyWizardPage):
             attention = False
             for i in range(self.grille.GetNumberRows()):
                 p, _ = self.grille.manche(i)
-                piquets.append(p)
+                locations.append(p)
                 if self.grille.GetCellValue(i, self.grille.GetNumberCols() - 1):
                     attention = True
 
@@ -991,9 +1000,9 @@ class ConfirmerTiragePage(wiz.PyWizardPage):
                 self.txt_msg.chg_texte("")
 
         # Verifier unicité des numéro de piquets
-        for i in range(len(piquets)):
-            p = piquets[i]
-            nb = piquets.count(p)
+        for i in range(len(locations)):
+            p = locations[i]
+            nb = locations.count(p)
             if nb == 1 and type(p) == int:
                 self.grille.SetCellBackgroundColour(i, 0, wx.Colour(200, 200, 200))
             else:

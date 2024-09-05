@@ -216,7 +216,7 @@ class FenetrePrincipale(wx.Frame):
                         if equipe.resultat(num_partie).etat is None:
                             nb_incompletes += 1
                 self.barre_etat._rafraichir(t.debut.strftime('%Hh%M'), t.nb_parties(), t.nb_equipes(),
-                                            nb_incompletes // tournament.tournoi().equipes_par_manche, t.modifie)
+                                            nb_incompletes // tournament.tournoi().equipes_par_manche, t.changed)
 
         p = self.barre_bouton.numero()
 
@@ -276,9 +276,9 @@ class FenetrePrincipale(wx.Frame):
 
             if ret == wx.ID_OK:
                 self.shell.interp.locals['trb'] = tournament.nouveau_tournoi(self.config.get_typed("TOURNOI", "EQUIPES_PAR_MANCHE"),
-                                                                          self.config.get_typed(
-                                                                              "TOURNOI", "POINTS_PAR_MANCHE"),
-                                                                          self.config.get_typed("TOURNOI", "JOUEURS_PAR_EQUIPE"))
+                                                                             self.config.get_typed(
+                    "TOURNOI", "POINTS_PAR_MANCHE"),
+                    self.config.get_typed("TOURNOI", "JOUEURS_PAR_EQUIPE"))
 
                 # Rafraichir
                 self.grille.effacer()
@@ -330,7 +330,7 @@ class FenetrePrincipale(wx.Frame):
         """
         continuer = wx.ID_OK
         if tournament.tournoi() is not None:
-            if tournament.tournoi().modifie:
+            if tournament.tournoi().changed:
                 dlg = wx.MessageDialog(self, "Le tournoi en cours n'est pas enregistré, si vous cliquez sur NON, les données seront perdues.",
                                        caption="Voulez-vous enregistrer le tournoi en cours?", style=wx.CANCEL | wx.YES | wx.NO | wx.ICON_QUESTION)
                 ret = dlg.ShowModal()
@@ -522,7 +522,7 @@ class FenetrePrincipale(wx.Frame):
                     logger.info("Mini holà à l'équipe n°%s.\nHoooollaaaa...!!" % (equipe.numero))
 
                 elif tournament.tournoi().statut in [cst.T_PARTIE_EN_COURS]:
-                    p = tournament.tournoi().piquets()[-1] + 1
+                    p = tournament.tournoi().locations()[-1] + 1
                     # Une partie est en cours: choix etat pour la partie en cours
                     dlg = dlgeq.DialogueMessageEquipe(self, info['numero'])
                     ret = dlg.ShowModal()
@@ -531,9 +531,9 @@ class FenetrePrincipale(wx.Frame):
                         for partie in tournament.tournoi().parties():
                             if partie != tournament.tournoi().partie_courante():
                                 # L'équipe est FORFAIT pour les autres parties.
-                                partie.ajout_equipe(equipe, cst.FORFAIT, piquet=p)
+                                partie.add_team(equipe, cst.FORFAIT, location=p)
                             else:
-                                partie.ajout_equipe(equipe, dlg.etat(), dlg.creer_manche(), piquet=p)
+                                partie.add_team(equipe, dlg.etat(), dlg.creer_manche(), location=p)
 
                         # Rafraichir
                         self.grille.ajout_equipe(equipe)
@@ -545,7 +545,7 @@ class FenetrePrincipale(wx.Frame):
                     dlg.Destroy()
 
                 else:
-                    p = tournament.tournoi().piquets()[-1] + 1
+                    p = tournament.tournoi().locations()[-1] + 1
                     # Les parties sont toutes terminées
                     texte = "L'équipe sera considérée comme forfait pour toutes les parties déjà jouées,\
 cliquez sur ANNULER si vous ne voulez pas ajouter cette nouvelle équipe."
@@ -556,7 +556,7 @@ cliquez sur ANNULER si vous ne voulez pas ajouter cette nouvelle équipe."
                     if ret == wx.ID_OK:
                         equipe = creer(info)
                         for partie in tournament.tournoi().parties():
-                            partie.ajout_equipe(equipe, cst.FORFAIT, piquet=p)
+                            partie.add_team(equipe, cst.FORFAIT, location=p)
 
                         # Rafraichir
                         self.grille.ajout_equipe(equipe)
@@ -590,8 +590,9 @@ cliquez sur ANNULER si vous ne voulez pas ajouter cette nouvelle équipe."
     def supprimer_equipe(self, event):
         num = self.grille.selection()
 
-        dlg = dlgeq.DialogueEquipe(self, dlgeq.STYLE_SUPPRIMER, choix=map(
-            int, tournament.tournoi().equipes()), numero_affiche=num)
+        dlg = dlgeq.DialogueEquipe(self, dlgeq.STYLE_SUPPRIMER,
+                                   choix=[int(i) for i in tournament.tournoi().equipes()],
+                                   numero_affiche=num)
         ret = dlg.ShowModal()
 
         if ret == wx.ID_OK:
@@ -629,7 +630,7 @@ cliquez sur ANNULER si vous ne voulez pas ajouter cette nouvelle équipe."
     def supprimer_partie(self, event):
         num = self.barre_bouton.numero()
 
-        dlg = dlgpa.DialogueSupprimerPartie(self, map(int, tournament.tournoi().parties()), num)
+        dlg = dlgpa.DialogueSupprimerPartie(self, [int(i) for i in tournament.tournoi().parties()], num)
         ret = dlg.ShowModal()
 
         if ret == wx.ID_OK:
@@ -668,7 +669,7 @@ cliquez sur ANNULER si vous ne voulez pas ajouter cette nouvelle équipe."
                     fin = datetime.now()
                 else:
                     fin = None
-                tournament.tournoi().partie(num_partie).resultat(d, fin)
+                tournament.tournoi().partie(num_partie).add_result(d, fin)
 
                 # Rafraichir
                 self.enregistrer_auto()

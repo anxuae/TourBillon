@@ -30,7 +30,7 @@ class TestAjoutParie:
     gen = None
 
     def test_nouveau_tirage(self, trb4e1j, cfg, type_tirage):
-        TestAjoutParie.gen = draws.creer_generateur(type_tirage, trb4e1j.equipes_par_manche, trb4e1j.statistiques(), callback=trace)
+        TestAjoutParie.gen = draws.build(type_tirage, trb4e1j.equipes_par_manche, trb4e1j.statistiques(), callback=trace)
         TestAjoutParie.gen.configurer(**cfg.get_options(type_tirage))
         TestAjoutParie.gen.start(True)
 
@@ -81,7 +81,7 @@ class TestAjoutParie:
                     d[eq] = 7
                 else:
                     d[eq] = random.randint(2, 9)
-            p.resultat(d, datetime.datetime.now())
+            p.add_result(d, datetime.datetime.now())
 
         for equipe in trb4e1j.equipes():
             assert equipe.statut == cst.E_ATTEND_TIRAGE

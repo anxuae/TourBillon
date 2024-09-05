@@ -195,9 +195,9 @@ def test_max_duree(trb2e2j):
 
 
 def test_enregistrer(trb2e2j, tmpfile):
-    assert trb2e2j.modifie
+    assert trb2e2j.changed
     tournament.enregistrer_tournoi(tmpfile('trb2e2j.yml'))
-    assert not trb2e2j.modifie
+    assert not trb2e2j.changed
 
 
 def test_date_enregistrement(trb2e2j):
@@ -210,7 +210,7 @@ def test_date_enregistrement(trb2e2j):
 
 def test_charger(tmpfile):
     tournament.charger_tournoi(tmpfile('trb2e2j.yml'))
-    assert not tournament.tournoi().modifie
+    assert not tournament.tournoi().changed
 
 
 def test_date_chargement():

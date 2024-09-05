@@ -9,7 +9,7 @@ from . import cst
 
 class Match:
     """
-    A match represent a match result for a team on a given round.
+    A match represent a result for a team on a given round.
     """
 
     def __init__(self, debut=datetime.now(), adversaires=()):
@@ -52,9 +52,10 @@ class Match:
     @property
     def statut(self) -> str:
         """
-        Return the progress status:
-            * M_EN_COURS => match is not started or in progress
-            * M_TERMINEE => match is finished (end timestamps is set)
+        Return the match status:
+
+        M_EN_COURS => match is not started or in progress
+        M_TERMINEE => match is finished (end timestamps is set)
         """
         if self.data['etat'] == cst.CHAPEAU or self.data['etat'] == cst.FORFAIT:
             return cst.M_TERMINEE
@@ -78,9 +79,9 @@ class Match:
         :param value: points to set
         """
         if not isinstance(value, int) or value < 0:
-            raise TypeError("Le nombre de points doit être un entier positif ou nul")
+            raise TypeError("Points must be a positive or zero integer")
         if self.data['etat'] == cst.FORFAIT:
-            raise ValueError("Le nombre de points d'une manche FORFAIT ne peut pas être modifié")
+            raise ValueError("Points of FORFEIT match cannot be changed")
         self.data['points'] = value
 
     @property
@@ -93,7 +94,7 @@ class Match:
     @etat.setter
     def etat(self, value: str) -> None:
         """
-        Set the result:
+        Set the match result:
             * VICTORY
             * LOSS
             * BYE
@@ -102,7 +103,7 @@ class Match:
         :param value: result to set
         """
         if value not in [cst.GAGNE, cst.PERDU, cst.CHAPEAU, cst.FORFAIT]:
-            raise TypeError("L'état doit être une des valeur suivantes : "
+            raise TypeError("Match result must be one of the following value:"
                             f"{cst.GAGNE}, {cst.PERDU}, {cst.CHAPEAU}, {cst.FORFAIT}")
         if value in [cst.GAGNE, cst.PERDU] and self.data['fin'] is None:
             self.data['fin'] = datetime.now()
@@ -148,7 +149,7 @@ class Match:
         :param value: match duration
         """
         if self.data['etat'] in [cst.CHAPEAU, cst.FORFAIT]:
-            raise ValueError("La durée d'une manche CHAPEAU ou FORFAIT ne peut être modifiée")
+            raise ValueError("Duration of a BYE or FORFEIT match cannot be modified")
         self.data['fin'] = self.data['debut'] + value
 
     @property
@@ -166,7 +167,7 @@ class Match:
         :param value: end timestamp as datetime instance
         """
         if self.data['etat'] in [cst.CHAPEAU, cst.FORFAIT]:
-            raise ValueError("La fin d'une manche CHAPEAU ou FORFAIT ne peut être modifiée")
+            raise ValueError("End date of a BYE or FORFEIT match cannot be changed")
         self.data['fin'] = value
 
     @property
@@ -183,20 +184,20 @@ class Match:
         """
         for num in value:
             if not isinstance(num, int):
-                raise TypeError(f"'{num}' n'est pas un entier")
+                raise TypeError(f"'{num}' is not an integer")
         if self.data['etat'] in [cst.CHAPEAU, cst.FORFAIT]:
-            raise ValueError(f"Il n'y a pas d'adversaires pour une manche {cst.CHAPEAU} ou {cst.FORFAIT}")
+            raise ValueError("Can not add competitors for a BYE ou FORFEIT match")
         self.data['adversaires'] = value
 
     @property
-    def piquet(self) -> int:
+    def location(self) -> int:
         """
         Return the match location.
         """
         return self.data['piquet']
 
-    @piquet.setter
-    def piquet(self, value: int) -> None:
+    @location.setter
+    def location(self, value: int) -> None:
         """
         Set the match location.
         """

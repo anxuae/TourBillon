@@ -47,7 +47,7 @@ class Team:
         else:
             return -1
 
-    def _ajout_partie(self, debut, adversaires=[], etat=None, piquet=None):
+    def _ajout_partie(self, debut, adversaires=[], etat=None, location=None):
         """
         Ajouter des résultats par défault pour l'équipe à la partie donnée.
         NE PAS UTILISER !!!!! (Manipulé par les objets Tournoi et Partie)
@@ -58,7 +58,7 @@ class Team:
 
         etat (str)          : etat de l'équipe avant la manche: CHAPEAU ou FORFAIT.
 
-        piquet (int)        : numéro de piquet où l'équipe joue.
+        location (int)      : numéro de piquet où l'équipe joue.
         """
         if self.statut == cst.E_EN_COURS or self.statut == cst.E_INCOMPLETE:
             raise StatusError("Impossible de créer une partie pour l'équipe %s. (partie en cours: %s)" % (self.numero, len(self._resultats)))
@@ -68,7 +68,7 @@ class Team:
                 m.points = self.tournoi.points_par_manche
             if etat:
                 m.etat = etat
-            m.piquet = piquet
+            m.location = location
             self._resultats.append(m)
 
     def _suppr_partie(self, num_partie):
@@ -84,7 +84,7 @@ class Team:
         else:
             self._resultats.pop(num_partie - 1)
 
-    def _modif_partie(self, num_partie, points=None, etat=None, fin=None, piquet=None):
+    def _modif_partie(self, num_partie, points=None, etat=None, fin=None, location=None):
         """
         Modifier les résultats de l'équipe à la partie donnée.
         NE PAS UTILISER !!!!! (Manipulé par les objets Tournoi et Partie)
@@ -97,7 +97,7 @@ class Team:
 
         fin (datetime)      : date de fin de la partie.
 
-        piquet (int)        : numéro de piquet où l'équipe joue.
+        location (int)      : numéro de piquet où l'équipe joue.
         """
         num_partie = int(num_partie)
         if num_partie not in range(1, len(self._resultats) + 1):
@@ -116,8 +116,8 @@ class Team:
             if fin is not None:
                 m.fin = fin
 
-            if piquet is not None:
-                m.piquet = piquet
+            if location is not None:
+                m.location = location
 
     def numero():
         """
@@ -182,7 +182,7 @@ class Team:
 
         j = Player(prenom, nom, date_ajout=date)
         self._liste_joueurs.append(j)
-        self.tournoi.modifie = True
+        self.tournoi.changed = True
         return j
 
     def suppr_joueurs(self):
@@ -192,7 +192,7 @@ class Team:
         for joueur in self._liste_joueurs:
             PlayerHistory().remove(joueur.key)
         self._liste_joueurs = []
-        self.tournoi.modifie = True
+        self.tournoi.changed = True
 
     def partie_existe(self, num_partie):
         """

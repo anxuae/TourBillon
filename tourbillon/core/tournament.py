@@ -91,7 +91,7 @@ def enregistrer_tournoi(fichier=None):
             yaml.dump(y, fp, default_flow_style=False)
 
         TOURNOI.date_enregistrement = d
-        TOURNOI.modifie = False
+        TOURNOI.changed = False
     except Exception as ex:
         TOURNOI.date_enregistrement = ancienne_date
         raise IOError("L'enregistrement a échoué (%s)." % ex)
@@ -145,7 +145,7 @@ def charger_tournoi(fichier):
 
         FICHIER_TOURNOI = fichier
         TOURNOI.date_chargement = datetime.now()
-        TOURNOI.modifie = False
+        TOURNOI.changed = False
     except Exception as ex:
         raise InconsistencyError("Le fichier '%s' est corrompu (%s)." % (fichier, str(ex)))
 
@@ -163,7 +163,7 @@ class Tournament:
         self.date_chargement = None
         self.date_enregistrement = None
 
-        self.modifie = False
+        self.changed = False
         self._liste_equipes = {}
         self._liste_parties = []
 
@@ -235,7 +235,7 @@ class Tournament:
                                        cst.STAT_PLACE: classement[equipe]}
         return stat
 
-    def piquets(self):
+    def locations(self):
         """
         Retourne une liste de numéros de piquets disponibles
         pour ce tournoi. Se base sur la partie précédentes
@@ -245,21 +245,21 @@ class Tournament:
         Pas de piquet prévu pour les chapeaux.
         """
         nombre = self.nb_equipes() // self.equipes_par_manche
-        piquets = []
+        locations = []
         i = 1
         if self.partie_courante():
-            for p in self.partie_courante().piquets():
-                if len(piquets) == nombre:
+            for p in self.partie_courante().locations():
+                if len(locations) == nombre:
                     break
-                piquets.append(p)
-            if piquets:
-                i = piquets[-1] + 1
+                locations.append(p)
+            if locations:
+                i = locations[-1] + 1
 
         while i <= nombre:
-            piquets.append(i)
+            locations.append(i)
             i += 1
 
-        return piquets
+        return locations
 
     def nb_equipes(self):
         """
@@ -322,7 +322,7 @@ class Tournament:
 
         eq = Team(self, numero, joker)
         self._liste_equipes[eq.numero] = eq
-        self.modifie = True
+        self.changed = True
         return eq
 
     def suppr_equipe(self, numero):
@@ -335,7 +335,7 @@ class Tournament:
             raise ValueError("L'équipe n°%s n'existe pas." % numero)
 
         eq = self._liste_equipes.pop(numero)
-        self.modifie = True
+        self.changed = True
         return eq
 
     def modif_numero_equipe(self, numero, nouv_numero):
@@ -354,7 +354,7 @@ class Tournament:
         equipe = self._liste_equipes.pop(numero)
         equipe._num = nouv_numero
         self._liste_equipes[nouv_numero] = equipe
-        self.modifie = True
+        self.changed = True
 
     def nb_parties(self):
         """
@@ -402,7 +402,7 @@ class Tournament:
 
         partie = Round(self)
         self.parties().append(partie)
-        self.modifie = True
+        self.changed = True
         return partie
 
     def suppr_partie(self, numero):
@@ -414,9 +414,9 @@ class Tournament:
         if numero > len(self.parties()) or numero < 1:
             raise ValueError("La partie n°%s n'existe pas." % numero)
         else:
-            self.partie(numero).raz()
+            self.partie(numero).delete()
             self.parties().pop(numero - 1)
-            self.modifie = True
+            self.changed = True
 
     def manches(self):
         """

@@ -77,9 +77,9 @@ class DialogueResultat(wx.Dialog):
         self.numero_partie = numero_partie
         self.tirage = tournament.tournoi().partie(self.numero_partie).manches()
 
-        # Numero de piquet
-        self.lbl_piquet = wx.StaticText(self, wx.ID_ANY, "", style=wx.ALIGN_CENTER)
-        self.lbl_piquet.SetForegroundColour(wx.Colour(0, 0, 200))
+        # Match location
+        self.lbl_location = wx.StaticText(self, wx.ID_ANY, "", style=wx.ALIGN_CENTER)
+        self.lbl_location.SetForegroundColour(wx.Colour(0, 0, 200))
 
         # Panel avec les entrées des équipes
         self.panel = scrolled.ScrolledPanel(self, wx.ID_ANY, style=wx.TAB_TRAVERSAL)
@@ -113,7 +113,7 @@ class DialogueResultat(wx.Dialog):
         # Assembler
         box = wx.BoxSizer(wx.VERTICAL)
         box.Add((-1, 10), 0, wx.EXPAND)
-        box.Add(self.lbl_piquet, 0, wx.EXPAND)
+        box.Add(self.lbl_location, 0, wx.EXPAND)
         box.Add(self.panel, 1, wx.EXPAND)
         box.Add(self.chx_fin, 0, wx.EXPAND | wx.LEFT, 14)
         box.Add(box_btn, 0, wx.EXPAND)
@@ -125,7 +125,7 @@ class DialogueResultat(wx.Dialog):
         self._selection_equipe(None)
         self.verifier(None)
 
-        hauteur_necessaire = 10 + self.lbl_piquet.GetSizeTuple()[1] + \
+        hauteur_necessaire = 10 + self.lbl_location.GetSizeTuple()[1] + \
             (self.entrees[0].GetSize()[1] + 15) * len(self.entrees) + 110
         if hauteur_necessaire < wx.GetDisplaySize()[1]:
             self.SetSize(wx.Size(280, hauteur_necessaire))
@@ -152,8 +152,7 @@ class DialogueResultat(wx.Dialog):
                 i += 1
 
         # Piquet (identique pour toutes les équipes)
-        piquet = m.piquet
-        self.lbl_piquet.SetLabel("Piquet %s" % piquet)
+        self.lbl_location.SetLabel(f"Piquet {m.location}")
         self.Layout()
 
         if m.statut == cst.M_EN_COURS:

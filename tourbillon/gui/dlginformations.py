@@ -63,7 +63,7 @@ def tournoi_factice(equipes_par_manche, joueurs_par_equipe, nombre_equipes):
                 d[tirage[i][j]] = 12
             else:
                 d[tirage[i][j]] = 8
-        t.partie(1).resultat(d, datetime.now())
+        t.partie(1).add_result(d, datetime.now())
         i += 1
 
     return t
@@ -259,10 +259,10 @@ class GrilleTirage(Grille):
                                 self.SetCellValue(i, 1, "C")
                                 self.SetCellTextColour(i, 1, images.couleur(cst.CHAPEAU))
                             # Piquet
-                            piquet = tournament.tournoi().equipe(equipe).resultat(tournament.tournoi().partie_courante().numero).piquet
-                            if not piquet:
-                                piquet = "-"
-                            self.SetCellValue(i, 3, str(piquet))
+                            location = tournament.tournoi().equipe(equipe).resultat(tournament.tournoi().partie_courante().numero).location
+                            if not location:
+                                location = "-"
+                            self.SetCellValue(i, 3, str(location))
                         else:
                             self.SetCellValue(i, j, "")
                 i += 1

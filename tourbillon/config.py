@@ -132,10 +132,10 @@ class Singleton(ABCMeta):
 
 class TypedConfigParser(configparser.SafeConfigParser, metaclass=Singleton):
 
-    def __init__(self, filename, load=True):
+    def __init__(self, filename=None, load=True):
         super().__init__()
         self.filename = osp.abspath(osp.expanduser(filename))
-        if osp.isfile(self.filename) and load:
+        if filename and load:
             self.load(self.filename)
 
         # Save config before exit

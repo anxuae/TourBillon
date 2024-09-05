@@ -1,10 +1,10 @@
 # -*- coding: UTF-8 -*-
 
 # Match result
-CHAPEAU = 'chapeau'
-GAGNE = 'gagné'
-PERDU = 'perdu'
-FORFAIT = 'forfait'
+CHAPEAU = 'chapeau'  # BYE
+GAGNE = 'gagné'      # VICTORY
+PERDU = 'perdu'      # LOSS
+FORFAIT = 'forfait'  # FORFEIT
 
 # State of match
 M_EN_COURS = "en cours"
