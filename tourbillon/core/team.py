@@ -12,8 +12,13 @@ from .player import Player, PlayerHistory
 
 class Team:
 
-    def __init__(self, parent, numero, joker=0):
-        self.tournoi = parent
+    """
+    Class which represent a team. This class store all team data for the
+    tournament.
+    """
+
+    def __init__(self, tournoi, numero, joker=0):
+        self.tournoi = tournoi
         self.joker = int(joker)
         self._num = int(numero)
         self._liste_joueurs = []
@@ -61,7 +66,7 @@ class Team:
         location (int)      : numéro de piquet où l'équipe joue.
         """
         if self.statut == cst.E_EN_COURS or self.statut == cst.E_INCOMPLETE:
-            raise StatusError("Impossible de créer une partie pour l'équipe %s. (partie en cours: %s)" % (self.numero, len(self._resultats)))
+            raise StatusError(f"Cannot create round for team n°{self.numero}. (round in progress: {len(self._resultats)})")
         else:
             m = Match(debut, adversaires)
             if etat == cst.CHAPEAU:
@@ -80,7 +85,7 @@ class Team:
         """
         num_partie = int(num_partie)
         if num_partie not in range(1, len(self._resultats) + 1):
-            raise ValueError("Impossible de supprimer la partie %s pour l'équipe %s.(total parties: %s)" % (num_partie, self.numero, len(self._resultats)))
+            raise ValueError(f"Cannot delete round n°{num_partie} pour l'équipe {self.numero} (total parties: {len(self._resultats)})")
         else:
             self._resultats.pop(num_partie - 1)
 
@@ -101,7 +106,7 @@ class Team:
         """
         num_partie = int(num_partie)
         if num_partie not in range(1, len(self._resultats) + 1):
-            raise ValueError("La partie %s n'existe pas pour l'équipe %s." % (num_partie, self.numero))
+            raise ValueError(f"Round n°{num_partie} does not exists for team n°{self.numero}")
         else:
             m = self._resultats[num_partie - 1]
 
@@ -119,44 +124,35 @@ class Team:
             if location is not None:
                 m.location = location
 
-    def numero():
+    @property
+    def numero(self) -> int:
         """
-        Retourne le numero de l'équipe.
+        Return the team number.
         """
+        return self._num
 
-        def fget(self):
-            return self._num
-
-        return locals()
-
-    numero = property(**numero())
-
-    def statut():
-        doc = """
-        Retourne le status de l'équipe:
-
-            E_INCOMPLETE    => il manque des joueurs dans l'équipe
-            E_EN_COURS          => une manche est en cours
-            E_ATTEND_TIRAGE => la manche de la dernière partie est terminée
+    @property
+    def statut(self) -> str:
         """
+        Return the team status.
 
-        def fget(self):
-            if self.tournoi.joueurs_par_equipe != len(self._liste_joueurs):
-                return cst.E_INCOMPLETE
+        E_INCOMPLETE    => some players are missing in the team
+        E_EN_COURS      => match with this team is in progress
+        E_ATTEND_TIRAGE => match of the last round is completed
+        """
+        if self.tournoi.joueurs_par_equipe != len(self._liste_joueurs):
+            return cst.E_INCOMPLETE
+        else:
+            if len(self._resultats) == 0:
+                return cst.E_ATTEND_TIRAGE
             else:
-                if len(self._resultats) == 0:
-                    return cst.E_ATTEND_TIRAGE
+                m = self._resultats[-1]
+                if m.statut == cst.M_EN_COURS:
+                    return cst.E_EN_COURS
                 else:
-                    m = self._resultats[-1]
-                    if m.statut == cst.M_EN_COURS:
-                        return cst.E_EN_COURS
-                    else:
-                        return cst.E_ATTEND_TIRAGE
+                    return cst.E_ATTEND_TIRAGE
 
-        return locals()
-
-    statut = property(**statut())
-
+    @property
     def nb_joueurs(self):
         """
         Retourne le nombre de joueurs de l'équipe.
@@ -178,7 +174,7 @@ class Team:
         date (str)  : la date actuelle est utilisée par defaut
         """
         if self.tournoi.joueurs_par_equipe < len(self._liste_joueurs) + 1:
-            raise BoundError("Il ne peut y avoir plus de %s joueurs par équipe." % self.tournoi.joueurs_par_equipe)
+            raise BoundError(f"A team shall be composed of {self.tournoi.joueurs_par_equipe} players")
 
         j = Player(prenom, nom, date_ajout=date)
         self._liste_joueurs.append(j)
@@ -217,7 +213,7 @@ class Team:
         """
         num_partie = int(num_partie)
         if num_partie not in range(1, len(self._resultats) + 1):
-            raise ValueError("La partie %s n'existe pas pour l'équipe %s." % (num_partie, self.numero))
+            raise ValueError(f"Round n°{num_partie} not created for team {self.numero}")
         else:
             return self._resultats[num_partie - 1]
 

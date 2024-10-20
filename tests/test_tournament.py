@@ -6,23 +6,23 @@ from datetime import datetime, timedelta
 from tourbillon.core import cst, tournament
 from tourbillon.core.exception import BoundError
 
-import data2e2j
+from data import t2teams2players
 
 
-EQUIPES = {1: data2e2j.JOUEURS_1,
-           2: data2e2j.JOUEURS_2,
-           4: data2e2j.JOUEURS_4,
-           5: data2e2j.JOUEURS_5,
-           8: data2e2j.JOUEURS_8,  # Changé en n°3
-           9: data2e2j.JOUEURS_9}  # Changé en n°6
+EQUIPES = {1: t2teams2players.JOUEURS_1,
+           2: t2teams2players.JOUEURS_2,
+           4: t2teams2players.JOUEURS_4,
+           5: t2teams2players.JOUEURS_5,
+           8: t2teams2players.JOUEURS_8,  # Changé en n°3
+           9: t2teams2players.JOUEURS_9}  # Changé en n°6
 
 NB_EQUIPES = len(EQUIPES)
 
 
 def test_config(trb2e2j):
-    assert trb2e2j.equipes_par_manche == data2e2j.EQUIPES_PAR_MANCHE
-    assert trb2e2j.joueurs_par_equipe == data2e2j.JOUEURS_PAR_EQUIPE
-    assert trb2e2j.points_par_manche == data2e2j.POINTS_PAR_MANCHE
+    assert trb2e2j.equipes_par_manche == t2teams2players.EQUIPES_PAR_MANCHE
+    assert trb2e2j.joueurs_par_equipe == t2teams2players.JOUEURS_PAR_EQUIPE
+    assert trb2e2j.points_par_manche == t2teams2players.POINTS_PAR_MANCHE
 
 
 def test_status(trb2e2j):
@@ -101,7 +101,7 @@ def test_ajout_joueurs(trb2e2j, numero, joueurs):
 
 def test_nb_joueurs(trb2e2j):
     for equipe in trb2e2j.equipes():
-        assert equipe.nb_joueurs() == data2e2j.JOUEURS_PAR_EQUIPE
+        assert equipe.nb_joueurs == t2teams2players.JOUEURS_PAR_EQUIPE
 
 
 def test_trop_joueurs(trb2e2j):
@@ -230,7 +230,7 @@ def test_nb_parties_apres_chargement():
 
 def test_nb_joueurs_apres_chargement():
     for equipe in tournament.tournoi().equipes():
-        assert equipe.nb_joueurs() == data2e2j.JOUEURS_PAR_EQUIPE
+        assert equipe.nb_joueurs == t2teams2players.JOUEURS_PAR_EQUIPE
 
 
 def test_nom_prenom_joueurs():

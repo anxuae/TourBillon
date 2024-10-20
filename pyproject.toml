@@ -1,3 +1,8 @@
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+
 [tool.poetry]
 name = "tourbillon"
 version = "6.0.0"
@@ -20,7 +25,7 @@ include = [
 [tool.poetry.dependencies]
 python = "^3.8"
 PyYAML = "^5.0"
-wxPython = "^4.0.0"
+wxPython = "4.2.1"
 fastapi = "^0.111.0"
 
 
@@ -30,12 +35,8 @@ optional = true
 
 [tool.poetry.group.tests.dependencies]
 pytest = "^8.0"
+pytest-order = "^1.3"
 
 
 [tool.poetry.scripts]
 tourbillon = 'tourbillon.__main__:run'
-
-
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"

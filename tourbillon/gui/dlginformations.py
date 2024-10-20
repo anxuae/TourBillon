@@ -53,7 +53,7 @@ def tournoi_factice(equipes_par_manche, joueurs_par_equipe, nombre_equipes):
     if len(tirage[-1]) < equipes_par_manche:
         chapeaux = tirage.pop(-1)
 
-    partie.demarrer(dict(zip(range(len(tirage)), tirage)), chapeaux)
+    partie.start(dict(zip(range(len(tirage)), tirage)), chapeaux)
 
     i = 0
     while i < len(tirage) // 2:

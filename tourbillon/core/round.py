@@ -39,7 +39,7 @@ class Round:
         """
         if self in self.tournoi.parties():
             return self.tournoi.parties().index(self) + 1
-        raise InconsistencyError("Cette partie n'appartient pas au tournoi en cours.")
+        raise InconsistencyError("This round does not belong to the current tournament")
 
     @property
     def statut(self) -> str:
@@ -63,7 +63,7 @@ class Round:
             return cst.P_COMPLETE
         return cst.P_TERMINEE
 
-    def debut(self):
+    def debut(self) -> datetime:
         """
         Return the start time of the round. None is returned if the
         round is not started.
@@ -175,7 +175,7 @@ class Round:
 
         return sorted(competitors)
 
-    def demarrer(self, matches: dict, byes: list = ()) -> None:
+    def start(self, matches: dict, byes: list = ()) -> None:
         """
         Start the round with a given draw.
 
@@ -184,9 +184,9 @@ class Round:
         """
         if self.statut != cst.P_ATTEND_TIRAGE:
             if self.statut == cst.P_TERMINEE:
-                raise StatusError("La partie n°%s est terminée." % self.numero)
+                raise StatusError(f"Round n°{self.numero} is completed")
             else:
-                raise StatusError("La partie n°%s est en cours." % self.numero)
+                raise StatusError(f"Round n°{self.numero} is in progress")
         debut = datetime.now()
 
         l = []
@@ -222,11 +222,11 @@ class Round:
             team = self.tournoi.equipe(team)
 
         if self.statut == cst.P_ATTEND_TIRAGE:
-            raise StatusError(f"La partie n°{self.numero} n'est pas démarrée (utiliser 'demarrer')")
+            raise StatusError(f"Round n°{self.numero} is not started (call `start`)")
         if team.partie_existe(self.numero):
-            raise ValueError(f"L'équipe n°{team.numero} participe déjà à cette partie")
+            raise ValueError(f"Team n°{team.numero} already participates to round n°{self.numero}")
         if match_result not in [cst.FORFAIT, cst.CHAPEAU]:
-            raise ResultError("Cette fonction ne peut être utilisée que pour ajouter un CHAPEAU ou un FORFAIT.")
+            raise ResultError("Can only add team with BYE of FORFEIT result")
         if try_create_match and not location:
             location = self.locations()[-1] + 1
 
@@ -269,17 +269,17 @@ class Round:
         """
         # Vérification: partie commencée
         if self.statut == cst.P_ATTEND_TIRAGE:
-            raise StatusError("La partie n°%s n'est pas commencée." % self.numero)
+            raise StatusError(f"Round n°{self.numero} is not started")
 
         # Vérification de l'existance de la manche
         manche = sorted(match_result.keys())
 
         if manche not in self.manches():
-            raise ResultError("La manche '%s' n'existe pas." % (manche))
+            raise ResultError(f"Match '{manche}' is not created")
 
         # Verification pas une manche chapeau
         if cst.CHAPEAU in manche:
-            raise ResultError("Le score des équipes chapeaux ne peut pas être modifié.")
+            raise ResultError("BYE team points cannot be changed")
 
         # Recherche des gagnants
         gagnants = []
@@ -290,8 +290,7 @@ class Round:
 
         # Vérification: nombre de points
         if gagnants_pts < self.tournoi.points_par_manche:
-            raise ResultError("Au moins une équipe doit avoir un score suppérieur ou égale à %s." %
-                              self.tournoi.points_par_manche)
+            raise ResultError(f"At least one team must have points greater than or equal to{self.tournoi.points_par_manche}")
 
         for num in match_result:
             if num in gagnants:

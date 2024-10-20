@@ -9,7 +9,7 @@ from . import cst
 
 class Match:
     """
-    A match represent a result for a team on a given round.
+    A match represent the team result on a given round.
     """
 
     def __init__(self, debut=datetime.now(), adversaires=()):

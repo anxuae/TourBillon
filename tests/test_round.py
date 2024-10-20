@@ -2,7 +2,7 @@
 
 from tourbillon.core import cst
 
-import data2e2j
+from data import t2teams2players
 
 
 def test_status(part3e2j, debut=None, manches=[], equipes=[], chapeaux=[],
@@ -22,7 +22,7 @@ def test_demarrer(part3e2j):
     assert part3e2j.nb_equipes() == 0
     assert part3e2j.is_location_available(11) == True
 
-    part3e2j.demarrer({11: [1, 2]})
+    part3e2j.start({11: [1, 2]})
     assert part3e2j.statut == cst.P_EN_COURS
     assert part3e2j.nb_equipes() == 2
     assert part3e2j.is_location_available(11) == False
@@ -38,7 +38,7 @@ def test_delete(part3e2j):
 
 
 def test_demarrer_avec_chapeau(part3e2j):
-    part3e2j.demarrer({1: [3, 2]}, [1])
+    part3e2j.start({1: [3, 2]}, [1])
     assert part3e2j.statut == cst.P_EN_COURS
     assert part3e2j.nb_equipes() == 2
     assert part3e2j.is_location_available(11) == True
@@ -59,7 +59,7 @@ def test_resultat(part3e2j):
 
 def test_equipe_apres_demarrage(part3e2j):
     eq = part3e2j.tournoi.ajout_equipe(9)
-    for joueur in data2e2j.JOUEURS_9:
+    for joueur in t2teams2players.JOUEURS_9:
         eq.ajout_joueur(*joueur)
 
     debut = part3e2j.equipes()[0].resultat(part3e2j.numero).debut

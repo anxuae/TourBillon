@@ -5,7 +5,7 @@ from datetime import timedelta
 
 from tourbillon.core import cst
 from tourbillon.core.exception import StatusError
-import data2e2j
+from data import t2teams2players
 
 
 def test_statistiques(equ2jn1, adversaires=[], points=0, victoires=0, forfaits=0, parties=0,
@@ -30,10 +30,10 @@ def test_statut_equipe_vide(equ2jn1):
 
 
 def test_nb_joueurs_equipe_vide(equ2jn1):
-    assert equ2jn1.nb_joueurs() == 0
+    assert equ2jn1.nb_joueurs == 0
 
 
-@pytest.mark.parametrize('joueur', data2e2j.JOUEURS_1)
+@pytest.mark.parametrize('joueur', t2teams2players.JOUEURS_1)
 def test_ajouter_joueur(equ2jn1, joueur):
     equ2jn1.ajout_joueur(*joueur)
 
@@ -43,7 +43,7 @@ def test_statut_equipe_complete(equ2jn1):
 
 
 def test_nb_joueurs_equipe_complete(equ2jn1):
-    assert equ2jn1.nb_joueurs() == data2e2j.JOUEURS_PAR_EQUIPE
+    assert equ2jn1.nb_joueurs == t2teams2players.JOUEURS_PAR_EQUIPE
 
 
 def test_statistiques_equipe_complete(equ2jn1):
@@ -52,8 +52,8 @@ def test_statistiques_equipe_complete(equ2jn1):
 
 class TestAjoutParties:
 
-    scenarios = [('parie%s' % i, {'data_partie': data2e2j.PARTIES_1[i], 'data_stat': data2e2j.STATISTIQUES_1[i]})
-                 for i in range(len(data2e2j.PARTIES_1))]
+    scenarios = [('parie%s' % i, {'data_partie': t2teams2players.PARTIES_1[i], 'data_stat': t2teams2players.STATISTIQUES_1[i]})
+                 for i in range(len(t2teams2players.PARTIES_1))]
     stat_precedent = None
 
     def test_statut(self, equ2jn1, data_partie, data_stat):
@@ -103,7 +103,7 @@ class TestAjoutParties:
             fin = None
         with pytest.raises(ValueError):
             equ2jn1._modif_partie(10, data_partie['points'], data_partie['etat'], fin)
-        equ2jn1._modif_partie(data2e2j.PARTIES_1.index(data_partie) + 1,
+        equ2jn1._modif_partie(t2teams2players.PARTIES_1.index(data_partie) + 1,
                               data_partie['points'], data_partie['etat'], fin)
 
     def test_statistiques_apres_resultat(self, equ2jn1, data_partie, data_stat):

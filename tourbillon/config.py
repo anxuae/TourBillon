@@ -134,9 +134,11 @@ class TypedConfigParser(configparser.SafeConfigParser, metaclass=Singleton):
 
     def __init__(self, filename=None, load=True):
         super().__init__()
-        self.filename = osp.abspath(osp.expanduser(filename))
-        if filename and load:
-            self.load(self.filename)
+        self.filename = None
+        if filename:
+            self.filename = osp.abspath(osp.expanduser(filename))
+            if load:
+                self.load(self.filename)
 
         # Save config before exit
         atexit.register(self.save)

@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-
 
-"""Utility functions fro draws"""
+"""Utility functions for draws"""
 
 from math import factorial
 from itertools import combinations as cnp

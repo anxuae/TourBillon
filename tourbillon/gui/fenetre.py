@@ -616,7 +616,7 @@ cliquez sur ANNULER si vous ne voulez pas ajouter cette nouvelle équipe."
 
         if ret is True:
             partie = tournament.tournoi().ajout_partie()
-            partie.demarrer(dlg.tirage(), dlg.chapeaux())
+            partie.start(dlg.tirage(), dlg.chapeaux())
 
             # Rafraichir
             self.barre_bouton.chg_partie(partie.numero)
