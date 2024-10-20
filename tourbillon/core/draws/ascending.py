@@ -1,13 +1,13 @@
 # -*- coding: UTF-8 -*-
 
-"""Renvoyer une liste de manches par ordre croissant de numéros d'équipe."""
+"""Return a list of matches in growing order of team numbers"""
 
-from tourbillon.core.tirages.utils import BaseThreadTirage, creer_manches, tri_stat
-from tourbillon.core import constantes as cst
+from .. import cst
+from .utils import BaseThreadTirage, creer_manches, tri_stat
 
 
 class ThreadTirage(BaseThreadTirage):
-    NOM = "croissant"
+    NOM = __name__.rsplit('.', maxsplit=1)[-1]
 
     DESCRIPTION = "Par ordre croissant"
 

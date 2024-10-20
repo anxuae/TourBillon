@@ -5,7 +5,6 @@ import os
 import os.path as osp
 import time
 import atexit
-import traceback
 import logging
 from logging import handlers
 import tourbillon
@@ -35,20 +34,18 @@ class LoggerHandler(logging.StreamHandler):
             self.stream = sys.stdout
 
         self.format(record)
-        self.afficher(record)
-
-    def afficher(self, record):
         logging.StreamHandler.emit(self, record)
 
     def bilan(self):
         print("*" * 80)
-        print("Résumé de l'éxécution: {errors} error(s), {warnings} warning(s), {infos} info(s)".format(**self.counters))
+        print("Résumé de l'éxécution: {errors} error(s), {warnings} warning(s), {infos} info(s)".format(
+            **self.counters))
         print("*" * 80)
 
 
-def ajouter_handler(handler, level=logging.INFO, pattern="(%(levelname)s) %(asctime)s - %(message)s"):
+def add_handler(handler, level: int = logging.INFO, pattern: str = "(%(levelname)s) %(asctime)s - %(message)s"):
     """
-    Ajouter un manipulateur de log
+    Add a new handler with given config
     """
     handler.setLevel(level)
     formatter = logging.Formatter(pattern, "%Y/%m/%d %H:%M:%S")
@@ -57,20 +54,17 @@ def ajouter_handler(handler, level=logging.INFO, pattern="(%(levelname)s) %(asct
     return handler
 
 
-def creer_logger(level=logging.INFO, logdir=None):
+def init_logger(level: int = logging.INFO, logdir: str = None):
     """
-    Initialiser le système de logging et retourner le handler.
+    Inititialize logging system and return logger object.
 
-    :param level: niveau de verbosité defini par le module logging (DEBUG, INFO, ...)
-    :type level: int
-
-    :param logdir: chemin du dossier ou les messages sont enregistrés
-    :type logdir: str
+    :param level: verbosity level (DEBUG, INFO, ERROR, CRITICAL)
+    :param logdir: path to the file where logs are saved
     """
-    _logger.setLevel(logging.DEBUG)  # Pour laisser la possibilité d'avoir des niveau différents
+    _logger.setLevel(logging.DEBUG)  # Let the possibility to have higher levels set on handlers
 
     console_handler = LoggerHandler()
-    ajouter_handler(console_handler, level)
+    add_handler(console_handler, level)
     atexit.register(console_handler.bilan)
 
     # Logger les messages dans un fichier
@@ -80,13 +74,13 @@ def creer_logger(level=logging.INFO, logdir=None):
         log_filepath = osp.join(logdir, '%s.log' % time.strftime("%Y-%m-%d"))
         # Max taille de log 10Mo, 1000000 logs peuvent être créés avant de réécraser le premier
         file_handler = handlers.RotatingFileHandler(log_filepath, maxBytes=10000000, backupCount=1000000)
-        ajouter_handler(file_handler, logging.DEBUG, "(%(levelname)s),%(name)s,%(asctime)s,%(message)s,%(pathname)s,%(lineno)d")
+        add_handler(file_handler, logging.DEBUG, "(%(levelname)s),%(name)s,%(asctime)s,%(message)s,%(pathname)s,%(lineno)d")
 
     debug('Logger initialisé')
     return _logger
 
 
-# Raccourcis
+# Shortcut
 CRITICAL = logging.CRITICAL
 ERROR = logging.ERROR
 WARNING = logging.WARNING
@@ -95,20 +89,12 @@ DEBUG = logging.DEBUG
 
 
 def critical(msg):
-    tb = traceback.format_exc()
-    if tb:
-        _logger.critical("%s:\n%s", msg, tb)
-    else:
-        _logger.critical(msg)
+    _logger.critical(msg, exc_info=sys.exc_info()[0] is not None)
     sys.exit(1)
 
 
 def error(msg):
-    tb = traceback.format_exc()
-    if tb:
-        _logger.error("%s:\n%s", msg, tb)
-    else:
-        _logger.error(msg)
+    _logger.error(msg, exc_info=sys.exc_info()[0] is not None)
 
 
 warning = _logger.warning

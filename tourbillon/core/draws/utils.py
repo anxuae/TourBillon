@@ -1,12 +1,13 @@
 # -*- coding: UTF-8 -*-
 
-"""Fonctions utiles à la création d'algorithmes de tirage."""
+"""Utility functions for draws"""
 
 from math import factorial
 from itertools import combinations as cnp
 from datetime import datetime, timedelta
 from threading import Thread, Event
-from tourbillon.core.exceptions import TirageError, StopTirageError, SolutionTirageError
+
+from ..exception import DrawError, DrawStopError, DrawResultError
 
 
 def len_cnp(n, p):
@@ -16,7 +17,7 @@ def len_cnp(n, p):
     """
     if isinstance(n, list) or isinstance(n, tuple):
         n = len(n)
-    return factorial(n) / (factorial(p) * factorial(n - p))
+    return factorial(n) // (factorial(p) * factorial(n - p))
 
 
 def tri_stat(statistiques, caracteristique):
@@ -29,7 +30,7 @@ def tri_stat(statistiques, caracteristique):
 
 def nb_chapeaux_necessaires(nb_equipes, nb_par_manche):
     if nb_equipes < nb_par_manche:
-        raise TirageError("Pas assez d'équipes (nb équipes: %s, nb par manche: %s)" % (nb_equipes, nb_par_manche))
+        raise DrawError(f"Not enough teams (nb teams: {nb_equipes}, nb required by match: {nb_par_manche})")
     else:
         return nb_equipes % nb_par_manche
 
@@ -40,8 +41,8 @@ def dernieres_equipes(statistiques, n=1):
     """
     r = []
     d = tri_stat(statistiques, 'place')
-    places = d.keys()
-    places.sort()
+    places = sorted(d.keys())
+
     for p in places:
         r += d[p]
 
@@ -109,7 +110,7 @@ def tirage_texte(statistiques, manches):
 
         # Completer avec un un nombre < 1 pour les rencontres 2 à 2 effectuées
         # dans d'autres manches que celles redondantes
-        nrc += 1 - (1.0 * semirencontres.values().count(0) / len_cnp(manche, 2))
+        nrc += 1 - (semirencontres.values().count(0) / len_cnp(manche, 2))
 
         texte.append("%-15s: diff points = %-5s, redondance = %-5s, disparité = %-5s" % (manche, dp, nrc, dv))
 
@@ -125,7 +126,7 @@ def temps_texte(tps):
     return "%.2im%.2is" % (minutes, secondes)
 
 
-class NonValide(object):
+class NonValide:
 
     """
     Cette classe represent une manche non valide et embarque
@@ -183,9 +184,10 @@ class NonValide(object):
         elif v == NV_REDONDANCE.raison() | NV_DISPARITE.raison():
             return NonValide(redondance=1, disparite=2)
         else:
-            raise TypeError("unsupported operand type(s) for |: '%s' and '%s'" % (type(self), type(other)))
+            raise TypeError(f"Unsupported operand type(s) for |: '{type(self)}' and '{type(other)}'")
 
     __ror__ = __or__
+
 
 NV = NonValide
 NV_REDONDANCE = NonValide(redondance=1)
@@ -203,7 +205,7 @@ class BaseThreadTirage(Thread):
     def __init__(self, equipes_par_manche, statistiques, chapeaux=[], callback=None):
         Thread.__init__(self)
         if self.__class__ == BaseThreadTirage:
-            raise NotImplementedError("Classe abstraite")
+            raise NotImplementedError("Abstract class")
 
         self._stop = Event()
         self._progression = 0
@@ -219,14 +221,14 @@ class BaseThreadTirage(Thread):
         self.callback = callback
 
         # Parametres par défaut de l'algorithme
-        self.configurer(**dict([(cle.lower(), valeur) for cle, valeur in self.DEFAUT.iteritems()]))
+        self.configurer(**dict([(cle.lower(), valeur) for cle, valeur in self.DEFAUT.items()]))
 
     def __str__(self):
         return "<generateur %s>" % self.NOM
 
     def _arret_utilisateur(self):
         if self._stop.isSet() == True:
-            raise StopTirageError("Arrêt demmandé par l'utilisateur.")
+            raise DrawStopError("Abort requested by user")
 
     def configurer(self, **kwargs):
         self.config.update(kwargs)
@@ -246,24 +248,24 @@ class BaseThreadTirage(Thread):
         nb_chapeaux = nb_chapeaux_necessaires(nb_eq, self.equipes_par_manche)
         try:
             if len(self.chapeaux) >= self.equipes_par_manche:
-                # ERREUR 100: Le nombre de chapeaux ne peu pas être égale au nombre d'équipes par manche
+                # ERREUR 100: Le nombre de chapeaux ne peut pas être égale au nombre d'équipes par manche
                 args = [len(self.chapeaux), self.equipes_par_manche]
-                raise SolutionTirageError(100, args)
+                raise DrawResultError(100, args)
 
             if nb_chapeaux - len(self.chapeaux) < 0:
                 # ERREUR 102: Nombre de chapeaux fourni incorrecte
                 args = (nb_chapeaux_necessaires(nb_eq, self.equipes_par_manche) - len(self.chapeaux),)
-                raise SolutionTirageError(102, args)
+                raise DrawResultError(102, args)
 
             self._debut = datetime.now()
             self.demarrer()
             msg = "\nAlgorithme terminé (temps de calcul: %s)." % temps_texte(self._chrono - self._debut)
             self.rapport(100, msg)
-        except SolutionTirageError as ex:
+        except DrawResultError as ex:
             msg = "\nAlgorithme terminé (%s)." % ex
             self.erreur = e
             self.rapport(100, msg)
-        except StopTirageError as ex:
+        except DrawStopError as ex:
             msg = "\nAlgorithme terminé (arrêt utilisateur)."
             self.erreur = ex
             self.rapport(100, msg)
@@ -273,7 +275,7 @@ class BaseThreadTirage(Thread):
         Cette methode DOIT être surchargée. Elle démarre l'algorithme
         de tirage.
         """
-        raise NotImplementedError('Cette methode DOIT être surchargée')
+        raise NotImplementedError('Method SHALL be overridden')
 
     def rapport(self, valeur=-1, message=None):
         """
@@ -293,7 +295,7 @@ class BaseThreadTirage(Thread):
                 self.callback(self._progression, message, tps_restant)
         elif diff >= 5 or valeur == 100:
             self._progression = int(valeur)
-            tps_restant = (((self._chrono - self._debut) * 100) / self._progression) - (self._chrono - self._debut)
+            tps_restant = (((self._chrono - self._debut) * 100) // self._progression) - (self._chrono - self._debut)
             if self.callback:
                 self.callback(self._progression, message, tps_restant)
 

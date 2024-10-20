@@ -10,9 +10,9 @@ import wx
 from wx import grid
 from wx.lib import ticker
 
-from tourbillon.core import constantes as cst
-from tourbillon.core import tournoi
-from tourbillon.core.tirages import utils
+from tourbillon.core import cst
+from tourbillon.core import tournament
+from tourbillon.core.draws import utils
 
 from tourbillon import images
 from tourbillon.gui import grille as grl
@@ -35,7 +35,7 @@ def tournoi_factice(equipes_par_manche, joueurs_par_equipe, nombre_equipes):
     noms = ['Alpha', 'Beta', 'Gamma', 'Delta', 'Epsilon', 'Zeta', 'Eta', 'Theta', 'Iota', 'Kappa', 'Lamda', 'Mu',
             'Nu', 'Xi', 'Omicron', 'Pi', 'Rho', 'Sigma', 'Thau', 'Upsilon', 'Phi', 'Chi', 'Psi', 'Omega']
 
-    t = tournoi.Tournoi(equipes_par_manche, 12, joueurs_par_equipe)
+    t = tournament.Tournament(equipes_par_manche, 12, joueurs_par_equipe)
 
     # Créer les équipes
     num = 1
@@ -53,17 +53,17 @@ def tournoi_factice(equipes_par_manche, joueurs_par_equipe, nombre_equipes):
     if len(tirage[-1]) < equipes_par_manche:
         chapeaux = tirage.pop(-1)
 
-    partie.demarrer(dict(zip(range(len(tirage)), tirage)), chapeaux)
+    partie.start(dict(zip(range(len(tirage)), tirage)), chapeaux)
 
     i = 0
-    while i < len(tirage) / 2:
+    while i < len(tirage) // 2:
         d = {}
         for j in range(equipes_par_manche):
             if j == 0:
                 d[tirage[i][j]] = 12
             else:
                 d[tirage[i][j]] = 8
-        t.partie(1).resultat(d, datetime.now())
+        t.partie(1).add_result(d, datetime.now())
         i += 1
 
     return t
@@ -90,7 +90,7 @@ def string_en_wxFont(texte):
 # --- Classes -------------------------------------------------------------------
 
 
-class ListeCyclique(object):
+class ListeCyclique:
 
     def __init__(self, liste, nombre):
         if type(liste) == ListeCyclique:
@@ -153,7 +153,7 @@ class Grille(grid.Grid):
         self.SetRowPenColor(self._horizontal_line_color)
 
     def GetNumberRows(self):
-        return (grid.Grid.GetNumberRows(self) / 2) - 1
+        return (grid.Grid.GetNumberRows(self) // 2) - 1
 
     def GetNumberCols(self):
         return grid.Grid.GetNumberCols(self)
@@ -259,10 +259,10 @@ class GrilleTirage(Grille):
                                 self.SetCellValue(i, 1, "C")
                                 self.SetCellTextColour(i, 1, images.couleur(cst.CHAPEAU))
                             # Piquet
-                            piquet = tournoi.tournoi().equipe(equipe).resultat(tournoi.tournoi().partie_courante().numero).piquet
-                            if not piquet:
-                                piquet = "-"
-                            self.SetCellValue(i, 3, str(piquet))
+                            location = tournament.tournoi().equipe(equipe).resultat(tournament.tournoi().partie_courante().numero).location
+                            if not location:
+                                location = "-"
+                            self.SetCellValue(i, 3, str(location))
                         else:
                             self.SetCellValue(i, j, "")
                 i += 1
@@ -271,7 +271,7 @@ class GrilleTirage(Grille):
             self._timer.Stop()
 
     def redim(self, largeur, hauteur, redim_police=True):
-        h = (hauteur - 100) / (self.GetNumberRows() + 1)
+        h = (hauteur - 100) // (self.GetNumberRows() + 1)
         l = (largeur - 100)
         if h > 80:
             h = 80
@@ -284,7 +284,7 @@ class GrilleTirage(Grille):
 
         self.SetColAttr(2, self.attribut('espace'))
         for colonne in range(self.GetNumberCols()):
-            self.SetColSize(colonne, (self._largeur_clonne[colonne] * l) / sum(self._largeur_clonne))
+            self.SetColSize(colonne, (self._largeur_clonne[colonne] * l) // sum(self._largeur_clonne))
 
         for ligne in range(self.GetNumberRows()):
             self.SetRowSize(ligne, h)
@@ -419,7 +419,7 @@ class DoubleGrilleTirage(wx.BoxSizer):
         return l0, l1
 
     def redim(self, largeur, hauteur, redim_police=True):
-        largeur = (largeur - 150) / 2
+        largeur = (largeur - 150) // 2
         for grille in self.grilles:
             grille.redim(largeur, hauteur, redim_police)
 
@@ -512,7 +512,7 @@ class GrilleResultats(Grille):
             self._timer.Stop()
 
     def redim(self, largeur, hauteur, redim_police=True):
-        h = (hauteur - 100) / (self.GetNumberRows() + 1)
+        h = (hauteur - 100) // (self.GetNumberRows() + 1)
         l = (largeur - 100)
         if h > 80:
             h = 80
@@ -548,8 +548,8 @@ class GrilleResultats(Grille):
             m = equipe.resultat(self.tournoi.partie_courante().numero)
             if m.etat != cst.FORFAIT:
                 l.append(equipe.numero)
-        l.sort()
-        l = ListeCyclique(l, self.nombre_lignes_max)
+
+        l = ListeCyclique(sorted(l), self.nombre_lignes_max)
         if l != self._liste:
             self._liste = l
 
@@ -696,8 +696,8 @@ class DialogueInformations(wx.Dialog):
         """
         NE PAS UTILISER !!!!! (Manipulé par la fenêtre principale)
         """
-        partie = tournoi.tournoi().partie_courante()
-        VARIABLES['date'] = tournoi.tournoi().debut.strftime("%d / %m / %Y")
+        partie = tournament.tournoi().partie_courante()
+        VARIABLES['date'] = tournament.tournoi().debut.strftime("%d / %m / %Y")
         VARIABLES['partie'] = getattr(partie, 'numero', 0)
         VARIABLES['partie suivante'] = getattr(partie, 'numero', 0) + 1
 
@@ -727,23 +727,22 @@ class DialogueInformations(wx.Dialog):
 
             if partie.nb_equipes() == len(partie.equipes_incompletes()) or statut == 'test tirage':
                 # Afficher le grille du tirage
-                self.txt_titre.SetLabel("Partie n°%s - Tirage" % tournoi.tournoi().partie_courante().numero)
+                self.txt_titre.SetLabel("Partie n°%s - Tirage" % tournament.tournoi().partie_courante().numero)
                 # Lecture du tirage
                 l = []
-                for equipe in tournoi.tournoi().equipes():
-                    m = equipe.resultat(tournoi.tournoi().partie_courante().numero)
+                for equipe in tournament.tournoi().equipes():
+                    m = equipe.resultat(tournament.tournoi().partie_courante().numero)
                     if m.etat != cst.FORFAIT:
                         l.append([equipe.numero] + m.adversaires)
-                l.sort()
 
-                self.gri_tirages.maj_grille(l, self.grille_lignes, self.grille_police, self.grille_defilement_vertical)
+                self.gri_tirages.maj_grille(sorted(l), self.grille_lignes, self.grille_police, self.grille_defilement_vertical)
                 self.txt_interlude.Show(False)
                 self.gri_tirages.Show(True)
                 self.gri_resultats.Show(False)
             else:
                 # Afficher le grille des résultats
-                self.txt_titre.SetLabel("Partie n°%s - Résultats" % tournoi.tournoi().partie_courante().numero)
-                self.gri_resultats.maj_grille(tournoi.tournoi(), self.grille_lignes, self.grille_police)
+                self.txt_titre.SetLabel("Partie n°%s - Résultats" % tournament.tournoi().partie_courante().numero)
+                self.gri_resultats.maj_grille(tournament.tournoi(), self.grille_lignes, self.grille_police)
                 self.txt_interlude.Show(False)
                 self.gri_tirages.Show(False)
                 self.gri_resultats.Show(True)
@@ -796,8 +795,8 @@ class DialogueInformations(wx.Dialog):
             event.Skip()
 
     def test(self, suivant=False):
-        courant = tournoi.tournoi()
-        tournoi.TOURNOI = tournoi_factice(self.config.get_typed("TOURNOI", "EQUIPES_PAR_MANCHE"),
+        courant = tournament.tournoi()
+        tournament.TOURNOI = tournoi_factice(self.config.get_typed("TOURNOI", "EQUIPES_PAR_MANCHE"),
                                           self.config.get_typed("TOURNOI", "JOUEURS_PAR_EQUIPE"),
                                           self.grille_lignes * 2 + self.config.get_typed("TOURNOI", "EQUIPES_PAR_MANCHE"))
         if suivant:
@@ -816,7 +815,7 @@ class DialogueInformations(wx.Dialog):
 
         self._rafraichir(self._test_statut)
 
-        tournoi.TOURNOI = courant
+        tournament.TOURNOI = courant
 
     def plein_ecran(self, event):
         if not self.IsFullScreen():

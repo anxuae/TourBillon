@@ -5,10 +5,11 @@ import wx.lib.stattext as genstatictext
 from wx.lib.agw import buttonpanel as bp
 
 from tourbillon import images
+from tourbillon.core import cst, tournament
+
 from tourbillon.gui import evenements as evt
 from tourbillon.gui import grille as grl
-from tourbillon.core import constantes as cst
-from tourbillon.core import tournoi
+
 
 ID_STATISTIQUES = wx.NewId()
 ID_INFO = wx.NewId()
@@ -156,7 +157,7 @@ class Menu(wx.Menu):
 
 
 def styles():
-    t = tournoi.tournoi()
+    t = tournament.tournoi()
     if t is None:
         etat = None
     else:
@@ -437,7 +438,7 @@ class BarreBouton(bp.ButtonPanel):
         return None
 
 
-class Voyant(object):
+class Voyant:
 
     def __init__(self, parent):
         self.parent = parent
