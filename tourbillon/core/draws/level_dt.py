@@ -342,7 +342,7 @@ class ThreadTirage(BaseThreadTirage):
         creer_matrices(self.config, self.statistiques)
 
         # Lancer l'algorithme
-        equipes_disponibles = self.statistiques.keys()
+        equipes_disponibles = list(self.statistiques.keys())
         tirage_temp = []
 
         while equipes_disponibles != []:

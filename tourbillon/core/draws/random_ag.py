@@ -120,7 +120,7 @@ class ThreadTirage(BaseThreadTirage):
         # -------------------
 
         # Créer l'environement
-        Tirage.alleles = self.statistiques.keys()
+        Tirage.alleles = list(self.statistiques.keys())
         self._env = Environement(genese(Tirage, self.config['taille_population_ini']), **self.config)
 
         # Lancer l'algorithme
