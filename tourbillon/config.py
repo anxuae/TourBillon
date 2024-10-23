@@ -130,7 +130,7 @@ class Singleton(ABCMeta):
         return cls._instances[cls]
 
 
-class TypedConfigParser(configparser.SafeConfigParser, metaclass=Singleton):
+class TypedConfigParser(configparser.ConfigParser, metaclass=Singleton):
 
     def __init__(self, filename=None, load=True):
         super().__init__()

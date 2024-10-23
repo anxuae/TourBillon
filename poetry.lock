@@ -597,8 +597,8 @@ files = [
 annotated-types = ">=0.6.0"
 pydantic-core = "2.23.4"
 typing-extensions = [
-    {version = ">=4.6.1", markers = "python_version < \"3.13\""},
     {version = ">=4.12.2", markers = "python_version >= \"3.13\""},
+    {version = ">=4.6.1", markers = "python_version < \"3.13\""},
 ]
 
 [package.extras]
@@ -741,23 +741,6 @@ tomli = {version = ">=1", markers = "python_version < \"3.11\""}
 
 [package.extras]
 dev = ["argcomplete", "attrs (>=19.2)", "hypothesis (>=3.56)", "mock", "pygments (>=2.7.2)", "requests", "setuptools", "xmlschema"]
-
-[[package]]
-name = "pytest-order"
-version = "1.3.0"
-description = "pytest plugin to run your tests in a specific order"
-optional = false
-python-versions = ">=3.7"
-files = [
-    {file = "pytest_order-1.3.0-py3-none-any.whl", hash = "sha256:2cd562a21380345dd8d5774aa5fd38b7849b6ee7397ca5f6999bbe6e89f07f6e"},
-    {file = "pytest_order-1.3.0.tar.gz", hash = "sha256:51608fec3d3ee9c0adaea94daa124a5c4c1d2bb99b00269f098f414307f23dde"},
-]
-
-[package.dependencies]
-pytest = [
-    {version = ">=5.0", markers = "python_version < \"3.10\""},
-    {version = ">=6.2.4", markers = "python_version >= \"3.10\""},
-]
 
 [[package]]
 name = "python-dotenv"
@@ -1231,4 +1214,4 @@ six = "*"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8"
-content-hash = "104c13de8074d4f4bf930b58d26fb2f0cd7301a6911a84de750799240eb2d883"
+content-hash = "91033f0971f0bd5fa8a815be813a88d82c9b9abf584e85a71ab05e18b934d6e7"

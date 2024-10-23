@@ -71,9 +71,9 @@ def creer_matrices(parametres, statistiques):
             points += statistiques[num][cst.STAT_POINTS]
             victoires += statistiques[num][cst.STAT_VICTOIRES]
             victoires += statistiques[num][cst.STAT_CHAPEAUX]
-            if statistiques[num][cst.STAT_VICTOIRES] + statistiques[num][cst.STAT_CHAPEAUX] < min_vic or min_vic is None:
+            if min_vic is None or statistiques[num][cst.STAT_VICTOIRES] + statistiques[num][cst.STAT_CHAPEAUX] < min_vic:
                 min_vic = statistiques[num][cst.STAT_VICTOIRES] + statistiques[num][cst.STAT_CHAPEAUX]
-            if statistiques[num][cst.STAT_VICTOIRES] + statistiques[num][cst.STAT_CHAPEAUX] > max_vic or max_vic is None:
+            if max_vic is None or statistiques[num][cst.STAT_VICTOIRES] + statistiques[num][cst.STAT_CHAPEAUX] > max_vic:
                 max_vic = statistiques[num][cst.STAT_VICTOIRES] + statistiques[num][cst.STAT_CHAPEAUX]
         MC_CACHE[cle] = points + parametres['ponderation_victoires'] * victoires
 
@@ -99,7 +99,7 @@ def creer_matrices(parametres, statistiques):
 
         # Completer avec un un nombre < 1 pour les rencontres 2 à 2 effectuées
         # dans d'autres manches que celles redondantes
-        nb_vu += 1 - (rencontres.values().count(0) / len_cnp(manche, 2))
+        nb_vu += 1 - (list(rencontres.values()).count(0) / len_cnp(manche, 2))
         MR_CACHE[cle] = nb_vu
 
         # Avancement du calcul (affichage jusque 99% pour éviter d'indiquer la fin de l'algorithme)
@@ -178,7 +178,7 @@ def manche_possible(manche, equipes_disponibles, equipe=None):
 def min_cout(parametres, equipes_disponibles, redondance=False, disparite=False, equipe=None):
     """
     Fonction renvoyant la manche qui possède la fonction de coût minimal.
-    La manche avec un cout minimal comprend les équipes les plus failes.
+    La manche avec un cout minimal comprend les équipes les plus faibles.
 
     'equipes' : retourne la manche qui a le cout minimal parmis les manche
                 possibles avec 'equipes'.

@@ -17,7 +17,7 @@ def test_status(part3e2j, debut=None, manches=[], equipes=[], chapeaux=[],
     assert part3e2j.locations() == piquets
 
 
-def test_demarrer(part3e2j):
+def test_start_round(part3e2j):
     assert part3e2j.statut == cst.P_ATTEND_TIRAGE
     assert part3e2j.nb_equipes() == 0
     assert part3e2j.is_location_available(11) == True
@@ -37,7 +37,7 @@ def test_delete(part3e2j):
     test_status(part3e2j)
 
 
-def test_demarrer_avec_chapeau(part3e2j):
+def test_start_round_with_byes(part3e2j):
     part3e2j.start({1: [3, 2]}, [1])
     assert part3e2j.statut == cst.P_EN_COURS
     assert part3e2j.nb_equipes() == 2
@@ -48,7 +48,7 @@ def test_demarrer_avec_chapeau(part3e2j):
                 forfaits=[], incompletes=[2, 3], piquets=[1])
 
 
-def test_resultat(part3e2j):
+def test_match_results(part3e2j):
     part3e2j.add_result({3: 12, 2: 9})
     assert part3e2j.statut == cst.P_COMPLETE
 
@@ -57,7 +57,7 @@ def test_resultat(part3e2j):
                 forfaits=[], incompletes=[], piquets=[1])
 
 
-def test_equipe_apres_demarrage(part3e2j):
+def test_teams_after_start(part3e2j):
     eq = part3e2j.tournoi.ajout_equipe(9)
     for joueur in t2teams2players.JOUEURS_9:
         eq.ajout_joueur(*joueur)

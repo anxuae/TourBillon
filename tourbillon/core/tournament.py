@@ -5,7 +5,7 @@
 import os
 import random
 from datetime import datetime
-from functools import partial
+from functools import partial, cmp_to_key
 
 import yaml
 
@@ -108,7 +108,7 @@ def charger_tournoi(fichier):
     try:
         # Extraction des données
         with open(fichier, 'r', encoding='utf-8') as fp:
-            y = yaml.load(fp)
+            y = yaml.load(fp, Loader=yaml.Loader)
         nouveau_tournoi()
 
         # Date enregistrement
@@ -141,7 +141,7 @@ def charger_tournoi(fichier):
 
         # Création des parties
         for num in range(1, nb_parties + 1):
-            TOURNOI._liste_parties.append(Round(TOURNOI))
+            TOURNOI._rounds.append(Round(TOURNOI))
 
         FICHIER_TOURNOI = fichier
         TOURNOI.date_chargement = datetime.now()
@@ -164,8 +164,8 @@ class Tournament:
         self.date_enregistrement = None
 
         self.changed = False
-        self._liste_equipes = {}
-        self._liste_parties = []
+        self._teams = {}
+        self._rounds = []
 
     def __str__(self):
         texte = """
@@ -181,7 +181,7 @@ class Tournament:
         """
         return texte % (self.debut,
                         len(self.parties()),
-                        len(self._liste_equipes),
+                        len(self._teams),
                         self.equipes_par_manche,
                         self.points_par_manche,
                         self.joueurs_par_equipe,
@@ -265,7 +265,7 @@ class Tournament:
         """
         Retourne le nombre d'équipes inscrites.
         """
-        return len(self._liste_equipes)
+        return len(self._teams)
 
     def equipe(self, numero):
         """
@@ -275,23 +275,23 @@ class Tournament:
         """
         if type(numero) == Team:
             return numero
-        elif numero not in self._liste_equipes:
+        elif numero not in self._teams:
             raise ValueError("L'équipe n°%s n'existe pas." % numero)
         else:
-            return self._liste_equipes[numero]
+            return self._teams[numero]
 
     def equipes(self):
         """
         Retourne les équipes sous forme de liste.
         """
-        return self._liste_equipes.values()
+        return list(self._teams.values())
 
     def generer_numero_equipe(self):
         """
         Retourne un numéro d'équipe non utilisé
         """
         i = 1
-        while i in self._liste_equipes:
+        while i in self._teams:
             i += 1
         return i
 
@@ -317,11 +317,11 @@ class Tournament:
         """
         if numero is None:
             numero = self.generer_numero_equipe()
-        if numero in self._liste_equipes:
+        if numero in self._teams:
             raise ValueError("L'équipe n°%s existe déjà." % numero)
 
         eq = Team(self, numero, joker)
-        self._liste_equipes[eq.numero] = eq
+        self._teams[eq.numero] = eq
         self.changed = True
         return eq
 
@@ -331,10 +331,10 @@ class Tournament:
 
         numero (int)
         """
-        if numero not in self._liste_equipes:
+        if numero not in self._teams:
             raise ValueError("L'équipe n°%s n'existe pas." % numero)
 
-        eq = self._liste_equipes.pop(numero)
+        eq = self._teams.pop(numero)
         self.changed = True
         return eq
 
@@ -348,12 +348,12 @@ class Tournament:
         """
         if self.nb_parties() != 0:
             raise StatusError("Le numéro de l'équipe n°%s ne peut pas être changé." % numero)
-        if nouv_numero in self._liste_equipes:
+        if nouv_numero in self._teams:
             raise ValueError("L'équipe n°%s existe déjà." % nouv_numero)
 
-        equipe = self._liste_equipes.pop(numero)
+        equipe = self._teams.pop(numero)
         equipe._num = nouv_numero
-        self._liste_equipes[nouv_numero] = equipe
+        self._teams[nouv_numero] = equipe
         self.changed = True
 
     def nb_parties(self):
@@ -388,7 +388,7 @@ class Tournament:
         """
         Retourne les parties sous forme de liste.
         """
-        return self._liste_parties
+        return self._rounds
 
     def ajout_partie(self):
         """
@@ -430,7 +430,7 @@ class Tournament:
                 manches.append(manche)
         return manches
 
-    def comparer(self, equipe1, equipe2, partie_limite=None):
+    def comparer(self, team1, team2, partie_limite=None):
         """
         Comparer la force de deux équipes. La comparaison se fait en fonction du
         nombre de victoires (si activé), du nombre de points, du numéro joker
@@ -440,12 +440,12 @@ class Tournament:
         equipe2 (Equipe instance)
         partie_limite (int) limite pour le calcul pour la comparaison
         """
-        if type(equipe1) != Team or type(equipe2) != Team:
+        if type(team1) != Team or type(team2) != Team:
             raise TypeError("Une équipe doit être comparée à une autre.")
 
         # priorité 1: comparaison des victoires
-        vic = equipe1.victoires(partie_limite) + equipe1.chapeaux(partie_limite) - \
-            equipe2.victoires(partie_limite) - equipe2.chapeaux(partie_limite)
+        vic = team1.victoires(partie_limite) + team1.chapeaux(partie_limite) - \
+            team2.victoires(partie_limite) - team2.chapeaux(partie_limite)
         if vic > 0:
             vic = 1
         elif vic < 0:
@@ -455,7 +455,7 @@ class Tournament:
             return vic
 
         # priorité 2: comparaison des points
-        pts = equipe1.points(partie_limite) - equipe2.points(partie_limite)
+        pts = team1.points(partie_limite) - team2.points(partie_limite)
         if pts > 0:
             pts = 1
         elif pts < 0:
@@ -465,7 +465,7 @@ class Tournament:
             return pts
 
         # priorité 3: comparaison des numéro joker
-        joker = equipe1.joker - equipe2.joker
+        joker = team1.joker - team2.joker
         if joker > 0:
             joker = 1
         elif joker < 0:
@@ -476,11 +476,11 @@ class Tournament:
 
         # priorité 4: comparaison des durées moyennes
         # (equipe superieure si durée mini)
-        if equipe1.moyenne_duree(partie_limite) < equipe2.moyenne_duree(partie_limite):
+        if team1.moyenne_duree(partie_limite) < team2.moyenne_duree(partie_limite):
             dur = 1
-        elif equipe1.moyenne_duree(partie_limite) == equipe2.moyenne_duree(partie_limite):
+        elif team1.moyenne_duree(partie_limite) == team2.moyenne_duree(partie_limite):
             dur = 0
-        elif equipe1.moyenne_duree(partie_limite) > equipe2.moyenne_duree(partie_limite):
+        elif team1.moyenne_duree(partie_limite) > team2.moyenne_duree(partie_limite):
             dur = -1
 
         if self.cmp_avec_duree and dur != 0:
@@ -509,7 +509,7 @@ class Tournament:
         self.cmp_avec_victoires = avec_victoires
         self.cmp_avec_joker = avec_joker
         self.cmp_avec_duree = avec_duree
-        l = sorted(self.equipes(), key=partial(self.comparer, partie_limite=partie_limite), reverse=True)
+        l = sorted(self.equipes(), key=cmp_to_key(partial(self.comparer, partie_limite=partie_limite)), reverse=True)
 
         classement = []
 

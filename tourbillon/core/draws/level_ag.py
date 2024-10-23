@@ -39,11 +39,35 @@ class Individu:
         return '<%s chromosome= %s score= %s>' % \
                (self.__class__.__name__, self.chromosome, self.score)
 
-    def __cmp__(self, other):
+    def __lt__(self, other):
         if self.optimization == MINIMISE:
-            return cmp(self.score, other.score)
+            return self.score < other.score
         else:  # MAXIMISE
-            return cmp(other.score, self.score)
+            return other.score < self.score
+
+    def __le__(self, other):
+        if self.optimization == MINIMISE:
+            return self.score <= other.score
+        else:  # MAXIMISE
+            return other.score <= self.score
+
+    def __gt__(self, other):
+        if self.optimization == MINIMISE:
+            return self.score > other.score
+        else:  # MAXIMISE
+            return other.score > self.score
+    
+    def __ge__(self, other):
+        if self.optimization == MINIMISE:
+            return self.score >= other.score
+        else:  # MAXIMISE
+            return other.score >= self.score
+        
+    def __eq__(self, other):
+        return self.score == other.score
+        
+    def __ne__(self, other):
+        return self.score != other.score
 
     # Exemple de mutation
     def _remplacer(self, gene):
@@ -303,7 +327,7 @@ def comanche(parametres, statistiques, manche):
 
     # Completer avec un un nombre < 1 pour les rencontres 2 à 2 effectuées
     # dans d'autres manches que celles redondantes
-    nrc += 1 - (rencontres.values().count(0) / len_cnp(manche, 2))
+    nrc += 1 - (list(rencontres.values()).count(0) / len_cnp(manche, 2))
 
     valeur += parametres['ponderation_victoires'] * nrc
 

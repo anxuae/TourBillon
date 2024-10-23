@@ -25,21 +25,15 @@ class Team:
         self._resultats = []
 
     def __str__(self):
-        texte = """
-        Equipe n°%s
-            Noms      : %s
-            Points    : %s
-            Victoires : %s
-            Chapeaux  : %s
+        return f"""
+        Team n°{self.numero}
+            Names     : {" / ".join([" ".join([joueur.prenom, joueur.nom]) for joueur in self._liste_joueurs])}
+            Points    : {self.points()}
+            Victories : {self.victoires()}
+            Byes      : {self.chapeaux()}
 
-            Statut    : %s
+            Status    : {self.statut}
         """
-        noms = " / ".join([" ".join([joueur.prenom, joueur.nom]) for joueur in self._liste_joueurs])
-        return texte % (self.numero, noms,
-                        self.points(),
-                        self.victoires(),
-                        self.chapeaux(),
-                        self.statut)
 
     def __int__(self):
         return self.numero

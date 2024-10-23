@@ -15,7 +15,7 @@ def len_cnp(n, p):
     Retourne le nombre de combinaisons (cnp) possibles pour tirer 'p' équipes
     parmis 'n' equipes sans répétition.
     """
-    if isinstance(n, list) or isinstance(n, tuple):
+    if hasattr(n, '__len__'):
         n = len(n)
     return factorial(n) // (factorial(p) * factorial(n - p))
 
@@ -110,7 +110,7 @@ def tirage_texte(statistiques, manches):
 
         # Completer avec un un nombre < 1 pour les rencontres 2 à 2 effectuées
         # dans d'autres manches que celles redondantes
-        nrc += 1 - (semirencontres.values().count(0) / len_cnp(manche, 2))
+        nrc += 1 - (list(semirencontres.values()).count(0) / len_cnp(manche, 2))
 
         texte.append("%-15s: diff points = %-5s, redondance = %-5s, disparité = %-5s" % (manche, dp, nrc, dv))
 
@@ -126,11 +126,11 @@ def temps_texte(tps):
     return "%.2im%.2is" % (minutes, secondes)
 
 
-class NonValide:
+class ImpossibleMatch:
 
     """
-    Cette classe represent une manche non valide et embarque
-    sa "raison" de n'être pas valide.
+    This class represents an invalid match and includes
+    its "reason" why it is invalid.
     """
 
     def __init__(self, valeur=None, redondance=0, disparite=0):
@@ -172,26 +172,38 @@ class NonValide:
         else:
             return False
 
+    def __lt__(self, other):
+        return True
+
+    def __le__(self, other):
+        return True
+
+    def __gt__(self, other):
+        return False
+
+    def __ge__(self, other):
+        return False
+
     def __or__(self, other):
         if other is None:
             return self
         v = self.raison() | other.raison()
 
         if v == NV_REDONDANCE.raison():
-            return NonValide(redondance=1)
+            return ImpossibleMatch(redondance=1)
         elif v == NV_DISPARITE.raison():
-            return NonValide(disparite=2)
+            return ImpossibleMatch(disparite=2)
         elif v == NV_REDONDANCE.raison() | NV_DISPARITE.raison():
-            return NonValide(redondance=1, disparite=2)
+            return ImpossibleMatch(redondance=1, disparite=2)
         else:
             raise TypeError(f"Unsupported operand type(s) for |: '{type(self)}' and '{type(other)}'")
 
     __ror__ = __or__
 
 
-NV = NonValide
-NV_REDONDANCE = NonValide(redondance=1)
-NV_DISPARITE = NonValide(disparite=2)
+NV = ImpossibleMatch
+NV_REDONDANCE = ImpossibleMatch(redondance=1)
+NV_DISPARITE = ImpossibleMatch(disparite=2)
 
 
 class BaseThreadTirage(Thread):
@@ -207,7 +219,7 @@ class BaseThreadTirage(Thread):
         if self.__class__ == BaseThreadTirage:
             raise NotImplementedError("Abstract class")
 
-        self._stop = Event()
+        self._stop_event = Event()
         self._progression = 0
         self._debut = datetime.now()
         self._chrono = datetime.now()
@@ -227,7 +239,7 @@ class BaseThreadTirage(Thread):
         return "<generateur %s>" % self.NOM
 
     def _arret_utilisateur(self):
-        if self._stop.isSet() == True:
+        if self._stop_event.isSet() == True:
             raise DrawStopError("Abort requested by user")
 
     def configurer(self, **kwargs):
@@ -238,7 +250,7 @@ class BaseThreadTirage(Thread):
         self.config['rapport'] = self.rapport
 
     def start(self, join=False):
-        self._stop.clear()
+        self._stop_event.clear()
         Thread.start(self)
         if join:
             self.join(20 * 60)  # 20 min max
@@ -300,4 +312,4 @@ class BaseThreadTirage(Thread):
                 self.callback(self._progression, message, tps_restant)
 
     def stop(self):
-        self._stop.set()
+        self._stop_event.set()
