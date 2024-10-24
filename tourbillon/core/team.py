@@ -28,7 +28,7 @@ class Team:
         return f"""
         Team n°{self.numero}
             Names     : {" / ".join([" ".join([joueur.prenom, joueur.nom]) for joueur in self._liste_joueurs])}
-            Points    : {self.points()}
+            Score     : {self.points()}
             Victories : {self.victoires()}
             Byes      : {self.chapeaux()}
 
@@ -38,13 +38,26 @@ class Team:
     def __int__(self):
         return self.numero
 
-    def __cmp__(self, other):
-        if int(self) > int(other):
-            return 1
-        elif int(self) == int(other):
-            return 0
-        else:
-            return -1
+    def __hash__(self):
+        return id(self)
+
+    def __lt__(self, other):
+        return int(self) < int(other)
+
+    def __le__(self, other):
+        return int(self) <= int(other)
+
+    def __gt__(self, other):
+        return int(self) > int(other)
+    
+    def __ge__(self, other):
+        return int(self) >= int(other)
+        
+    def __eq__(self, other):
+        return int(self) == int(other)
+        
+    def __ne__(self, other):
+        return int(self) != int(other)
 
     def _ajout_partie(self, debut, adversaires=[], etat=None, location=None):
         """
