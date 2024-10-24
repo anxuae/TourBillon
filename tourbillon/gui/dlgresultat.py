@@ -6,10 +6,12 @@
 import wx
 from wx.lib import scrolledpanel as scrolled
 
+from tourbillon.core import cst
+from tourbillon.core import tournament
+from tourbillon.core.draws import utils
+
 from tourbillon.gui import dlgequipe as dlgeq
-from tourbillon.core import tournoi
-from tourbillon.core.tirages import utils
-from tourbillon.core import constantes as cst
+
 
 #--- Entrée score --------------------------------------------------------------
 
@@ -24,7 +26,7 @@ class EntrerScore(wx.Panel):
             self.ctl_numero.SetBackgroundColour(wx.Colour(220, 220, 220))
             self.combo = False
         else:
-            self.ctl_numero = wx.Choice(self, dlgeq.ID_NUMERO, choices=map(unicode, choix))
+            self.ctl_numero = wx.Choice(self, dlgeq.ID_NUMERO, choices=[str(i) for i in choix])
             self.combo = True
 
         self.ctl_numero.SetMinSize(wx.Size(70, 22))
@@ -66,25 +68,24 @@ class EntrerScore(wx.Panel):
 class DialogueResultat(wx.Dialog):
 
     def __init__(self, parent, numero_partie, numero_affiche=1):
-        wx.Dialog.__init__(self, parent, wx.ID_ANY, title="Resultats", style=wx.DEFAULT_DIALOG_STYLE | wx.CENTER_ON_SCREEN | wx.RESIZE_BORDER)
+        wx.Dialog.__init__(self, parent, wx.ID_ANY, title="Resultats", style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER)
         self.SetMinSize(wx.Size(280, 170))
         self.SetMaxSize(wx.Size(280, -1))
         self.SetTitle("Resultats de la partie n°%s" % numero_partie)
-        self.CenterOnParent()
 
         self.entrees = []
         self.numero_partie = numero_partie
-        self.tirage = tournoi.tournoi().partie(self.numero_partie).manches()
+        self.tirage = tournament.tournoi().partie(self.numero_partie).manches()
 
-        # Numero de piquet
-        self.lbl_piquet = wx.StaticText(self, wx.ID_ANY, "", style=wx.ALIGN_CENTER)
-        self.lbl_piquet.SetForegroundColour(wx.Colour(0, 0, 200))
+        # Match location
+        self.lbl_location = wx.StaticText(self, wx.ID_ANY, "", style=wx.ALIGN_CENTER)
+        self.lbl_location.SetForegroundColour(wx.Colour(0, 0, 200))
 
         # Panel avec les entrées des équipes
         self.panel = scrolled.ScrolledPanel(self, wx.ID_ANY, style=wx.TAB_TRAVERSAL)
         box_panel = wx.BoxSizer(wx.VERTICAL)
 
-        for i in range(tournoi.tournoi().equipes_par_manche):
+        for i in range(tournament.tournoi().equipes_par_manche):
             if i == 0:
                 liste = utils.creer_liste(self.tirage)
                 e = EntrerScore(self.panel, sorted(liste))
@@ -112,17 +113,19 @@ class DialogueResultat(wx.Dialog):
         # Assembler
         box = wx.BoxSizer(wx.VERTICAL)
         box.Add((-1, 10), 0, wx.EXPAND)
-        box.Add(self.lbl_piquet, 0, wx.EXPAND)
+        box.Add(self.lbl_location, 0, wx.EXPAND)
         box.Add(self.panel, 1, wx.EXPAND)
         box.Add(self.chx_fin, 0, wx.EXPAND | wx.LEFT, 14)
-        box.AddSizer(box_btn, 0, wx.EXPAND)
+        box.Add(box_btn, 0, wx.EXPAND)
 
         self.SetSizer(box)
         self.Layout()
+        self.CenterOnParent()
+
         self._selection_equipe(None)
         self.verifier(None)
 
-        hauteur_necessaire = 10 + self.lbl_piquet.GetSizeTuple()[1] + \
+        hauteur_necessaire = 10 + self.lbl_location.GetSizeTuple()[1] + \
             (self.entrees[0].GetSize()[1] + 15) * len(self.entrees) + 110
         if hauteur_necessaire < wx.GetDisplaySize()[1]:
             self.SetSize(wx.Size(280, hauteur_necessaire))
@@ -139,7 +142,7 @@ class DialogueResultat(wx.Dialog):
                 break
         i = 1
         for equipe in manche:
-            m = tournoi.tournoi().equipe(equipe).resultat(self.numero_partie)
+            m = tournament.tournoi().equipe(equipe).resultat(self.numero_partie)
 
             if equipe == num:
                 self.entrees[0].chg_points(m.points)
@@ -149,8 +152,7 @@ class DialogueResultat(wx.Dialog):
                 i += 1
 
         # Piquet (identique pour toutes les équipes)
-        piquet = m.piquet
-        self.lbl_piquet.SetLabel("Piquet %s" % piquet)
+        self.lbl_location.SetLabel(f"Piquet {m.location}")
         self.Layout()
 
         if m.statut == cst.M_EN_COURS:
@@ -179,7 +181,7 @@ class DialogueResultat(wx.Dialog):
 
         if len(valeurs) == len(self.entrees):
             m = max(valeurs)
-            if m < tournoi.tournoi().points_par_manche:
+            if m < tournament.tournoi().points_par_manche:
                 self.btn_ok.Disable()
             else:
                 self.btn_ok.Enable()

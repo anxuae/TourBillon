@@ -3,26 +3,26 @@
 import pytest
 from datetime import datetime, timedelta
 
-from tourbillon.core import tournoi
-from tourbillon.core.exceptions import LimiteError
-from tourbillon.core import constantes as cst
+from tourbillon.core import cst, tournament
+from tourbillon.core.exception import BoundError
 
-import data2e2j
+from data import t2teams2players
 
-EQUIPES = {1: data2e2j.JOUEURS_1,
-           2: data2e2j.JOUEURS_2,
-           4: data2e2j.JOUEURS_4,
-           5: data2e2j.JOUEURS_5,
-           8: data2e2j.JOUEURS_8,  # Changé en n°3
-           9: data2e2j.JOUEURS_9}  # Changé en n°6
+
+EQUIPES = {1: t2teams2players.JOUEURS_1,
+           2: t2teams2players.JOUEURS_2,
+           4: t2teams2players.JOUEURS_4,
+           5: t2teams2players.JOUEURS_5,
+           8: t2teams2players.JOUEURS_8,  # Changé en n°3
+           9: t2teams2players.JOUEURS_9}  # Changé en n°6
 
 NB_EQUIPES = len(EQUIPES)
 
 
 def test_config(trb2e2j):
-    assert trb2e2j.equipes_par_manche == data2e2j.EQUIPES_PAR_MANCHE
-    assert trb2e2j.joueurs_par_equipe == data2e2j.JOUEURS_PAR_EQUIPE
-    assert trb2e2j.points_par_manche == data2e2j.POINTS_PAR_MANCHE
+    assert trb2e2j.equipes_par_manche == t2teams2players.EQUIPES_PAR_MANCHE
+    assert trb2e2j.joueurs_par_equipe == t2teams2players.JOUEURS_PAR_EQUIPE
+    assert trb2e2j.points_par_manche == t2teams2players.POINTS_PAR_MANCHE
 
 
 def test_status(trb2e2j):
@@ -93,21 +93,20 @@ def test_nb_parties_apres_inscription(trb2e2j):
 def test_ajout_joueurs(trb2e2j, numero, joueurs):
     e = trb2e2j.equipe(numero)
     for joueur in joueurs:
-        j = e.ajout_joueur(joueur[0], joueur[1], joueur[2])
+        j = e.ajout_joueur(joueur[0], joueur[1])
         assert j.prenom == joueur[0]
         assert j.nom == joueur[1]
-        assert j.age == joueur[2]
     assert e.statut == cst.E_ATTEND_TIRAGE
 
 
 def test_nb_joueurs(trb2e2j):
     for equipe in trb2e2j.equipes():
-        assert equipe.nb_joueurs() == data2e2j.JOUEURS_PAR_EQUIPE
+        assert equipe.nb_joueurs == t2teams2players.JOUEURS_PAR_EQUIPE
 
 
 def test_trop_joueurs(trb2e2j):
     for equipe in trb2e2j.equipes():
-        with pytest.raises(LimiteError):
+        with pytest.raises(BoundError):
             equipe.ajout_joueur("Prenom", "Nom", "00")
 
 
@@ -196,9 +195,9 @@ def test_max_duree(trb2e2j):
 
 
 def test_enregistrer(trb2e2j, tmpfile):
-    assert trb2e2j.modifie
-    tournoi.enregistrer_tournoi(tmpfile('trb2e2j.yml'))
-    assert not trb2e2j.modifie
+    assert trb2e2j.changed
+    tournament.enregistrer_tournoi(tmpfile('trb2e2j.yml'))
+    assert not trb2e2j.changed
 
 
 def test_date_enregistrement(trb2e2j):
@@ -210,36 +209,35 @@ def test_date_enregistrement(trb2e2j):
 
 
 def test_charger(tmpfile):
-    tournoi.charger_tournoi(tmpfile('trb2e2j.yml'))
-    assert not tournoi.tournoi().modifie
+    tournament.charger_tournoi(tmpfile('trb2e2j.yml'))
+    assert not tournament.tournoi().changed
 
 
 def test_date_chargement():
     d = datetime.now()
-    d1 = tournoi.tournoi().date_chargement - timedelta(0, 0, tournoi.tournoi().date_chargement.microsecond)
+    d1 = tournament.tournoi().date_chargement - timedelta(0, 0, tournament.tournoi().date_chargement.microsecond)
     d2 = d - timedelta(0, 0, d.microsecond)
     assert d1 == d2
 
 
 def test_nb_equipes_apres_chargement():
-    assert tournoi.tournoi().nb_equipes() == NB_EQUIPES
+    assert tournament.tournoi().nb_equipes() == NB_EQUIPES
 
 
 def test_nb_parties_apres_chargement():
-    assert tournoi.tournoi().nb_parties() == 0
+    assert tournament.tournoi().nb_parties() == 0
 
 
 def test_nb_joueurs_apres_chargement():
-    for equipe in tournoi.tournoi().equipes():
-        assert equipe.nb_joueurs() == data2e2j.JOUEURS_PAR_EQUIPE
+    for equipe in tournament.tournoi().equipes():
+        assert equipe.nb_joueurs == t2teams2players.JOUEURS_PAR_EQUIPE
 
 
 def test_nom_prenom_joueurs():
-    for equipe in tournoi.tournoi().equipes():
+    for equipe in tournament.tournoi().equipes():
         ind_joueur = 0
         for joueur in equipe.joueurs():
             eq_ref = EQUIPES[equipe.numero]
             assert joueur.prenom == eq_ref[ind_joueur][0]
             assert joueur.nom == eq_ref[ind_joueur][1]
-            assert joueur.age == eq_ref[ind_joueur][2]
             ind_joueur += 1

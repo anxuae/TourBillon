@@ -1,13 +1,14 @@
 # -*- coding: UTF-8 -*-
 
-"""Algorithme génétique pour la selection des équipes en fonction de leur niveau."""
+"""Genetic algorithm to build matches according to teams level"""
 
 import random
-from tourbillon.core.constantes import MINIMISE
-from tourbillon.core.tirages.utils import (BaseThreadTirage, nb_chapeaux_necessaires, tri_stat,
-                                           creer_manches, NV, NV_REDONDANCE, NV_DISPARITE,
-                                           tirage_texte, dernieres_equipes, cnp, len_cnp)
-from tourbillon.core.exceptions import SolutionTirageError
+
+from ..cst import MINIMISE
+from .utils import (BaseThreadTirage, nb_chapeaux_necessaires, tri_stat,
+                    creer_manches, NV, NV_REDONDANCE, NV_DISPARITE,
+                    tirage_texte, dernieres_equipes, cnp, len_cnp)
+from ..exception import DrawResultError
 
 
 def genese(individu_type, taille=20):
@@ -26,7 +27,7 @@ def genese(individu_type, taille=20):
     return population
 
 
-class Individu(object):
+class Individu:
     alleles = []  # Version d'un gène
     optimization = MINIMISE
 
@@ -38,11 +39,35 @@ class Individu(object):
         return '<%s chromosome= %s score= %s>' % \
                (self.__class__.__name__, self.chromosome, self.score)
 
-    def __cmp__(self, other):
+    def __lt__(self, other):
         if self.optimization == MINIMISE:
-            return cmp(self.score, other.score)
+            return self.score < other.score
         else:  # MAXIMISE
-            return cmp(other.score, self.score)
+            return other.score < self.score
+
+    def __le__(self, other):
+        if self.optimization == MINIMISE:
+            return self.score <= other.score
+        else:  # MAXIMISE
+            return other.score <= self.score
+
+    def __gt__(self, other):
+        if self.optimization == MINIMISE:
+            return self.score > other.score
+        else:  # MAXIMISE
+            return other.score > self.score
+    
+    def __ge__(self, other):
+        if self.optimization == MINIMISE:
+            return self.score >= other.score
+        else:  # MAXIMISE
+            return other.score >= self.score
+        
+    def __eq__(self, other):
+        return self.score == other.score
+        
+    def __ne__(self, other):
+        return self.score != other.score
 
     # Exemple de mutation
     def _remplacer(self, gene):
@@ -110,7 +135,7 @@ class Individu(object):
         self._remplacer(gene)
 
 
-class Environement(object):
+class Environement:
 
     def __init__(self, population, taille_population=100, max_generations=1000,
                  taux_croiser=0.90, taux_muter=0.01, optimum=None, rapport=None, **kwrds):
@@ -141,7 +166,7 @@ class Environement(object):
         while not self._but():
             self.pas()
             if callable(self.rapport):
-                evolution = self.generation * 100 / self.max_generations
+                evolution = self.generation * 100 // self.max_generations
                 self.rapport(evolution, self.message % (self.generation, self.elite.score))
         if callable(self.rapport):
             self.rapport(99, "")
@@ -168,8 +193,7 @@ class Environement(object):
         la population. Le pourcentage donné par 'taux_elite' indique la probabilité
         de choisir l'élite parmi l'échantillon.
         """
-        competitors = [random.choice(self.population) for _i in range(taille)]
-        competitors.sort()
+        competitors = sorted([random.choice(self.population) for _i in range(taille)])
         if random.random() < taux_elite:
             return competitors[0]
         else:
@@ -179,7 +203,7 @@ class Environement(object):
         return self._tournoi()
 
     def pas(self):
-        self.population.sort()
+        self.population = sorted(self.population)
         next_population = [self.elite.copier()]
 
         while len(next_population) < self.taille:
@@ -215,8 +239,7 @@ def select_chapeau(parametres, statistiques):
     for equipe in equipes:
         stat[equipe] = statistiques[equipe]
     d = tri_stat(stat, 'chapeaux')
-    cle_tri = d.keys()
-    cle_tri.sort()
+    cle_tri = sorted(d.keys())
 
     if parametres['redondance'] == True:
         # Tirage aléatoire parmis les moins chapeau des n dernières équipes
@@ -238,11 +261,11 @@ def select_chapeau(parametres, statistiques):
             else:
                 #  ERREUR 101: Toutes les équipes on été chapeaux une fois.
                 args = [cle_tri[0], cle_tri[-1]]
-                raise SolutionTirageError(101, args)
+                raise DrawResultError(101, args)
         else:
             #  ERREUR 101: Toutes les équipes on été chapeaux une fois.
             args = [cle_tri[0], cle_tri[-1]]
-            raise SolutionTirageError(101, args)
+            raise DrawResultError(101, args)
 
     return num
 
@@ -254,7 +277,7 @@ def cle_manche(manche):
 
 def nb_parties(statistiques, equipe, equipes_par_manche):
     adversaires = len(statistiques[equipe]['adversaires'])
-    return adversaires / (equipes_par_manche - 1)
+    return adversaires // (equipes_par_manche - 1)
 
 
 def comanche(parametres, statistiques, manche):
@@ -273,7 +296,7 @@ def comanche(parametres, statistiques, manche):
 
     (la disparité est incluse dans le terme "kv * (max_nv - min_nv)")
     """
-    manche.sort()
+    manche = sorted(manche)
     pts = []
     nv = []
     for equipe in manche:
@@ -304,7 +327,7 @@ def comanche(parametres, statistiques, manche):
 
     # Completer avec un un nombre < 1 pour les rencontres 2 à 2 effectuées
     # dans d'autres manches que celles redondantes
-    nrc += 1 - (1.0 * rencontres.values().count(0) / len_cnp(manche, 2))
+    nrc += 1 - (list(rencontres.values()).count(0) / len_cnp(manche, 2))
 
     valeur += parametres['ponderation_victoires'] * nrc
 
@@ -400,7 +423,7 @@ class Tirage(Individu):
 
 
 class ThreadTirage(BaseThreadTirage):
-    NOM = "niveau_ag"
+    NOM = __name__.rsplit('.', maxsplit=1)[-1]
 
     DESCRIPTION = "Niveau (Algorithme Génétique)"
 
@@ -452,14 +475,14 @@ class ThreadTirage(BaseThreadTirage):
                 if parties == 0:
                     ponderation += 12.0
                 else:
-                    ponderation += (self.statistiques[equipe]['points'] * 1.0) / parties
+                    ponderation += self.statistiques[equipe]['points'] / parties
 
             self.config['ponderation_victoires'] = ponderation / len(self.statistiques)
             self.rapport(message="Coefficient de pondération des victoires: %s" % self.config['ponderation_victoires'])
 
         self.rapport(message="Objectif: %s" % self.config['optimum'])
         # Créer l'environement
-        Tirage.alleles = self.statistiques.keys()
+        Tirage.alleles = list(self.statistiques.keys())
         self._env = Environement(genese(Tirage, self.config['taille_population_ini']), **self.config)
 
         # Lancer l'algorithme
@@ -478,15 +501,15 @@ class ThreadTirage(BaseThreadTirage):
             if nb != 1:
                 args.append((equipe, nb))
         if len(args) != 0:
-            raise SolutionTirageError(150, args)
+            raise DrawResultError(150, args)
 
         elif self._env.elite.score >= 1e36:
             if self._env.elite.nv == NV_REDONDANCE:
                 # ERREUR 154: La redondance n'est pas autorisée.
-                raise SolutionTirageError(154, "")
+                raise DrawResultError(154, "")
             elif self._env.elite.nv == NV_DISPARITE:
                 # ERREUR 155: La disparité est trop faible pour trouver une solution.
-                raise SolutionTirageError(155, "")
+                raise DrawResultError(155, "")
             else:
                 # ERREUR 156: La disparité doit être augmentée ou la redondance autorisée.
-                raise SolutionTirageError(156, "")
+                raise DrawResultError(156, "")

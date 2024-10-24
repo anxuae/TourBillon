@@ -1,13 +1,14 @@
 # -*- coding: UTF-8 -*-
 
-"""Algorithme déterministe créé en 2008."""
+"""Determinist algorithm to build matches according to teams level"""
 
 import random
-from tourbillon.core.tirages.utils import (BaseThreadTirage, nb_chapeaux_necessaires, tri_stat,
-                                           creer_liste, NV, NV_REDONDANCE, NV_DISPARITE,
-                                           tirage_texte, dernieres_equipes, cnp, len_cnp)
-from tourbillon.core.exceptions import SolutionTirageError
-from tourbillon.core import constantes as cst
+
+from .. import cst
+from .utils import (BaseThreadTirage, nb_chapeaux_necessaires, tri_stat,
+                    creer_liste, NV, NV_REDONDANCE, NV_DISPARITE,
+                    tirage_texte, dernieres_equipes, cnp, len_cnp)
+from ..exception import DrawResultError
 
 
 MC_CACHE = {}
@@ -70,9 +71,9 @@ def creer_matrices(parametres, statistiques):
             points += statistiques[num][cst.STAT_POINTS]
             victoires += statistiques[num][cst.STAT_VICTOIRES]
             victoires += statistiques[num][cst.STAT_CHAPEAUX]
-            if statistiques[num][cst.STAT_VICTOIRES] + statistiques[num][cst.STAT_CHAPEAUX] < min_vic or min_vic is None:
+            if min_vic is None or statistiques[num][cst.STAT_VICTOIRES] + statistiques[num][cst.STAT_CHAPEAUX] < min_vic:
                 min_vic = statistiques[num][cst.STAT_VICTOIRES] + statistiques[num][cst.STAT_CHAPEAUX]
-            if statistiques[num][cst.STAT_VICTOIRES] + statistiques[num][cst.STAT_CHAPEAUX] > max_vic or max_vic is None:
+            if max_vic is None or statistiques[num][cst.STAT_VICTOIRES] + statistiques[num][cst.STAT_CHAPEAUX] > max_vic:
                 max_vic = statistiques[num][cst.STAT_VICTOIRES] + statistiques[num][cst.STAT_CHAPEAUX]
         MC_CACHE[cle] = points + parametres['ponderation_victoires'] * victoires
 
@@ -98,16 +99,15 @@ def creer_matrices(parametres, statistiques):
 
         # Completer avec un un nombre < 1 pour les rencontres 2 à 2 effectuées
         # dans d'autres manches que celles redondantes
-        nb_vu += 1 - (1.0 * rencontres.values().count(0) / len_cnp(manche, 2))
+        nb_vu += 1 - (list(rencontres.values()).count(0) / len_cnp(manche, 2))
         MR_CACHE[cle] = nb_vu
 
         # Avancement du calcul (affichage jusque 99% pour éviter d'indiquer la fin de l'algorithme)
         compteur += 1
-        s = "%-" + str(len(str(total))) + "s/%s manches évaluées"
         # 70% du temps attribué à la creation des matrices
-        parametres['rapport'](((compteur * 70.0) / total) - 1, s % (compteur, total))
+        parametres['rapport'](((compteur * 70) / total) - 1, f"{compteur}/{total} manches évaluées")
 
-    parametres['rapport'](message="")
+    parametres['rapport'](message="End of matches evaluation")
 
 
 def comanche(parametres, manche, redondance=False, disparite=False):
@@ -155,7 +155,7 @@ def comanche(parametres, manche, redondance=False, disparite=False):
             md = NV_DISPARITE
         else:
             # Pénalisation si écart sur le nombre de victoires dépase la disparité max autorisée
-            md = 1 + MD_CACHE[cle] / (1.0 + MR_CACHE[cle])
+            md = 1 + MD_CACHE[cle] / (1 + MR_CACHE[cle])
 
     if mr == NV and md == NV:
         return NV_REDONDANCE | NV_DISPARITE
@@ -177,7 +177,7 @@ def manche_possible(manche, equipes_disponibles, equipe=None):
 def min_cout(parametres, equipes_disponibles, redondance=False, disparite=False, equipe=None):
     """
     Fonction renvoyant la manche qui possède la fonction de coût minimal.
-    La manche avec un cout minimal comprend les équipes les plus failes.
+    La manche avec un cout minimal comprend les équipes les plus faibles.
 
     'equipes' : retourne la manche qui a le cout minimal parmis les manche
                 possibles avec 'equipes'.
@@ -244,7 +244,7 @@ def premier(statistiques, equipes):
 
 def nb_parties(statistiques, equipe, equipes_par_manche):
     adversaires = len(statistiques[equipe][cst.STAT_ADVERSAIRES])
-    return adversaires / (equipes_par_manche - 1)
+    return adversaires // (equipes_par_manche - 1)
 
 
 def select_chapeau(parametres, statistiques):
@@ -254,8 +254,7 @@ def select_chapeau(parametres, statistiques):
     for equipe in equipes:
         stat[equipe] = statistiques[equipe]
     d = tri_stat(stat, cst.STAT_CHAPEAUX)
-    cle_tri = d.keys()
-    cle_tri.sort()
+    cle_tri = sorted(d.keys())
 
     if parametres['redondance'] == True:
         # Tirage aléatoire parmis les moins chapeau des n dernières équipes
@@ -277,17 +276,17 @@ def select_chapeau(parametres, statistiques):
             else:
                 #  ERREUR 101: Toutes les équipes on été chapeaux une fois.
                 args = [cle_tri[0], cle_tri[-1]]
-                raise SolutionTirageError(101, args)
+                raise DrawResultError(101, args)
         else:
             #  ERREUR 101: Toutes les équipes on été chapeaux une fois.
             args = [cle_tri[0], cle_tri[-1]]
-            raise SolutionTirageError(101, args)
+            raise DrawResultError(101, args)
 
     return num
 
 
 class ThreadTirage(BaseThreadTirage):
-    NOM = "niveau_dt"
+    NOM = __name__.rsplit('.', maxsplit=1)[-1]
 
     DESCRIPTION = "Niveau (Algorithme Déterministe)"
 
@@ -322,7 +321,6 @@ class ThreadTirage(BaseThreadTirage):
         # Tirage des manches:
         # -------------------
 
-        # Vider les caches
         vider_caches()
 
         # Paramètre de pondération des victoires
@@ -333,16 +331,16 @@ class ThreadTirage(BaseThreadTirage):
                 if parties == 0:
                     ponderation += 12.0
                 else:
-                    ponderation += (self.statistiques[equipe][cst.STAT_POINTS] * 1.0) / parties
+                    ponderation += self.statistiques[equipe][cst.STAT_POINTS] / parties
 
-            self.config['ponderation_victoires'] = ponderation / len(self.statistiques)
+            self.config['ponderation_victoires'] = ponderation // len(self.statistiques)
             self.rapport(message="Coefficient de pondération des victoires: %s" % self.config['ponderation_victoires'])
 
         # Création de la matrice de cout
         creer_matrices(self.config, self.statistiques)
 
         # Lancer l'algorithme
-        equipes_disponibles = self.statistiques.keys()
+        equipes_disponibles = list(self.statistiques.keys())
         tirage_temp = []
 
         while equipes_disponibles != []:
@@ -357,7 +355,8 @@ class ThreadTirage(BaseThreadTirage):
                 # Réinitialisation de la liste des équipes disponibles avant le début de
                 # l'algorithme moins les équipes définitivement tirées
                 equipes_disponibles = self.statistiques.keys()
-                map(equipes_disponibles.remove, creer_liste(self.tirage))
+                for num in creer_liste(self.tirage):
+                    equipes_disponibles.remove(num)
 
                 # Réinitialisation de la liste temporaire
                 tirage_temp = []
@@ -368,29 +367,33 @@ class ThreadTirage(BaseThreadTirage):
                 if manche == NV:
                     # La plus forte équipe n'a aucune possibilité de rencontre, on teste avec les paramètres utilisateur
                     # Fonction de coût peut être augmentée (dépend des paramètres utilisateur)
-                    manche = max_cout(self.config, equipes_disponibles, self.config['redondance'], self.config['depassement_max_disparite'], equipe=p)
+                    manche = max_cout(self.config, equipes_disponibles,
+                                      self.config['redondance'], self.config['depassement_max_disparite'], equipe=p)
 
                     if manche == NV_REDONDANCE:
                         # ERREUR 154: La redondance n'est pas autorisée.
-                        raise SolutionTirageError(154, "")
+                        raise DrawResultError(154, "")
                     elif manche == NV_DISPARITE:
                         # ERREUR 155: La disparité est trop faible pour trouver une solution.
-                        raise SolutionTirageError(155, "")
+                        raise DrawResultError(155, "")
                     else:
                         # ERREUR 156: La disparité doit être augmentée ou la redondance autorisée.
-                        raise SolutionTirageError(156, "")
+                        raise DrawResultError(156, "")
 
                 # Ces rencontres sont tirées une fois pour toute
-                map(equipes_disponibles.remove, manche)
+                for num in manche:
+                    equipes_disponibles.remove(num)
                 self.tirage.append(manche)
             else:
                 # Ajout à la liste temporaire qui sera à effacer si une erreur est trouvée
                 # (équipe sans solution)
-                map(equipes_disponibles.remove, manche)
+                for num in manche:
+                    equipes_disponibles.remove(num)
                 tirage_temp.append(manche)
                 # 30% attribué au choix des équipes
                 self.rapport(70 + (len(self.tirage) * self.equipes_par_manche + len(tirage_temp) * self.equipes_par_manche +
-                                   len(self.chapeaux)) * 30.0 / len(self.statistiques))
+                             len(self.chapeaux)) * 30 / len(self.statistiques),
+                             f"Keep potential match {manche}")
 
         for manche in tirage_temp:
             # Passage des manches de la liste temporaire vers la liste définitive

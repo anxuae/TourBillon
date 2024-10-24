@@ -7,9 +7,9 @@ from wx.lib.agw import advancedsplash as aspl
 from wx.lib.agw import toasterbox as toast
 
 import tourbillon
-from tourbillon.core import joueur
-from tourbillon.gui import fenetre
-from tourbillon import images, logger
+from ..core import player
+from . import fenetre
+from .. import images, logger
 
 
 class GuiLoggerHandler(logger.LoggerHandler):
@@ -86,7 +86,7 @@ class TourBillonGUI(wx.App):
         self._timer = wx.Timer(self)
         self.Bind(wx.EVT_TIMER, self.OnShow, self._timer)
 
-        joueur.charger_historique(self.config.get_typed('TOURNOI', 'historique'))
+        player.PlayerHistory(self.config.get_typed('TOURNOI', 'historique'))
 
         def splash():
             self.splash = FentetreSplash(None, wx.ID_ANY)
@@ -103,7 +103,7 @@ class TourBillonGUI(wx.App):
             level = logger.INFO
         else:
             level = logger.CRITICAL
-        logger.ajouter_handler(GuiLoggerHandler(self.fenetre), level, "%(message)s")
+        logger.add_handler(GuiLoggerHandler(self.fenetre), level, "%(message)s")
 
         # Laisser le temps du chargement avant affichage
         self._timer.Start(3000)
@@ -131,7 +131,7 @@ class TourBillonGUI(wx.App):
         Appelé quand un fichier est déposé sur l'icon située dans le
         dock ou ouvert via le menu contextuel du Finder.
         """
-        self.ouvrir(fichier)
+        self.load(fichier)
 
     def BringWindowToFront(self):
         try:  # it's possible for this event to come when the frame is closed
@@ -152,5 +152,5 @@ class TourBillonGUI(wx.App):
     def run(self):
         self.MainLoop()
 
-    def ouvrir(self, fichier):
+    def load(self, fichier):
         self.fenetre.ouvrir(fichier)

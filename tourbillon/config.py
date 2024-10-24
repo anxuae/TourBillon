@@ -1,30 +1,25 @@
 # -*- coding: UTF-8 -*-
 
-"""Configuration du logiciel."""
-
+"""Configuration"""
 
 import os
-import sys
 import os.path as osp
+import sys
 import atexit
-import codecs
 import ast
-from optparse import OptionParser, OptionGroup, Option
-import configparser as cfg
+import argparse
+import logging
+import configparser
+from abc import ABCMeta
+
 import tourbillon
 from tourbillon import logger
-from tourbillon.core import tirages
+from tourbillon.core import draws
 
 
-def configdir(*names):
-    return osp.join(CONFIGPATH, *names)
-
-CONFIGPATH = osp.join(os.environ.get('APPDATA', osp.expanduser("~")), '.trb')
-CONFIG = None
 DEFAUT = {'INTERFACE': {'GEOMETRIE': (0, 0, 1000, 600),
                         'MAXIMISER': True,
                         'PLEIN_ECRAN': False,
-                        'HISTORIQUE': configdir('hist_cmd'),
                         'ENREGISTREMENT': osp.expanduser("~"),
                         'ENREGISTREMENT_AUTO': False,
                         'NOUVEAU_AFFICHE_PREFERENCES': True,
@@ -52,7 +47,7 @@ DEFAUT = {'INTERFACE': {'GEOMETRIE': (0, 0, 1000, 600),
                         'GRILLE_TEMPS_DEFILEMENT': 100,
                         'GRILLE_DEFILEMENT_VERTICAL': True},
 
-          'TOURNOI': {'HISTORIQUE': configdir('hist_jrs'),
+          'TOURNOI': {'HISTORIQUE': '',
                       'JOUEUR_COMPLETION': True,
                       'JOUEURS_PAR_EQUIPE': 2,
                       'CLASSEMENT_VICTOIRES': True,
@@ -60,11 +55,14 @@ DEFAUT = {'INTERFACE': {'GEOMETRIE': (0, 0, 1000, 600),
                       'CLASSEMENT_JOKER': True,
                       'POINTS_PAR_MANCHE': 12,
                       'EQUIPES_PAR_MANCHE': 2,
-                      'ALGORITHME_DEFAUT': 'niveau_dt', }
-          }
+                      'ALGORITHME_DEFAUT': 'level_dt', }
+}
 
 
-def systeme_config():
+def system_config() -> list:
+    """
+    Return dependencies versions.
+    """
     info = []
     try:
         import platform
@@ -90,10 +88,10 @@ def systeme_config():
         info.append(('PyYAML', 'Non installé'))
 
     try:
-        import flask
-        info.append(('Flask', flask.__version__))
+        import fastapi
+        info.append(('Fastapi', fastapi.__version__))
     except ImportError:
-        info.append(('Flask', 'Non installé'))
+        info.append(('Fastapi', 'Non installé'))
 
     info.append(('Encoding', sys.getdefaultencoding()))
 
@@ -102,110 +100,104 @@ def systeme_config():
 
 def parse_options():
     """
-    Parse la ligne de commande.
+    Parse options from command-line.
     """
-    Option.ALWAYS_TYPED_ACTIONS += ('callback',)  # Display metavar also for options with callback
-    parser = OptionParser(usage="TourBillon [fichier] [options]",
-                          version="TourBillon v %s.%s.%s" % tourbillon.__version__)
-    parser.formatter.max_help_position = 45
-    parser.add_option("-p", "--prolixe", action="store_true", dest="verbose",
-                      help="afficher tous les messages d'activité et de debug")
-    parser.add_option("-l", "--lapidaire", action="store_false", dest="verbose",
-                      help="afficher uniquement les alertes et les erreurs")
+    parser = argparse.ArgumentParser(usage="%(prog)s [options]", description=tourbillon.__doc__,
+                                     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
-    group = OptionGroup(parser, "Type d'interface",
-                        "TourBillon embarque plusieurs interfaces utilisateur"
-                        " pour répondre aux divers besoins des infrastructures."
-                        " Par défaut, il demarrera en mode `standalone` (interface graphique).")
-    group.add_option("-b", "--backend", action='store_true', default=False,
-                     help="démarrer TourBillon en tant que serveur HTTP REST (backend)")
-    parser.add_option_group(group)
-    Option.ALWAYS_TYPED_ACTIONS = ('store', 'append')
+    parser.add_argument("filename", help="path to tournament file to load",
+                        nargs='?', default=None)
+    parser.add_argument('--version', help="show program's version number and exit",
+                        action='version', version=tourbillon.__version__)
+    parser.add_argument("-b", "--backend", help="Start TourBillon as a HTTP RESTful server",
+                        action='store_true', default=False)
+
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument("-v", "--verbose", help="report more information about operations",
+                       dest='logging_level', action='store_const', const=logging.DEBUG, default=None)
+    group.add_argument("-q", "--quiet", help="report only errors and warnings",
+                       dest='logging_level', action='store_const', const=logging.WARNING, default=None)
+
     return parser.parse_args()
 
 
-def enregistrer_config():
-    """
-    Sauver la configuration utilisateur.
-    """
-    if CONFIG is not None:
-        chem = configdir('cfg')
-        fp = codecs.open(chem, 'wb', 'utf-8')
-        CONFIG.write(fp)
-        fp.close()
+class Singleton(ABCMeta):
+    _instances = {}
+
+    def __call__(cls, *args, **kwargs):
+        if cls not in cls._instances:
+            cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
+        return cls._instances[cls]
 
 
-def charger_config(dossier=None):
-    """
-    Charger la configuration utilisateur. (créée si non existante)
-    """
-    global CONFIG, CONFIGPATH
-    CONFIG = TypedConfigParser()
-    if dossier:
-        CONFIGPATH = dossier
+class TypedConfigParser(configparser.ConfigParser, metaclass=Singleton):
 
-    # Création du répertoire
-    if not osp.exists(configdir()):
-        os.makedirs(configdir())
+    def __init__(self, filename=None, load=True):
+        super().__init__()
+        self.filename = None
+        if filename:
+            self.filename = osp.abspath(osp.expanduser(filename))
+            if load:
+                self.load(self.filename)
 
-    # Lecture du fichier existant
-    fichier = configdir('cfg')
-    if osp.isfile(fichier):
-        logger.debug("Chargement de la configuration...")
-        fp = codecs.open(fichier, 'rb', 'utf-8')
-        CONFIG.readfp(fp)
-        fp.close()
-    else:
-        logger.debug("Création de la configuration...")
+        # Save config before exit
+        atexit.register(self.save)
 
-    # Création du fichier de configuration interface
-    for section, options in list(DEFAUT.items()):
-        if not CONFIG.has_section(section):
-            CONFIG.add_section(section)
-        for opt, val in list(options.items()):
-            if not CONFIG.has_option(section, opt):
-                CONFIG.set(section, opt, str(val))
+    def load(self, filename: str):
+        """
+        Load configuration from file.
+        """
+        # Create config folder
+        path = osp.dirname(osp.abspath(filename))
+        if not osp.exists(path):
+            os.makedirs(path)
 
-    for section, generateur in list(tirages.TIRAGES.items()):
-        if not CONFIG.has_section(section):
-            CONFIG.add_section(section)
-        for opt, val in list(generateur.DEFAUT.items()):
-            if not CONFIG.has_option(section, opt):
-                CONFIG.set(section, opt, str(val))
+        # Read file if exists
+        if osp.isfile(filename):
+            logger.debug("Configuration loading...")
+            with open(filename, 'r', encoding='utf-8') as fp:
+                self.read_file(fp)
+        else:
+            logger.debug("Creating configuration...")
 
-    # Création du fichier d'historique des joueurs
-    fichier_hist = configdir('hist_jrs')
-    if not osp.isfile(fichier_hist):
-        fp = codecs.open(fichier_hist, 'wb', 'utf-8')
-        fp.close()
+        # Create default values for missing options
+        for section, options in list(DEFAUT.items()):
+            if not self.has_section(section):
+                self.add_section(section)
+            for opt, val in list(options.items()):
+                if not self.has_option(section, opt):
+                    self.set(section, opt, str(val))
 
-    # Création du fichier d'historique des commandes
-    fichier_cmd = configdir('hist_cmd')
-    if not osp.isfile(fichier_cmd):
-        fp = codecs.open(fichier_cmd, 'wb', 'utf-8')
-        fp.write("_HiStOrY_V2_\n")
-        fp.write("%alias\n")
-        fp.close()
+        for section, generateur in list(draws.TIRAGES.items()):
+            if not self.has_section(section):
+                self.add_section(section)
+            for opt, val in list(generateur.DEFAUT.items()):
+                if not self.has_option(section, opt):
+                    self.set(section, opt, str(val))
 
-    # Traitement des chemins
-    CONFIG.set('INTERFACE', 'historique', osp.abspath(osp.expanduser(CONFIG.get('INTERFACE', 'historique'))))
-    CONFIG.set('INTERFACE', 'enregistrement', osp.abspath(osp.expanduser(CONFIG.get('INTERFACE', 'enregistrement'))))
-    if CONFIG.get('INTERFACE', 'image'):
-        CONFIG.set('INTERFACE', 'image', osp.abspath(osp.expanduser(CONFIG.get('INTERFACE', 'image'))))
-    CONFIG.set('TOURNOI', 'historique', osp.abspath(osp.expanduser(CONFIG.get('TOURNOI', 'historique'))))
+        # Traitement des chemins
+        self.set('INTERFACE', 'enregistrement', osp.abspath(osp.expanduser(self.get('INTERFACE', 'enregistrement'))))
+        if self.get('INTERFACE', 'image'):
+            self.set('INTERFACE', 'image', osp.abspath(osp.expanduser(self.get('INTERFACE', 'image'))))
 
-    # Enregistrer la configuration avant de quitter
-    atexit.register(enregistrer_config)
-    return CONFIG
+        return self
 
+    def save(self) -> None:
+        """
+        Save the current or default values into the configuration file.
+        """
+        if self.filename:
+            with open(self.filename, 'w', encoding='utf-8') as fp:
+                self.write(fp)
 
-class TypedConfigParser(cfg.SafeConfigParser):
-
-    def get_options(self, section, try_literal_eval=True, upper_keys=False):
+    def get_options(self, section: str, typed: bool = True, upper_keys: bool = False) -> dict:
+        """
+        Return all options from a given section.
+        """
         d = {}
         for key, value in self.items(section, raw=True):
 
-            if try_literal_eval:
+            if typed:
                 try:
                     value = ast.literal_eval(value)
                 except (ValueError, SyntaxError):
@@ -218,9 +210,40 @@ class TypedConfigParser(cfg.SafeConfigParser):
 
         return d
 
-    def get_typed(self, section, option):
+    def get_typed(self, section: str, option: str):
+        """
+        Get a value from config and try to convert it in a native Python
+        type (using the :py:mod:`ast` module).
+
+        :param section: config section name
+        :param option: option name
+        """
         value = self.get(section, option)
         try:
             return ast.literal_eval(value)
         except (ValueError, SyntaxError):
             return value
+
+    def get_path(self, section: str, option: str) -> str:
+        """
+        Get a path from config. If option is a relative path, this method return
+        an absolute path evaluated from configuration file path.
+
+        :param section: config section name
+        :param option: option name
+        """
+        path = self.get(section, option)
+        if not path:  # Empty string, don't process it as it is not a path
+            return path
+        path = osp.expanduser(path)
+        if not osp.isabs(path):
+            path = osp.join(osp.relpath(osp.dirname(self.filename), '.'), path)
+        return osp.abspath(path)
+
+    def join_path(self, *names: str) -> str:
+        """Return the directory path of the configuration file
+        and join it the given names.
+
+        :param names: names to join to the directory path
+        """
+        return osp.join(osp.dirname(self.filename), *names)

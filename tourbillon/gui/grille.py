@@ -8,7 +8,7 @@ from wx import grid
 from wx.lib import scrolledpanel as scrolled
 
 from tourbillon import images
-from tourbillon.core import constantes as cst
+from tourbillon.core import cst
 
 TITRES = {'partie': [("Equipe", 60),
                      ("Noms", 300),
@@ -75,9 +75,9 @@ def unicode_timedelta(timedelta):
     heures, reste = divmod(timedelta.seconds, 3600)
     minutes, secondes = divmod(reste, 60)
     if jours == 0:
-        return u'%02d:%02d:%02d' % (heures, minutes, secondes)
+        return '%02d:%02d:%02d' % (heures, minutes, secondes)
     else:
-        return u'%sj %02d:%02d:%02d' % (jours, heures, minutes, secondes)
+        return '%sj %02d:%02d:%02d' % (jours, heures, minutes, secondes)
 
 
 class Grille(wx.BoxSizer):
@@ -297,7 +297,7 @@ class Grille(wx.BoxSizer):
         """
         debut, fin = 2, self._grille_partie.GetNumberRows() - 1
         while debut <= fin:
-            milieu = (debut + fin) / 2
+            milieu = (debut + fin) // 2
             num = int(self._grille_partie.GetCellValue(milieu, 0))
             if num == numero:
                 # L'élément du milieu de l'intervalle [debut, fin] correspond
@@ -412,8 +412,8 @@ class GrillePanel(scrolled.ScrolledPanel):
         if self._fond:
             w = self._fond.GetWidth()
             h = self._fond.GetHeight()
-            xPos = (cliWidth - w) / 2
-            yPos = (cliHeight - h) / 2
+            xPos = (cliWidth - w) // 2
+            yPos = (cliHeight - h) // 2
             dc.DrawBitmap(self._fond, xPos, yPos)
 
     def chg_fond(self, bmp):

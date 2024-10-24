@@ -14,7 +14,7 @@ import shutil
 from tourbillon import images
 from tourbillon.gui.dlginformations import VARIABLES, DialogueInformations, string_en_wxFont, wxFont_en_string
 from tourbillon import config as cfg
-from tourbillon.core import tirages
+from tourbillon.core import draws
 
 
 def selectioner_variable(event, ctl_texte):
@@ -92,12 +92,12 @@ class TimeSlider(wx.Panel):
         self.maj_texte(None)
 
     def maj_texte(self, event):
-        valeur = int(round(self.slider.GetValue() / float(self.increment))) * self.increment
+        valeur = int(round(self.slider.GetValue() / self.increment)) * self.increment
         self.slider.SetValue(valeur)
-        sec = valeur / 1000.
+        sec = valeur // 1000.
         if sec - int(sec) == 0:
             sec = int(sec)
-        minimum = (int(sec) - (int(sec) % 60)) / 60
+        minimum = (int(sec) - (int(sec) % 60)) // 60
         texte = ""
         if minimum > 0:
             texte += "%sm" % minimum
@@ -125,6 +125,7 @@ class GeneralPage(wx.Panel):
     def __init__(self, parent, section, config):
         wx.Panel.__init__(self, parent, wx.ID_ANY)
         self.section = section
+        self.config = config
 
         # Boite encadrée
         box2 = wx.StaticBox(self, wx.ID_ANY, "Enregistrement")
@@ -172,7 +173,7 @@ class GeneralPage(wx.Panel):
                 fond.SetBitmapLabel(images.scale_bitmap(bp, 60, 40))
                 if defaut_chemin_fond == fond.path:
                     fond.SetValue(True)
-                wx.EVT_BUTTON(self, fond.GetId(), self.parcourir_fond)
+                self.Bind(wx.EVT_BUTTON, self.parcourir_fond, id=fond.GetId())
                 self.fonds.append(fond)
 
         fondcustom = buttons.GenBitmapToggleButton(self, -1, None, size=(60, 40))
@@ -183,7 +184,7 @@ class GeneralPage(wx.Panel):
         else:
             fondcustom.SetBitmapLabel(images.scale_bitmap(images.bitmap(images.chemin('loupe.png')), 60, 40))
             fondcustom.SetValue(False)
-        wx.EVT_BUTTON(self, fondcustom.GetId(), self.parcourir_fond)
+        self.Bind(wx.EVT_BUTTON, self.parcourir_fond, id=fondcustom.GetId())
         self.fonds.append(fondcustom)
 
         # position des objets
@@ -276,11 +277,11 @@ class GeneralPage(wx.Panel):
                 break
 
         if chemin_image:
-            for fichier in glob(cfg.configdir('fond_perso*')):
+            for fichier in glob(self.config.join_path('fond_perso*')):
                 # Suppression de l'image précédente
                 os.remove(fichier)
             _, ext = osp.splitext(chemin_image)
-            destination = cfg.configdir('fond_perso' + ext)
+            destination = self.config.join_path('fond_perso' + ext)
             # Copie en cache de l'image
             shutil.copy2(chemin_image, destination)
 
@@ -461,12 +462,12 @@ class TiragePage(wx.Panel):
 
         self.choicebook = wx.Choicebook(self, wx.ID_ANY)
 
-        for nom, generateur in tirages.TIRAGES.items():
+        for nom, generateur in draws.TIRAGES.items():
             page = TirageSousPageParametre(self.choicebook, nom, config)
             self.choicebook.AddPage(page, generateur.DESCRIPTION)
 
         algorithme = config.get('TOURNOI', 'ALGORITHME_DEFAUT')
-        self.choicebook.SetSelection(list(tirages.TIRAGES.keys()).index(algorithme))
+        self.choicebook.SetSelection(list(draws.TIRAGES.keys()).index(algorithme))
 
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(self.choicebook, 1, wx.EXPAND | wx.ALL, 10)
@@ -567,7 +568,7 @@ class TirageSousPageParametre(wx.Panel):
         for vtype, classes in self.EDITEURS.items():
             if isinstance(self.grille.GetCellEditor(ligne, 1), classes[0]):
                 return vtype
-        return unicode
+        return str
 
     def donnees(self):
         """
@@ -587,7 +588,7 @@ class TirageSousPageParametre(wx.Panel):
         """
         i = 0
         while i < self.grille.GetNumberRows():
-            valeur = tirages.TIRAGES[self.section].DEFAUT[self.grille.GetCellValue(i, 0).upper()]
+            valeur = draws.TIRAGES[self.section].DEFAUT[self.grille.GetCellValue(i, 0).upper()]
             if type(valeur) == bool:
                 if valeur is True:
                     valeur = 1

@@ -3,16 +3,17 @@
 """Algorithme génétique pseudo aléatoire (choix de la redondance possible)."""
 
 import random
-from tourbillon.core.tirages.utils import (BaseThreadTirage, nb_chapeaux_necessaires,
-                                           tri_stat, creer_manches, tirage_texte, cnp, len_cnp)
-from tourbillon.core.tirages.niveau_ag import Tirage as NvTirage, Environement, genese
-from tourbillon.core.exceptions import SolutionTirageError
+
+from .utils import (BaseThreadTirage, nb_chapeaux_necessaires,
+                    tri_stat, creer_manches, tirage_texte, cnp, len_cnp)
+from .level_ag import Tirage as NvTirage, Environement, genese
+from ..exception import DrawResultError
 
 
 def select_chapeau(statistiques, redondance):
     d = tri_stat(statistiques, 'chapeaux')
-    cle_tri = d.keys()
-    cle_tri.sort()
+    cle_tri = sorted(d.keys())
+
     if redondance:
         moins_chapeaux = d[cle_tri[0]]
         num = random.choice(moins_chapeaux)
@@ -27,7 +28,7 @@ def select_chapeau(statistiques, redondance):
         else:
             #  ERREUR 101: Toutes les équipes on été chapeaux une fois.
             args = [cle_tri[0], cle_tri[-1]]
-            raise SolutionTirageError(101, args)
+            raise DrawResultError(101, args)
 
 
 def comanche(parametres, statistiques, manche):
@@ -49,7 +50,7 @@ def comanche(parametres, statistiques, manche):
     if vu == total:
         return 1
     else:
-        return vu * 1.0 / total
+        return vu / total
 
 
 class Tirage(NvTirage):
@@ -81,7 +82,7 @@ class Tirage(NvTirage):
 
 
 class ThreadTirage(BaseThreadTirage):
-    NOM = "aleatoire_ag"
+    NOM = __name__.rsplit('.', maxsplit=1)[-1]
 
     DESCRIPTION = "Aléatoire (Algorithme Génétique)"
 
@@ -119,7 +120,7 @@ class ThreadTirage(BaseThreadTirage):
         # -------------------
 
         # Créer l'environement
-        Tirage.alleles = self.statistiques.keys()
+        Tirage.alleles = list(self.statistiques.keys())
         self._env = Environement(genese(Tirage, self.config['taille_population_ini']), **self.config)
 
         # Lancer l'algorithme
@@ -136,7 +137,7 @@ class ThreadTirage(BaseThreadTirage):
                 nb = self._env.elite.chromosome.count(equipe)
                 if nb != 1:
                     args.append((equipe, nb))
-            raise SolutionTirageError(150, args)
+            raise DrawResultError(150, args)
 
         elif self.config['redondance'] == False and self._env.elite.score >= 1:
             # ERREUR 151: Au moins une manche qui a déjà été disputée se trouve dans le tirage et
@@ -148,4 +149,4 @@ class ThreadTirage(BaseThreadTirage):
                     nb_vu += self.statistiques[vu[1]]['adversaires'].count(vu[0])
                 if nb_vu >= len_cnp(manche, 2):
                     args.append(manche)
-            raise SolutionTirageError(151, args)
+            raise DrawResultError(151, args)

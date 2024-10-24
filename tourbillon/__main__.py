@@ -1,38 +1,45 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
 
-"""Module principal de TourBillon"""
-
+import os
 import sys
+import os.path as osp
 
-from tourbillon.config import charger_config, parse_options
-from tourbillon import logger
+from . import config, logger
+from .core import player
 
 
 def run():
     """
     Entry point.
     """
-    config = charger_config()
-    options, args = parse_options()
+    # Parse command line options
+    options = config.parse_options()
 
-    # Niveau de log
-    verbose = options.verbose
-    if verbose is None:
-        verbose = config.get_typed('INTERFACE', 'BAVARDE')
-    if verbose is True:
-        logger.creer_logger(logger.DEBUG)
-    elif verbose is False:
-        logger.creer_logger(logger.WARNING)
+    # Initialize configuration file
+    cfg = config.TypedConfigParser(osp.join(os.environ.get('APPDATA', osp.expanduser("~")), '.trb', 'cfg'))
+
+    # Initialize players history
+    if cfg.get_path('TOURNOI', 'HISTORIQUE'):
+        player.PlayerHistory(cfg.get_path('TOURNOI', 'HISTORIQUE'))
     else:
-        logger.creer_logger(logger.INFO)
+        player.PlayerHistory(cfg.join_path('hist_jrs'))
 
-    if sys.version_info[:3] < (2, 7, 0):
-        logger.critical("Python 2.7 (ou supérieure) est requis pour ce programme")
+    # Configure logging
+    if options.logging_level is None:
+        if cfg.get_typed('INTERFACE', 'BAVARDE') is True:
+            logger.init_logger(logger.DEBUG)
+        else:
+            logger.init_logger(logger.WARNING)
+    else:
+        logger.init_logger(options.logging_level)
+
+    if sys.version_info[:3] < (3, 8, 0):
+        logger.critical("Python 3.8 (ou supérieure) est requis pour ce programme")
 
     if options.backend:
         from tourbillon.server.app import TourBillonServer
-        app = TourBillonServer(config)
+        app = TourBillonServer(cfg)
     else:
         try:
             import wx
@@ -40,14 +47,14 @@ def run():
         except ImportError:
             logger.critical("wxPython est requis pour lancer ce programme en mode graphique")
 
-        if version < (2, 8, 0):
-            logger.critical("wxPython >= 2.8 est requis (version actuelle: %s)" % version)
+        if version < (4, 0, 0):
+            logger.critical(f"wxPython >= 4.0 est requis (version actuelle: {version})")
 
         from tourbillon.gui.app import TourBillonGUI
-        app = TourBillonGUI(config)
+        app = TourBillonGUI(cfg)
 
-    if len(args) > 0:
-        app.ouvrir(args[0])
+    if options.filename:
+        app.load(options.filename)
 
     app.run()
 
