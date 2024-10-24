@@ -28,7 +28,7 @@ class Team:
         return f"""
         Team n°{self.numero}
             Names     : {" / ".join([" ".join([joueur.prenom, joueur.nom]) for joueur in self._liste_joueurs])}
-            Score     : {self.points()}
+            Points    : {self.points()}
             Victories : {self.victoires()}
             Byes      : {self.chapeaux()}
 

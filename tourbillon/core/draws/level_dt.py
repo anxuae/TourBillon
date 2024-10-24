@@ -104,11 +104,10 @@ def creer_matrices(parametres, statistiques):
 
         # Avancement du calcul (affichage jusque 99% pour éviter d'indiquer la fin de l'algorithme)
         compteur += 1
-        s = "%-" + str(len(str(total))) + "s/%s manches évaluées"
         # 70% du temps attribué à la creation des matrices
-        parametres['rapport'](((compteur * 70) / total) - 1, s % (compteur, total))
+        parametres['rapport'](((compteur * 70) / total) - 1, f"{compteur}/{total} manches évaluées")
 
-    parametres['rapport'](message="")
+    parametres['rapport'](message="End of matches evaluation")
 
 
 def comanche(parametres, manche, redondance=False, disparite=False):
@@ -322,7 +321,6 @@ class ThreadTirage(BaseThreadTirage):
         # Tirage des manches:
         # -------------------
 
-        # Vider les caches
         vider_caches()
 
         # Paramètre de pondération des victoires
@@ -394,7 +392,8 @@ class ThreadTirage(BaseThreadTirage):
                 tirage_temp.append(manche)
                 # 30% attribué au choix des équipes
                 self.rapport(70 + (len(self.tirage) * self.equipes_par_manche + len(tirage_temp) * self.equipes_par_manche +
-                                   len(self.chapeaux)) * 30 / len(self.statistiques))
+                             len(self.chapeaux)) * 30 / len(self.statistiques),
+                             f"Keep potential match {manche}")
 
         for manche in tirage_temp:
             # Passage des manches de la liste temporaire vers la liste définitive

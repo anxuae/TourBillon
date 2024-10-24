@@ -93,7 +93,7 @@ def test_nb_parties_apres_inscription(trb2e2j):
 def test_ajout_joueurs(trb2e2j, numero, joueurs):
     e = trb2e2j.equipe(numero)
     for joueur in joueurs:
-        j = e.ajout_joueur(joueur[0], joueur[1], joueur[2])
+        j = e.ajout_joueur(joueur[0], joueur[1])
         assert j.prenom == joueur[0]
         assert j.nom == joueur[1]
     assert e.statut == cst.E_ATTEND_TIRAGE

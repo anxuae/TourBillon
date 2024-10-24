@@ -301,7 +301,7 @@ class Tournament:
         """
         if self.nb_equipes() > 1000:
             raise ValueError("La limite de joueurs est atteinte")
-        choix = range(1, 1001)
+        choix = list(range(1, 1001))
         for equipe in self.equipes():
             if equipe.joker in choix:
                 choix.remove(equipe.joker)
