@@ -189,7 +189,7 @@ def min_cout(parametres, equipes_disponibles, redondance=False, disparite=False,
         parametres['arret_utilisateur']()
         if manche_possible(manche, equipes_disponibles, equipe):
             c = comanche(parametres, manche, redondance, disparite)
-            if (valeur is None or valeur > c):
+            if (valeur is None or c == NV or valeur > c):
                 if c != NV:
                     valeur = c
                     minium = manche
@@ -217,7 +217,7 @@ def max_cout(parametres, equipes_disponibles, redondance=False, disparite=False,
         parametres['arret_utilisateur']()
         if manche_possible(manche, equipes_disponibles, equipe):
             c = comanche(parametres, manche, redondance, disparite)
-            if (valeur is None or valeur < c):
+            if (valeur is None or c == NV or valeur < c):
                 if c != NV:
                     valeur = c
                     maximum = manche

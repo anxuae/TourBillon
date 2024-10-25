@@ -303,7 +303,7 @@ class Round:
 
     def locations(self) -> list:
         """
-        Returns the list of location used for this round.
+        Return the list of location used for this round.
         """
         locations = []
         for equipe in self.equipes():

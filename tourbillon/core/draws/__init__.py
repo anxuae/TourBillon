@@ -14,10 +14,10 @@ TIRAGES = {}
 # Dynamic draw modules import
 for filename in os.listdir(HERE):
     if filename.endswith('.py') and filename not in ('__init__.py', 'utils.py'):
-        name = '.'.join((__name__, os.path.splitext(filename)[0]))
-        spec = importlib.util.spec_from_file_location(name, os.path.join(HERE, filename))
+        module_name = '.'.join((__name__, os.path.splitext(filename)[0]))
+        spec = importlib.util.spec_from_file_location(module_name, os.path.join(HERE, filename))
         module = importlib.util.module_from_spec(spec)
-        sys.modules[name] = module
+        sys.modules[module_name] = module
         spec.loader.exec_module(module)
         TIRAGES[module.ThreadTirage.NOM] = module.ThreadTirage
 

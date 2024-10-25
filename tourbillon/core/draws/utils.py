@@ -133,13 +133,9 @@ class ImpossibleMatch:
     its "reason" why it is invalid.
     """
 
-    def __init__(self, valeur=None, redondance=0, disparite=0):
-        if type(valeur) == self.__class__:
-            self.redondance = valeur.redondance
-            self.disparite = valeur.disparite
-        else:
-            self.redondance = redondance
-            self.disparite = disparite
+    def __init__(self, redondance=0, disparite=0):
+        self.redondance = redondance
+        self.disparite = disparite
 
     def raison(self):
         return self.redondance | self.disparite
@@ -171,18 +167,6 @@ class ImpossibleMatch:
                 return False
         else:
             return False
-
-    def __lt__(self, other):
-        return True
-
-    def __le__(self, other):
-        return True
-
-    def __gt__(self, other):
-        return False
-
-    def __ge__(self, other):
-        return False
 
     def __or__(self, other):
         if other is None:
