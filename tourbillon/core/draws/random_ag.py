@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-
 
-"""Algorithme génétique pseudo aléatoire (choix de la redondance possible)."""
+"""Pseudo-random genetic algorithm (redundancy control possible)"""
 
 import random
 
