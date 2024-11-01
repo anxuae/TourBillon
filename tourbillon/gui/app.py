@@ -4,7 +4,6 @@ import sys
 
 import wx
 from wx.lib.agw import advancedsplash as aspl
-from wx.lib.agw import toasterbox as toast
 
 import tourbillon
 from ..core import tournament, player
@@ -12,42 +11,9 @@ from . import fenetre
 from .. import images, logger
 
 
-class GuiLoggerHandler(logger.LoggerHandler):
-
-    def __init__(self, parent):
-        logger.LoggerHandler.__init__(self)
-        self.parent = parent
-
-    def afficher(self, record):
-        if self.parent.IsShown():
-            texte = self.format(record)
-            tb = toast.ToasterBox(self.parent, toast.TB_SIMPLE, toast.TB_DEFAULT_STYLE, toast.TB_ONTIME | toast.TB_ONCLICK)
-
-            w = 200
-            h = 125
-            tb.SetPopupSize((w, h))
-
-            rect = self.parent.GetRect()
-            x = rect[0] + rect[2] - w
-            y = rect[1] + rect[3] - h
-            tb.SetPopupPosition((x, y))
-
-            tb.SetPopupPauseTime(3000)
-            tb.SetPopupScrollSpeed(1)
-
-            tb.SetPopupBackgroundColour(images.couleur('selection'))
-            tb.SetPopupTextColour(images.couleur('texte_bouton'))
-
-            tb.SetPopupText(texte)
-            tb.SetPopupTextFont(wx.Font(12, wx.SWISS, wx.ITALIC, wx.NORMAL))
-
-            tb.Play()
-
-
 class FentetreSplash(aspl.AdvancedSplash):
 
     def __init__(self, parent=None, id=wx.ID_ANY, temps=10000):
-        # Créer l'image
         bmap_unconvertedAplha = images.splash.GetBitmap()
         image = bmap_unconvertedAplha.ConvertToImage()
         image.ConvertAlphaToMask(threshold=128)
@@ -58,12 +24,9 @@ class FentetreSplash(aspl.AdvancedSplash):
                                      agwStyle=aspl.AS_TIMEOUT | aspl.AS_CENTER_ON_SCREEN)
 
         # Afficher la version
-        try:
-            self.SetText("version %s.%s.%s" % tourbillon.__version__)
-            self.SetTextFont(wx.Font(16, wx.ROMAN, wx.NORMAL, wx.NORMAL))
-            self.SetTextPosition((385, 245))
-        except:
-            pass
+        self.SetText("version %s.%s.%s" % tourbillon.__version__)
+        self.SetTextFont(wx.Font(16, wx.ROMAN, wx.NORMAL, wx.NORMAL))
+        self.SetTextPosition((385, 245))
 
 
 class TourBillonGUI(wx.App):
@@ -106,7 +69,6 @@ class TourBillonGUI(wx.App):
             level = logger.INFO
         else:
             level = logger.CRITICAL
-        logger.add_handler(GuiLoggerHandler(self.fenetre), level, "%(message)s")
 
         # Laisser le temps du chargement avant affichage
         self._timer.Start(3000)

@@ -3,7 +3,6 @@
 import wx
 import wx.lib.printout as printout
 
-from ..core import tournament
 from . import grille as grl
 
 TITRES = [("Place", 0.5),

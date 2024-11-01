@@ -3,7 +3,7 @@
 import wx
 from wx.lib import scrolledpanel as scrolled
 
-from ..core import cst, tournament
+from ..core import cst
 from ..core.draws import utils
 from . import dlgequipe as dlgeq
 

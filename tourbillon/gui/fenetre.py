@@ -12,7 +12,7 @@ from wx.lib.wordwrap import wordwrap
 import tourbillon
 from .. import images, logger
 from ..config import system_config
-from ..core import cst, tournament
+from ..core import cst
 from . import barres
 from . import evenements as evt
 from . import grille as grl

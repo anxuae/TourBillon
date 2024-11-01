@@ -5,7 +5,7 @@ import wx.lib.stattext as genstatictext
 from wx.lib.agw import buttonpanel as bp
 
 from .. import images
-from ..core import cst, tournament
+from ..core import cst
 
 from . import evenements as evt
 from . import grille as grl
