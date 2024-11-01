@@ -7,7 +7,7 @@ from wx.lib.mixins import listctrl
 from wx.lib.wordwrap import wordwrap
 
 from .. import images
-from ..core import cst, tournament, draws
+from ..core import cst, draws
 from ..core.draws import utils
 from . import evenements as evt
 from .dlgimpression import DialogueImprimerTirage

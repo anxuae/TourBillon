@@ -9,7 +9,7 @@ try:
 except ImportError:
     import platebtn
 
-from ..core import cst, player, tournament
+from ..core import cst, player
 from . import evenements as evt
 
 
