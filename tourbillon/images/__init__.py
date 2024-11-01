@@ -1,11 +1,9 @@
 # -*- coding: UTF-8 -*-
 
 import os
-import glob
-import codecs
 import tourbillon
-from tourbillon.core import constantes as cst
-from tourbillon.images.splash import splash
+from ..core import cst
+from .splash import splash
 try:
     import wx
 except ImportError:

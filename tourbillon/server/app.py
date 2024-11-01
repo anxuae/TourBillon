@@ -1,16 +1,17 @@
 # -*- coding: UTF-8 -*-
 
-from tourbillon.core import tournoi
-from tourbillon import logger
+from .. import logger
+from ..core import tournament
 
 
-class TourBillonServer(object):
+class TourBillonServer:
 
     def __init__(self, config):
         self.config = config
+        self.tournament = None
 
     def run(self):
         logger.critical("Pas inplementé: dev serveur backend (Flask RESTfull server)")
 
-    def ouvrir(self, fichier):
-        tournoi.charger_tournoi(fichier)
+    def load(self, filename):
+        self.tournament = tournament.load(filename)

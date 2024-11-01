@@ -1,15 +1,15 @@
 # -*- coding: UTF-8 -*-
 
 import sys
-import wx
 
+import wx
 from wx.lib.agw import advancedsplash as aspl
 from wx.lib.agw import toasterbox as toast
 
 import tourbillon
-from tourbillon.core import joueur
-from tourbillon.gui import fenetre
-from tourbillon import images, logger
+from ..core import tournament, player
+from . import fenetre
+from .. import images, logger
 
 
 class GuiLoggerHandler(logger.LoggerHandler):
@@ -72,6 +72,9 @@ class TourBillonGUI(wx.App):
         self.config = config
         self.fenetre = None
         self.splash = None
+        self.tournament = None
+        self.tournament_filepath = None
+
         wx.App.__init__(self, False)
         self.SetAppName(tourbillon.__nom__)
         self.SetAppDisplayName(tourbillon.__nom__)
@@ -86,7 +89,7 @@ class TourBillonGUI(wx.App):
         self._timer = wx.Timer(self)
         self.Bind(wx.EVT_TIMER, self.OnShow, self._timer)
 
-        joueur.charger_historique(self.config.get_typed('TOURNOI', 'historique'))
+        player.PlayerHistory(self.config.get_typed('TOURNOI', 'historique'))
 
         def splash():
             self.splash = FentetreSplash(None, wx.ID_ANY)
@@ -103,7 +106,7 @@ class TourBillonGUI(wx.App):
             level = logger.INFO
         else:
             level = logger.CRITICAL
-        logger.ajouter_handler(GuiLoggerHandler(self.fenetre), level, "%(message)s")
+        logger.add_handler(GuiLoggerHandler(self.fenetre), level, "%(message)s")
 
         # Laisser le temps du chargement avant affichage
         self._timer.Start(3000)
@@ -131,7 +134,7 @@ class TourBillonGUI(wx.App):
         Appelé quand un fichier est déposé sur l'icon située dans le
         dock ou ouvert via le menu contextuel du Finder.
         """
-        self.ouvrir(fichier)
+        self.load(fichier)
 
     def BringWindowToFront(self):
         try:  # it's possible for this event to come when the frame is closed
@@ -152,5 +155,24 @@ class TourBillonGUI(wx.App):
     def run(self):
         self.MainLoop()
 
-    def ouvrir(self, fichier):
-        self.fenetre.ouvrir(fichier)
+    def new(self, *args):
+        self.tournament = tournament.Tournament(*args)
+        self.tournament_filepath = None
+        return True
+
+    def load(self, filename):
+        self.tournament = tournament.load(filename)
+        self.tournament_filepath = filename
+        return True
+
+    def save(self, filename=None):
+        if filename is not None:
+            self.tournament_filepath = filename
+
+        if self.tournament_filepath is None:
+            # Let's opening the "save as" dialog
+            wx.PostEvent(self.fenetre, wx.PyCommandEvent(wx.EVT_MENU.typeId, wx.ID_SAVEAS))
+            return False
+        else:
+            tournament.dump(self.tournament, self.tournament_filepath)
+            return True

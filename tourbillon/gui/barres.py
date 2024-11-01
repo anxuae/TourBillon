@@ -4,16 +4,16 @@ import wx
 import wx.lib.stattext as genstatictext
 from wx.lib.agw import buttonpanel as bp
 
-from tourbillon import images
-from tourbillon.gui import evenements as evt
-from tourbillon.gui import grille as grl
-from tourbillon.core import constantes as cst
-from tourbillon.core import tournoi
+from .. import images
+from ..core import cst, tournament
+
+from . import evenements as evt
+from . import grille as grl
+
 
 ID_STATISTIQUES = wx.NewId()
 ID_INFO = wx.NewId()
 ID_TIRAGE = wx.NewId()
-ID_SHELL = wx.NewId()
 ID_NOUVELLE_E = wx.NewId()
 ID_MODIFIER_E = wx.NewId()
 ID_SUPPRIMER_E = wx.NewId()
@@ -156,16 +156,16 @@ class Menu(wx.Menu):
 
 
 def styles():
-    t = tournoi.tournoi()
-    if t is None:
+    tournament = wx.App.Get().tournament
+    if tournament is None:
         etat = None
     else:
-        if t.statut == cst.T_INSCRIPTION and t.nb_equipes() == 0:
+        if tournament.statut == cst.T_INSCRIPTION and tournament.nb_equipes() == 0:
             etat = '0 equipe'
-        elif t.statut == cst.T_ATTEND_TIRAGE and t.nb_parties() == 0:
+        elif tournament.statut == cst.T_ATTEND_TIRAGE and tournament.nb_parties() == 0:
             etat = '0 partie'
         else:
-            etat = t.statut
+            etat = tournament.statut
     return STYLES_MENU[etat]
 
 
@@ -217,8 +217,6 @@ class BarreMenu(wx.MenuBar):
         self.menu_affichage.Append(ID_STATISTIQUES, "Statistiques tournoi", "  Afficher les statistiques du tournoi", wx.ITEM_CHECK)
         self.menu_affichage.Append(ID_INFO, "&Infos Equipes", "  Afficher les informations des joueurs", wx.ITEM_CHECK)
         self.menu_affichage.Append(ID_TIRAGE, "&Tirages", "  Afficher les tirages")
-        self.menu_affichage.AppendSeparator()
-        self.menu_affichage.Append(ID_SHELL, "Shell Python", "  Afficher un shell Python pour le débogage", wx.ITEM_CHECK)
 
         # Menu Tournoi
         self.sous_menu_inscription = Menu()
@@ -437,7 +435,7 @@ class BarreBouton(bp.ButtonPanel):
         return None
 
 
-class Voyant(object):
+class Voyant:
 
     def __init__(self, parent):
         self.parent = parent
