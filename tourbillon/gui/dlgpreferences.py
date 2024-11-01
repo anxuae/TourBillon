@@ -4,17 +4,17 @@ import os
 from glob import glob
 import os.path as osp
 from functools import partial
+import shutil
 
 import wx
 from wx.lib import buttons
 from wx.lib.agw import floatspin as flsp
 from wx import grid
-import shutil
 
-from tourbillon import images
-from tourbillon.gui.dlginformations import VARIABLES, DialogueInformations, string_en_wxFont, wxFont_en_string
-from tourbillon import config as cfg
-from tourbillon.core import draws
+from .. import images
+from .. import config as cfg
+from ..core import draws
+from .dlginformations import VARIABLES, DialogueInformations, string_en_wxFont, wxFont_en_string
 
 
 def selectioner_variable(event, ctl_texte):
@@ -251,7 +251,8 @@ class GeneralPage(wx.Panel):
             btn.SetValue(True)
 
         if btn == self.fonds[-1]:
-            dlg = wx.FileDialog(self, "Choisir Une image de fond :", btn.path, style=wx.DD_DEFAULT_STYLE | wx.DD_NEW_DIR_BUTTON)
+            dlg = wx.FileDialog(self, "Choisir Une image de fond :", btn.path,
+                                style=wx.DD_DEFAULT_STYLE | wx.DD_NEW_DIR_BUTTON)
             ret = dlg.ShowModal()
 
             if ret == wx.ID_OK:
@@ -420,7 +421,8 @@ class TournoiPage(wx.Panel):
         """
         Bouton Parcourir...
         """
-        dlg = wx.FileDialog(self, "Choisir le fichier :", self.ctl_historique_joueurs.GetValue(), style=wx.DD_DEFAULT_STYLE | wx.DD_NEW_DIR_BUTTON)
+        dlg = wx.FileDialog(self, "Choisir le fichier :", self.ctl_historique_joueurs.GetValue(),
+                            style=wx.DD_DEFAULT_STYLE | wx.DD_NEW_DIR_BUTTON)
         ret = dlg.ShowModal()
 
         if ret == wx.ID_OK:

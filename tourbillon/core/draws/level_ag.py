@@ -220,16 +220,12 @@ class Environement:
         self.population = next_population[:self.taille]
         self.generation += 1
 
-    def elite():
+    @property
+    def elite(self):
         """
         Retourne l'individu ayant le meilleur score dans la population.
         """
-
-        def fget(self):
-            return self.population[0]
-        return locals()
-
-    elite = property(**elite())
+        return self.population[0]
 
 
 def select_chapeau(parametres, statistiques):

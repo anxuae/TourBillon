@@ -2,7 +2,6 @@
 # -*- coding: UTF-8 -*-
 
 import os
-import sys
 import os.path as osp
 
 from . import config, logger
@@ -34,21 +33,14 @@ def run():
     else:
         logger.init_logger(options.logging_level)
 
-    if sys.version_info[:3] < (3, 8, 0):
-        logger.critical("Python 3.8 (ou supérieure) est requis pour ce programme")
-
     if options.backend:
         from tourbillon.server.app import TourBillonServer
         app = TourBillonServer(cfg)
     else:
         try:
             import wx
-            version = tuple([int(n) for n in wx.__version__.split('.')[:3]])
         except ImportError:
             logger.critical("wxPython est requis pour lancer ce programme en mode graphique")
-
-        if version < (4, 0, 0):
-            logger.critical(f"wxPython >= 4.0 est requis (version actuelle: {version})")
 
         from tourbillon.gui.app import TourBillonGUI
         app = TourBillonGUI(cfg)

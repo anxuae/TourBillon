@@ -1,19 +1,11 @@
-#!/usr/bin/env python
 # -*- coding: UTF-8 -*-
-
-#--- Import --------------------------------------------------------------------
 
 import wx
 from wx.lib import scrolledpanel as scrolled
 
-from tourbillon.core import cst
-from tourbillon.core import tournament
-from tourbillon.core.draws import utils
-
-from tourbillon.gui import dlgequipe as dlgeq
-
-
-#--- Entrée score --------------------------------------------------------------
+from ..core import cst, tournament
+from ..core.draws import utils
+from . import dlgequipe as dlgeq
 
 
 class EntrerScore(wx.Panel):
@@ -75,7 +67,7 @@ class DialogueResultat(wx.Dialog):
 
         self.entrees = []
         self.numero_partie = numero_partie
-        self.tirage = tournament.tournoi().partie(self.numero_partie).manches()
+        self.tirage = wx.App.Get().tournament.partie(self.numero_partie).manches()
 
         # Match location
         self.lbl_location = wx.StaticText(self, wx.ID_ANY, "", style=wx.ALIGN_CENTER)
@@ -85,7 +77,7 @@ class DialogueResultat(wx.Dialog):
         self.panel = scrolled.ScrolledPanel(self, wx.ID_ANY, style=wx.TAB_TRAVERSAL)
         box_panel = wx.BoxSizer(wx.VERTICAL)
 
-        for i in range(tournament.tournoi().equipes_par_manche):
+        for i in range(wx.App.Get().tournament.equipes_par_manche):
             if i == 0:
                 liste = utils.creer_liste(self.tirage)
                 e = EntrerScore(self.panel, sorted(liste))
@@ -142,7 +134,7 @@ class DialogueResultat(wx.Dialog):
                 break
         i = 1
         for equipe in manche:
-            m = tournament.tournoi().equipe(equipe).resultat(self.numero_partie)
+            m = wx.App.Get().tournament.equipe(equipe).resultat(self.numero_partie)
 
             if equipe == num:
                 self.entrees[0].chg_points(m.points)
@@ -181,7 +173,7 @@ class DialogueResultat(wx.Dialog):
 
         if len(valeurs) == len(self.entrees):
             m = max(valeurs)
-            if m < tournament.tournoi().points_par_manche:
+            if m < wx.App.Get().tournament.points_par_manche:
                 self.btn_ok.Disable()
             else:
                 self.btn_ok.Enable()

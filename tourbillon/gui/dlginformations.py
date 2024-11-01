@@ -1,7 +1,4 @@
-#!/usr/bin/env python
 # -*- coding: UTF-8 -*-
-
-# --- Import --------------------------------------------------------------------
 
 from random import choice
 from datetime import datetime
@@ -10,20 +7,15 @@ import wx
 from wx import grid
 from wx.lib import ticker
 
-from tourbillon.core import cst
-from tourbillon.core import tournament
-from tourbillon.core.draws import utils
+from .. import images
+from ..core import cst, tournament
+from ..core.draws import utils
+from . import grille as grl
 
-from tourbillon import images
-from tourbillon.gui import grille as grl
-
-# --- Variables globales -------------------------------------------------------
 
 VARIABLES = {'date': '',
              'partie': 0,
              'partie suivante': 1}
-
-# --- Fonctions ----------------------------------------------------------------
 
 
 def tournoi_factice(equipes_par_manche, joueurs_par_equipe, nombre_equipes):
@@ -259,7 +251,7 @@ class GrilleTirage(Grille):
                                 self.SetCellValue(i, 1, "C")
                                 self.SetCellTextColour(i, 1, images.couleur(cst.CHAPEAU))
                             # Piquet
-                            location = tournament.tournoi().equipe(equipe).resultat(tournament.tournoi().partie_courante().numero).location
+                            location = wx.App.Get().tournament.equipe(equipe).resultat(wx.App.Get().tournament.partie_courante().numero).location
                             if not location:
                                 location = "-"
                             self.SetCellValue(i, 3, str(location))
@@ -696,8 +688,8 @@ class DialogueInformations(wx.Dialog):
         """
         NE PAS UTILISER !!!!! (Manipulé par la fenêtre principale)
         """
-        partie = tournament.tournoi().partie_courante()
-        VARIABLES['date'] = tournament.tournoi().debut.strftime("%d / %m / %Y")
+        partie = wx.App.Get().tournament.partie_courante()
+        VARIABLES['date'] = wx.App.Get().tournament.debut.strftime("%d / %m / %Y")
         VARIABLES['partie'] = getattr(partie, 'numero', 0)
         VARIABLES['partie suivante'] = getattr(partie, 'numero', 0) + 1
 
@@ -727,11 +719,11 @@ class DialogueInformations(wx.Dialog):
 
             if partie.nb_equipes() == len(partie.equipes_incompletes()) or statut == 'test tirage':
                 # Afficher le grille du tirage
-                self.txt_titre.SetLabel("Partie n°%s - Tirage" % tournament.tournoi().partie_courante().numero)
+                self.txt_titre.SetLabel("Partie n°%s - Tirage" % wx.App.Get().tournament.partie_courante().numero)
                 # Lecture du tirage
                 l = []
-                for equipe in tournament.tournoi().equipes():
-                    m = equipe.resultat(tournament.tournoi().partie_courante().numero)
+                for equipe in wx.App.Get().tournament.equipes():
+                    m = equipe.resultat(wx.App.Get().tournament.partie_courante().numero)
                     if m.etat != cst.FORFAIT:
                         l.append([equipe.numero] + m.adversaires)
 
@@ -741,8 +733,8 @@ class DialogueInformations(wx.Dialog):
                 self.gri_resultats.Show(False)
             else:
                 # Afficher le grille des résultats
-                self.txt_titre.SetLabel("Partie n°%s - Résultats" % tournament.tournoi().partie_courante().numero)
-                self.gri_resultats.maj_grille(tournament.tournoi(), self.grille_lignes, self.grille_police)
+                self.txt_titre.SetLabel("Partie n°%s - Résultats" % wx.App.Get().tournament.partie_courante().numero)
+                self.gri_resultats.maj_grille(wx.App.Get().tournament, self.grille_lignes, self.grille_police)
                 self.txt_interlude.Show(False)
                 self.gri_tirages.Show(False)
                 self.gri_resultats.Show(True)
@@ -795,8 +787,8 @@ class DialogueInformations(wx.Dialog):
             event.Skip()
 
     def test(self, suivant=False):
-        courant = tournament.tournoi()
-        tournament.TOURNOI = tournoi_factice(self.config.get_typed("TOURNOI", "EQUIPES_PAR_MANCHE"),
+        courant = wx.App.Get().tournament
+        wx.App.Get().tournament = tournoi_factice(self.config.get_typed("TOURNOI", "EQUIPES_PAR_MANCHE"),
                                           self.config.get_typed("TOURNOI", "JOUEURS_PAR_EQUIPE"),
                                           self.grille_lignes * 2 + self.config.get_typed("TOURNOI", "EQUIPES_PAR_MANCHE"))
         if suivant:
@@ -815,7 +807,7 @@ class DialogueInformations(wx.Dialog):
 
         self._rafraichir(self._test_statut)
 
-        tournament.TOURNOI = courant
+        wx.App.Get().tournament = courant
 
     def plein_ecran(self, event):
         if not self.IsFullScreen():

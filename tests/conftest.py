@@ -83,9 +83,9 @@ def trb2e2j():
     """
     Tournoi vide (cfg: 2 équipes par manches, 2 joueurs par équipe)
     """
-    return tournament.nouveau_tournoi(t2teams2players.EQUIPES_PAR_MANCHE,
-                                      t2teams2players.POINTS_PAR_MANCHE,
-                                      t2teams2players.JOUEURS_PAR_EQUIPE)
+    return tournament.Tournament(t2teams2players.EQUIPES_PAR_MANCHE,
+                                 t2teams2players.POINTS_PAR_MANCHE,
+                                 t2teams2players.JOUEURS_PAR_EQUIPE)
 
 
 @pytest.fixture(scope="module")
@@ -93,4 +93,4 @@ def trb4e1j():
     """
     Tournoi avec 5 parties: 4 équipes par manche, 1 joueur par équipe
     """
-    return tournament.charger_tournoi(osp.join(osp.dirname(__file__), 'data', 't4teams1players.yml'))
+    return tournament.load(osp.join(osp.dirname(__file__), 'data', 't4teams1players.yml'))

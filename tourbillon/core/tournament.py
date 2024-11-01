@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-
 
-"""Tournament and TournamentManager classes definition"""
+"""Tournament class definition"""
 
 import os
 import random
@@ -17,144 +17,112 @@ from .round import Round
 from ..images import entete
 
 
-TOURNOI = None
-FICHIER_TOURNOI = None
-
-
-def tournoi():
+def load(filename):
     """
-    Retourne le tournoi courrant.
+    Load a tournament from a file in YAML format.
     """
-    return TOURNOI
+    with open(filename, 'r', encoding='utf-8') as fp:
+        y = yaml.load(fp, Loader=yaml.Loader)
+    tournament = Tournament()
 
-
-def nouveau_tournoi(equipes_par_manche=2, points_par_manche=12, joueurs_par_equipe=2):
-    """
-    Création d'un nouveau tournoi.
-    """
-    global TOURNOI, FICHIER_TOURNOI
-    TOURNOI = Tournament(equipes_par_manche, points_par_manche, joueurs_par_equipe)
-    FICHIER_TOURNOI = None
-    return TOURNOI
-
-
-def enregistrer_tournoi(fichier=None):
-    """
-    Enregistrement d'un tournoi dans un fichier au format YAML.
-    """
-    global FICHIER_TOURNOI, TOURNOI
-    if TOURNOI is None:
-        raise IOError("Pas de tournoi commencé.")
-    elif fichier is None and FICHIER_TOURNOI is None:
-        raise FileError("Pas de fichier spécifié pour l'enregistrement.")
-    elif fichier is not None:
-        if os.path.exists(fichier) and not os.path.isfile(fichier):
-            raise FileError("'%s' est un répertoire." % fichier)
-        else:
-            FICHIER_TOURNOI = fichier
-
-    # Enregistrer
-    ancienne_date = TOURNOI.date_enregistrement
     try:
-        with open(FICHIER_TOURNOI, 'w', encoding='utf-8') as fp:
+        # Save date
+        tournament.date_enregistrement = y['enregistrement']
+
+        # Tournament info
+        tournament.debut = y['tournoi']['debut']
+        tournament.equipes_par_manche = y['tournoi']['equipes_par_manche']
+        tournament.joueurs_par_equipe = y['tournoi']['joueurs_par_equipe']
+        tournament.points_par_manche = y['tournoi']['points_par_manche']
+
+        # Registration info
+        for num in y['inscription']:
+            equipe = tournament.ajout_equipe(num, y.get('jokers', {}).get(num, 0))
+            for joueur in y['inscription'][num]:
+                equipe.ajout_joueur(joueur[0], joueur[1], tournament.debut)
+
+        # Rounds info
+        for num in y['parties']:
+            for data in y['parties'][num]:
+                m = Match()
+                m.charger(data)
+                tournament.equipe(num)._resultats.append(m)
+
+        # Number of rounds
+        nb_parties = 0
+        for equipe in tournament.equipes():
+            if len(equipe._resultats) > nb_parties:
+                nb_parties = len(equipe._resultats)
+
+        # Round creation
+        for num in range(1, nb_parties + 1):
+            tournament._rounds.append(Round(tournament))
+
+        tournament.date_chargement = datetime.now()
+        tournament.changed = False
+    except Exception as ex:
+        raise InconsistencyError(f"File '{filename}' is corrupted ({ex}).")
+
+    return tournament
+
+
+def dump(tournament, filename):
+    """
+    Record a tournament in a file in YAML format.
+    """
+    if os.path.exists(filename) and not os.path.isfile(filename):
+        raise FileError(f"'{filename}' is a directory")
+
+    ancienne_date = tournament.date_enregistrement
+    try:
+        with open(filename, 'w', encoding='utf-8') as fp:
             fp.write(entete() + '\n')
 
-            # Date enregistrement
+            # Save date
             d = datetime.now()
             yaml.dump({'enregistrement': d}, fp, default_flow_style=False)
 
-            # Info tournoi
+            # Tournament info
             y = {}
             y['tournoi'] = {}
-            y['tournoi']['debut'] = TOURNOI.debut
-            y['tournoi']['equipes_par_manche'] = TOURNOI.equipes_par_manche
-            y['tournoi']['joueurs_par_equipe'] = TOURNOI.joueurs_par_equipe
-            y['tournoi']['points_par_manche'] = TOURNOI.points_par_manche
+            y['tournoi']['debut'] = tournament.debut
+            y['tournoi']['equipes_par_manche'] = tournament.equipes_par_manche
+            y['tournoi']['joueurs_par_equipe'] = tournament.joueurs_par_equipe
+            y['tournoi']['points_par_manche'] = tournament.points_par_manche
             yaml.dump(y, fp, default_flow_style=False)
 
-            # Info inscription
+            # Registration info
             y = {}
             y['inscription'] = {}
             y['jokers'] = {}
-            for equipe in TOURNOI.equipes():
+            for equipe in tournament.equipes():
                 y['inscription'][equipe.numero] = []
                 y['jokers'][equipe.numero] = equipe.joker
                 for joueur in equipe.joueurs():
                     y['inscription'][equipe.numero].append([joueur.prenom, joueur.nom])
             yaml.dump(y, fp, default_flow_style=False)
 
-            # Info parties
+            # Rounds info
             y = {}
             y['parties'] = {}
-            for equipe in TOURNOI.equipes():
+            for equipe in tournament.equipes():
                 y['parties'][equipe.numero] = [m.data for m in equipe._resultats]
             yaml.dump(y, fp, default_flow_style=False)
 
-        TOURNOI.date_enregistrement = d
-        TOURNOI.changed = False
+        tournament.date_enregistrement = d
+        tournament.changed = False
     except Exception as ex:
-        TOURNOI.date_enregistrement = ancienne_date
-        raise IOError("L'enregistrement a échoué (%s)." % ex)
-
-
-def charger_tournoi(fichier):
-    """
-    Chargement d'un tournoi depuis un fichier au format YAML.
-    """
-    global FICHIER_TOURNOI, TOURNOI
-    if not os.path.exists(fichier):
-        raise FileError("Le fichier '%s' n'existe pas." % fichier)
-
-    try:
-        # Extraction des données
-        with open(fichier, 'r', encoding='utf-8') as fp:
-            y = yaml.load(fp, Loader=yaml.Loader)
-        nouveau_tournoi()
-
-        # Date enregistrement
-        TOURNOI.date_enregistrement = y['enregistrement']
-
-        # Info tournoi
-        TOURNOI.debut = y['tournoi']['debut']
-        TOURNOI.equipes_par_manche = y['tournoi']['equipes_par_manche']
-        TOURNOI.joueurs_par_equipe = y['tournoi']['joueurs_par_equipe']
-        TOURNOI.points_par_manche = y['tournoi']['points_par_manche']
-
-        # Info inscription
-        for num in y['inscription']:
-            equipe = TOURNOI.ajout_equipe(num, y.get('jokers', {}).get(num, 0))
-            for joueur in y['inscription'][num]:
-                equipe.ajout_joueur(joueur[0], joueur[1], TOURNOI.debut)
-
-        # Info parties
-        for num in y['parties']:
-            for data in y['parties'][num]:
-                m = Match()
-                m.charger(data)
-                TOURNOI.equipe(num)._resultats.append(m)
-
-        # Calcul du nombre de parties
-        nb_parties = 0
-        for equipe in TOURNOI.equipes():
-            if len(equipe._resultats) > nb_parties:
-                nb_parties = len(equipe._resultats)
-
-        # Création des parties
-        for num in range(1, nb_parties + 1):
-            TOURNOI._rounds.append(Round(TOURNOI))
-
-        FICHIER_TOURNOI = fichier
-        TOURNOI.date_chargement = datetime.now()
-        TOURNOI.changed = False
-    except Exception as ex:
-        raise InconsistencyError("Le fichier '%s' est corrompu (%s)." % (fichier, str(ex)))
-
-    return TOURNOI
+        tournament.date_enregistrement = ancienne_date
+        raise IOError(f"Tournament dump failed ({ex})")
 
 
 class Tournament:
 
-    def __init__(self, equipes_par_manche, points_par_manche, joueurs_par_equipe):
+    """
+    Class which represent a tournament. This class manipulates team data.
+    """
+
+    def __init__(self, equipes_par_manche=2, points_par_manche=12, joueurs_par_equipe=2):
         self.equipes_par_manche = equipes_par_manche
         self.joueurs_par_equipe = joueurs_par_equipe
         self.points_par_manche = points_par_manche
@@ -169,15 +137,15 @@ class Tournament:
 
     def __str__(self):
         texte = """
-        Tournoi de Billon:
+        Billon Tournament:
             Date                : %s
-            Nombre de parties   : %s
-            Nombre d'équipes    : %s
-            Equipes par manche  : %s
-            Points par manche   : %s
-            Joueurs par équipe  : %s
+            Number of rounds    : %s
+            Number of teams     : %s
+            Team per match      : %s
+            Points per match    : %s
+            Players per team    : %s
 
-            Statut              : %s
+            Status              : %s
         """
         return texte % (self.debut,
                         len(self.parties()),
@@ -187,45 +155,41 @@ class Tournament:
                         self.joueurs_par_equipe,
                         self.statut)
 
-    def statut():
-        doc = """
-        Retourne le status du tournoi:
-
-            T_INSCRIPTION     => Aucune partie n'est commencée
-            T_ATTEND_TIRAGE   => la dernière partie est terminée
-            T_PARTIE_EN_COURS => une partie partie est en cours
+    @property
+    def statut(self):
         """
+        Return tournament status.
 
-        def fget(self):
-            # Impossibilité de créer une manche
-            if self.nb_equipes() < self.equipes_par_manche:
+        T_INSCRIPTION     => No round started
+        T_ATTEND_TIRAGE   => Last round is finished
+        T_PARTIE_EN_COURS => A round is in progress
+        """
+        # Impossibilité de créer une manche
+        if self.nb_equipes() < self.equipes_par_manche:
+            return cst.T_INSCRIPTION
+
+        # Toutes les informations ne sont pas entrées
+        for equipe in self.equipes():
+            if equipe.statut == cst.E_INCOMPLETE:
                 return cst.T_INSCRIPTION
 
-            # Toutes les informations ne sont pas entrées
-            for equipe in self.equipes():
-                if equipe.statut == cst.E_INCOMPLETE:
-                    return cst.T_INSCRIPTION
-
-            # Etat de la partie courante
-            if self.partie_courante() is None:
+        # Etat de la partie courante
+        if self.partie_courante() is None:
+            return cst.T_ATTEND_TIRAGE
+        else:
+            if self.partie_courante().statut in [cst.P_COMPLETE, cst.P_TERMINEE]:
                 return cst.T_ATTEND_TIRAGE
             else:
-                if self.partie_courante().statut in [cst.P_COMPLETE, cst.P_TERMINEE]:
-                    return cst.T_ATTEND_TIRAGE
-                else:
-                    return cst.T_PARTIE_EN_COURS
-        return locals()
+                return cst.T_PARTIE_EN_COURS
 
-    statut = property(**statut())
-
-    def statistiques(self, equipes_exclue=[], partie_limite=None):
+    def statistiques(self, equipes_exclue=None, partie_limite=None):
         """
         Statistiques sur les parties précédentes des équipes spécifiées.
         """
         stat = {}
         classement = dict(self.classement())
         for equipe in self.equipes():
-            if equipe not in equipes_exclue:
+            if not equipes_exclue or equipe not in equipes_exclue:
 
                 stat[equipe.numero] = {cst.STAT_POINTS: equipe.points(partie_limite),
                                        cst.STAT_VICTOIRES: equipe.victoires(partie_limite),

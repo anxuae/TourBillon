@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-
 
-"""Definitions of specific exceptions to TourBillon"""
+"""TourBillon specific exceptions"""
 
 
 class TourBillonError(Exception):

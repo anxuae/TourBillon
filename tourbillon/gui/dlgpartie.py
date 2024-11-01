@@ -6,14 +6,11 @@ from wx import grid
 from wx.lib.mixins import listctrl
 from wx.lib.wordwrap import wordwrap
 
-from tourbillon import images
-from tourbillon.core import cst
-from tourbillon.core import tournament
-from tourbillon.core.draws import utils
-from tourbillon.core import draws
-
-from tourbillon.gui import evenements as evt
-from tourbillon.gui.dlgimpression import DialogueImprimerTirage
+from .. import images
+from ..core import cst, tournament, draws
+from ..core.draws import utils
+from . import evenements as evt
+from .dlgimpression import DialogueImprimerTirage
 
 
 ID_DLG_CLASSEMENT = wx.NewId()
@@ -86,7 +83,7 @@ class DialogueAfficherTirage(wx.Dialog):
                            style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER | wx.STAY_ON_TOP)
         self.txt_phrase = wx.StaticText(self, wx.ID_ANY, "Tirage de la partie n° ")
         self.ctl_numero = wx.Choice(self, wx.ID_ANY, choices=[str(
-            partie.numero) for partie in tournament.tournoi().parties()])
+            partie.numero) for partie in wx.App.Get().tournament.parties()])
         self.ctl_numero.SetSelection(self.ctl_numero.FindString(str(numero_affiche)))
 
         # Choix
@@ -119,12 +116,12 @@ class DialogueAfficherTirage(wx.Dialog):
         self.Bind(wx.EVT_BUTTON, self.imprimer, self.btn_imprimer)
 
     def _maj(self, event):
-        partie = tournament.tournoi().partie(int(self.ctl_numero.GetStringSelection()))
+        partie = wx.App.Get().tournament.partie(int(self.ctl_numero.GetStringSelection()))
         d = {}
         for m in partie.manches():
-            d[tournament.tournoi().equipe(m[0]).resultat(partie.numero).location] = m
+            d[wx.App.Get().tournament.equipe(m[0]).resultat(partie.numero).location] = m
         self.grille.maj(d, [eq.numero for eq in partie.chapeaux()],
-                        tournament.tournoi().statistiques(partie_limite=partie.numero - 1))
+                        wx.App.Get().tournament.statistiques(partie_limite=partie.numero - 1))
 
         for i in range(self.grille.GetNumberRows()):
             self.grille.verifier_ligne(i)
@@ -184,7 +181,7 @@ class DialogueAfficherClassement(wx.Dialog):
         avec_victoires = self.GetParent().config.get_typed('TOURNOI', 'CLASSEMENT_VICTOIRES')
         avec_joker = self.GetParent().config.get_typed('TOURNOI', 'CLASSEMENT_JOKER')
         avec_duree = self.GetParent().config.get_typed('TOURNOI', 'CLASSEMENT_DUREE')
-        classement = tournament.tournoi().classement(avec_victoires, avec_joker, avec_duree)
+        classement = wx.App.Get().tournament.classement(avec_victoires, avec_joker, avec_duree)
 
         # Effacer la grille
         if self.grille.GetNumberRows() > 0:
@@ -263,10 +260,10 @@ class ListeEquipesCtrl(wx.ListCtrl, listctrl.CheckListCtrlMixin):
         avec_victoires = self.config.get_typed('TOURNOI', 'CLASSEMENT_VICTOIRES')
         avec_joker = self.config.get_typed('TOURNOI', 'CLASSEMENT_JOKER')
         avec_duree = self.config.get_typed('TOURNOI', 'CLASSEMENT_DUREE')
-        classement.update(tournament.tournoi().classement(avec_victoires, avec_joker, avec_duree))
+        classement.update(wx.App.Get().tournament.classement(avec_victoires, avec_joker, avec_duree))
 
         for num in liste_equipes:
-            equipe = tournament.tournoi().equipe(int(num))
+            equipe = wx.App.Get().tournament.equipe(int(num))
             self.Append([str(equipe.numero),
                          ", ".join([str(joueur) for joueur in equipe.joueurs()]),
                          str(equipe.victoires()),
@@ -294,7 +291,7 @@ class GrilleManchesCtrl(grid.Grid):
 
     def __init__(self, parent, manches, chapeaux=[]):
         grid.Grid.__init__(self, parent, wx.ID_ANY)
-        self.equipes_par_manche = tournament.tournoi().equipes_par_manche
+        self.equipes_par_manche = wx.App.Get().tournament.equipes_par_manche
         self.CreateGrid(0, self.equipes_par_manche + 2)
         self.SetColAttr(0, self.attribut('piquet'))
         self.SetColAttr(self.GetNumberCols() - 1, self.attribut('info'))
@@ -323,7 +320,7 @@ class GrilleManchesCtrl(grid.Grid):
         self.EnableDragRowSize(False)
 
         # Mise à jour
-        self.maj(manches, chapeaux, tournament.tournoi().statistiques())
+        self.maj(manches, chapeaux, wx.App.Get().tournament.statistiques())
 
         self.Bind(grid.EVT_GRID_CELL_LEFT_CLICK, self._selection_equipe)
         self.Bind(wx.EVT_SIZE, self.Layout, self)
@@ -530,7 +527,7 @@ class SelectionEquipesPage(wiz.PyWizardPage):
         self.sizer, self.txt_msg = ajout_page_titre(self, "Selection des équipes")
 
         self.liste = ListeEquipesCtrl(self, self.GetParent().config)
-        self.liste.ajout_equipes(tournament.tournoi().equipes())
+        self.liste.ajout_equipes(wx.App.Get().tournament.equipes())
         self.liste.SetSize(wx.Size(600, 300))
         self._cocher_tout(None)
 
@@ -548,8 +545,8 @@ class SelectionEquipesPage(wiz.PyWizardPage):
         self.sizer.Add(box_btn, 0, wx.LEFT, 5)
 
         # Décocher les équipes forfait de la partie précédente
-        if tournament.tournoi().partie_courante() is not None:
-            forfaits = tournament.tournoi().partie_courante().forfaits()
+        if wx.App.Get().tournament.partie_courante() is not None:
+            forfaits = wx.App.Get().tournament.partie_courante().forfaits()
         else:
             forfaits = []
         i = 0
@@ -581,7 +578,7 @@ class SelectionEquipesPage(wiz.PyWizardPage):
         self.prev = prev
 
     def GetNext(self):
-        if utils.nb_chapeaux_necessaires(len(self.equipes()), tournament.tournoi().equipes_par_manche) != 0:
+        if utils.nb_chapeaux_necessaires(len(self.equipes()), wx.App.Get().tournament.equipes_par_manche) != 0:
             # Page chapeaux
             self.next.GetNext().SetPrev(self.next)
             return self.next
@@ -686,7 +683,7 @@ class SelectionChapeauPage(wiz.PyWizardPage):
 
     def verifier(self, event):
         nextButton = self.GetParent().FindWindowById(wx.ID_FORWARD)
-        nb_max = utils.nb_chapeaux_necessaires(self.liste.GetItemCount(), tournament.tournoi().equipes_par_manche)
+        nb_max = utils.nb_chapeaux_necessaires(self.liste.GetItemCount(), wx.App.Get().tournament.equipes_par_manche)
 
         if nb_max < len(self.chapeaux()):
             self.txt_msg.chg_texte("Il ne peut pas y avoir plus de %s chapeau(x)." % nb_max, wx.ICON_ERROR)
@@ -816,14 +813,14 @@ class LancerTiragePage(wiz.PyWizardPage):
             font.SetFaceName("Courier")
             self.txt_progression.SetFont(font)
             # Statistiques des équipes (hors FORFAITS)
-            statistiques = tournament.tournoi().statistiques(self.GetParent().forfaits())
+            statistiques = wx.App.Get().tournament.statistiques(self.GetParent().forfaits())
 
             # Pre chapeaux
             chapeaux = self.GetParent().page2.chapeaux()
 
             # Création du thread tirage
             self._generateur = draws.build(draws.TIRAGES.items()[self.chx_algorithme.GetCurrentSelection()][0],
-                                           tournament.tournoi().equipes_par_manche,
+                                           wx.App.Get().tournament.equipes_par_manche,
                                            statistiques,
                                            chapeaux,
                                            self.progression_event)
@@ -932,7 +929,7 @@ class ConfirmerTiragePage(wiz.PyWizardPage):
             self.sizer.Remove(self.grille)
 
         d = {}
-        locations = tournament.tournoi().locations()
+        locations = wx.App.Get().tournament.locations()
         for m in tirage:
             d[locations.pop(0)] = m
         self.grille = GrilleManchesCtrl(self, d, chapeaux)
@@ -960,7 +957,7 @@ class ConfirmerTiragePage(wiz.PyWizardPage):
             return []
 
     def imprimer(self, event):
-        partie = tournament.tournoi().partie_courante()
+        partie = wx.App.Get().tournament.partie_courante()
         if partie:
             num = partie.numero + 1
         else:

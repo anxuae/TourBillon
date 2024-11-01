@@ -30,7 +30,7 @@ def test_statut_equipe_vide(equ2jn1):
 
 
 def test_nb_joueurs_equipe_vide(equ2jn1):
-    assert equ2jn1.nb_joueurs == 0
+    assert len(equ2jn1.joueurs()) == 0
 
 
 @pytest.mark.parametrize('joueur', t2teams2players.JOUEURS_1)
@@ -43,7 +43,7 @@ def test_statut_equipe_complete(equ2jn1):
 
 
 def test_nb_joueurs_equipe_complete(equ2jn1):
-    assert equ2jn1.nb_joueurs == t2teams2players.JOUEURS_PAR_EQUIPE
+    assert len(equ2jn1.joueurs()) == t2teams2players.JOUEURS_PAR_EQUIPE
 
 
 def test_statistiques_equipe_complete(equ2jn1):

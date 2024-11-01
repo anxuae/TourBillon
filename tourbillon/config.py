@@ -13,8 +13,8 @@ import configparser
 from abc import ABCMeta
 
 import tourbillon
-from tourbillon import logger
-from tourbillon.core import draws
+from . import logger
+from .core import draws
 
 
 DEFAUT = {'INTERFACE': {'GEOMETRIE': (0, 0, 1000, 600),
@@ -24,7 +24,6 @@ DEFAUT = {'INTERFACE': {'GEOMETRIE': (0, 0, 1000, 600),
                         'ENREGISTREMENT_AUTO': False,
                         'NOUVEAU_AFFICHE_PREFERENCES': True,
                         'AFFICHER_STATISTIQUES': False,
-                        'AFFICHER_SHELL': False,
                         'BAVARDE': True,
                         'IMAGE': "",
                         'CUMULE_STATISTIQUES': 0},

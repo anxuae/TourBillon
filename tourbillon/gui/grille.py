@@ -7,8 +7,8 @@ import wx
 from wx import grid
 from wx.lib import scrolledpanel as scrolled
 
-from tourbillon import images
-from tourbillon.core import cst
+from .. import images
+from ..core import cst
 
 TITRES = {'partie': [("Equipe", 60),
                      ("Noms", 300),

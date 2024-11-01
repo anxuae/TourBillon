@@ -7,6 +7,7 @@ import time
 import atexit
 import logging
 from logging import handlers
+
 import tourbillon
 
 _logger = logging.getLogger(tourbillon.__nom__)
