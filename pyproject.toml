@@ -24,7 +24,7 @@ include = [
 
 [tool.poetry.dependencies]
 python = "^3.8"
-PyYAML = "^5.0"
+PyYAML = "^6.0"
 wxPython = "4.2.1"
 fastapi = "^0.111.0"
 
