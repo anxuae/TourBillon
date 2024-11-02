@@ -33,7 +33,7 @@ def run():
     else:
         logger.init_logger(options.logging_level)
 
-    if options.backend:
+    if options.server:
         from tourbillon.server.app import TourBillonServer
         app = TourBillonServer(cfg)
     else:

@@ -2,7 +2,6 @@
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
-
 [tool.poetry]
 name = "tourbillon"
 version = "6.0.0"
@@ -21,21 +20,27 @@ include = [
     { path = "LICENSE", format = "sdist"}
 ]
 
-
 [tool.poetry.dependencies]
 python = "^3.8"
 PyYAML = "^6.0"
-wxPython = "4.2.1"
-fastapi = "^0.111.0"
 
+[tool.poetry.group.gui]
+optional = true
+
+[tool.poetry.group.gui.dependencies]
+wxPython = "4.2.1"
+
+[tool.poetry.group.server]
+optional = true
+
+[tool.poetry.group.server.dependencies]
+fastapi = "^0.111.0"
 
 [tool.poetry.group.tests]
 optional = true
 
-
 [tool.poetry.group.tests.dependencies]
 pytest = "^8.0"
-
 
 [tool.poetry.scripts]
 tourbillon = 'tourbillon.__main__:run'

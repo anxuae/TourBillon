@@ -108,7 +108,7 @@ def parse_options():
                         nargs='?', default=None)
     parser.add_argument('--version', help="show program's version number and exit",
                         action='version', version=tourbillon.__version__)
-    parser.add_argument("-b", "--backend", help="Start TourBillon as a HTTP RESTful server",
+    parser.add_argument("-s", "--server", help="Start TourBillon as a HTTP RESTful server",
                         action='store_true', default=False)
 
     group = parser.add_mutually_exclusive_group()

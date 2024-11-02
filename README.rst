@@ -46,7 +46,7 @@ Dependencies
 
 * Python >= 3.8 (mandatory)
 * PyYaml >= 5.0 (mandatory)
-* WxPython >= 4.0 (optional: used for `standelone` mode)
+* WxPython >= 4.0 (optional: used for `gui` mode)
 * fastapi >= 0.111.1 (optional: used for `server` mode)
 
 
@@ -59,7 +59,14 @@ Download the binaries corresponding to your operating system from the page
 Or install from the source downloaded on Github ::
 
     $ pip install poetry
-    $ poetry install
+
+For `gui` installation, run::
+
+    $ poetry install --with gui
+
+For `server` installation, run::
+
+    $ poetry install --with server
 
 
 Quick start
@@ -67,13 +74,13 @@ Quick start
 
 Tourbillon settles and is used in a jiffy. Two interfaces are possible:
 
-To start the `standelone` mode, run::
+To start the `gui` mode, run::
 
     $ poetry run tourbillon
 
 To start the `server` mode, run::
 
-    $ poetry run tourbillon --backend
+    $ poetry run tourbillon --server
 
 And now it turns! Note that in `server` mode, Tourbillon runs by
 default on port 59290.
