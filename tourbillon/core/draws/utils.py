@@ -237,7 +237,7 @@ class BaseThreadTirage(Thread):
         self._stop_event.clear()
         Thread.start(self)
         if join:
-            self.join(20 * 60)  # 20 min max
+            self.join(10 * 60)  # 10 min max
 
     def run(self):
         nb_eq = len(self.statistiques)

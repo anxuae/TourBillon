@@ -343,7 +343,7 @@ class ThreadTirage(BaseThreadTirage):
         equipes_disponibles = list(self.statistiques.keys())
         tirage_temp = []
 
-        while equipes_disponibles != []:
+        while equipes_disponibles:
             self.config['arret_utilisateur']()
             # Fonction de coût stricte
             manche = min_cout(self.config, equipes_disponibles)
