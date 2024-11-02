@@ -1,11 +1,13 @@
 # -*- coding: UTF-8 -*-
 
 import os
+
 import tourbillon
 from ..core import cst
-from .splash import splash
+
 try:
     import wx
+    from .splash import splash
 except ImportError:
     # TourBillon est utilisé en mode server
     wx = None
