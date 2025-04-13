@@ -66,7 +66,7 @@ def bitmap(nom, force_alpha=False, scale=-1):
         image.ConvertAlphaToMask(threshold=128)
     if scale > 0:
         largeur, hauteur = image.GetWidth(), image.GetHeight()
-        image.Rescale(largeur * scale, hauteur * scale, wx.IMAGE_QUALITY_HIGH)
+        image.Rescale(int(largeur * scale), int(hauteur * scale), wx.IMAGE_QUALITY_HIGH)
     return image.ConvertToBitmap()
 
 
