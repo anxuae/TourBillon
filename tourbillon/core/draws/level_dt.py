@@ -290,7 +290,8 @@ class ThreadTirage(BaseThreadTirage):
 
     DESCRIPTION = "Niveau (Algorithme Déterministe)"
 
-    DEFAUT = {'REDONDANCE': False,
+    DEFAUT = {'OPTIMUM': 0.0,
+              'REDONDANCE': False,
               'PONDERATION_VICTOIRES': 12.0,
               'CALCUL_PONDERATION_AUTO': True,
               'TAUX_AUGMENTATION': 1.05,
