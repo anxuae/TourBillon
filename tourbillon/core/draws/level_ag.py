@@ -428,7 +428,6 @@ class ThreadTirage(BaseThreadTirage):
               'MAX_GENERATIONS': 700,
               'TAUX_CROISEMENT': 0.9,
               'TAUX_MUTATION': 0.01,
-              'OPTIMUM': 0.0,
               'REDONDANCE': False,
               'PONDERATION_VICTOIRES': 12.0,
               'CALCUL_PONDERATION_AUTO': True,

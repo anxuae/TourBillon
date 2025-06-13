@@ -91,7 +91,6 @@ class ThreadTirage(BaseThreadTirage):
               'MAX_GENERATIONS': 100,
               'TAUX_CROISEMENT': 0.9,
               'TAUX_MUTATION': 0.01,
-              'OPTIMUM': 0.0,
               'REDONDANCE': False
               }
 
