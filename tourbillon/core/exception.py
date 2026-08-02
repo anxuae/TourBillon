@@ -37,6 +37,12 @@ class DrawStopError(DrawError):
     pass
 
 
+# STOP DRAW: no valid pairing found with the current parameters. The operator
+# should increase ``max_disparity`` (or allow rematches) and try again.
+class DrawImpossibleError(DrawError):
+    pass
+
+
 # STOP DRAW: no acceptable pairing found
 #
 ERREUR_MSG = {100: "Number of BYE shall be lower than the number of teams per round",
