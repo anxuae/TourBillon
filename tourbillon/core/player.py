@@ -7,7 +7,7 @@ import atexit
 import os.path as osp
 from datetime import datetime
 
-from ..config import Singleton
+from ..singleton import Singleton
 
 
 SPECIAL_CHAR = {'é': 'e',

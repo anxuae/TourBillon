@@ -21,26 +21,25 @@ include = [
 ]
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = "^3.10"
 PyYAML = "^6.0"
-
-[tool.poetry.group.gui]
-optional = true
-
-[tool.poetry.group.gui.dependencies]
-wxPython = "4.2.1"
-
-[tool.poetry.group.server]
-optional = true
-
-[tool.poetry.group.server.dependencies]
+numpy = "^2.0"
 fastapi = "^0.111.0"
+uvicorn = { extras = ["standard"], version = "^0.30.0" }
+websockets = "^12.0"
 
 [tool.poetry.group.tests]
 optional = true
 
 [tool.poetry.group.tests.dependencies]
 pytest = "^8.0"
+pytest-asyncio = "^0.23"
+httpx = "^0.27"
 
 [tool.poetry.scripts]
 tourbillon = 'tourbillon.__main__:run'
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+

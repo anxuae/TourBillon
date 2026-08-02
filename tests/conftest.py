@@ -4,7 +4,7 @@ import pytest
 import os.path as osp
 
 from data import t2teams2players
-from tourbillon import config
+from tourbillon.settings import Settings
 from tourbillon.core import player, team, tournament
 
 
@@ -34,7 +34,7 @@ def tmpfile(tmpdir_factory):
 
 @pytest.fixture(scope='session')
 def cfg(tmpfile):
-    return config.TypedConfigParser(tmpfile('config'))
+    return Settings({'save_dir': tmpfile('save')}, path=tmpfile('settings.yml'))
 
 
 @pytest.fixture(scope='session', autouse=True)

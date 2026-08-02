@@ -1,38 +1,79 @@
 # -*- coding: UTF-8 -*-
 
-"""Draws collection"""
+"""Draw algorithms registry.
 
-import os
-import sys
-import importlib.util
+Each draw is a module exposing:
 
-from ..exception import DrawError
+* ``NAME`` (str): unique identifier of the algorithm;
+* ``DESCRIPTION`` (str): short human readable description;
+* ``DEFAULT`` (dict): default configuration options;
+* ``generate_draw`` (coroutine): the async pairing function.
 
-HERE = os.path.dirname(os.path.abspath(__file__))
-TIRAGES = {}
+All algorithms share the same signature::
 
-# Dynamic draw modules import
-for filename in os.listdir(HERE):
-    if filename.endswith('.py') and filename not in ('__init__.py', 'utils.py'):
-        module_name = '.'.join((__name__, os.path.splitext(filename)[0]))
-        spec = importlib.util.spec_from_file_location(module_name, os.path.join(HERE, filename))
-        module = importlib.util.module_from_spec(spec)
-        sys.modules[module_name] = module
-        spec.loader.exec_module(module)
-        TIRAGES[module.ThreadTirage.NOM] = module.ThreadTirage
+    async def generate_draw(teams_by_match, stats, bye_teams=(),
+                            config=None, on_progress=None) -> list
+
+They return a list of matches, each match being a sorted list of team numbers.
+The ``deterministic`` and ``genetic`` draws enforce the Swiss-system rules
+(no rematch, ``max_disparity`` limit); ``random`` ignores them.
+"""
+
+from . import common, deterministic, genetic, random
+from ..exception import DrawError, DrawImpossibleError
+
+_MODULES = (deterministic, genetic, random)
+
+# Registry: draw name -> module.
+DRAWS = {module.NAME: module for module in _MODULES}
+
+# Default algorithm (deterministic and reproducible).
+DEFAULT_DRAW = deterministic.NAME
 
 
-def build(name: str, teams_by_match: int, all_rounds_data: dict, bye_teams: list = (), callback=None):
+def available():
+    """Return the metadata of every registered draw.
+
+    :return: list of dict ``{name, description, default}``
     """
-    Create a new draw generator (Thread object). The draw is configured with its default
-    parameters. The "configure" method of the generator allows them to be updated.
+    return [
+        {
+            "name": module.NAME,
+            "description": module.DESCRIPTION,
+            "default": dict(module.DEFAULT),
+        }
+        for module in _MODULES
+    ]
 
-    :param name: name of the algorithm to use
-    :param teams_by_match: number of teams in a match (i.e. nb opponents)
-    :param all_rounds_data: data from all previous rounds
-    :param bye_teams: list of teams to be set as BYE if necessary (let empty for automatic choice)
-    :param callback: function to call after the end of the draw generation
-    """
-    if name not in TIRAGES:
+
+def default_config(name):
+    """Return a copy of the default configuration of a draw."""
+    if name not in DRAWS:
         raise DrawError(f"Unknown draw name '{name}'")
-    return TIRAGES[name](teams_by_match, all_rounds_data, bye_teams, callback)
+    return dict(DRAWS[name].DEFAULT)
+
+
+async def generate(name, teams_by_match, stats, bye_teams=(), config=None, on_progress=None):
+    """Run the draw ``name`` and return the list of generated matches.
+
+    :param name: algorithm identifier (see :data:`DRAWS`)
+    :param teams_by_match: number of teams gathered in a single match
+    :param stats: statistics mapping (see :mod:`common`)
+    :param bye_teams: teams already set as BYE (excluded from pairing)
+    :param config: draw options (merged over the algorithm defaults)
+    :param on_progress: optional async callback ``async (percent, message)``
+    :return: list of matches, each a sorted list of team numbers
+    """
+    if name not in DRAWS:
+        raise DrawError(f"Unknown draw name '{name}'")
+    return await DRAWS[name].generate_draw(
+        teams_by_match, stats, bye_teams=bye_teams, config=config, on_progress=on_progress
+    )
+
+
+def select_bye_teams(stats, teams_by_match, forced=()):
+    """Return the team numbers to set as BYE for the next round.
+
+    Convenience re-export of :func:`common.select_bye_teams`.
+    """
+    return common.select_bye_teams(stats, teams_by_match, forced=forced)

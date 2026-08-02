@@ -14,7 +14,7 @@ from .exception import FileError, StatusError, InconsistencyError
 from .match import Match
 from .team import Team
 from .round import Round
-from ..images import entete
+from ..assets import banner
 
 
 def load(filename):
@@ -76,7 +76,7 @@ def dump(tournament, filename):
     ancienne_date = tournament.date_enregistrement
     try:
         with open(filename, 'w', encoding='utf-8') as fp:
-            fp.write(entete() + '\n')
+            fp.write(banner() + '\n')
 
             # Save date
             d = datetime.now()

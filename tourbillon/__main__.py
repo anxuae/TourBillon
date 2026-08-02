@@ -1,55 +1,80 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
 
-import os
-import os.path as osp
+"""TourBillon entry point.
 
-from . import config, logger
+Launches the FastAPI backend with uvicorn. The legacy wxPython GUI has been
+removed; the interface is now fully web based (see ``tourbillon/api`` and the
+``web/`` frontends).
+"""
+
+import argparse
+import logging
+
+import uvicorn
+
+import tourbillon
+from . import logger
 from .core import player
+from .api.app import create_app
+from .settings import Settings
+
+
+def parse_options():
+    """Parse command-line options."""
+    parser = argparse.ArgumentParser(
+        usage="%(prog)s [options]",
+        description=tourbillon.__doc__,
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
+    parser.add_argument(
+        "--version", action="version", version=tourbillon.__version__
+    )
+    parser.add_argument(
+        "-c", "--config", dest="config", default=None,
+        help="path to a YAML settings file",
+    )
+    parser.add_argument("--host", dest="host", default=None, help="server host")
+    parser.add_argument("--port", dest="port", type=int, default=None, help="server port")
+    parser.add_argument(
+        "--reload", action="store_true", default=False,
+        help="enable auto-reload (development)",
+    )
+
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument(
+        "-v", "--verbose", dest="logging_level",
+        action="store_const", const=logging.DEBUG, default=logging.INFO,
+        help="report more information about operations",
+    )
+    group.add_argument(
+        "-q", "--quiet", dest="logging_level",
+        action="store_const", const=logging.WARNING,
+        help="report only errors and warnings",
+    )
+
+    return parser.parse_args()
 
 
 def run():
-    """
-    Entry point.
-    """
-    # Parse command line options
-    options = config.parse_options()
+    """Entry point: start the TourBillon web server."""
+    options = parse_options()
 
-    # Initialize configuration file
-    cfg = config.TypedConfigParser(osp.join(os.environ.get('APPDATA', osp.expanduser("~")), '.trb', 'cfg'))
+    logger.init_logger(options.logging_level)
 
-    # Initialize players history
-    if cfg.get_path('TOURNOI', 'HISTORIQUE'):
-        player.PlayerHistory(cfg.get_path('TOURNOI', 'HISTORIQUE'))
-    else:
-        player.PlayerHistory(cfg.join_path('hist_jrs'))
+    settings = Settings.load(options.config)
+    if options.host:
+        settings.host = options.host
+    if options.port:
+        settings.port = options.port
 
-    # Configure logging
-    if options.logging_level is None:
-        if cfg.get_typed('INTERFACE', 'BAVARDE') is True:
-            logger.init_logger(logger.DEBUG)
-        else:
-            logger.init_logger(logger.WARNING)
-    else:
-        logger.init_logger(options.logging_level)
+    # Initialise the players history in the save directory.
+    player.PlayerHistory(f"{settings.save_dir}/hist_jrs")
 
-    if options.server:
-        from tourbillon.server.app import TourBillonServer
-        app = TourBillonServer(cfg)
-    else:
-        try:
-            import wx
-        except ImportError:
-            logger.critical("wxPython est requis pour lancer ce programme en mode graphique")
+    app = create_app(settings)
 
-        from tourbillon.gui.app import TourBillonGUI
-        app = TourBillonGUI(cfg)
-
-    if options.filename:
-        app.load(options.filename)
-
-    app.run()
+    uvicorn.run(app, host=settings.host, port=settings.port, reload=options.reload)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     run()
