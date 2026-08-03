@@ -25,9 +25,9 @@ from ..exception import DrawImpossibleError
 NAME = "deterministic"
 DESCRIPTION = "Deterministic Swiss pairing (cost matrix + backtracking)"
 DEFAULT = {
-    "max_disparity": 1,
+    "max_disparity": 2,
     "allow_rematch": False,
-    "win_weight": 1000,
+    "win_weight": 100,
 }
 
 

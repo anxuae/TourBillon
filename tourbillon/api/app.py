@@ -3,6 +3,7 @@
 """FastAPI application factory."""
 
 import os.path as osp
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
@@ -22,6 +23,9 @@ WEB_DIR = osp.join(
 def create_app(settings=None):
     """Create and configure the TourBillon FastAPI application.
 
+    Settings are loaded once here (at startup) and saved once on shutdown, so
+    the settings module is the only place that persists configuration.
+
     :param settings: optional :class:`Settings` instance
     """
     if settings is None:
@@ -29,10 +33,18 @@ def create_app(settings=None):
 
     init_state(settings)
 
+    @asynccontextmanager
+    async def lifespan(_app):
+        # Startup: settings are already loaded above.
+        yield
+        # Shutdown: persist the settings (including draw options).
+        settings.save()
+
     app = FastAPI(
         title="TourBillon",
         description="Swiss-system tournament manager for the Billon game.",
         version=tourbillon.__version__,
+        lifespan=lifespan,
     )
 
     for router in ROUTERS:

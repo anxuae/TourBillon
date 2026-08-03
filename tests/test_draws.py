@@ -73,6 +73,20 @@ def test_forced_bye_validated():
         draws.select_bye_teams(stats, 2, forced=[99])  # unknown team
 
 
+def test_bye_minimizes_count_per_team():
+    # Teams 1 and 2 already had a BYE, team 3 never did: team 3 is picked
+    # even though it is the strongest, to minimize BYEs per team.
+    stats = make_stats({1: (0, 0, 1), 2: (1, 0, 1), 3: (10, 3, 0)})
+    assert draws.select_bye_teams(stats, 2) == [3]
+
+
+def test_bye_reused_only_when_all_already_bye():
+    # Every team has been BYE once: pick again, weakest first.
+    stats = make_stats({1: (0, 0, 1), 2: (1, 0, 1), 3: (10, 3, 1)})
+    weakest = common.order_by_weakness(stats)[0]
+    assert draws.select_bye_teams(stats, 2) == [weakest]
+
+
 # --------------------------------------------------------------------------- #
 # Common draw guarantees (parametrized over every algorithm)
 # --------------------------------------------------------------------------- #

@@ -30,6 +30,45 @@ def test_list_draws(client):
     assert names == {"deterministic", "genetic", "random"}
 
 
+def test_list_draws_exposes_effective_config(client):
+    resp = client.get("/api/draws")
+    assert resp.status_code == 200
+    genetic = next(d for d in resp.json() if d["name"] == "genetic")
+    # By default the effective config matches the algorithm defaults.
+    assert genetic["config"] == genetic["default"]
+
+
+def test_get_settings(client):
+    resp = client.get("/api/settings")
+    assert resp.status_code == 200
+    body = resp.json()
+    assert "teams_by_match" in body
+    assert "draws" in body
+    assert "genetic" in body["draws"]
+
+
+def test_update_settings_persisted(client):
+    resp = client.put(
+        "/api/settings",
+        json={"points_by_match": 15, "draws": {"genetic": {"max_disparity": 5}}},
+    )
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["points_by_match"] == 15
+    assert body["draws"]["genetic"]["max_disparity"] == 5
+
+    # The change is reflected on the next read.
+    reread = client.get("/api/settings").json()
+    assert reread["points_by_match"] == 15
+    assert reread["draws"]["genetic"]["max_disparity"] == 5
+
+
+def test_update_settings_ignores_unknown_keys(client):
+    resp = client.put("/api/settings", json={"points_by_match": 20})
+    assert resp.status_code == 200
+    assert resp.json()["points_by_match"] == 20
+
+
 # --------------------------------------------------------------------------- #
 # Tournament lifecycle
 # --------------------------------------------------------------------------- #

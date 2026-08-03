@@ -1,11 +1,14 @@
 <script setup>
-import { onMounted } from 'vue'
+import { onMounted, ref } from 'vue'
 import { RouterLink, RouterView } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useTournamentStore } from '@/stores/tournament'
+import SettingsModal from '@/components/SettingsModal.vue'
 
 const store = useTournamentStore()
 const { tournament, error } = storeToRefs(store)
+
+const settingsOpen = ref(false)
 
 const tabs = [
   { name: 'admin-teams', label: 'Teams' },
@@ -42,11 +45,13 @@ onMounted(() => {
         </template>
         <p v-else class="muted">No tournament loaded</p>
       </div>
+      <button class="settings-btn" @click="settingsOpen = true">⚙ Settings</button>
     </aside>
     <main class="content">
       <p v-if="error" class="error">{{ error }}</p>
       <RouterView />
     </main>
+    <SettingsModal :open="settingsOpen" @close="settingsOpen = false" @saved="store.refreshAll()" />
   </div>
 </template>
 
@@ -104,6 +109,24 @@ nav {
 
 .status {
   margin-top: auto;
+}
+
+.settings-btn {
+  margin-top: 0.75rem;
+  width: 100%;
+  background: none;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 0.5rem 0.75rem;
+  color: var(--color-muted);
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+}
+
+.settings-btn:hover {
+  background: var(--color-bg);
+  color: var(--color-text);
 }
 
 .content {

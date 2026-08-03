@@ -51,6 +51,10 @@ export const api = {
   // Draws
   listDraws: () => request('GET', '/api/draws'),
 
+  // Settings
+  getSettings: () => request('GET', '/api/settings'),
+  updateSettings: (values) => request('PUT', '/api/settings', values),
+
   // History
   listHistoryTournaments: () => request('GET', '/api/history/tournaments'),
   listHistoryPlayers: () => request('GET', '/api/history/players'),

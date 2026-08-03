@@ -66,6 +66,7 @@ class DrawInfoDTO(BaseModel):
     name: str
     description: str
     default: dict
+    config: dict
 
 
 class DrawRequest(BaseModel):
@@ -76,3 +77,33 @@ class DrawRequest(BaseModel):
 
 class MatchResult(BaseModel):
     points: dict[int, int]
+
+
+class SettingsDTO(BaseModel):
+    host: str
+    port: int
+    save_dir: str
+    auto_save: bool
+    players_by_team: int
+    points_by_match: int
+    teams_by_match: int
+    rank_by_wins: bool
+    rank_by_joker: bool
+    rank_by_duration: bool
+    default_draw: str
+    draws: dict
+
+
+class SettingsUpdate(BaseModel):
+    host: str | None = None
+    port: int | None = None
+    save_dir: str | None = None
+    auto_save: bool | None = None
+    players_by_team: int | None = None
+    points_by_match: int | None = None
+    teams_by_match: int | None = None
+    rank_by_wins: bool | None = None
+    rank_by_joker: bool | None = None
+    rank_by_duration: bool | None = None
+    default_draw: str | None = None
+    draws: dict | None = None

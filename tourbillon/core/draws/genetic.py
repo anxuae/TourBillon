@@ -21,11 +21,13 @@ from ..exception import DrawImpossibleError
 NAME = "genetic"
 DESCRIPTION = "Genetic Swiss pairing (population based heuristic)"
 DEFAULT = {
-    "max_disparity": 1,
+    "max_disparity": 2,
     "allow_rematch": False,
     "population": 60,
-    "generations": 200,
+    "generations": 500,
+    "crossover_rate": 0.9,
     "mutation_rate": 0.2,
+    "win_weight": 100,
     "seed": 0,
     "rematch_penalty": 100000,
     "disparity_penalty": 100000,
@@ -39,10 +41,16 @@ def _chunk(order, teams_by_match):
 
 def _fitness(draw, stats, max_disparity, allow_rematch, cfg):
     """Return the fitness of a draw (lower is better)."""
+    win_weight = float(cfg["win_weight"])
     score = 0.0
     for match in draw:
-        points = [stats[num][common.cst.STAT_POINTS] for num in match]
-        score += max(points) - min(points)
+        # Combined strength (wins first, then points) mirrors the deterministic
+        # draw: a match is better when its teams are close in strength.
+        strength = [
+            stats[num][common.cst.STAT_POINTS] + win_weight * common.wins(stats[num])
+            for num in match
+        ]
+        score += max(strength) - min(strength)
         if common.disparity(stats, match) > max_disparity:
             score += cfg["disparity_penalty"]
         if not allow_rematch:
@@ -62,6 +70,7 @@ def _search(stats, teams_by_match, max_disparity, allow_rematch, cfg):
     rng = random.Random(cfg["seed"])
     population_size = int(cfg["population"])
     generations = int(cfg["generations"])
+    crossover_rate = float(cfg["crossover_rate"])
     mutation_rate = float(cfg["mutation_rate"])
 
     # Seed the population with the strength ordering plus random shuffles.
@@ -87,7 +96,12 @@ def _search(stats, teams_by_match, max_disparity, allow_rematch, cfg):
         while len(survivors) + len(children) < population_size:
             parent_a = rng.choice(survivors)
             parent_b = rng.choice(survivors)
-            child = _crossover(parent_a, parent_b, rng)
+            # Crossover happens only with probability ``crossover_rate``;
+            # otherwise the child is a direct copy of a parent.
+            if rng.random() < crossover_rate:
+                child = _crossover(parent_a, parent_b, rng)
+            else:
+                child = list(parent_a)
             if rng.random() < mutation_rate:
                 _mutate(child, rng)
             children.append(child)

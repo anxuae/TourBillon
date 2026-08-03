@@ -135,10 +135,19 @@ tests/                      # pytest (asyncio_mode=auto)
 ### Configuration (`settings.py`)
 Une seule classe `Settings` (source unique de vérité) lit/écrit un YAML simple
 (clés/valeurs en anglais, types primitifs). Surcharge possible par variables
-d'environnement `TOURBILLON_*`. Deux domaines backend : **serveur/API** (host, port,
-`save_dir`, `auto_save`) et **métier** (valeurs par défaut d'un nouveau tournoi +
-`default_draw`). Les préférences UI vivent côté frontend. Les options de tirage ne
-sont **pas** stockées ici : elles sont exposées via `GET /api/draws`.
+d'environnement `TOURBILLON_*`. Trois domaines backend : **serveur/API** (host, port,
+`save_dir`, `auto_save`), **métier** (valeurs par défaut d'un nouveau tournoi +
+`default_draw`) et **options de tirage** (section `draws` : options effectives par
+algorithme). Les préférences UI vivent côté frontend. Les **valeurs par défaut** de
+chaque tirage restent définies dans les modules d'algorithme (`DEFAULT`) ; à la
+construction des `Settings`, la section `draws` est **initialisée** depuis ces
+`DEFAULT`, puis **enrichie** par le fichier de settings au chargement (fusion par
+algo et par option ; options inconnues ignorées, manquantes conservées). Le cycle de
+vie est simple : **chargement au démarrage, sauvegarde à l'arrêt** (lifespan FastAPI) —
+tout passe par le module `settings`, **aucune** mutation/écriture intermédiaire dans
+les routers ou services. `GET /api/draws` expose en lecture le `default` (de l'algo)
+et la `config` effective (des settings). Sans chemin explicite (`-c`), les settings
+sont écrits dans `<save_dir>/settings.yml`.
 
 ---
 
@@ -221,6 +230,7 @@ appariement valide n'existe, lever une exception métier de `core/exception.py`
 | PUT     | `/api/rounds/{n}/matches/{m}` | Saisir un résultat                  |
 | GET     | `/api/rankings?round=n`       | Classement                          |
 | GET     | `/api/draws`                  | Algorithmes disponibles + options   |
+| GET/PUT | `/api/settings`               | Lire / modifier les settings (modale UI)|
 | WS      | `/ws`                         | Progression du tirage / temps réel  |
 | GET     | `/api/history/tournaments`    | Liste des sauvegardes (toutes années)|
 | GET     | `/api/history/players`        | Stats agrégées par joueur (multi-années)|

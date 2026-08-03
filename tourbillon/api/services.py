@@ -191,12 +191,17 @@ async def create_round(state, request, on_progress=None):
     stats = trn.statistics()
     byes = draws.select_bye_teams(stats, trn.teams_by_match, forced=request.bye_teams)
 
+    # Effective options: algorithm defaults < saved user settings < request.
+    config = state.settings.draw_config(algorithm)
+    if request.config:
+        config.update(request.config)
+
     matches = await draws.generate(
         algorithm,
         trn.teams_by_match,
         stats,
         bye_teams=byes,
-        config=request.config,
+        config=config,
         on_progress=on_progress,
     )
 
@@ -220,6 +225,37 @@ def set_match_result(state, round_number, result):
 # --------------------------------------------------------------------------- #
 # Draws metadata
 # --------------------------------------------------------------------------- #
-def list_draws():
-    """Return the metadata of every available draw algorithm."""
-    return [schemas.DrawInfoDTO(**info) for info in draws.available()]
+def list_draws(state):
+    """Return the metadata of every available draw algorithm.
+
+    Each entry exposes the algorithm's built-in ``default`` options and the
+    effective ``config`` currently held by the settings.
+    """
+    infos = []
+    for info in draws.available():
+        info["config"] = state.settings.draw_config(info["name"])
+        infos.append(schemas.DrawInfoDTO(**info))
+    return infos
+
+
+# --------------------------------------------------------------------------- #
+# Settings
+# --------------------------------------------------------------------------- #
+def get_settings(state):
+    """Return the current application settings as a plain dictionary."""
+    return state.settings.as_dict()
+
+
+def update_settings(state, values):
+    """Update the application settings and persist them to disk.
+
+    The update goes through the settings module (single source of truth):
+    unknown keys are ignored and the ``draws`` section is merged per option.
+
+    :param state: application state
+    :param values: mapping of settings to update
+    :return: the updated settings as a plain dictionary
+    """
+    state.settings.update(values)
+    state.settings.save()
+    return state.settings.as_dict()

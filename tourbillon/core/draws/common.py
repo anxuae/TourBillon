@@ -68,8 +68,11 @@ def order_by_weakness(stats):
 def select_bye_teams(stats, teams_by_match, forced=()):
     """Return the list of team numbers to set as BYE for the next round.
 
-    The teams are chosen among the weakest that have not been BYE yet. If some
-    teams are given through ``forced`` they are used as-is (after validation).
+    The number of BYEs per team is minimized: teams that were BYE the fewest
+    times are chosen first (weakest first to break ties). A team is therefore
+    only picked again once every other team has been BYE at least as often. If
+    some teams are given through ``forced`` they are used as-is (after
+    validation).
 
     :param stats: statistics mapping (see module docstring)
     :param teams_by_match: number of teams gathered in a single match
@@ -91,11 +94,11 @@ def select_bye_teams(stats, teams_by_match, forced=()):
     if count == 0:
         return []
 
-    # Weakest teams first, giving priority to teams that were never BYE.
+    # Minimize the number of BYEs per team: pick teams with the fewest BYEs
+    # first, weakest first to break ties. A team already BYE is only chosen
+    # again once every remaining team has been BYE at least as often.
     candidates = order_by_weakness(stats)
-    never_bye = [num for num in candidates if stats[num][cst.STAT_BYES] == 0]
-    already_bye = [num for num in candidates if stats[num][cst.STAT_BYES] > 0]
-    ordered = never_bye + already_bye
+    ordered = sorted(candidates, key=lambda num: stats[num][cst.STAT_BYES])
 
     return sorted(ordered[:count])
 

@@ -3,27 +3,32 @@
 """Unified application settings (single source of truth).
 
 Replaces the legacy ``config.py`` (wxPython-coupled ``.ini`` parser). The
-configuration is split into two backend domains (the third domain, the web UI
-preferences, lives in the frontend and is not handled here):
+configuration is split into three backend domains (the web UI preferences live
+in the frontend and are not handled here):
 
 1. **Server / API**: host, port, save directory, auto-save.
 2. **Business / tournament**: default values used when creating a new tournament
    and the default draw algorithm.
+3. **Draw options**: the per-algorithm options under the ``draws`` section.
 
 A single :class:`Settings` class reads, writes, loads and saves a simple YAML
 file (keys and values in English, primitive types only). Values can be
-overridden by environment variables prefixed with ``TOURBILLON_``. Draw options
-are not stored here: they are exposed through the draws registry (see
-``GET /api/draws``).
+overridden by environment variables prefixed with ``TOURBILLON_``. Each draw's
+options are initialized from the algorithm's built-in ``DEFAULT`` and, when a
+settings file exists, enriched with the saved values. The settings are loaded
+once at startup and saved once at shutdown: nothing else mutates them.
 """
 
 import os
 import os.path as osp
-import sys
 
 import yaml
 
 from .core import draws
+
+# Name of the settings file created inside ``save_dir`` when no explicit path is
+# provided (so the settings, including draw options, are always persisted).
+DEFAULT_SETTINGS_NAME = "settings.yml"
 
 # Default settings (primitive types only).
 DEFAULTS = {
@@ -40,6 +45,9 @@ DEFAULTS = {
     "rank_by_joker": True,
     "rank_by_duration": False,
     "default_draw": draws.DEFAULT_DRAW,
+    # Draw options domain: the effective options of every algorithm, seeded
+    # from each algorithm's built-in ``DEFAULT``. Shape: ``{draw_name: {...}}``.
+    "draws": {name: draws.default_config(name) for name in draws.DRAWS},
 }
 
 # Mapping env var -> (key, cast function).
@@ -63,7 +71,10 @@ class Settings:
         # ``_data`` and ``path`` are set through ``super().__setattr__`` to
         # bypass the custom ``__setattr__`` below.
         super().__setattr__("path", path)
-        super().__setattr__("_data", dict(DEFAULTS))
+        data = dict(DEFAULTS)
+        # Deep-copy the nested draw overrides so instances never share it.
+        data["draws"] = {name: dict(cfg) for name, cfg in DEFAULTS["draws"].items()}
+        super().__setattr__("_data", data)
         if values:
             self.update(values)
         os.makedirs(self._data["save_dir"], exist_ok=True)
@@ -82,9 +93,18 @@ class Settings:
         self._data[key] = value
 
     def update(self, values):
-        """Update several settings at once (unknown keys are ignored)."""
+        """Update several settings at once (unknown keys are ignored).
+
+        The ``draws`` section is merged per algorithm and per option so that
+        missing options keep their built-in default.
+        """
         for key, value in values.items():
-            if key in DEFAULTS:
+            if key == "draws" and isinstance(value, dict):
+                for name, config in value.items():
+                    if name in self._data["draws"] and isinstance(config, dict):
+                        known = self._data["draws"][name]
+                        known.update({k: v for k, v in config.items() if k in known})
+            elif key in DEFAULTS:
                 self._data[key] = value
 
     def __getattr__(self, name):
@@ -124,11 +144,12 @@ class Settings:
     def save(self, path=None):
         """Save the current settings to a YAML file.
 
+        If no path was ever provided, the settings are written to
+        ``<save_dir>/settings.yml`` so custom options are always persisted.
+
         :param path: optional destination path (defaults to the loaded path)
         """
-        target = path or self.path
-        if target is None:
-            raise ValueError("No settings file path provided")
+        target = path or self.path or osp.join(self._data["save_dir"], DEFAULT_SETTINGS_NAME)
         directory = osp.dirname(osp.abspath(target))
         os.makedirs(directory, exist_ok=True)
         with open(target, "w", encoding="utf-8") as fp:
@@ -147,6 +168,17 @@ class Settings:
             "players_by_team": self._data["players_by_team"],
             "default_draw": self._data["default_draw"],
         }
+
+    # ------------------------------------------------------------------ #
+    # Draw options (read-only accessor)
+    # ------------------------------------------------------------------ #
+    def draw_config(self, name):
+        """Return a copy of the effective options of a draw.
+
+        :param name: draw algorithm identifier
+        :return: effective options mapping
+        """
+        return dict(self._data["draws"][name])
 
     def as_dict(self):
         """Return the settings as a plain dictionary."""

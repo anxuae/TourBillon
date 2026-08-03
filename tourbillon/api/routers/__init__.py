@@ -2,7 +2,7 @@
 
 """API routers."""
 
-from . import tournament, teams, rounds, rankings, draws, history, ws
+from . import tournament, teams, rounds, rankings, draws, history, settings, ws
 
 ROUTERS = (
     tournament.router,
@@ -11,5 +11,6 @@ ROUTERS = (
     rankings.router,
     draws.router,
     history.router,
+    settings.router,
     ws.router,
 )
