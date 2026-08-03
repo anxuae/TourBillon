@@ -24,4 +24,4 @@ def banner():
     with open(_BANNER_FILE, encoding="utf-8") as fp:
         lines = fp.readlines()
     text = "#" + "#".join(lines)
-    return text.format(version="%s.%s.%s" % tourbillon.__version__)
+    return text.format(version=tourbillon.__version__)

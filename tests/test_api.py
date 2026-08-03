@@ -13,6 +13,16 @@ def test_health(client):
     assert resp.json()["status"] == "ok"
 
 
+def test_version(client):
+    import tourbillon
+
+    resp = client.get("/api/version")
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["name"] == tourbillon.__long_name__
+    assert body["version"] == tourbillon.__version__
+
+
 def test_list_draws(client):
     resp = client.get("/api/draws")
     assert resp.status_code == 200

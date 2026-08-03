@@ -7,6 +7,7 @@ import os.path as osp
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
+import tourbillon
 from .routers import ROUTERS
 from ..settings import Settings
 from .state import init_state
@@ -31,7 +32,7 @@ def create_app(settings=None):
     app = FastAPI(
         title="TourBillon",
         description="Swiss-system tournament manager for the Billon game.",
-        version="6.0.0",
+        version=tourbillon.__version__,
     )
 
     for router in ROUTERS:
@@ -41,6 +42,11 @@ def create_app(settings=None):
     def health():
         """Simple health check."""
         return {"status": "ok"}
+
+    @app.get("/api/version", tags=["about"])
+    def version():
+        """Return the application name and version (for the About window)."""
+        return {"name": tourbillon.__long_name__, "version": tourbillon.__version__}
 
     # Serve the built Vue SPA if it exists. The client router handles the
     # /admin, /display and /history routes (history mode).

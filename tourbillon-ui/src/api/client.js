@@ -56,6 +56,9 @@ export const api = {
   listHistoryPlayers: () => request('GET', '/api/history/players'),
   getHistoryPlayer: (name) =>
     request('GET', `/api/history/players/${encodeURIComponent(name)}`),
+
+  // About
+  getVersion: () => request('GET', '/api/version'),
 }
 
 // Open the draw-progress WebSocket.

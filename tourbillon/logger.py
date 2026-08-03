@@ -10,7 +10,7 @@ from logging import handlers
 
 import tourbillon
 
-_logger = logging.getLogger(tourbillon.__nom__)
+_logger = logging.getLogger(tourbillon.__long_name__)
 
 
 class LoggerHandler(logging.StreamHandler):

@@ -1,5 +1,9 @@
 <script setup>
+import { ref } from 'vue'
 import { RouterLink } from 'vue-router'
+import AboutModal from '@/components/AboutModal.vue'
+
+const aboutOpen = ref(false)
 
 const interfaces = [
   {
@@ -36,6 +40,10 @@ const interfaces = [
         <p class="muted">{{ item.text }}</p>
       </RouterLink>
     </div>
+    <footer class="home-footer">
+      <button class="link" @click="aboutOpen = true">About</button>
+    </footer>
+    <AboutModal :open="aboutOpen" @close="aboutOpen = false" />
   </main>
 </template>
 
@@ -80,5 +88,24 @@ const interfaces = [
 
 .tile h2 {
   margin: 0;
+}
+
+.home-footer {
+  text-align: center;
+  margin-top: 3rem;
+}
+
+.link {
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  text-decoration: underline;
+  opacity: 0.7;
+  font: inherit;
+}
+
+.link:hover {
+  opacity: 1;
 }
 </style>
