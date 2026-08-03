@@ -14,24 +14,6 @@ from ..core import cst, tournament as core_tournament
 from ..core import draws
 from . import schemas
 
-# Status translation (core constants -> stable English API values).
-_TOURNAMENT_STATUS = {
-    cst.TOURNAMENT_REGISTRATION: "registration",
-    cst.TOURNAMENT_WAITING_DRAW: "awaiting_draw",
-    cst.TOURNAMENT_ROUND_IN_PROGRESS: "round_in_progress",
-}
-_ROUND_STATUS = {
-    cst.ROUND_WAITING_DRAW: "awaiting_draw",
-    cst.ROUND_IN_PROGRESS: "in_progress",
-    cst.ROUND_COMPLETE: "complete",
-    cst.ROUND_FINISHED: "finished",
-}
-_TEAM_STATUS = {
-    cst.TEAM_INCOMPLETE: "incomplete",
-    cst.TEAM_WAITING_DRAW: "awaiting_draw",
-    cst.TEAM_IN_PROGRESS: "in_progress",
-}
-
 
 # --------------------------------------------------------------------------- #
 # Tournament lifecycle
@@ -83,7 +65,7 @@ def tournament_dto(state):
     """Return the current tournament as a :class:`schemas.TournamentDTO`."""
     trn = state.require_tournament()
     return schemas.TournamentDTO(
-        status=_TOURNAMENT_STATUS.get(trn.status, trn.status),
+        status=trn.status,
         teams_by_match=trn.teams_by_match,
         points_by_match=trn.points_by_match,
         players_by_team=trn.players_by_team,
@@ -102,7 +84,7 @@ def team_dto(team):
             schemas.PlayerDTO(firstname=p.firstname, lastname=p.lastname)
             for p in team.players()
         ],
-        status=_TEAM_STATUS.get(team.status, team.status),
+        status=team.status,
         points=team.points(),
         wins=team.wins(),
         byes=team.byes(),
@@ -133,7 +115,7 @@ def round_dto(trn, rnd):
     byes = [team.id for team in rnd.byes()]
     return schemas.RoundDTO(
         number=rnd.number,
-        status=_ROUND_STATUS.get(rnd.status, rnd.status),
+        status=rnd.status,
         matches=matches,
         byes=byes,
     )

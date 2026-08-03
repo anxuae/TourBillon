@@ -33,12 +33,13 @@ optional = true
 
 [tool.poetry.group.tests.dependencies]
 pytest = "^8.0"
-pytest-asyncio = "^0.23"
+pytest-asyncio = "^0.24"
 
 [tool.poetry.scripts]
 tourbillon = 'tourbillon.__main__:run'
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
 testpaths = ["tests"]
 

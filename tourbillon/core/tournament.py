@@ -106,7 +106,7 @@ def dump(tournament, filename):
             y = {}
             y['parties'] = {}
             for team in tournament.teams():
-                y['parties'][team.id] = [m.data for m in team._results]
+                y['parties'][team.id] = [m.dump() for m in team._results]
             yaml.dump(y, fp, default_flow_style=False)
 
         tournament.save_date = d

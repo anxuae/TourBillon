@@ -67,13 +67,21 @@ d'un ou plusieurs joueur(s).
 > **`rank`** (et non `place`). Le classement expose `rank` ; une équipe expose `wins`.
 
 ### États (voir `tourbillon/core/cst.py`)
-- **Match** : `MATCH_IN_PROGRESS`, `MATCH_FINISHED`
-- **Team** : `TEAM_INCOMPLETE`, `TEAM_WAITING_DRAW`, `TEAM_IN_PROGRESS`
-- **Round** : `ROUND_WAITING_DRAW`, `ROUND_IN_PROGRESS`, `ROUND_COMPLETE`, `ROUND_FINISHED`
-- **Tournament** : `TOURNAMENT_REGISTRATION`, `TOURNAMENT_WAITING_DRAW`, `TOURNAMENT_ROUND_IN_PROGRESS`
-- **Résultat de manche** (valeurs **persistées en français** pour la rétro-compat des
-  archives — ne pas changer les chaînes) : `BYE='chapeau'`, `WON='gagné'`,
-  `LOST='perdu'`, `FORFEIT='forfait'`.
+Les états ci-dessous sont **calculés à la volée** et **jamais persistés** ; ils portent
+donc des **valeurs anglaises stables** exposées **directement** par l'API (pas de table
+de traduction dans `services.py`).
+- **Match** : `MATCH_IN_PROGRESS='in_progress'`, `MATCH_FINISHED='finished'`
+- **Team** : `TEAM_INCOMPLETE='incomplete'`, `TEAM_WAITING_DRAW='awaiting_draw'`,
+  `TEAM_IN_PROGRESS='in_progress'`
+- **Round** : `ROUND_WAITING_DRAW='awaiting_draw'`, `ROUND_IN_PROGRESS='in_progress'`,
+  `ROUND_COMPLETE='complete'`, `ROUND_FINISHED='finished'`
+- **Tournament** : `TOURNAMENT_REGISTRATION='registration'`,
+  `TOURNAMENT_WAITING_DRAW='awaiting_draw'`,
+  `TOURNAMENT_ROUND_IN_PROGRESS='round_in_progress'`
+- **Résultat de manche** (valeurs **anglaises en mémoire** : `BYE='bye'`, `WON='won'`,
+  `LOST='lost'`, `FORFEIT='forfeit'`). La persistance reste en français legacy
+  (`chapeau/gagné/perdu/forfait`) via `Match.load()`/`Match.dump()` — ne pas changer
+  les chaînes disque.
 
 ---
 
@@ -147,9 +155,13 @@ Points clés :
   (`tournoi`, `inscription`, `jokers`, `parties`, `enregistrement`, `debut`,
   `equipes_par_manche`, `joueurs_par_equipe`, `points_par_manche`) pour la
   **rétro-compatibilité** avec les archives (`../Sauvegardes Tournois/*.yml` / `*.trb`).
-- Le dict `Match.data` garde aussi ses clés françaises (`etat`, `debut`, `fin`,
-  `adversaires`, `piquet`) pour la même raison. **Ne jamais casser la lecture des
-  anciens fichiers.**
+- Le dict `Match.data` est **entièrement en anglais** en mémoire (`state`, `start`,
+  `end`, `opponents`, `location`, `points`) ; de même les résultats `BYE/WON/LOST/
+  FORFEIT` valent `'bye'/'won'/'lost'/'forfeit'`. La **conversion vers le format
+  legacy français** (clés `etat`/`debut`/`fin`/`adversaires`/`piquet` et valeurs
+  `chapeau`/`gagné`/`perdu`/`forfait`, plus l'ancien `duree`) est **confinée** aux
+  méthodes `Match.load()` / `Match.dump()`, appelées uniquement par
+  `tournament.load`/`dump`. **Ne jamais casser la lecture des anciens fichiers.**
 - `core/` ne doit **jamais** importer FastAPI ni Pydantic (indépendance du framework).
 - Motif documenté : `Round` manipule volontairement des membres « protégés » de
   `Team` (`_add_round`, `_modify_round`, `_remove_round`, `_results`). Les
@@ -262,8 +274,8 @@ REST pour le CRUD, WebSocket pour le temps réel. Éviter jQuery.
   native (`list`, `dict`, `str | None`).
 - **Langue : anglais obligatoire pour TOUT le code** — noms, commentaires, docstrings,
   messages de log/exception, doc technique. (Ce fichier d'instructions peut rester en
-  français.) **Seules exceptions** : les clés YAML persistées et les clés du dict
-  `Match.data`, gardées en français pour la rétro-compat.
+  français.) **Seule exception** : les clés/valeurs YAML persistées (format legacy
+  français), produites uniquement au moment de la (dé)sérialisation.
 - **Tests** : `pytest` (dossier `tests/`, `asyncio_mode = "auto"`). Toute nouvelle
   logique métier ou de tirage doit être testée ; les tirages doivent être
   **déterministes et testables**.

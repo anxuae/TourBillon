@@ -7,20 +7,41 @@ from datetime import datetime, timedelta
 from . import cst
 
 
+# Persistence is retro-compatible with the historical YAML archives, which use
+# French keys and French result values. The conversion happens only at the
+# (de)serialization boundary (``Match.load`` / ``Match.dump``); the in-memory
+# representation is fully English.
+_LEGACY_TO_KEY = {
+    'points': 'points',
+    'etat': 'state',
+    'debut': 'start',
+    'fin': 'end',
+    'adversaires': 'opponents',
+    'piquet': 'location',
+}
+_KEY_TO_LEGACY = {value: key for key, value in _LEGACY_TO_KEY.items()}
+
+_LEGACY_TO_RESULT = {
+    'chapeau': cst.BYE,
+    'gagné': cst.WON,
+    'perdu': cst.LOST,
+    'forfait': cst.FORFEIT,
+}
+_RESULT_TO_LEGACY = {value: key for key, value in _LEGACY_TO_RESULT.items()}
+
+
 class Match:
     """
     A match represent the team result on a given round.
     """
 
     def __init__(self, start=datetime.now(), opponents=()):
-        # The dict keys are persisted as-is in the YAML save files: DO NOT
-        # rename them to keep retro-compatibility with the historical archives.
         self.data = {'points': 0,
-                     'etat': None,
-                     'debut': start,
-                     'fin': None,
-                     'adversaires': opponents or [],
-                     'piquet': None}
+                     'state': None,
+                     'start': start,
+                     'end': None,
+                     'opponents': opponents or [],
+                     'location': None}
 
     def __str__(self):
         return f"""
@@ -35,21 +56,40 @@ class Match:
 
     def load(self, data: dict) -> None:
         """
-        Retro-compatible method to load the data of a match via a dictionary.
-        (Used by the loading function of a tournament)
+        Retro-compatible method to load the data of a match from a legacy
+        (French-keyed) dictionary. (Used by the loading function of a tournament)
 
         This function has no protection, the input data must be correct.
 
-        :param data: match data
+        :param data: legacy match data (French keys and result values)
         """
-        for k, v in data.items():
-            if k in self.data:
-                self.data[k] = v
+        for legacy_key, value in data.items():
+            key = _LEGACY_TO_KEY.get(legacy_key)
+            if key is None:
+                continue
+            if key == 'state':
+                value = _LEGACY_TO_RESULT.get(value, value)
+            self.data[key] = value
+        # Old archives store 'duree' (duration) instead of 'fin' (end).
         if 'duree' in data:
             if data['duree']:
-                self.data['fin'] = self.data['debut'] + data['duree']
-            elif self.data['adversaires'] == []:
-                self.data['fin'] = self.data['debut']
+                self.data['end'] = self.data['start'] + data['duree']
+            elif self.data['opponents'] == []:
+                self.data['end'] = self.data['start']
+
+    def dump(self) -> dict:
+        """
+        Return the match data as a legacy (French-keyed) dictionary, ready to be
+        persisted. Keeps the historical archive format (French keys and result
+        values) for backward compatibility.
+        """
+        legacy = {}
+        for key, legacy_key in _KEY_TO_LEGACY.items():
+            value = self.data[key]
+            if key == 'state':
+                value = _RESULT_TO_LEGACY.get(value, value)
+            legacy[legacy_key] = value
+        return legacy
 
     @property
     def status(self) -> str:
@@ -59,9 +99,9 @@ class Match:
         MATCH_IN_PROGRESS => match is not started or in progress
         MATCH_FINISHED    => match is finished (end timestamps is set)
         """
-        if self.data['etat'] == cst.BYE or self.data['etat'] == cst.FORFEIT:
+        if self.data['state'] == cst.BYE or self.data['state'] == cst.FORFEIT:
             return cst.MATCH_FINISHED
-        elif self.data['fin'] is None:
+        elif self.data['end'] is None:
             return cst.MATCH_IN_PROGRESS
         else:
             return cst.MATCH_FINISHED
@@ -82,7 +122,7 @@ class Match:
         """
         if not isinstance(value, int) or value < 0:
             raise TypeError("Points must be a positive or zero integer")
-        if self.data['etat'] == cst.FORFEIT:
+        if self.data['state'] == cst.FORFEIT:
             raise ValueError("Points of FORFEIT match cannot be changed")
         self.data['points'] = value
 
@@ -91,7 +131,7 @@ class Match:
         """
         Return the result.
         """
-        return self.data['etat']
+        return self.data['state']
 
     @result.setter
     def result(self, value: str) -> None:
@@ -107,22 +147,22 @@ class Match:
         if value not in [cst.WON, cst.LOST, cst.BYE, cst.FORFEIT]:
             raise TypeError("Match result must be one of the following value:"
                             f"{cst.WON}, {cst.LOST}, {cst.BYE}, {cst.FORFEIT}")
-        if value in [cst.WON, cst.LOST] and self.data['fin'] is None:
-            self.data['fin'] = datetime.now()
+        if value in [cst.WON, cst.LOST] and self.data['end'] is None:
+            self.data['end'] = datetime.now()
         if value in [cst.BYE, cst.FORFEIT]:
-            self.data['adversaires'] = []
-            self.data['fin'] = self.data['debut']
+            self.data['opponents'] = []
+            self.data['end'] = self.data['start']
         if value in [cst.FORFEIT]:
             self.data['points'] = 0
 
-        self.data['etat'] = value
+        self.data['state'] = value
 
     @property
     def start(self) -> datetime:
         """
         Return start timestamp.
         """
-        return self.data['debut']
+        return self.data['start']
 
     @start.setter
     def start(self, value: datetime) -> None:
@@ -131,17 +171,17 @@ class Match:
 
         :param value: start timestamp as datetime instance
         """
-        self.data['debut'] = value
+        self.data['start'] = value
 
     @property
     def duration(self) -> timedelta:
         """
         Return the match duration (end timestamp - start timestamp).
         """
-        if self.data['fin'] is None or self.data['fin'] == self.data['debut']:
+        if self.data['end'] is None or self.data['end'] == self.data['start']:
             return None
         else:
-            return self.data['fin'] - self.data['debut']
+            return self.data['end'] - self.data['start']
 
     @duration.setter
     def duration(self, value: timedelta) -> None:
@@ -150,16 +190,16 @@ class Match:
 
         :param value: match duration
         """
-        if self.data['etat'] in [cst.BYE, cst.FORFEIT]:
+        if self.data['state'] in [cst.BYE, cst.FORFEIT]:
             raise ValueError("Duration of a BYE or FORFEIT match cannot be modified")
-        self.data['fin'] = self.data['debut'] + value
+        self.data['end'] = self.data['start'] + value
 
     @property
     def end(self) -> datetime:
         """
         Return end timestamp.
         """
-        return self.data['fin']
+        return self.data['end']
 
     @end.setter
     def end(self, value: datetime) -> None:
@@ -168,16 +208,16 @@ class Match:
 
         :param value: end timestamp as datetime instance
         """
-        if self.data['etat'] in [cst.BYE, cst.FORFEIT]:
+        if self.data['state'] in [cst.BYE, cst.FORFEIT]:
             raise ValueError("End date of a BYE or FORFEIT match cannot be changed")
-        self.data['fin'] = value
+        self.data['end'] = value
 
     @property
     def opponents(self) -> list:
         """
         Return the list of team's competitors.
         """
-        return self.data['adversaires']
+        return self.data['opponents']
 
     @opponents.setter
     def opponents(self, value: list) -> None:
@@ -187,20 +227,20 @@ class Match:
         for num in value:
             if not isinstance(num, int):
                 raise TypeError(f"'{num}' is not an integer")
-        if self.data['etat'] in [cst.BYE, cst.FORFEIT]:
+        if self.data['state'] in [cst.BYE, cst.FORFEIT]:
             raise ValueError("Can not add competitors for a BYE ou FORFEIT match")
-        self.data['adversaires'] = value
+        self.data['opponents'] = value
 
     @property
     def location(self) -> int:
         """
         Return the match location.
         """
-        return self.data['piquet']
+        return self.data['location']
 
     @location.setter
     def location(self, value: int) -> None:
         """
         Set the match location.
         """
-        self.data['piquet'] = value
+        self.data['location'] = value
