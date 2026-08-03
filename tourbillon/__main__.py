@@ -9,14 +9,16 @@ removed; the interface is now fully web based (see ``tourbillon/api`` and the
 """
 
 import argparse
+import copy
 import logging
+import os
 
 import uvicorn
 
 import tourbillon
 from . import logger
 from .api.app import create_app
-from .settings import Settings
+from .settings import Settings, SETTINGS_PATH_ENV
 
 
 def parse_options():
@@ -67,9 +69,33 @@ def run():
     if options.port:
         settings.port = options.port
 
-    app = create_app(settings)
+    logger.info("Settings file: %s", settings.path)
 
-    uvicorn.run(app, host=settings.host, port=settings.port, reload=options.reload)
+    # Let uvicorn keep displaying its own logs, but re-enable propagation so its
+    # records also bubble up to the root logger where the execution-summary
+    # counter tallies them (see tourbillon.logger).
+    log_config = copy.deepcopy(uvicorn.config.LOGGING_CONFIG)
+    for cfg in log_config.get("loggers", {}).values():
+        cfg["propagate"] = True
+
+    if options.reload:
+        # ``--reload`` needs an import string: uvicorn re-imports the app in a
+        # child process. Pass the settings file path through the environment so
+        # the application factory can rebuild identical settings.
+        if options.config:
+            os.environ[SETTINGS_PATH_ENV] = options.config
+        uvicorn.run(
+            "tourbillon.api.app:create_app_from_env",
+            factory=True,
+            host=settings.host, port=settings.port,
+            reload=True, log_config=log_config,
+        )
+    else:
+        app = create_app(settings)
+        uvicorn.run(
+            app, host=settings.host, port=settings.port,
+            log_config=log_config,
+        )
 
 
 if __name__ == "__main__":

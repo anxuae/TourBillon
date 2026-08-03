@@ -47,12 +47,18 @@ def test_save_and_load_roundtrip(tmp_path):
     assert reloaded.teams_by_match == 3
 
 
-def test_save_without_path_uses_save_dir(tmp_path):
-    # Without an explicit path, settings are written to <save_dir>/settings.yml
-    # so custom options (e.g. draw overrides) are always persisted.
+def test_save_without_path_uses_config_dir(tmp_path, monkeypatch):
+    # Without an explicit path, settings are written to the platform-specific
+    # user configuration file, independent from save_dir (changing save_dir
+    # never loses the settings).
+    import tourbillon.settings as settings_mod
+
+    config_file = tmp_path / "config" / "settings.yml"
+    monkeypatch.setattr(settings_mod, "default_settings_path", lambda: config_file)
+
     settings = Settings({"save_dir": str(tmp_path)})
     target = settings.save()
-    assert target == str(tmp_path / "settings.yml")
+    assert target == str(config_file)
     assert Path(target).is_file()
 
 

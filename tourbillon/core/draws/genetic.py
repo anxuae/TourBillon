@@ -23,11 +23,11 @@ DESCRIPTION = "Genetic Swiss pairing (population based heuristic)"
 DEFAULT = {
     "max_disparity": 2,
     "allow_rematch": False,
+    "win_weight": 100,
     "population": 60,
     "generations": 500,
     "crossover_rate": 0.9,
     "mutation_rate": 0.2,
-    "win_weight": 100,
     "seed": 0,
     "rematch_penalty": 100000,
     "disparity_penalty": 100000,

@@ -29,7 +29,7 @@ class Team:
         Team n°{self.id}
             Names     : {" / ".join([" ".join([player.firstname, player.lastname]) for player in self._players_list])}
             Points    : {self.points()}
-            Wins : {self.wins()}
+            Wins      : {self.wins()}
             Byes      : {self.byes()}
 
             Status    : {self.status}

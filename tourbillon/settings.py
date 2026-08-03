@@ -12,23 +12,73 @@ in the frontend and are not handled here):
 3. **Draw options**: the per-algorithm options under the ``draws`` section.
 
 A single :class:`Settings` class reads, writes, loads and saves a simple YAML
-file (keys and values in English, primitive types only). Values can be
-overridden by environment variables prefixed with ``TOURBILLON_``. Each draw's
-options are initialized from the algorithm's built-in ``DEFAULT`` and, when a
-settings file exists, enriched with the saved values. The settings are loaded
-once at startup and saved once at shutdown: nothing else mutates them.
+file (keys and values in English, primitive types only). The file lives in the
+platform-specific user configuration directory (e.g. ``~/.config/tourbillon``
+on Linux), independent from ``save_dir``. Values can be overridden by
+environment variables prefixed with ``TOURBILLON_``. Each draw's options are
+initialized from the algorithm's built-in ``DEFAULT`` and, when a settings file
+exists, enriched with the saved values. The settings are loaded once at startup
+and saved once at shutdown: nothing else mutates them.
 """
 
 import os
+import sys
 from pathlib import Path
 
 import yaml
 
 from .core import draws
 
-# Name of the settings file created inside ``save_dir`` when no explicit path is
-# provided (so the settings, including draw options, are always persisted).
+# Application name used to build the platform-specific configuration directory.
+APP_NAME = "tourbillon"
+
+# Environment variable used to pass the settings file path to the application
+# factory when uvicorn reloads the app from an import string (``--reload``
+# requires an import string, so the app cannot receive the already-built
+# ``Settings`` instance directly). See ``tourbillon.__main__`` and
+# ``tourbillon.api.app.create_app_from_env``.
+SETTINGS_PATH_ENV = "TOURBILLON_SETTINGS_PATH"
+
+# Base name of the settings file stored in the user configuration directory.
 DEFAULT_SETTINGS_NAME = "settings.yml"
+
+
+def config_dir():
+    """Return the platform-specific user configuration directory.
+
+    - Windows: ``%APPDATA%\\tourbillon``
+    - macOS: ``~/Library/Application Support/tourbillon``
+    - Linux / other: ``$XDG_CONFIG_HOME/tourbillon`` (defaults to
+      ``~/.config/tourbillon``)
+
+    The settings file lives here so it is independent from ``save_dir``:
+    changing the save directory never loses the settings.
+    """
+    if sys.platform.startswith("win"):
+        base = os.environ.get("APPDATA") or (Path.home() / "AppData" / "Roaming")
+    elif sys.platform == "darwin":
+        base = Path.home() / "Library" / "Application Support"
+    else:
+        base = os.environ.get("XDG_CONFIG_HOME") or (Path.home() / ".config")
+    return Path(base) / APP_NAME
+
+
+def default_settings_path():
+    """Return the default settings file path in the user config directory."""
+    return config_dir() / DEFAULT_SETTINGS_NAME
+
+
+# Grouping of the flat scalar keys into YAML sections for persistence. In memory
+# the values stay flat (attribute access, e.g. ``settings.host``); on disk they
+# are written under these sections for readability. The ``draws`` mapping is
+# already nested and written as its own section.
+SECTIONS = {
+    "general": ("host", "port", "save_dir", "auto_save"),
+    "tournament": (
+        "players_by_team", "points_by_match", "teams_by_match",
+        "rank_by_wins", "rank_by_joker", "rank_by_duration", "default_draw",
+    ),
+}
 
 # Default settings (primitive types only).
 DEFAULTS = {
@@ -57,6 +107,24 @@ ENV = {
     "TOURBILLON_SAVE_DIR": ("save_dir", str),
     "TOURBILLON_AUTO_SAVE": ("auto_save", lambda v: v.lower() in ("1", "true", "yes")),
 }
+
+
+def _flatten(loaded):
+    """Flatten a sectioned YAML mapping into the flat settings shape.
+
+    Also accepts a legacy flat mapping (keys at top level) for backward
+    compatibility. Unknown keys are ignored.
+    """
+    values = {}
+    for section, keys in SECTIONS.items():
+        chunk = loaded.get(section, {})
+        if isinstance(chunk, dict):
+            values.update({k: chunk[k] for k in keys if k in chunk})
+    if isinstance(loaded.get("draws"), dict):
+        values["draws"] = loaded["draws"]
+    # Legacy flat files: pick up any known key sitting at the top level.
+    values.update({k: v for k, v in loaded.items() if k in DEFAULTS})
+    return values
 
 
 class Settings:
@@ -127,13 +195,15 @@ class Settings:
     def load(cls, path=None):
         """Load settings from a YAML file and environment variables.
 
-        :param path: optional path to a YAML settings file
+        :param path: optional path to a YAML settings file; defaults to the
+            platform-specific user configuration file (see :func:`config_dir`)
         """
+        path = path or str(default_settings_path())
         values = {}
         if path and Path(path).is_file():
             with open(path, "r", encoding="utf-8") as fp:
                 loaded = yaml.safe_load(fp) or {}
-            values.update({k: v for k, v in loaded.items() if k in DEFAULTS})
+            values.update(_flatten(loaded))
 
         for env_name, (key, cast) in ENV.items():
             if env_name in os.environ:
@@ -144,17 +214,27 @@ class Settings:
     def save(self, path=None):
         """Save the current settings to a YAML file.
 
-        If no path was ever provided, the settings are written to
-        ``<save_dir>/settings.yml`` so custom options are always persisted.
+        If no path was ever provided, the settings are written to the
+        platform-specific user configuration file (see :func:`config_dir`) so
+        they are independent from ``save_dir``.
 
         :param path: optional destination path (defaults to the loaded path)
         """
-        target = path or self.path or str(Path(self._data["save_dir"]) / DEFAULT_SETTINGS_NAME)
+        target = path or self.path or str(default_settings_path())
         Path(target).resolve().parent.mkdir(parents=True, exist_ok=True)
         with open(target, "w", encoding="utf-8") as fp:
-            yaml.safe_dump(self._data, fp, default_flow_style=False, sort_keys=True)
+            yaml.safe_dump(self._as_sections(), fp, default_flow_style=False, sort_keys=True)
         super().__setattr__("path", target)
         return target
+
+    def _as_sections(self):
+        """Return the settings grouped into YAML sections (for persistence)."""
+        data = {
+            section: {key: self._data[key] for key in keys}
+            for section, keys in SECTIONS.items()
+        }
+        data["draws"] = {name: dict(cfg) for name, cfg in self._data["draws"].items()}
+        return data
 
     # ------------------------------------------------------------------ #
     # Helpers

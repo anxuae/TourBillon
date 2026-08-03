@@ -2,6 +2,7 @@
 
 """FastAPI application factory."""
 
+import os
 from contextlib import asynccontextmanager
 from pathlib import Path
 
@@ -10,7 +11,7 @@ from fastapi.staticfiles import StaticFiles
 
 import tourbillon
 from .routers import ROUTERS
-from ..settings import Settings
+from ..settings import Settings, SETTINGS_PATH_ENV
 from .state import init_state
 
 # Location of the built web frontend (served in production if present).
@@ -64,3 +65,16 @@ def create_app(settings=None):
         app.mount("/", StaticFiles(directory=WEB_DIR, html=True), name="ui")
 
     return app
+
+
+def create_app_from_env():
+    """Application factory used by uvicorn when reloading from an import string.
+
+    ``uvicorn.run(..., reload=True)`` re-imports the app in a child process, so
+    it cannot be given the pre-built ``settings`` instance. The settings file
+    path is passed through the :data:`SETTINGS_PATH_ENV` environment variable
+    instead.
+    """
+    config = os.environ.get(SETTINGS_PATH_ENV) or None
+    return create_app(Settings.load(config))
+

@@ -15,6 +15,22 @@ const saving = ref(false)
 // meant to be edited as a plain scalar.
 const NESTED_KEYS = ['draws']
 
+// Grouping of the flat scalar keys into sections (mirrors the backend
+// ``SECTIONS`` in tourbillon/settings.py). Keys not listed here fall back to a
+// trailing "Other" section so nothing is ever hidden.
+const SECTIONS = {
+  general: ['host', 'port', 'save_dir', 'auto_save'],
+  tournament: [
+    'players_by_team',
+    'points_by_match',
+    'teams_by_match',
+    'rank_by_wins',
+    'rank_by_joker',
+    'rank_by_duration',
+    'default_draw',
+  ],
+}
+
 // Load the settings each time the modal is opened.
 watch(
   () => props.open,
@@ -29,8 +45,15 @@ watch(
   },
 )
 
-function scalarKeys(obj) {
-  return Object.keys(obj).filter((key) => !NESTED_KEYS.includes(key))
+// Return the scalar keys belonging to a given section (present in the form).
+function sectionKeys(name) {
+  return SECTIONS[name].filter((key) => key in form.value)
+}
+
+// Return the scalar keys not covered by any section (kept under "Other").
+function otherKeys() {
+  const known = new Set([...Object.values(SECTIONS).flat(), ...NESTED_KEYS])
+  return Object.keys(form.value).filter((key) => !known.has(key))
 }
 
 function inputType(value) {
@@ -61,9 +84,28 @@ async function save() {
       <p v-if="error" class="error">{{ error }}</p>
 
       <form v-if="form" @submit.prevent="save">
-        <fieldset>
-          <legend>General</legend>
-          <label v-for="key in scalarKeys(form)" :key="key" class="field">
+        <fieldset v-for="section in ['general', 'tournament']" :key="section">
+          <legend>{{ section }}</legend>
+          <label v-for="key in sectionKeys(section)" :key="key" class="field">
+            <span class="label">{{ key }}</span>
+            <input
+              v-if="inputType(form[key]) === 'checkbox'"
+              type="checkbox"
+              v-model="form[key]"
+            />
+            <input
+              v-else-if="inputType(form[key]) === 'number'"
+              type="number"
+              step="any"
+              v-model.number="form[key]"
+            />
+            <input v-else type="text" v-model="form[key]" />
+          </label>
+        </fieldset>
+
+        <fieldset v-if="otherKeys().length">
+          <legend>Other</legend>
+          <label v-for="key in otherKeys()" :key="key" class="field">
             <span class="label">{{ key }}</span>
             <input
               v-if="inputType(form[key]) === 'checkbox'"

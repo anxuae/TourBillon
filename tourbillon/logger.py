@@ -38,9 +38,28 @@ class LoggerHandler(logging.StreamHandler):
 
     def bilan(self):
         print("*" * 80)
-        print("Résumé de l'éxécution: {errors} error(s), {warnings} warning(s), {infos} info(s)".format(
+        print("Execution summary: {errors} error(s), {warnings} warning(s), {infos} info(s)".format(
             **self.counters))
         print("*" * 80)
+
+
+class CounterHandler(logging.Handler):
+    """Silent handler that only tallies records into the shared counters.
+
+    It never writes anything to a stream: it is meant to be attached to
+    third-party loggers (e.g. uvicorn) so their records are included in the
+    end-of-run summary without duplicating their console output.
+    """
+
+    def emit(self, record):
+        if record.levelname == 'WARNING':
+            LoggerHandler.counters['warnings'] += 1
+        elif record.levelname in ('ERROR', 'CRITICAL'):
+            LoggerHandler.counters['errors'] += 1
+        elif record.levelname == 'INFO':
+            LoggerHandler.counters['infos'] += 1
+        elif record.levelname == 'DEBUG' and _logger.getEffectiveLevel() == logging.DEBUG:
+            LoggerHandler.counters['infos'] += 1
 
 
 def add_handler(handler, level: int = logging.INFO, pattern: str = "(%(levelname)s) %(asctime)s - %(message)s"):
@@ -66,6 +85,16 @@ def init_logger(level: int = logging.INFO, logdir: str = None):
     console_handler = LoggerHandler()
     add_handler(console_handler, level)
     atexit.register(console_handler.bilan)
+
+    # Include every other logger (third-party libraries, uvicorn / FastAPI, ...)
+    # in the end-of-run summary without re-displaying their records: a silent
+    # counter handler attached to the root logger tallies whatever propagates to
+    # it. The tourbillon logger is excluded from propagation so its records are
+    # not counted twice (they are already tallied by ``console_handler`` above).
+    _logger.propagate = False
+    counter_handler = CounterHandler()
+    counter_handler.setLevel(level)
+    logging.getLogger().addHandler(counter_handler)
 
     # Logger les messages dans un fichier
     if logdir:
