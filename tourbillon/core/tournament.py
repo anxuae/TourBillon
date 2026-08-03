@@ -2,10 +2,10 @@
 
 """Tournament class definition"""
 
-import os
 import random
 from datetime import datetime
 from functools import partial, cmp_to_key
+from pathlib import Path
 
 import yaml
 
@@ -70,7 +70,7 @@ def dump(tournament, filename):
     """
     Record a tournament in a file in YAML format.
     """
-    if os.path.exists(filename) and not os.path.isfile(filename):
+    if Path(filename).exists() and not Path(filename).is_file():
         raise FileError(f"'{filename}' is a directory")
 
     previous_date = tournament.save_date

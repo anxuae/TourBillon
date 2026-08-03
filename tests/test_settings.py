@@ -2,9 +2,8 @@
 
 """Tests for the unified Settings class (single source of truth)."""
 
-import os
-
 import pytest
+from pathlib import Path
 
 from tourbillon.settings import Settings, DEFAULTS
 
@@ -42,7 +41,7 @@ def test_save_and_load_roundtrip(tmp_path):
     settings.teams_by_match = 3
     settings.save()
 
-    assert os.path.isfile(path)
+    assert Path(path).is_file()
     reloaded = Settings.load(path)
     assert reloaded.port == 4242
     assert reloaded.teams_by_match == 3
@@ -53,8 +52,8 @@ def test_save_without_path_uses_save_dir(tmp_path):
     # so custom options (e.g. draw overrides) are always persisted.
     settings = Settings({"save_dir": str(tmp_path)})
     target = settings.save()
-    assert target == os.path.join(str(tmp_path), "settings.yml")
-    assert os.path.isfile(target)
+    assert target == str(tmp_path / "settings.yml")
+    assert Path(target).is_file()
 
 
 def test_draw_config_defaults(tmp_path):

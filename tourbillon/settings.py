@@ -20,7 +20,7 @@ once at startup and saved once at shutdown: nothing else mutates them.
 """
 
 import os
-import os.path as osp
+from pathlib import Path
 
 import yaml
 
@@ -35,7 +35,7 @@ DEFAULTS = {
     # Server / API domain.
     "host": "127.0.0.1",
     "port": 8000,
-    "save_dir": osp.expanduser("~/TourBillon"),
+    "save_dir": str(Path.home() / "TourBillon"),
     "auto_save": True,
     # Business / tournament domain (defaults for a new tournament).
     "players_by_team": 2,
@@ -77,7 +77,7 @@ class Settings:
         super().__setattr__("_data", data)
         if values:
             self.update(values)
-        os.makedirs(self._data["save_dir"], exist_ok=True)
+        Path(self._data["save_dir"]).mkdir(parents=True, exist_ok=True)
 
     # ------------------------------------------------------------------ #
     # Read / write access (attribute-style and explicit)
@@ -130,7 +130,7 @@ class Settings:
         :param path: optional path to a YAML settings file
         """
         values = {}
-        if path and osp.isfile(path):
+        if path and Path(path).is_file():
             with open(path, "r", encoding="utf-8") as fp:
                 loaded = yaml.safe_load(fp) or {}
             values.update({k: v for k, v in loaded.items() if k in DEFAULTS})
@@ -149,9 +149,8 @@ class Settings:
 
         :param path: optional destination path (defaults to the loaded path)
         """
-        target = path or self.path or osp.join(self._data["save_dir"], DEFAULT_SETTINGS_NAME)
-        directory = osp.dirname(osp.abspath(target))
-        os.makedirs(directory, exist_ok=True)
+        target = path or self.path or str(Path(self._data["save_dir"]) / DEFAULT_SETTINGS_NAME)
+        Path(target).resolve().parent.mkdir(parents=True, exist_ok=True)
         with open(target, "w", encoding="utf-8") as fp:
             yaml.safe_dump(self._data, fp, default_flow_style=False, sort_keys=True)
         super().__setattr__("path", target)

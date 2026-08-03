@@ -258,7 +258,12 @@ servis par le routeur (`/admin`, `/display`, `/history`) :
 - **Admin** (`views/admin/`) : inscription des équipes/joueurs, lancement d'un tirage
   (choix algo + options + progression), round courant avec **saisie des scores**,
   classement. L'inscription propose l'**autocomplétion des prénoms/noms** à partir de
-  `GET /api/history/players` (joueurs des éditions précédentes).
+  `GET /api/history/players` (joueurs des éditions précédentes). L'**édition des
+  settings** (modale `SettingsModal.vue`, via `GET`/`PUT /api/settings`) est réservée
+  à cet espace : le bouton d'accès vit dans la sidebar Admin. Les espaces **Display**
+  et **History** sont en lecture seule et n'exposent **pas** les settings (aucun
+  réglage propre à ces vues pour le moment ; on pourra en exposer plus tard si un
+  paramètre purement d'affichage apparaît).
 - **Display** (`views/display/`) : HMI **lecture seule** plein écran pour projection
   (inscriptions, classement temps réel, matchs du round par emplacement). Rafraîchi
   via WebSocket.

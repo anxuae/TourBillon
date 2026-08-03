@@ -6,16 +6,16 @@ Loads every save file from the save directory (retro-compatible with the legacy
 YAML files) and computes per-player statistics across the editions.
 """
 
-import glob
-import os.path as osp
+from pathlib import Path
 
 from ..core import tournament as core_tournament
 
 
 def _iter_save_files(save_dir):
     """Yield every tournament save file path found in ``save_dir``."""
+    save_dir = Path(save_dir)
     for pattern in ("*.yml", "*.trb"):
-        yield from sorted(glob.glob(osp.join(save_dir, pattern)))
+        yield from sorted(str(p) for p in save_dir.glob(pattern))
 
 
 def _year_of(trn, path):
@@ -23,7 +23,7 @@ def _year_of(trn, path):
     try:
         return trn.start_date.year
     except Exception:
-        return osp.splitext(osp.basename(path))[0]
+        return Path(path).stem
 
 
 def list_tournaments(save_dir):
@@ -36,7 +36,7 @@ def list_tournaments(save_dir):
             continue
         result.append(
             {
-                "filename": osp.basename(path),
+                "filename": Path(path).name,
                 "year": _year_of(trn, path),
                 "nb_teams": trn.nb_teams(),
                 "nb_rounds": trn.nb_rounds(),

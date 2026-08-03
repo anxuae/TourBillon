@@ -6,22 +6,22 @@ Currently holds the ASCII-art banner written at the top of YAML tournament save
 files. Kept out of ``core`` so the domain package stays code-only.
 """
 
-import os.path as osp
+from pathlib import Path
 
 import tourbillon
 
-_ASSETS_DIR = osp.dirname(osp.abspath(__file__))
-_BANNER_FILE = osp.join(_ASSETS_DIR, "banner.txt")
+ASSETS_DIR = Path(__file__).resolve().parent
+BANNER_FILE = ASSETS_DIR / "banner.txt"
 
 
 def path(*names):
     """Return the absolute path of an asset file."""
-    return osp.join(_ASSETS_DIR, *names)
+    return str(ASSETS_DIR.joinpath(*names))
 
 
 def banner():
     """Return the banner as an ASCII-art comment block."""
-    with open(_BANNER_FILE, encoding="utf-8") as fp:
+    with open(BANNER_FILE, encoding="utf-8") as fp:
         lines = fp.readlines()
     text = "#" + "#".join(lines)
     return text.format(version=tourbillon.__version__)

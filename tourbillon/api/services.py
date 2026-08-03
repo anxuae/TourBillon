@@ -7,8 +7,8 @@ and handles persistence (YAML) and draw execution. It keeps ``core`` fully
 independent from FastAPI.
 """
 
-import os.path as osp
 from datetime import datetime
+from pathlib import Path
 
 from ..core import cst, tournament as core_tournament
 from ..core import draws
@@ -46,7 +46,7 @@ def save_tournament(state, filename=None):
         filename = state.filename
     if filename is None:
         name = f"tournament_{datetime.now():%Y-%m-%d_%H%M%S}.yml"
-        filename = osp.join(state.settings.save_dir, name)
+        filename = str(Path(state.settings.save_dir) / name)
     core_tournament.dump(trn, filename)
     state.filename = filename
     return filename

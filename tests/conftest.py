@@ -1,7 +1,7 @@
 # -*- coding: UTF-8 -*-
 
 import pytest
-import os.path as osp
+from pathlib import Path
 
 from fastapi.testclient import TestClient
 
@@ -87,7 +87,7 @@ def trb4e1j():
     """
     Tournoi avec 5 parties: 4 équipes par manche, 1 joueur par équipe
     """
-    return tournament.load(osp.join(osp.dirname(__file__), 'data', 't4teams1players.yml'))
+    return tournament.load(str(Path(__file__).parent / 'data' / 't4teams1players.yml'))
 
 
 @pytest.fixture

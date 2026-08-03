@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
 
 import sys
-import os
-import os.path as osp
 import time
 import atexit
 import logging
+from pathlib import Path
 from logging import handlers
 
 import tourbillon
@@ -70,9 +69,9 @@ def init_logger(level: int = logging.INFO, logdir: str = None):
 
     # Logger les messages dans un fichier
     if logdir:
-        if not osp.isdir(logdir):
-            os.makedirs(logdir)
-        log_filepath = osp.join(logdir, '%s.log' % time.strftime("%Y-%m-%d"))
+        logdir = Path(logdir)
+        logdir.mkdir(parents=True, exist_ok=True)
+        log_filepath = str(logdir / ('%s.log' % time.strftime("%Y-%m-%d")))
         # Max taille de log 10Mo, 1000000 logs peuvent être créés avant de réécraser le premier
         file_handler = handlers.RotatingFileHandler(log_filepath, maxBytes=10000000, backupCount=1000000)
         add_handler(file_handler, logging.DEBUG, "(%(levelname)s),%(name)s,%(asctime)s,%(message)s,%(pathname)s,%(lineno)d")
