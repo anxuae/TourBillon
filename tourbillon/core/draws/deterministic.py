@@ -34,8 +34,8 @@ DEFAULT = {
 def _cost_vector(stats, teams, win_weight):
     """Return a numpy strength vector aligned with ``teams`` (weakest first)."""
     points = np.array([stats[num][common.cst.STAT_POINTS] for num in teams], dtype=float)
-    victories = np.array([common.wins(stats[num]) for num in teams], dtype=float)
-    return points + win_weight * victories
+    wins = np.array([common.wins(stats[num]) for num in teams], dtype=float)
+    return points + win_weight * wins
 
 
 def _build(order, stats, teams_by_match, max_disparity, allow_rematch):

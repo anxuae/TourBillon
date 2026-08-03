@@ -24,10 +24,6 @@ var/
 .installed.cfg
 *.egg
 
-#IDE 
-.idea
-local.properties
-
 # PyInstaller
 #  Usually these files are written by a python script from a template
 #  before PyInstaller builds the exe, so as to inject date/other infos into it.
@@ -54,16 +50,6 @@ coverage.xml
 *.mo
 *.pot
 
-# Django stuff:
-*.log
-local_settings.py
-
-# Flask instance folder
-instance/
-
-# Sphinx documentation
-docs/_build/
-
 # PyBuilder
 target/
 
@@ -73,8 +59,21 @@ target/
 # pyenv
 .python-version
 
-# gradle
-.gradle/
-gradlew
-gradlew.bat
-*.iml
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+dist-ssr/
+
+# Local env files
+.env
+.env.local
+.env.*.local
+
+# Editor / OS
+.DS_Store
+*.log
+.vscode/*
+!.vscode/extensions.json
+.idea/

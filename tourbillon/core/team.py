@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 from . import cst
 from .exception import BoundError, StatusError
 from .match import Match
-from .player import Player, PlayerHistory
+from .player import Player
 
 
 class Team:
@@ -17,26 +17,26 @@ class Team:
     tournament.
     """
 
-    def __init__(self, tournoi, numero, joker=0):
-        self.tournoi = tournoi
+    def __init__(self, tournament, id, joker=0):
+        self.tournament = tournament
         self.joker = int(joker)
-        self._num = int(numero)
-        self._liste_joueurs = []
-        self._resultats = []
+        self._id = int(id)
+        self._players_list = []
+        self._results = []
 
     def __str__(self):
         return f"""
-        Team n°{self.numero}
-            Names     : {" / ".join([" ".join([joueur.prenom, joueur.nom]) for joueur in self._liste_joueurs])}
+        Team n°{self.id}
+            Names     : {" / ".join([" ".join([player.firstname, player.lastname]) for player in self._players_list])}
             Points    : {self.points()}
-            Victories : {self.victoires()}
-            Byes      : {self.chapeaux()}
+            Wins : {self.wins()}
+            Byes      : {self.byes()}
 
-            Status    : {self.statut}
+            Status    : {self.status}
         """
 
     def __int__(self):
-        return self.numero
+        return self.id
 
     def __hash__(self):
         return id(self)
@@ -59,324 +59,320 @@ class Team:
     def __ne__(self, other):
         return int(self) != int(other)
 
-    def _ajout_partie(self, debut: datetime, adversaires: list = [], etat: str = None, location: int = None):
+    def _add_round(self, start: datetime, opponents: list = [], result: str = None, location: int = None):
         """
         Add results for the team to the given round.
 
-        /!\/!\/!\ DO NOT USE OUTSIDE OF TOURNAMENT AND ROUND CLASSES /!\/!\/!\
+        WARNING: DO NOT USE OUTSIDE OF TOURNAMENT AND ROUND CLASSES.
 
-        :param debut: match start date
-        :param adversaires: competitors list
-        :param etat: match status before it starts (BYE, FORFEIT)
+        :param start: match start date
+        :param opponents: competitors list
+        :param result: match status before it starts (BYE, FORFEIT)
         :param location: match location ID
         """
-        if self.statut == cst.E_EN_COURS or self.statut == cst.E_INCOMPLETE:
+        if self.status == cst.TEAM_IN_PROGRESS or self.status == cst.TEAM_INCOMPLETE:
             raise StatusError(
-                f"Cannot create round for team n°{self.numero}. (round in progress: {len(self._resultats)})")
+                f"Cannot create round for team n°{self.id}. (round in progress: {len(self._results)})")
         else:
-            m = Match(debut, adversaires)
-            if etat == cst.CHAPEAU:
-                m.points = self.tournoi.points_par_manche
-            if etat:
-                m.etat = etat
+            m = Match(start, opponents)
+            if result == cst.BYE:
+                m.points = self.tournament.points_by_match
+            if result:
+                m.result = result
             m.location = location
-            self._resultats.append(m)
+            self._results.append(m)
 
-    def _suppr_partie(self, num_partie: int):
+    def _remove_round(self, round_number: int):
         """
         Delete the team's results in the given round.
 
-        /!\/!\/!\ DO NOT USE OUTSIDE OF TOURNAMENT AND ROUND CLASSES /!\/!\/!\
+        WARNING: DO NOT USE OUTSIDE OF TOURNAMENT AND ROUND CLASSES.
 
-        :param num_partie: round number
+        :param round_number: round number
         """
-        num_partie = int(num_partie)
-        if num_partie not in range(1, len(self._resultats) + 1):
+        round_number = int(round_number)
+        if round_number not in range(1, len(self._results) + 1):
             raise ValueError(
-                f"Cannot delete round n°{num_partie} pour l'équipe {self.numero} (total parties: {len(self._resultats)})")
+                f"Cannot delete round n°{round_number} for team {self.id} (total rounds: {len(self._results)})")
         else:
-            self._resultats.pop(num_partie - 1)
+            self._results.pop(round_number - 1)
 
-    def _modif_partie(self, num_partie: int, points: int = None, etat: str = None, fin: datetime = None, location: int = None):
+    def _modify_round(self, round_number: int, points: int = None, result: str = None, end: datetime = None, location: int = None):
         """
         Change the team's results in the given game.
-        
-        /!\/!\/!\ DO NOT USE OUTSIDE OF TOURNAMENT AND ROUND CLASSES /!\/!\/!\
 
-        :param num_partie: round number
+        WARNING: DO NOT USE OUTSIDE OF TOURNAMENT AND ROUND CLASSES.
+
+        :param round_number: round number
         :param points: points obtained by the team for the given round
-        :param etat: match status (VICTORY, LOSS)
-        :param fin: match end date
+        :param result: match status (WON, LOST)
+        :param end: match end date
         :param location: match location ID
         """
-        num_partie = int(num_partie)
-        if num_partie not in range(1, len(self._resultats) + 1):
-            raise ValueError(f"Round n°{num_partie} does not exists for team n°{self.numero}")
+        round_number = int(round_number)
+        if round_number not in range(1, len(self._results) + 1):
+            raise ValueError(f"Round n°{round_number} does not exists for team n°{self.id}")
         else:
-            m = self._resultats[num_partie - 1]
+            m = self._results[round_number - 1]
 
-            if etat is not None:
-                m.etat = etat
+            if result is not None:
+                m.result = result
 
-            if etat == cst.CHAPEAU:
-                m.points = self.tournoi.points_par_manche
-            elif points is not None and etat != cst.FORFAIT:
+            if result == cst.BYE:
+                m.points = self.tournament.points_by_match
+            elif points is not None and result != cst.FORFEIT:
                 m.points = points
 
-            if fin is not None:
-                m.fin = fin
+            if end is not None:
+                m.end = end
 
             if location is not None:
                 m.location = location
 
     @property
-    def numero(self) -> int:
+    def id(self) -> int:
         """
-        Return the team number.
+        Return the team identifier.
         """
-        return self._num
+        return self._id
 
     @property
-    def statut(self) -> str:
+    def status(self) -> str:
         """
         Return the team status.
 
-        E_INCOMPLETE    => some players are missing in the team
-        E_EN_COURS      => match with this team is in progress
-        E_ATTEND_TIRAGE => match of the last round is completed
+        TEAM_INCOMPLETE   => some players are missing in the team
+        TEAM_IN_PROGRESS  => match with this team is in progress
+        TEAM_WAITING_DRAW => match of the last round is completed
         """
-        if self.tournoi.joueurs_par_equipe != len(self._liste_joueurs):
-            return cst.E_INCOMPLETE
+        if self.tournament.players_by_team != len(self._players_list):
+            return cst.TEAM_INCOMPLETE
         else:
-            if len(self._resultats) == 0:
-                return cst.E_ATTEND_TIRAGE
+            if len(self._results) == 0:
+                return cst.TEAM_WAITING_DRAW
             else:
-                m = self._resultats[-1]
-                if m.statut == cst.M_EN_COURS:
-                    return cst.E_EN_COURS
+                m = self._results[-1]
+                if m.status == cst.MATCH_IN_PROGRESS:
+                    return cst.TEAM_IN_PROGRESS
                 else:
-                    return cst.E_ATTEND_TIRAGE
+                    return cst.TEAM_WAITING_DRAW
 
-    def joueurs(self):
+    def players(self):
         """
         Return players.
         """
-        return self._liste_joueurs
+        return self._players_list
 
-    def ajout_joueur(self, prenom: str, nom: str, date=None):
+    def add_player(self, firstname: str, lastname: str):
         """
         Add a new player.
 
-        :param prenom: firstname
-        :param nom: lastname
-        :param date: date when the player join the team
+        :param firstname: firstname
+        :param lastname: lastname
         """
-        if self.tournoi.joueurs_par_equipe < len(self._liste_joueurs) + 1:
-            raise BoundError(f"A team shall be composed of {self.tournoi.joueurs_par_equipe} players")
+        if self.tournament.players_by_team < len(self._players_list) + 1:
+            raise BoundError(f"A team shall be composed of {self.tournament.players_by_team} players")
 
-        j = Player(prenom, nom, date_ajout=date)
-        self._liste_joueurs.append(j)
-        self.tournoi.changed = True
+        j = Player(firstname, lastname)
+        self._players_list.append(j)
+        self.tournament.changed = True
         return j
 
-    def suppr_joueurs(self):
+    def remove_players(self):
         """
         Remove all players.
         """
-        for joueur in self._liste_joueurs:
-            PlayerHistory().remove(joueur.key)
-        self._liste_joueurs = []
-        self.tournoi.changed = True
+        self._players_list = []
+        self.tournament.changed = True
 
-    def partie_existe(self, num_partie: int):
+    def round_exists(self, round_number: int):
         """
         Return True if a match is defined for the specified round. Except in
         exceptional cases (adding teams after a tournament has already started),
         a match is always defined for each round.
 
-        :param num_partie: round number
+        :param round_number: round number
         """
         try:
-            self._resultats[num_partie - 1]
-            return True
+            return self._results[round_number - 1] is not None
         except IndexError:
             return False
 
-    def resultat(self, num_partie: int):
+    def result(self, round_number: int):
         """
         Return the match result for the given round number.
 
-        :param num_partie: round number
+        :param round_number: round number
         """
-        num_partie = int(num_partie)
-        if num_partie not in range(1, len(self._resultats) + 1):
-            raise ValueError(f"Round n°{num_partie} not created for team {self.numero}")
+        round_number = int(round_number)
+        if round_number not in range(1, len(self._results) + 1):
+            raise ValueError(f"Round n°{round_number} not created for team {self.id}")
         else:
-            return self._resultats[num_partie - 1]
+            return self._results[round_number - 1]
 
-    def adversaires(self, partie_limite: int = None):
+    def opponents(self, round_limit: int = None):
         """
         Return the list of competitors encountered since the
         first to the given round number.
 
-        :param partie_limite: last round number (included)
+        :param round_limit: last round number (included)
         """
-        if partie_limite is None:
-            partie_limite = len(self._resultats)
+        if round_limit is None:
+            round_limit = len(self._results)
         l = []
-        for m in self._resultats[:partie_limite]:
-            for ad in m.adversaires:
+        for m in self._results[:round_limit]:
+            for ad in m.opponents:
                 l.append(ad)
 
         return l
 
-    def manches(self, partie_limite: int = None):
+    def matches(self, round_limit: int = None):
         """
         Return the list of team numbers already encountered since the
         first to the given round number.
 
-        :param partie_limite: last round number (included)
+        :param round_limit: last round number (included)
         """
-        if partie_limite is None:
-            partie_limite = len(self._resultats)
+        if round_limit is None:
+            round_limit = len(self._results)
         l = []
-        for m in self._resultats[:partie_limite]:
-            if m.etat in [cst.GAGNE, cst.PERDU]:
-                manche = sorted(m.adversaires + [self.numero])
-                l.append(manche)
+        for m in self._results[:round_limit]:
+            if m.result in [cst.WON, cst.LOST]:
+                match = sorted(m.opponents + [self.id])
+                l.append(match)
 
         return l
 
-    def points(self, partie_limite: int = None):
+    def points(self, round_limit: int = None):
         """
         Return the sum of the points since the first
         to the given round number.
 
-        :param partie_limite: last round number (included)
+        :param round_limit: last round number (included)
         """
-        if partie_limite is None:
-            partie_limite = len(self._resultats)
+        if round_limit is None:
+            round_limit = len(self._results)
 
-        l = [m.points for m in self._resultats[:partie_limite]]
+        l = [m.points for m in self._results[:round_limit]]
         return sum(l)
 
-    def victoires(self, partie_limite: int = None):
+    def wins(self, round_limit: int = None):
         """
-        Return the number of victories since the first
+        Return the number of wins since the first
         to the given round number.
 
-        :param partie_limite: last round number (included)
+        :param round_limit: last round number (included)
         """
-        if partie_limite is None:
-            partie_limite = len(self._resultats)
+        if round_limit is None:
+            round_limit = len(self._results)
 
-        l = [m.etat for m in self._resultats[:partie_limite] if m.etat == cst.GAGNE]
+        l = [m.result for m in self._results[:round_limit] if m.result == cst.WON]
         return len(l)
 
-    def forfaits(self, partie_limite: int = None):
+    def forfeits(self, round_limit: int = None):
         """
         Return the number of forfeits since the first
         to the given round number.
 
-        :param partie_limite: last round number (included)
+        :param round_limit: last round number (included)
         """
-        if partie_limite is None:
-            partie_limite = len(self._resultats)
+        if round_limit is None:
+            round_limit = len(self._results)
 
-        l = [m.etat for m in self._resultats[:partie_limite] if m.etat == cst.FORFAIT]
+        l = [m.result for m in self._results[:round_limit] if m.result == cst.FORFEIT]
         return len(l)
 
-    def chapeaux(self, partie_limite: int = None):
+    def byes(self, round_limit: int = None):
         """
         Return the number of byes since the first
         to the given round number.
 
-        :param partie_limite: last round number (included)
+        :param round_limit: last round number (included)
         """
-        if partie_limite is None:
-            partie_limite = len(self._resultats)
+        if round_limit is None:
+            round_limit = len(self._results)
 
-        l = [m.etat for m in self._resultats[:partie_limite] if m.etat == cst.CHAPEAU]
+        l = [m.result for m in self._results[:round_limit] if m.result == cst.BYE]
         return len(l)
 
-    def parties(self, partie_limite: int = None):
+    def rounds(self, round_limit: int = None):
         """
         Return the number of rounds which are not forfeit since the first
         to the given round number.
 
-        :param partie_limite: last round number (included)
+        :param round_limit: last round number (included)
         """
-        if partie_limite is None:
-            partie_limite = len(self._resultats)
+        if round_limit is None:
+            round_limit = len(self._results)
 
-        # Les parties FORFAIT ne sont pas prises en compte
-        l = [m.etat for m in self._resultats[:partie_limite] if m.etat != cst.FORFAIT]
+        # FORFEIT rounds are not taken into account
+        l = [m.result for m in self._results[:round_limit] if m.result != cst.FORFEIT]
         return len(l)
 
-    def moyenne_billon(self, partie_limite: int = None):
+    def average_score(self, round_limit: int = None):
         """
         Return the average points of a match since the first
         to the given round number.
 
-        :param partie_limite: last round number (included)
+        :param round_limit: last round number (included)
         """
-        if partie_limite is None:
-            partie_limite = len(self._resultats)
-        pts = self.points(partie_limite)
+        if round_limit is None:
+            round_limit = len(self._results)
+        pts = self.points(round_limit)
 
-        # Résultat des parties FORFAIT et de la partie incompléte ne sont pas pris en compte
-        parties = len([m.etat for m in self._resultats[:partie_limite]
-                      if m.statut != cst.M_EN_COURS and m.etat != cst.FORFAIT])
-        if parties == 0:
+        # FORFEIT rounds and the incomplete round result are not taken into account
+        rounds = len([m.result for m in self._results[:round_limit]
+                      if m.status != cst.MATCH_IN_PROGRESS and m.result != cst.FORFEIT])
+        if rounds == 0:
             return 0
         else:
-            return round(pts / parties, 2)
+            return round(pts / rounds, 2)
 
-    def min_billon(self, partie_limite: int = None):
+    def min_score(self, round_limit: int = None):
         """
         Returns the min points of a match from the first
         to the given round number.
 
-        :param partie_limite: last round number (included)
+        :param round_limit: last round number (included)
         """
-        if partie_limite is None:
-            partie_limite = len(self._resultats)
+        if round_limit is None:
+            round_limit = len(self._results)
 
-        # Résultat des parties FORFAIT et de la partie incompléte ne sont pas pris en compte
-        l = [m.points for m in self._resultats[:partie_limite] if m.statut != cst.M_EN_COURS and m.etat != cst.FORFAIT]
+        # FORFEIT rounds and the incomplete round result are not taken into account
+        l = [m.points for m in self._results[:round_limit] if m.status != cst.MATCH_IN_PROGRESS and m.result != cst.FORFEIT]
         if l == []:
             return 0
         else:
             return min(l)
 
-    def max_billon(self, partie_limite: int = None):
+    def max_score(self, round_limit: int = None):
         """
         Return the max points of a match since the first
         to the given round number.
 
-        :param partie_limite: last round number (included)
+        :param round_limit: last round number (included)
         """
-        if partie_limite is None:
-            partie_limite = len(self._resultats)
+        if round_limit is None:
+            round_limit = len(self._results)
 
-        l = [m.points for m in self._resultats[:partie_limite]]
+        l = [m.points for m in self._results[:round_limit]]
         if l == []:
             return 0
         else:
             return max(l)
 
-    def moyenne_duree(self, partie_limite: int = None):
+    def average_duration(self, round_limit: int = None):
         """
         Return the average duration of a match since the first
         to the given round number.
 
-        :param partie_limite: last round number (included)
+        :param round_limit: last round number (included)
         """
-        if partie_limite is None:
-            partie_limite = len(self._resultats)
+        if round_limit is None:
+            round_limit = len(self._results)
 
-        # Résultat des parties FORFAIT, CHAPEAU et de la partie incompléte ne sont pas pris en compte
-        l = [m.duree for m in self._resultats[:partie_limite] if m.duree is not None]
+        # FORFEIT, BYE rounds and the incomplete round result are not taken into account
+        l = [m.duration for m in self._results[:round_limit] if m.duration is not None]
         if l == []:
             return timedelta(0)
         else:
@@ -385,35 +381,35 @@ class Team:
                 r += t
             return r // len(l)
 
-    def min_duree(self, partie_limite: int = None):
+    def min_duration(self, round_limit: int = None):
         """
         Return the min duration of a match since the first
         to the given round number.
 
-        :param partie_limite: last round number (included)
+        :param round_limit: last round number (included)
         """
-        if partie_limite is None:
-            partie_limite = len(self._resultats)
+        if round_limit is None:
+            round_limit = len(self._results)
 
-        # Résultat des parties FORFAIT, CHAPEAU et de la partie incompléte ne sont pas pris en compte
-        l = [m.duree for m in self._resultats[:partie_limite] if m.duree is not None]
+        # FORFEIT, BYE rounds and the incomplete round result are not taken into account
+        l = [m.duration for m in self._results[:round_limit] if m.duration is not None]
         if l == []:
             return timedelta(0)
         else:
             return min(l)
 
-    def max_duree(self, partie_limite: int = None):
+    def max_duration(self, round_limit: int = None):
         """
         Return the max duration of a match since the first
         to the given round number.
 
-        :param partie_limite: last round number (included)
+        :param round_limit: last round number (included)
         """
-        if partie_limite is None:
-            partie_limite = len(self._resultats)
+        if round_limit is None:
+            round_limit = len(self._results)
 
-        # Résultat des parties FORFAIT, CHAPEAU et de la partie incompléte ne sont pas pris en compte
-        l = [m.duree for m in self._resultats[:partie_limite] if m.duree is not None]
+        # FORFEIT, BYE rounds and the incomplete round result are not taken into account
+        l = [m.duration for m in self._results[:round_limit] if m.duration is not None]
         if l == []:
             return timedelta(0)
         else:

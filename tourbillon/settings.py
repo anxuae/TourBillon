@@ -36,14 +36,14 @@ DEFAULTS = {
     "players_by_team": 2,
     "points_by_match": 12,
     "teams_by_match": 2,
-    "rank_by_victories": True,
+    "rank_by_wins": True,
     "rank_by_joker": True,
     "rank_by_duration": False,
     "default_draw": draws.DEFAULT_DRAW,
 }
 
 # Mapping env var -> (key, cast function).
-_ENV = {
+ENV = {
     "TOURBILLON_HOST": ("host", str),
     "TOURBILLON_PORT": ("port", int),
     "TOURBILLON_SAVE_DIR": ("save_dir", str),
@@ -115,7 +115,7 @@ class Settings:
                 loaded = yaml.safe_load(fp) or {}
             values.update({k: v for k, v in loaded.items() if k in DEFAULTS})
 
-        for env_name, (key, cast) in _ENV.items():
+        for env_name, (key, cast) in ENV.items():
             if env_name in os.environ:
                 values[key] = cast(os.environ[env_name])
 
@@ -151,23 +151,3 @@ class Settings:
     def as_dict(self):
         """Return the settings as a plain dictionary."""
         return dict(self._data)
-
-
-def system_config():
-    """Return runtime dependency versions (for diagnostics)."""
-    info = []
-    try:
-        import platform
-        info.append(("Platform", platform.platform()))
-        info.append(("Python", platform.python_version()))
-    except ImportError:
-        pass
-    for name, module in (("PyYAML", "yaml"), ("FastAPI", "fastapi"),
-                         ("Uvicorn", "uvicorn"), ("NumPy", "numpy")):
-        try:
-            mod = __import__(module)
-            info.append((name, getattr(mod, "__version__", "unknown")))
-        except ImportError:
-            info.append((name, "not installed"))
-    info.append(("Encoding", sys.getdefaultencoding()))
-    return info

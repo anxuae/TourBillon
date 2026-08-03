@@ -9,10 +9,10 @@ by the team number and holds the following fields (see ``core.cst``):
     {
         team_number: {
             cst.STAT_POINTS:     int,   # cumulated points
-            cst.STAT_VICTOIRES:  int,   # number of victories
-            cst.STAT_CHAPEAUX:   int,   # number of byes (count as a win)
-            cst.STAT_ADVERSAIRES: list, # opponents already met (team numbers)
-            cst.STAT_MANCHES:    list,  # matches already played (sorted team lists)
+            cst.STAT_WINS:     int,   # number of wins
+            cst.STAT_BYES:     int,   # number of byes (count as a win)
+            cst.STAT_OPPONENTS: list, # opponents already met (team numbers)
+            cst.STAT_MATCHES:  list,  # matches already played (sorted team lists)
             cst.STAT_PLACE:      int,   # current ranking position
         },
         ...
@@ -43,8 +43,8 @@ def bye_count(nb_teams, teams_by_match):
 
 
 def wins(team_stats):
-    """Return the number of wins of a team (victories plus byes)."""
-    return team_stats[cst.STAT_VICTOIRES] + team_stats[cst.STAT_CHAPEAUX]
+    """Return the number of wins of a team (match wins plus byes)."""
+    return team_stats[cst.STAT_WINS] + team_stats[cst.STAT_BYES]
 
 
 def order_by_strength(stats):
@@ -93,8 +93,8 @@ def select_bye_teams(stats, teams_by_match, forced=()):
 
     # Weakest teams first, giving priority to teams that were never BYE.
     candidates = order_by_weakness(stats)
-    never_bye = [num for num in candidates if stats[num][cst.STAT_CHAPEAUX] == 0]
-    already_bye = [num for num in candidates if stats[num][cst.STAT_CHAPEAUX] > 0]
+    never_bye = [num for num in candidates if stats[num][cst.STAT_BYES] == 0]
+    already_bye = [num for num in candidates if stats[num][cst.STAT_BYES] > 0]
     ordered = never_bye + already_bye
 
     return sorted(ordered[:count])
@@ -104,7 +104,7 @@ def has_already_played(stats, match):
     """Return ``True`` if the exact match was already played by these teams."""
     match = sorted(match)
     for num in match:
-        if match in stats[num][cst.STAT_MANCHES]:
+        if match in stats[num][cst.STAT_MATCHES]:
             return True
     return False
 
@@ -113,7 +113,7 @@ def rematch_pairs(stats, match):
     """Return the number of pairwise encounters already played within a match."""
     count = 0
     for a, b in combinations(sorted(match), 2):
-        count += stats[b][cst.STAT_ADVERSAIRES].count(a)
+        count += stats[b][cst.STAT_OPPONENTS].count(a)
     return count
 
 

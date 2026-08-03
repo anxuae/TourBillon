@@ -16,7 +16,7 @@ class TeamDTO(BaseModel):
     players: list[PlayerDTO]
     status: str
     points: int
-    victories: int
+    wins: int
     byes: int
 
 
@@ -40,9 +40,9 @@ class RoundDTO(BaseModel):
 
 
 class RankEntryDTO(BaseModel):
-    place: int
+    rank: int
     team: int
-    victories: int
+    wins: int
     points: int
 
 

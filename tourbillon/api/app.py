@@ -12,7 +12,10 @@ from ..settings import Settings
 from .state import init_state
 
 # Location of the built web frontend (served in production if present).
-WEB_DIR = osp.join(osp.dirname(osp.dirname(__file__)), "web")
+# The Vue SPA lives in the sibling ``tourbillon-ui`` folder at the repo root.
+WEB_DIR = osp.join(
+    osp.dirname(osp.dirname(osp.dirname(__file__))), "tourbillon-ui", "dist"
+)
 
 
 def create_app(settings=None):
@@ -39,10 +42,9 @@ def create_app(settings=None):
         """Simple health check."""
         return {"status": "ok"}
 
-    # Serve the built frontend if it exists (each interface in its own folder).
-    for name in ("admin", "display", "history"):
-        folder = osp.join(WEB_DIR, name, "dist")
-        if osp.isdir(folder):
-            app.mount(f"/{name}", StaticFiles(directory=folder, html=True), name=name)
+    # Serve the built Vue SPA if it exists. The client router handles the
+    # /admin, /display and /history routes (history mode).
+    if osp.isdir(WEB_DIR):
+        app.mount("/", StaticFiles(directory=WEB_DIR, html=True), name="ui")
 
     return app

@@ -16,78 +16,78 @@ class Round:
     store any data (It's a proxy!).
     """
 
-    def __init__(self, tournoi):
-        self.tournoi = tournoi
+    def __init__(self, tournament):
+        self.tournament = tournament
 
     def __str__(self):
         return f"""
-        Round n°{self.numero}:
-            Players   : {self.nb_equipes()}
-            Byes      : {len(self.chapeaux())}
-            Forfeits  : {len(self.forfaits())}
+        Round n°{self.number}:
+            Players   : {self.nb_teams()}
+            Byes      : {len(self.byes())}
+            Forfeits  : {len(self.forfeits())}
 
-            Status    : {self.statut}
+            Status    : {self.status}
         """
 
     def __int__(self):
-        return self.numero
+        return self.number
 
     @property
-    def numero(self) -> int:
+    def number(self) -> int:
         """
         Return the round number.
         """
-        if self in self.tournoi.parties():
-            return self.tournoi.parties().index(self) + 1
+        if self in self.tournament.rounds():
+            return self.tournament.rounds().index(self) + 1
         raise InconsistencyError("This round does not belong to the current tournament")
 
     @property
-    def statut(self) -> str:
+    def status(self) -> str:
         """
         Return the round status.
 
-        P_ATTEND_TIRAGE => the draw has not been set
-        P_EN_COURS      => the matches have been created
-        P_COMPLETE      => the game is complete and it is the last one of the tournament
-        P_TERMINEE      => the game is complete and it is not the last one of the tournament
+        ROUND_WAITING_DRAW => the draw has not been set
+        ROUND_IN_PROGRESS  => the matches have been created
+        ROUND_COMPLETE     => the game is complete and it is the last one of the tournament
+        ROUND_FINISHED     => the game is complete and it is not the last one of the tournament
         """
-        if not self.equipes():
+        if not self.teams():
             # No team has a round with this game number
-            return cst.P_ATTEND_TIRAGE
+            return cst.ROUND_WAITING_DRAW
 
-        for equipe in self.equipes():
-            if equipe.statut == cst.E_EN_COURS and self == self.tournoi.partie_courante():
-                return cst.P_EN_COURS
+        for team in self.teams():
+            if team.status == cst.TEAM_IN_PROGRESS and self == self.tournament.current_round():
+                return cst.ROUND_IN_PROGRESS
 
-        if self == self.tournoi.partie_courante():
-            return cst.P_COMPLETE
-        return cst.P_TERMINEE
+        if self == self.tournament.current_round():
+            return cst.ROUND_COMPLETE
+        return cst.ROUND_FINISHED
 
-    def debut(self) -> datetime:
+    def start_time(self) -> datetime:
         """
         Return the start time of the round. None is returned if the
         round is not started.
         """
-        if self.statut == cst.P_ATTEND_TIRAGE:
+        if self.status == cst.ROUND_WAITING_DRAW:
             return None
 
-        for equipe in self.equipes():
-            debut = copy.deepcopy(equipe.resultat(self.numero).debut)
+        for team in self.teams():
+            start = copy.deepcopy(team.result(self.number).start)
 
-        return debut
+        return start
 
-    def nb_equipes(self):
+    def nb_teams(self):
         """
         Return the number of teams playing (removes BYE and FORFEIT).
         """
         nb = 0
-        for equipe in self.equipes():
-            if equipe.resultat(self.numero).etat not in [cst.CHAPEAU, cst.FORFAIT]:
+        for team in self.teams():
+            if team.result(self.number).result not in [cst.BYE, cst.FORFEIT]:
                 nb += 1
 
         return nb
 
-    def manches(self) -> list:
+    def matches(self) -> list:
         """
         Return the matches of this round as a list of team numbers
         (BYE are not included).
@@ -96,33 +96,33 @@ class Round:
         """
         l = []
         matches = []
-        if self.statut != cst.P_ATTEND_TIRAGE:
-            for equipe in self.equipes():
-                if equipe.numero not in l:
-                    l.append(equipe.numero)
+        if self.status != cst.ROUND_WAITING_DRAW:
+            for team in self.teams():
+                if team.id not in l:
+                    l.append(team.id)
 
-                    m = equipe.resultat(self.numero)
-                    for a in m.adversaires:
+                    m = team.result(self.number)
+                    for a in m.opponents:
                         l.append(a)
 
-                    if m.adversaires != []:
-                        matches.append(sorted([equipe.numero] + m.adversaires))
+                    if m.opponents != []:
+                        matches.append(sorted([team.id] + m.opponents))
 
         return matches
 
-    def chapeaux(self) -> list:
+    def byes(self) -> list:
         """
         Return the list of BYE in this round.
         """
         byes = []
-        if self.statut != cst.P_ATTEND_TIRAGE:
-            for equipe in self.equipes():
-                if equipe.resultat(self.numero).etat == cst.CHAPEAU:
-                    byes.append(equipe)
+        if self.status != cst.ROUND_WAITING_DRAW:
+            for team in self.teams():
+                if team.result(self.number).result == cst.BYE:
+                    byes.append(team)
 
         return sorted(byes)
 
-    def equipes(self) -> list:
+    def teams(self) -> list:
         """
         Return the list of teams that have a match defined for this round
         including BYE and FORFEIT. Except in exceptional cases (adding teams
@@ -130,48 +130,48 @@ class Round:
         for each round.
         """
         teams = []
-        for equipe in self.tournoi.equipes():
-            if equipe.partie_existe(self.numero):
-                teams.append(equipe)
+        for team in self.tournament.teams():
+            if team.round_exists(self.number):
+                teams.append(team)
         return teams
 
-    def forfaits(self) -> list:
+    def forfeits(self) -> list:
         """
         Return the list of FORFEIT in this round.
         """
         forfeits = []
-        if self.statut != cst.P_ATTEND_TIRAGE:
-            for equipe in self.equipes():
-                if equipe.resultat(self.numero).etat == cst.FORFAIT:
-                    forfeits.append(equipe)
+        if self.status != cst.ROUND_WAITING_DRAW:
+            for team in self.teams():
+                if team.result(self.number).result == cst.FORFEIT:
+                    forfeits.append(team)
 
         return sorted(forfeits)
 
-    def equipes_incompletes(self) -> list:
+    def incomplete_teams(self) -> list:
         """
         Return the list of teams whose results of the current
         match have not been entered.
         """
         incomplete = []
-        for equipe in self.equipes():
-            if equipe.statut == cst.E_EN_COURS:
-                incomplete.append(equipe)
+        for team in self.teams():
+            if team.status == cst.TEAM_IN_PROGRESS:
+                incomplete.append(team)
 
         return incomplete
 
-    def adversaires(self, team) -> list:
+    def opponents(self, team) -> list:
         """
         Return a team's competitors.
 
-        :param team: team number (int) or team (object)
+        :param team: team identifier (int) or team (object)
         """
         if isinstance(team, int):
-            team = self.tournoi.equipe(team)
+            team = self.tournament.team(team)
 
         competitors = []
-        if self.statut != cst.P_ATTEND_TIRAGE:
-            for adv in team.resultat(self.numero).adversaires:
-                competitors.append(self.tournoi.equipe(adv))
+        if self.status != cst.ROUND_WAITING_DRAW:
+            for adv in team.result(self.number).opponents:
+                competitors.append(self.tournament.team(adv))
 
         return sorted(competitors)
 
@@ -180,34 +180,34 @@ class Round:
         Start the round with a given draw.
 
         :param matches: association location - match
-        :param byes: list of equipe number set to BYE
+        :param byes: list of team identifiers set to BYE
         """
-        if self.statut != cst.P_ATTEND_TIRAGE:
-            if self.statut == cst.P_TERMINEE:
-                raise StatusError(f"Round n°{self.numero} is completed")
+        if self.status != cst.ROUND_WAITING_DRAW:
+            if self.status == cst.ROUND_FINISHED:
+                raise StatusError(f"Round n°{self.number} is completed")
             else:
-                raise StatusError(f"Round n°{self.numero} is in progress")
-        debut = datetime.now()
+                raise StatusError(f"Round n°{self.number} is in progress")
+        start = datetime.now()
 
         l = []
-        # Ajout des manches
-        for lieu, manche in matches.items():
-            for num in manche:
+        # Add the matches
+        for location, match in matches.items():
+            for num in match:
                 l.append(num)
-                adversaires = [equipe for equipe in manche if equipe != num]
-                self.tournoi.equipe(num)._ajout_partie(debut, adversaires, location=lieu)
+                opponents = [team for team in match if team != num]
+                self.tournament.team(num)._add_round(start, opponents, location=location)
 
-        # Ajout des chapeaux
+        # Add the byes
         for num in byes:
             l.append(num)
-            self.tournoi.equipe(num)._ajout_partie(debut, etat=cst.CHAPEAU)
+            self.tournament.team(num)._add_round(start, result=cst.BYE)
 
-        # Ajout des forfaits parmi les équipes restantes du tournoi
-        for equipe in self.tournoi.equipes():
-            if equipe.numero not in l:
-                equipe._ajout_partie(debut, etat=cst.FORFAIT)
+        # Add the forfeits among the remaining teams of the tournament
+        for team in self.tournament.teams():
+            if team.id not in l:
+                team._add_round(start, result=cst.FORFEIT)
 
-        self.tournoi.changed = True
+        self.tournament.changed = True
 
     def add_team(self, team, match_result: str, try_create_match: bool = True, location: int = None) -> None:
         """
@@ -215,101 +215,101 @@ class Round:
         allows to register new teams during the round.
 
         If the number of BYEs thus created is sufficient and `try_create_match`=True, a new
-        match is created, and the corresponding BYEs are then deleted (`match_result` is 
+        match is created, and the corresponding BYEs are then deleted (`match_result` is
         ignored).
         """
         if isinstance(team, int):
-            team = self.tournoi.equipe(team)
+            team = self.tournament.team(team)
 
-        if self.statut == cst.P_ATTEND_TIRAGE:
-            raise StatusError(f"Round n°{self.numero} is not started (call `start`)")
-        if team.partie_existe(self.numero):
-            raise ValueError(f"Team n°{team.numero} already participates to round n°{self.numero}")
-        if match_result not in [cst.FORFAIT, cst.CHAPEAU]:
+        if self.status == cst.ROUND_WAITING_DRAW:
+            raise StatusError(f"Round n°{self.number} is not started (call `start`)")
+        if team.round_exists(self.number):
+            raise ValueError(f"Team n°{team.id} already participates to round n°{self.number}")
+        if match_result not in [cst.FORFEIT, cst.BYE]:
             raise ResultError("Can only add team with BYE of FORFEIT result")
         if try_create_match and not location:
             location = self.locations()[-1] + 1
 
-        if self.tournoi.nb_parties() != 1:
-            # Vérification que toutes les parties précédentes on été complétées
-            for num in range(1, self.numero):
-                team.resultat(num)
+        if self.tournament.nb_rounds() != 1:
+            # Check that all previous rounds have been completed
+            for num in range(1, self.number):
+                team.result(num)
 
-        if self.statut in [cst.P_EN_COURS, cst.P_COMPLETE]:
-            if match_result == cst.CHAPEAU:
-                nouv_nb_chapeaux = len(self.chapeaux()) + 1
-                if nouv_nb_chapeaux % self.tournoi.equipes_par_manche == 0 and try_create_match:
-                    chapeaux = [eq.numero for eq in self.chapeaux()]
-                    # Modifier tous les chapeaux existant
-                    for adv in self.chapeaux():
-                        m = Match(self.debut(), [team.numero] + [num for num in chapeaux if num != adv.numero])
+        if self.status in [cst.ROUND_IN_PROGRESS, cst.ROUND_COMPLETE]:
+            if match_result == cst.BYE:
+                new_nb_byes = len(self.byes()) + 1
+                if new_nb_byes % self.tournament.teams_by_match == 0 and try_create_match:
+                    byes = [t.id for t in self.byes()]
+                    # Modify all the existing byes
+                    for adv in self.byes():
+                        m = Match(self.start_time(), [team.id] + [num for num in byes if num != adv.id])
                         m.location = location
-                        adv._resultats[self.numero - 1] = m
+                        adv._results[self.number - 1] = m
 
-                    # Ajouter l'équipe
-                    team._ajout_partie(self.debut(), chapeaux, location=location)
-                    self.tournoi.changed = True
+                    # Add the team
+                    team._add_round(self.start_time(), byes, location=location)
+                    self.tournament.changed = True
                 else:
-                    # Ajouter un chapeau supplementaire
-                    team._ajout_partie(self.debut(), etat=cst.CHAPEAU)
-                    self.tournoi.changed = True
+                    # Add an extra bye
+                    team._add_round(self.start_time(), result=cst.BYE)
+                    self.tournament.changed = True
             else:
-                team._ajout_partie(self.debut(), etat=cst.FORFAIT)
-                self.tournoi.changed = True
+                team._add_round(self.start_time(), result=cst.FORFEIT)
+                self.tournament.changed = True
         else:
-            team._ajout_partie(self.debut(), etat=cst.FORFAIT)
-            self.tournoi.changed = True
+            team._add_round(self.start_time(), result=cst.FORFEIT)
+            self.tournament.changed = True
 
-    def add_result(self, match_result: dict, fin: datetime = None) -> None:
+    def add_result(self, match_result: dict, end: datetime = None) -> None:
         """
         Register new score for a match.
 
-        :param match_result: dictionary of team number and points
-        :param fin: end match time
+        :param match_result: dictionary of team identifier and points
+        :param end: end match time
         """
-        # Vérification: partie commencée
-        if self.statut == cst.P_ATTEND_TIRAGE:
-            raise StatusError(f"Round n°{self.numero} is not started")
+        # Check: round started
+        if self.status == cst.ROUND_WAITING_DRAW:
+            raise StatusError(f"Round n°{self.number} is not started")
 
-        # Vérification de l'existance de la manche
-        manche = sorted(match_result.keys())
+        # Check that the match exists
+        match = sorted(match_result.keys())
 
-        if manche not in self.manches():
-            raise ResultError(f"Match '{manche}' is not created")
+        if match not in self.matches():
+            raise ResultError(f"Match '{match}' is not created")
 
-        # Verification pas une manche chapeau
-        if cst.CHAPEAU in manche:
+        # Check it is not a bye match
+        if cst.BYE in match:
             raise ResultError("BYE team points cannot be changed")
 
-        # Recherche des gagnants
-        gagnants = []
-        gagnants_pts = max(match_result.values())
+        # Search for the winners
+        winners = []
+        winners_pts = max(match_result.values())
         for num, pts in match_result.items():
-            if pts == gagnants_pts:
-                gagnants.append(num)
+            if pts == winners_pts:
+                winners.append(num)
 
-        # Vérification: nombre de points
-        if gagnants_pts < self.tournoi.points_par_manche:
-            raise ResultError(f"At least one team must have points greater than or equal to{self.tournoi.points_par_manche}")
+        # Check: number of points
+        if winners_pts < self.tournament.points_by_match:
+            raise ResultError(f"At least one team must have points greater than or equal to{self.tournament.points_by_match}")
 
         for num in match_result:
-            if num in gagnants:
-                etat = cst.GAGNE
+            if num in winners:
+                result = cst.WON
             else:
-                etat = cst.PERDU
-            self.tournoi.equipe(int(num))._modif_partie(self.numero, match_result[num], etat, fin)
+                result = cst.LOST
+            self.tournament.team(int(num))._modify_round(self.number, match_result[num], result, end)
 
-        self.tournoi.changed = True
+        self.tournament.changed = True
 
     def locations(self) -> list:
         """
         Return the list of location used for this round.
         """
         locations = []
-        for equipe in self.equipes():
-            numero = equipe.resultat(self.numero).location
-            if numero not in locations and numero is not None:
-                locations.append(numero)
+        for team in self.teams():
+            number = team.result(self.number).location
+            if number not in locations and number is not None:
+                locations.append(number)
 
         return sorted(locations)
 
@@ -329,7 +329,7 @@ class Round:
         Delete, for each team, the matches corresponding to this round
         (used to delete a round).
         """
-        if self.statut != cst.P_ATTEND_TIRAGE:
-            for equipe in self.equipes():
-                equipe._suppr_partie(self.numero)
-            self.tournoi.changed = True
+        if self.status != cst.ROUND_WAITING_DRAW:
+            for team in self.teams():
+                team._remove_round(self.number)
+            self.tournament.changed = True

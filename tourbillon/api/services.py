@@ -14,22 +14,22 @@ from ..core import cst, tournament as core_tournament
 from ..core import draws
 from . import schemas
 
-# Status translation (legacy French constants -> stable English API values).
+# Status translation (core constants -> stable English API values).
 _TOURNAMENT_STATUS = {
-    cst.T_INSCRIPTION: "registration",
-    cst.T_ATTEND_TIRAGE: "awaiting_draw",
-    cst.T_PARTIE_EN_COURS: "round_in_progress",
+    cst.TOURNAMENT_REGISTRATION: "registration",
+    cst.TOURNAMENT_WAITING_DRAW: "awaiting_draw",
+    cst.TOURNAMENT_ROUND_IN_PROGRESS: "round_in_progress",
 }
 _ROUND_STATUS = {
-    cst.P_ATTEND_TIRAGE: "awaiting_draw",
-    cst.P_EN_COURS: "in_progress",
-    cst.P_COMPLETE: "complete",
-    cst.P_TERMINEE: "finished",
+    cst.ROUND_WAITING_DRAW: "awaiting_draw",
+    cst.ROUND_IN_PROGRESS: "in_progress",
+    cst.ROUND_COMPLETE: "complete",
+    cst.ROUND_FINISHED: "finished",
 }
 _TEAM_STATUS = {
-    cst.E_INCOMPLETE: "incomplete",
-    cst.E_ATTEND_TIRAGE: "awaiting_draw",
-    cst.E_EN_COURS: "in_progress",
+    cst.TEAM_INCOMPLETE: "incomplete",
+    cst.TEAM_WAITING_DRAW: "awaiting_draw",
+    cst.TEAM_IN_PROGRESS: "in_progress",
 }
 
 
@@ -40,9 +40,9 @@ def create_tournament(state, params):
     """Create a fresh tournament using the given (or default) parameters."""
     defaults = state.settings.new_tournament_defaults()
     trn = core_tournament.Tournament(
-        equipes_par_manche=params.teams_by_match or defaults["teams_by_match"],
-        points_par_manche=params.points_by_match or defaults["points_by_match"],
-        joueurs_par_equipe=params.players_by_team or defaults["players_by_team"],
+        teams_by_match=params.teams_by_match or defaults["teams_by_match"],
+        points_by_match=params.points_by_match or defaults["points_by_match"],
+        players_by_team=params.players_by_team or defaults["players_by_team"],
     )
     state.tournament = trn
     state.filename = None
@@ -83,12 +83,12 @@ def tournament_dto(state):
     """Return the current tournament as a :class:`schemas.TournamentDTO`."""
     trn = state.require_tournament()
     return schemas.TournamentDTO(
-        status=_TOURNAMENT_STATUS.get(trn.statut, trn.statut),
-        teams_by_match=trn.equipes_par_manche,
-        points_by_match=trn.points_par_manche,
-        players_by_team=trn.joueurs_par_equipe,
-        nb_teams=trn.nb_equipes(),
-        nb_rounds=trn.nb_parties(),
+        status=_TOURNAMENT_STATUS.get(trn.status, trn.status),
+        teams_by_match=trn.teams_by_match,
+        points_by_match=trn.points_by_match,
+        players_by_team=trn.players_by_team,
+        nb_teams=trn.nb_teams(),
+        nb_rounds=trn.nb_rounds(),
         filename=state.filename,
     )
 
@@ -96,31 +96,31 @@ def tournament_dto(state):
 def team_dto(team):
     """Return a :class:`schemas.TeamDTO` for a core team."""
     return schemas.TeamDTO(
-        number=team.numero,
+        number=team.id,
         joker=team.joker,
         players=[
-            schemas.PlayerDTO(firstname=p.prenom, lastname=p.nom)
-            for p in team.joueurs()
+            schemas.PlayerDTO(firstname=p.firstname, lastname=p.lastname)
+            for p in team.players()
         ],
-        status=_TEAM_STATUS.get(team.statut, team.statut),
+        status=_TEAM_STATUS.get(team.status, team.status),
         points=team.points(),
-        victories=team.victoires(),
-        byes=team.chapeaux(),
+        wins=team.wins(),
+        byes=team.byes(),
     )
 
 
 def round_dto(trn, rnd):
     """Return a :class:`schemas.RoundDTO` for a core round."""
     matches = []
-    for match in rnd.manches():
+    for match in rnd.matches():
         points = {}
         location = None
         finished = True
         for num in match:
-            result = trn.equipe(num).resultat(rnd.numero)
+            result = trn.team(num).result(rnd.number)
             points[num] = result.points
             location = result.location
-            if result.statut == cst.M_EN_COURS:
+            if result.status == cst.MATCH_IN_PROGRESS:
                 finished = False
         matches.append(
             schemas.MatchDTO(
@@ -130,10 +130,10 @@ def round_dto(trn, rnd):
                 finished=finished,
             )
         )
-    byes = [team.numero for team in rnd.chapeaux()]
+    byes = [team.id for team in rnd.byes()]
     return schemas.RoundDTO(
-        number=rnd.numero,
-        status=_ROUND_STATUS.get(rnd.statut, rnd.statut),
+        number=rnd.number,
+        status=_ROUND_STATUS.get(rnd.status, rnd.status),
         matches=matches,
         byes=byes,
     )
@@ -142,12 +142,12 @@ def round_dto(trn, rnd):
 def ranking_dto(trn):
     """Return the ranking as a list of :class:`schemas.RankEntryDTO`."""
     entries = []
-    for team, place in trn.classement():
+    for team, rank in trn.ranking():
         entries.append(
             schemas.RankEntryDTO(
-                place=place,
-                team=team.numero,
-                victories=team.victoires(),
+                rank=rank,
+                team=team.id,
+                wins=team.wins(),
                 points=team.points(),
             )
         )
@@ -160,15 +160,15 @@ def ranking_dto(trn):
 def list_teams(state):
     """Return every team of the current tournament as DTOs."""
     trn = state.require_tournament()
-    return [team_dto(team) for team in sorted(trn.equipes())]
+    return [team_dto(team) for team in sorted(trn.teams())]
 
 
 def add_team(state, payload):
     """Register a new team (and its players)."""
     trn = state.require_tournament()
-    team = trn.ajout_equipe(payload.number)
+    team = trn.add_team(payload.number)
     for player in payload.players:
-        team.ajout_joueur(player.firstname, player.lastname, trn.debut)
+        team.add_player(player.firstname, player.lastname)
     auto_save(state)
     return team_dto(team)
 
@@ -176,7 +176,7 @@ def add_team(state, payload):
 def delete_team(state, number):
     """Remove a team from the current tournament."""
     trn = state.require_tournament()
-    trn.suppr_equipe(number)
+    trn.remove_team(number)
     auto_save(state)
 
 
@@ -186,13 +186,13 @@ def delete_team(state, number):
 def list_rounds(state):
     """Return every round of the current tournament as DTOs."""
     trn = state.require_tournament()
-    return [round_dto(trn, rnd) for rnd in trn.parties()]
+    return [round_dto(trn, rnd) for rnd in trn.rounds()]
 
 
 def get_round(state, number):
     """Return a single round as a DTO."""
     trn = state.require_tournament()
-    return round_dto(trn, trn.partie(number))
+    return round_dto(trn, trn.round(number))
 
 
 async def create_round(state, request, on_progress=None):
@@ -206,19 +206,19 @@ async def create_round(state, request, on_progress=None):
     trn = state.require_tournament()
     algorithm = request.algorithm or state.settings.default_draw
 
-    stats = trn.statistiques()
-    byes = draws.select_bye_teams(stats, trn.equipes_par_manche, forced=request.bye_teams)
+    stats = trn.statistics()
+    byes = draws.select_bye_teams(stats, trn.teams_by_match, forced=request.bye_teams)
 
     matches = await draws.generate(
         algorithm,
-        trn.equipes_par_manche,
+        trn.teams_by_match,
         stats,
         bye_teams=byes,
         config=request.config,
         on_progress=on_progress,
     )
 
-    rnd = trn.ajout_partie()
+    rnd = trn.add_round()
     locations = trn.locations()
     match_map = {locations[i]: match for i, match in enumerate(matches)}
     rnd.start(match_map, byes=byes)
@@ -229,7 +229,7 @@ async def create_round(state, request, on_progress=None):
 def set_match_result(state, round_number, result):
     """Register the score of a match in a round."""
     trn = state.require_tournament()
-    rnd = trn.partie(round_number)
+    rnd = trn.round(round_number)
     rnd.add_result({int(k): int(v) for k, v in result.points.items()}, datetime.now())
     auto_save(state)
     return round_dto(trn, rnd)

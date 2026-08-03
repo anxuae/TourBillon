@@ -2,32 +2,6 @@
 
 """Integration tests for the FastAPI backend."""
 
-import pytest
-from fastapi.testclient import TestClient
-
-from tourbillon.api.app import create_app
-from tourbillon.settings import Settings
-
-
-@pytest.fixture
-def client(tmp_path):
-    """Return a TestClient backed by a fresh app with a temp save dir."""
-    settings = Settings({"save_dir": str(tmp_path), "auto_save": False})
-    app = create_app(settings)
-    return TestClient(app)
-
-
-@pytest.fixture
-def registered(client):
-    """Create a tournament (2 teams/match, 1 player/team) with 4 teams."""
-    client.post("/api/tournament", json={"teams_by_match": 2, "players_by_team": 1})
-    for n in range(1, 5):
-        client.post(
-            "/api/teams",
-            json={"number": n, "players": [{"firstname": f"P{n}", "lastname": "X"}]},
-        )
-    return client
-
 
 # --------------------------------------------------------------------------- #
 # Health & draws metadata
@@ -127,4 +101,4 @@ def test_ranking_after_result(registered):
 
     ranking = registered.get("/api/rankings").json()
     assert len(ranking) == 4
-    assert ranking[0]["place"] == 1
+    assert ranking[0]["rank"] == 1

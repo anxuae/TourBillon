@@ -15,7 +15,6 @@ import uvicorn
 
 import tourbillon
 from . import logger
-from .core import player
 from .api.app import create_app
 from .settings import Settings
 
@@ -67,9 +66,6 @@ def run():
         settings.host = options.host
     if options.port:
         settings.port = options.port
-
-    # Initialise the players history in the save directory.
-    player.PlayerHistory(f"{settings.save_dir}/hist_jrs")
 
     app = create_app(settings)
 

@@ -22,10 +22,10 @@ The ``deterministic`` and ``genetic`` draws enforce the Swiss-system rules
 from . import common, deterministic, genetic, random
 from ..exception import DrawError, DrawImpossibleError
 
-_MODULES = (deterministic, genetic, random)
+MODULES = (deterministic, genetic, random)
 
 # Registry: draw name -> module.
-DRAWS = {module.NAME: module for module in _MODULES}
+DRAWS = {module.NAME: module for module in MODULES}
 
 # Default algorithm (deterministic and reproducible).
 DEFAULT_DRAW = deterministic.NAME
@@ -42,7 +42,7 @@ def available():
             "description": module.DESCRIPTION,
             "default": dict(module.DEFAULT),
         }
-        for module in _MODULES
+        for module in MODULES
     ]
 
 

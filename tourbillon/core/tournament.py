@@ -27,38 +27,38 @@ def load(filename):
 
     try:
         # Save date
-        tournament.date_enregistrement = y['enregistrement']
+        tournament.save_date = y['enregistrement']
 
         # Tournament info
-        tournament.debut = y['tournoi']['debut']
-        tournament.equipes_par_manche = y['tournoi']['equipes_par_manche']
-        tournament.joueurs_par_equipe = y['tournoi']['joueurs_par_equipe']
-        tournament.points_par_manche = y['tournoi']['points_par_manche']
+        tournament.start_date = y['tournoi']['debut']
+        tournament.teams_by_match = y['tournoi']['equipes_par_manche']
+        tournament.players_by_team = y['tournoi']['joueurs_par_equipe']
+        tournament.points_by_match = y['tournoi']['points_par_manche']
 
         # Registration info
         for num in y['inscription']:
-            equipe = tournament.ajout_equipe(num, y.get('jokers', {}).get(num, 0))
-            for joueur in y['inscription'][num]:
-                equipe.ajout_joueur(joueur[0], joueur[1], tournament.debut)
+            team = tournament.add_team(num, y.get('jokers', {}).get(num, 0))
+            for player in y['inscription'][num]:
+                team.add_player(player[0], player[1])
 
         # Rounds info
         for num in y['parties']:
             for data in y['parties'][num]:
                 m = Match()
-                m.charger(data)
-                tournament.equipe(num)._resultats.append(m)
+                m.load(data)
+                tournament.team(num)._results.append(m)
 
         # Number of rounds
-        nb_parties = 0
-        for equipe in tournament.equipes():
-            if len(equipe._resultats) > nb_parties:
-                nb_parties = len(equipe._resultats)
+        nb_rounds = 0
+        for team in tournament.teams():
+            if len(team._results) > nb_rounds:
+                nb_rounds = len(team._results)
 
         # Round creation
-        for num in range(1, nb_parties + 1):
+        for num in range(1, nb_rounds + 1):
             tournament._rounds.append(Round(tournament))
 
-        tournament.date_chargement = datetime.now()
+        tournament.load_date = datetime.now()
         tournament.changed = False
     except Exception as ex:
         raise InconsistencyError(f"File '{filename}' is corrupted ({ex}).")
@@ -73,7 +73,7 @@ def dump(tournament, filename):
     if os.path.exists(filename) and not os.path.isfile(filename):
         raise FileError(f"'{filename}' is a directory")
 
-    ancienne_date = tournament.date_enregistrement
+    previous_date = tournament.save_date
     try:
         with open(filename, 'w', encoding='utf-8') as fp:
             fp.write(banner() + '\n')
@@ -85,34 +85,34 @@ def dump(tournament, filename):
             # Tournament info
             y = {}
             y['tournoi'] = {}
-            y['tournoi']['debut'] = tournament.debut
-            y['tournoi']['equipes_par_manche'] = tournament.equipes_par_manche
-            y['tournoi']['joueurs_par_equipe'] = tournament.joueurs_par_equipe
-            y['tournoi']['points_par_manche'] = tournament.points_par_manche
+            y['tournoi']['debut'] = tournament.start_date
+            y['tournoi']['equipes_par_manche'] = tournament.teams_by_match
+            y['tournoi']['joueurs_par_equipe'] = tournament.players_by_team
+            y['tournoi']['points_par_manche'] = tournament.points_by_match
             yaml.dump(y, fp, default_flow_style=False)
 
             # Registration info
             y = {}
             y['inscription'] = {}
             y['jokers'] = {}
-            for equipe in tournament.equipes():
-                y['inscription'][equipe.numero] = []
-                y['jokers'][equipe.numero] = equipe.joker
-                for joueur in equipe.joueurs():
-                    y['inscription'][equipe.numero].append([joueur.prenom, joueur.nom])
+            for team in tournament.teams():
+                y['inscription'][team.id] = []
+                y['jokers'][team.id] = team.joker
+                for player in team.players():
+                    y['inscription'][team.id].append([player.firstname, player.lastname])
             yaml.dump(y, fp, default_flow_style=False)
 
             # Rounds info
             y = {}
             y['parties'] = {}
-            for equipe in tournament.equipes():
-                y['parties'][equipe.numero] = [m.data for m in equipe._resultats]
+            for team in tournament.teams():
+                y['parties'][team.id] = [m.data for m in team._results]
             yaml.dump(y, fp, default_flow_style=False)
 
-        tournament.date_enregistrement = d
+        tournament.save_date = d
         tournament.changed = False
     except Exception as ex:
-        tournament.date_enregistrement = ancienne_date
+        tournament.save_date = previous_date
         raise IOError(f"Tournament dump failed ({ex})")
 
 
@@ -122,21 +122,21 @@ class Tournament:
     Class which represent a tournament. This class manipulates team data.
     """
 
-    def __init__(self, equipes_par_manche=2, points_par_manche=12, joueurs_par_equipe=2):
-        self.equipes_par_manche = equipes_par_manche
-        self.joueurs_par_equipe = joueurs_par_equipe
-        self.points_par_manche = points_par_manche
+    def __init__(self, teams_by_match=2, points_by_match=12, players_by_team=2):
+        self.teams_by_match = teams_by_match
+        self.players_by_team = players_by_team
+        self.points_by_match = points_by_match
 
-        self.debut = datetime.now()
-        self.date_chargement = None
-        self.date_enregistrement = None
+        self.start_date = datetime.now()
+        self.load_date = None
+        self.save_date = None
 
         self.changed = False
         self._teams = {}
         self._rounds = []
 
     def __str__(self):
-        texte = """
+        text = """
         Billon Tournament:
             Date                : %s
             Number of rounds    : %s
@@ -147,279 +147,277 @@ class Tournament:
 
             Status              : %s
         """
-        return texte % (self.debut,
-                        len(self.parties()),
-                        len(self._teams),
-                        self.equipes_par_manche,
-                        self.points_par_manche,
-                        self.joueurs_par_equipe,
-                        self.statut)
+        return text % (self.start_date,
+                       len(self.rounds()),
+                       len(self._teams),
+                       self.teams_by_match,
+                       self.points_by_match,
+                       self.players_by_team,
+                       self.status)
 
     @property
-    def statut(self):
+    def status(self):
         """
         Return tournament status.
 
-        T_INSCRIPTION     => No round started
-        T_ATTEND_TIRAGE   => Last round is finished
-        T_PARTIE_EN_COURS => A round is in progress
+        TOURNAMENT_REGISTRATION      => No round started
+        TOURNAMENT_WAITING_DRAW      => Last round is finished
+        TOURNAMENT_ROUND_IN_PROGRESS => A round is in progress
         """
-        # Impossibilité de créer une manche
-        if self.nb_equipes() < self.equipes_par_manche:
-            return cst.T_INSCRIPTION
+        # Impossible to create a match
+        if self.nb_teams() < self.teams_by_match:
+            return cst.TOURNAMENT_REGISTRATION
 
-        # Toutes les informations ne sont pas entrées
-        for equipe in self.equipes():
-            if equipe.statut == cst.E_INCOMPLETE:
-                return cst.T_INSCRIPTION
+        # Not all the information has been entered
+        for team in self.teams():
+            if team.status == cst.TEAM_INCOMPLETE:
+                return cst.TOURNAMENT_REGISTRATION
 
-        # Etat de la partie courante
-        if self.partie_courante() is None:
-            return cst.T_ATTEND_TIRAGE
+        # State of the current round
+        if self.current_round() is None:
+            return cst.TOURNAMENT_WAITING_DRAW
         else:
-            if self.partie_courante().statut in [cst.P_COMPLETE, cst.P_TERMINEE]:
-                return cst.T_ATTEND_TIRAGE
+            if self.current_round().status in [cst.ROUND_COMPLETE, cst.ROUND_FINISHED]:
+                return cst.TOURNAMENT_WAITING_DRAW
             else:
-                return cst.T_PARTIE_EN_COURS
+                return cst.TOURNAMENT_ROUND_IN_PROGRESS
 
-    def statistiques(self, equipes_exclue=None, partie_limite=None):
+    def statistics(self, excluded_teams=None, round_limit=None):
         """
-        Statistiques sur les parties précédentes des équipes spécifiées.
+        Statistics on the previous rounds of the specified teams.
         """
         stat = {}
-        classement = dict(self.classement())
-        for equipe in self.equipes():
-            if not equipes_exclue or equipe not in equipes_exclue:
+        ranking = dict(self.ranking())
+        for team in self.teams():
+            if not excluded_teams or team not in excluded_teams:
 
-                stat[equipe.numero] = {cst.STAT_POINTS: equipe.points(partie_limite),
-                                       cst.STAT_VICTOIRES: equipe.victoires(partie_limite),
-                                       cst.STAT_CHAPEAUX: equipe.chapeaux(partie_limite),
-                                       cst.STAT_ADVERSAIRES: equipe.adversaires(partie_limite),
-                                       cst.STAT_MANCHES: equipe.manches(partie_limite),
-                                       cst.STAT_PLACE: classement[equipe]}
+                stat[team.id] = {cst.STAT_POINTS: team.points(round_limit),
+                                 cst.STAT_WINS: team.wins(round_limit),
+                                 cst.STAT_BYES: team.byes(round_limit),
+                                 cst.STAT_OPPONENTS: team.opponents(round_limit),
+                                 cst.STAT_MATCHES: team.matches(round_limit),
+                                 cst.STAT_RANK: ranking[team]}
         return stat
 
     def locations(self):
         """
-        Retourne une liste de numéros de piquets disponibles
-        pour ce tournoi. Se base sur la partie précédentes
-        afin de determiner si des numéros de piquets doivent
-        être ignorés (piquet dégradé).
+        Return a list of available location numbers for this tournament. It is
+        based on the previous round in order to determine if some location
+        numbers must be ignored (degraded location).
 
-        Pas de piquet prévu pour les chapeaux.
+        No location planned for the byes.
         """
-        nombre = self.nb_equipes() // self.equipes_par_manche
+        number = self.nb_teams() // self.teams_by_match
         locations = []
         i = 1
-        if self.partie_courante():
-            for p in self.partie_courante().locations():
-                if len(locations) == nombre:
+        if self.current_round():
+            for p in self.current_round().locations():
+                if len(locations) == number:
                     break
                 locations.append(p)
             if locations:
                 i = locations[-1] + 1
 
-        while i <= nombre:
+        while i <= number:
             locations.append(i)
             i += 1
 
         return locations
 
-    def nb_equipes(self):
+    def nb_teams(self):
         """
-        Retourne le nombre d'équipes inscrites.
+        Return the number of registered teams.
         """
         return len(self._teams)
 
-    def equipe(self, numero):
+    def team(self, id):
         """
-        Retourne l'équipe avec le numéro spécifié.
+        Return the team with the specified identifier.
 
-        numero (int)
+        :param id: team identifier (int)
         """
-        if type(numero) == Team:
-            return numero
-        elif numero not in self._teams:
-            raise ValueError("L'équipe n°%s n'existe pas." % numero)
+        if type(id) == Team:
+            return id
+        elif id not in self._teams:
+            raise ValueError("Team n°%s does not exist." % id)
         else:
-            return self._teams[numero]
+            return self._teams[id]
 
-    def equipes(self):
+    def teams(self):
         """
-        Retourne les équipes sous forme de liste.
+        Return the teams as a list.
         """
         return list(self._teams.values())
 
-    def generer_numero_equipe(self):
+    def generate_team_id(self):
         """
-        Retourne un numéro d'équipe non utilisé
+        Return an unused team identifier.
         """
         i = 1
         while i in self._teams:
             i += 1
         return i
 
-    def generer_numero_joker(self):
+    def generate_joker(self):
         """
-        Retourne un numéro aléetoir entre 1 et 1000 non utilisé
+        Return an unused random number between 1 and 1000.
         """
-        if self.nb_equipes() > 1000:
-            raise ValueError("La limite de joueurs est atteinte")
-        choix = list(range(1, 1001))
-        for equipe in self.equipes():
-            if equipe.joker in choix:
-                choix.remove(equipe.joker)
-        return random.choice(choix)
+        if self.nb_teams() > 1000:
+            raise ValueError("The player limit has been reached")
+        choices = list(range(1, 1001))
+        for team in self.teams():
+            if team.joker in choices:
+                choices.remove(team.joker)
+        return random.choice(choices)
 
-    def ajout_equipe(self, numero=None, joker=0):
+    def add_team(self, id=None, joker=0):
         """
-        Ajoute et retourne une nouvelle équipe avec le
-        numéro spécifié. Si pas de numéro donné, le plus petit numéro
-        disponible est choisi.
+        Add and return a new team with the specified identifier. If no
+        identifier is given, the smallest available one is chosen.
 
-        numero (int)
+        :param id: team identifier (int)
         """
-        if numero is None:
-            numero = self.generer_numero_equipe()
-        if numero in self._teams:
-            raise ValueError("L'équipe n°%s existe déjà." % numero)
+        if id is None:
+            id = self.generate_team_id()
+        if id in self._teams:
+            raise ValueError("Team n°%s already exists." % id)
 
-        eq = Team(self, numero, joker)
-        self._teams[eq.numero] = eq
+        team = Team(self, id, joker)
+        self._teams[team.id] = team
         self.changed = True
-        return eq
+        return team
 
-    def suppr_equipe(self, numero):
+    def remove_team(self, id):
         """
-        Supprime et retourne une équipe avec le numéro spécifié.
+        Remove and return the team with the specified identifier.
 
-        numero (int)
+        :param id: team identifier (int)
         """
-        if numero not in self._teams:
-            raise ValueError("L'équipe n°%s n'existe pas." % numero)
+        if id not in self._teams:
+            raise ValueError("Team n°%s does not exist." % id)
 
-        eq = self._teams.pop(numero)
+        team = self._teams.pop(id)
         self.changed = True
-        return eq
+        return team
 
-    def modif_numero_equipe(self, numero, nouv_numero):
+    def change_team_id(self, id, new_id):
         """
-        Modifie le numéro d'une équipe. Ne peut se faire que si
-        aucune partie n'a été commencée.
+        Change the identifier of a team. Can only be done if no round has
+        been started.
 
-        numero (int)
-        nouv_numero (int)
+        :param id: current team identifier (int)
+        :param new_id: new team identifier (int)
         """
-        if self.nb_parties() != 0:
-            raise StatusError("Le numéro de l'équipe n°%s ne peut pas être changé." % numero)
-        if nouv_numero in self._teams:
-            raise ValueError("L'équipe n°%s existe déjà." % nouv_numero)
+        if self.nb_rounds() != 0:
+            raise StatusError("The identifier of team n°%s cannot be changed." % id)
+        if new_id in self._teams:
+            raise ValueError("Team n°%s already exists." % new_id)
 
-        equipe = self._teams.pop(numero)
-        equipe._num = nouv_numero
-        self._teams[nouv_numero] = equipe
+        team = self._teams.pop(id)
+        team._id = new_id
+        self._teams[new_id] = team
         self.changed = True
 
-    def nb_parties(self):
+    def nb_rounds(self):
         """
-        Retourne le nombre de parties.
+        Return the number of rounds.
         """
-        return len(self.parties())
+        return len(self.rounds())
 
-    def partie(self, numero):
+    def round(self, number):
         """
-        Retourne la partie avec le numéro spécifié.
+        Return the round with the specified number.
 
-        numero (int)
+        :param number: round number (int)
         """
-        if type(numero) == Round:
-            return numero
-        elif numero not in range(1, len(self.parties()) + 1):
-            raise ValueError("La partie n°%s n'existe pas." % numero)
+        if type(number) == Round:
+            return number
+        elif number not in range(1, len(self.rounds()) + 1):
+            raise ValueError("Round n°%s does not exist." % number)
         else:
-            return self.parties()[numero - 1]
+            return self.rounds()[number - 1]
 
-    def partie_courante(self):
+    def current_round(self):
         """
-        Retourne la dernière partie du tournoi.
+        Return the last round of the tournament.
         """
-        if len(self.parties()) != 0:
-            return self.parties()[-1]
+        if len(self.rounds()) != 0:
+            return self.rounds()[-1]
         else:
             return None
 
-    def parties(self):
+    def rounds(self):
         """
-        Retourne les parties sous forme de liste.
+        Return the rounds as a list.
         """
         return self._rounds
 
-    def ajout_partie(self):
+    def add_round(self):
         """
-        Ajoute et retourne une nouvelle partie.
+        Add and return a new round.
         """
-        if self.statut == cst.T_INSCRIPTION:
-            raise StatusError("Impossible de créer une partie (inscriptions en cours).")
-        elif self.statut == cst.T_PARTIE_EN_COURS:
-            raise StatusError("Impossible de créer une nouvelle partie (partie courante: %s)." %
-                              (self.partie_courante().statut))
+        if self.status == cst.TOURNAMENT_REGISTRATION:
+            raise StatusError("Cannot create a round (registration in progress).")
+        elif self.status == cst.TOURNAMENT_ROUND_IN_PROGRESS:
+            raise StatusError("Cannot create a new round (current round: %s)." %
+                              (self.current_round().status))
 
-        partie = Round(self)
-        self.parties().append(partie)
+        round = Round(self)
+        self.rounds().append(round)
         self.changed = True
-        return partie
+        return round
 
-    def suppr_partie(self, numero):
+    def remove_round(self, number):
         """
-        Supprimer la partie correspondante au numéro spécifié.
+        Remove the round corresponding to the specified number.
 
-        numero (int)
+        :param number: round number (int)
         """
-        if numero > len(self.parties()) or numero < 1:
-            raise ValueError("La partie n°%s n'existe pas." % numero)
+        if number > len(self.rounds()) or number < 1:
+            raise ValueError("Round n°%s does not exist." % number)
         else:
-            self.partie(numero).delete()
-            self.parties().pop(numero - 1)
+            self.round(number).delete()
+            self.rounds().pop(number - 1)
             self.changed = True
 
-    def manches(self):
+    def matches(self):
         """
-        Retourne la liste des manches qui ont déjà eu lieu durant le tournoi.
-        (Les chapeaux et les forfaits sont exclus des manches, voir la définition
-        des manches d'une partie)
+        Return the list of matches that already took place during the tournament.
+        (Byes and forfeits are excluded from matches, see the definition of the
+        matches of a round)
         """
-        manches = []
-        for partie in self.parties():
-            for manche in partie.manches():
-                manches.append(manche)
-        return manches
+        matches = []
+        for round in self.rounds():
+            for match in round.matches():
+                matches.append(match)
+        return matches
 
-    def comparer(self, team1, team2, partie_limite=None):
+    def compare(self, team1, team2, round_limit=None):
         """
-        Comparer la force de deux équipes. La comparaison se fait en fonction du
-        nombre de victoires (si activé), du nombre de points, du numéro joker
-        et enfin de la durée moyenne d'une partie (si activé).
+        Compare the strength of two teams. The comparison is based on the number
+        of wins (if enabled), the number of points, the joker number and finally
+        the average duration of a round (if enabled).
 
-        equipe1 (Equipe instance)
-        equipe2 (Equipe instance)
-        partie_limite (int) limite pour le calcul pour la comparaison
+        :param team1: Team instance
+        :param team2: Team instance
+        :param round_limit: limit for the comparison computation
         """
         if type(team1) != Team or type(team2) != Team:
-            raise TypeError("Une équipe doit être comparée à une autre.")
+            raise TypeError("A team must be compared to another one.")
 
-        # priorité 1: comparaison des victoires
-        vic = team1.victoires(partie_limite) + team1.chapeaux(partie_limite) - \
-            team2.victoires(partie_limite) - team2.chapeaux(partie_limite)
+        # priority 1: comparison of wins
+        vic = team1.wins(round_limit) + team1.byes(round_limit) - \
+            team2.wins(round_limit) - team2.byes(round_limit)
         if vic > 0:
             vic = 1
         elif vic < 0:
             vic = -1
 
-        if self.cmp_avec_victoires and vic != 0:
+        if self.cmp_with_wins and vic != 0:
             return vic
 
-        # priorité 2: comparaison des points
-        pts = team1.points(partie_limite) - team2.points(partie_limite)
+        # priority 2: comparison of points
+        pts = team1.points(round_limit) - team2.points(round_limit)
         if pts > 0:
             pts = 1
         elif pts < 0:
@@ -428,63 +426,59 @@ class Tournament:
         if pts != 0:
             return pts
 
-        # priorité 3: comparaison des numéro joker
+        # priority 3: comparison of joker numbers
         joker = team1.joker - team2.joker
         if joker > 0:
             joker = 1
         elif joker < 0:
             joker = -1
 
-        if self.cmp_avec_joker and joker != 0:
+        if self.cmp_with_joker and joker != 0:
             return joker
 
-        # priorité 4: comparaison des durées moyennes
-        # (equipe superieure si durée mini)
-        if team1.moyenne_duree(partie_limite) < team2.moyenne_duree(partie_limite):
+        # priority 4: comparison of average durations
+        # (team is superior if smaller duration)
+        if team1.average_duration(round_limit) < team2.average_duration(round_limit):
             dur = 1
-        elif team1.moyenne_duree(partie_limite) == team2.moyenne_duree(partie_limite):
+        elif team1.average_duration(round_limit) == team2.average_duration(round_limit):
             dur = 0
-        elif team1.moyenne_duree(partie_limite) > team2.moyenne_duree(partie_limite):
+        elif team1.average_duration(round_limit) > team2.average_duration(round_limit):
             dur = -1
 
-        if self.cmp_avec_duree and dur != 0:
+        if self.cmp_with_duration and dur != 0:
             return dur
 
         return 0
 
-    def classement(self, avec_victoires=True, avec_joker=True, avec_duree=True, partie_limite=None):
+    def ranking(self, with_wins=True, with_joker=True, with_duration=True, round_limit=None):
         """
-        Retourne une liste de tuple indiquant l'équipe et sa place
-        dans le classement. En cas d'égalité, la ou les places
-        suivant les ex aequo ne seront plus utilisées afin de garder
-        un numéro de place correspondant au nombre d'équipe.
+        Return a list of tuples indicating the team and its place in the
+        ranking. In case of a tie, the place(s) following the ex aequo are no
+        longer used in order to keep a place number matching the number of teams.
 
-        Exemple:
+        Example:
             [(12, 1), (4, 2), (7, 2), (9, 4)...]
 
-        avec_victoires (bool): le classement tient compte du nombre de
-                               victoires de l'équipe.
-        avec_joker (bool)    : le classement tient compte du plus grand
-                               numéro joker.
-        avec_duree (bool)    : le classement tient compte de la durée
-                               moyenne d'une partie
-        partie_limite (int)  : limite pour le calcul du classement
+        :param with_wins: the ranking takes into account the number of wins of the team.
+        :param with_joker: the ranking takes into account the greatest joker number.
+        :param with_duration: the ranking takes into account the average duration of a round.
+        :param round_limit: limit for the ranking computation
         """
-        self.cmp_avec_victoires = avec_victoires
-        self.cmp_avec_joker = avec_joker
-        self.cmp_avec_duree = avec_duree
-        l = sorted(self.equipes(), key=cmp_to_key(partial(self.comparer, partie_limite=partie_limite)), reverse=True)
+        self.cmp_with_wins = with_wins
+        self.cmp_with_joker = with_joker
+        self.cmp_with_duration = with_duration
+        l = sorted(self.teams(), key=cmp_to_key(partial(self.compare, round_limit=round_limit)), reverse=True)
 
-        classement = []
+        ranking = []
 
-        if self.nb_equipes() != 0:
+        if self.nb_teams() != 0:
             place = 1
-            classement.append((l[0], place))
+            ranking.append((l[0], place))
             i = 1
             while i < len(l):
-                if self.comparer(l[i - 1], l[i]) != 0:
+                if self.compare(l[i - 1], l[i]) != 0:
                     place = i + 1
-                classement.append((l[i], place))
+                ranking.append((l[i], place))
                 i += 1
 
-        return classement
+        return ranking

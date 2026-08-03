@@ -6,46 +6,10 @@ import asyncio
 
 import pytest
 
+from conftest import make_stats
 from tourbillon.core import cst, draws
 from tourbillon.core.draws import common
 from tourbillon.core.exception import DrawError, DrawImpossibleError
-
-
-def make_stats(specs):
-    """Build a ``stats`` mapping from a compact spec.
-
-    :param specs: dict ``{team_number: (points, victories, byes)}``
-    :return: statistics mapping compatible with the draws
-    """
-    stats = {}
-    ordered = sorted(
-        specs.items(),
-        key=lambda kv: (kv[1][1] + kv[1][2], kv[1][0]),
-        reverse=True,
-    )
-    ranking = {num: i + 1 for i, (num, _) in enumerate(ordered)}
-    for num, (points, victories, byes) in specs.items():
-        stats[num] = {
-            cst.STAT_POINTS: points,
-            cst.STAT_VICTOIRES: victories,
-            cst.STAT_CHAPEAUX: byes,
-            cst.STAT_ADVERSAIRES: [],
-            cst.STAT_MANCHES: [],
-            cst.STAT_PLACE: ranking[num],
-        }
-    return stats
-
-
-@pytest.fixture
-def stats_even():
-    """8 teams, all distinct strengths, no history."""
-    return make_stats({n: (n * 3, n % 4, 0) for n in range(1, 9)})
-
-
-@pytest.fixture
-def stats_odd():
-    """7 teams (an odd number -> one BYE needed for pairs)."""
-    return make_stats({n: (n * 3, n % 3, 0) for n in range(1, 8)})
 
 
 # --------------------------------------------------------------------------- #
@@ -163,10 +127,10 @@ async def test_swiss_respects_max_disparity(name):
 async def test_swiss_avoids_rematch(name):
     stats = make_stats({n: (n, 1, 0) for n in range(1, 5)})
     # Teams 1 & 2 have already played together.
-    stats[1][cst.STAT_ADVERSAIRES] = [2]
-    stats[2][cst.STAT_ADVERSAIRES] = [1]
-    stats[1][cst.STAT_MANCHES] = [[1, 2]]
-    stats[2][cst.STAT_MANCHES] = [[1, 2]]
+    stats[1][cst.STAT_OPPONENTS] = [2]
+    stats[2][cst.STAT_OPPONENTS] = [1]
+    stats[1][cst.STAT_MATCHES] = [[1, 2]]
+    stats[2][cst.STAT_MATCHES] = [[1, 2]]
 
     matches = await draws.generate(name, 2, stats, config={"max_disparity": 2})
     assert [1, 2] not in matches
@@ -178,8 +142,8 @@ async def test_swiss_impossible_raises(name):
     stats = make_stats({n: (n, 0, 0) for n in range(1, 5)})
     everyone = [1, 2, 3, 4]
     for n in everyone:
-        stats[n][cst.STAT_ADVERSAIRES] = [x for x in everyone if x != n]
-        stats[n][cst.STAT_MANCHES] = [sorted([n, x]) for x in everyone if x != n]
+        stats[n][cst.STAT_OPPONENTS] = [x for x in everyone if x != n]
+        stats[n][cst.STAT_MATCHES] = [sorted([n, x]) for x in everyone if x != n]
     with pytest.raises(DrawImpossibleError):
         await draws.generate(
             name, 2, stats, config={"max_disparity": 5, "allow_rematch": False}
@@ -209,8 +173,8 @@ async def test_random_is_reproducible_with_seed(stats_even):
 # --------------------------------------------------------------------------- #
 
 async def test_draw_on_loaded_tournament(trb4e1j):
-    stats = trb4e1j.statistiques()
-    teams_by_match = trb4e1j.equipes_par_manche
+    stats = trb4e1j.statistics()
+    teams_by_match = trb4e1j.teams_by_match
 
     byes = draws.select_bye_teams(stats, teams_by_match)
     matches = await draws.generate(
@@ -221,3 +185,59 @@ async def test_draw_on_loaded_tournament(trb4e1j):
     expected = sorted(n for n in stats if n not in byes)
     assert flat == expected
     assert all(len(match) == teams_by_match for match in matches)
+
+
+# --------------------------------------------------------------------------- #
+# Deterministic replay of a real tournament, round after round
+# --------------------------------------------------------------------------- #
+#
+# We cannot expect the deterministic draw to reproduce the *exact* historical
+# opponents: the first round of the archived tournament was drawn at random
+# (no history, every team equal) and the legacy pairing algorithm differs from
+# the current one. So we skip the first round and replay from round 2 onwards.
+# What we *can* guarantee is that, when fed with the real
+# statistics accumulated before each round, the deterministic draw:
+#   * pairs every playing team exactly once (complete partition),
+#   * never rematches teams that already met in the real tournament,
+#   * keeps the win disparity of each match within the configured limit,
+#   * is reproducible: the very same statistics always yield the very same
+#     opponents.
+
+async def test_deterministic_replays_real_tournament(trb4e1j):
+    teams_by_match = trb4e1j.teams_by_match
+    max_disparity = draws.default_config("deterministic")["max_disparity"]
+
+    # Skip the first round: it was drawn at random (no history, every team
+    # equal), so it cannot be reproduced deterministically. Replay from round 2.
+    for number in range(2, trb4e1j.nb_rounds() + 1):
+        played = trb4e1j.round(number)
+
+        # Statistics as they stood *before* this round was drawn.
+        stats = trb4e1j.statistics(round_limit=number - 1)
+        forced_byes = sorted(team.id for team in played.byes())
+        byes = draws.select_bye_teams(stats, teams_by_match, forced=forced_byes)
+
+        matches = await draws.generate(
+            "deterministic", teams_by_match, stats, bye_teams=byes
+        )
+
+        # Complete partition of every playing team.
+        flat = sorted(num for match in matches for num in match)
+        expected = sorted(num for num in stats if num not in byes)
+        assert flat == expected
+        assert all(len(match) == teams_by_match for match in matches)
+
+        # No rematch against the real accumulated history.
+        for match in matches:
+            assert not common.has_already_played(stats, match)
+
+        # Win disparity kept within the configured limit.
+        for match in matches:
+            assert common.disparity(stats, match) <= max_disparity
+
+        # Same statistics -> same opponents (deterministic and reproducible).
+        again = await draws.generate(
+            "deterministic", teams_by_match, stats, bye_teams=byes
+        )
+        assert matches == again
+

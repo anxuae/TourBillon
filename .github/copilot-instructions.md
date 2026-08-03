@@ -1,8 +1,8 @@
-# TourBillon — Instructions Copilot & Plan de refonte
+# TourBillon — Instructions Copilot & documentation technique
 
 > Ce fichier sert de **contexte permanent** pour tout développement sur TourBillon.
-> Chargez-le systématiquement avant de coder. Il décrit le domaine métier, l'état
-> actuel du code et le plan de migration de wxPython vers une architecture web.
+> Chargez-le systématiquement avant de coder. Il décrit le domaine métier et
+> l'architecture actuelle du projet (backend FastAPI + frontend Vue 3).
 
 ---
 
@@ -36,236 +36,167 @@ d'un ou plusieurs joueur(s).
   `teams_by_match`), une équipe est mise « au chapeau » : elle ne joue pas ce round.
 - L'équipe désignée est choisie **parmi les plus faibles** du classement (celles
   qui n'ont pas encore été chapeau en priorité) et est déclarée **gagnante d'office**.
-- Elle marque un nombre de points forfaitaire égal au paramètre **`points_par_manche`**
+- Elle marque un nombre de points forfaitaire égal au paramètre **`points_by_match`**
   (points de victoire d'une manche, p. ex. 12) et compte comme une **partie gagnée**.
 - Une même équipe ne doit pas être chapeau deux fois dans la mesure du possible.
 
-### Vocabulaire (le code mélange français et anglais — à uniformiser en anglais)
-| Français (legacy)   | Anglais (cible)   | Description                                        |
+### Vocabulaire (anglais dans tout le code)
+| Concept             | Terme (code)      | Description                                        |
 |---------------------|-------------------|----------------------------------------------------|
-| Tournoi             | Tournament        | L'événement complet                                |
-| Partie              | Round             | Un tour d'appariements (Swiss round)               |
-| Manche              | Match             | Une rencontre entre `teams_by_match` équipes       |
-| Équipe              | Team              | Une équipe (1..N joueurs)                           |
-| Joueur              | Player            | Un joueur                                          |
-| Tirage              | Draw              | L'algorithme d'appariement d'un round              |
-| Chapeau             | Bye               | Équipe sans adversaire sur un round (points forfait)|
-| Piquet / location   | Location / lane   | Emplacement physique de jeu                        |
-| Classement          | Ranking           | Classement des équipes                             |
+| Tournoi             | `tournament`      | L'événement complet                                |
+| Partie / tour       | `round`           | Un tour d'appariements (Swiss round)               |
+| Manche / rencontre  | `match`           | Une rencontre entre `teams_by_match` équipes       |
+| Équipe              | `team`            | Une équipe (1..N joueurs)                           |
+| Joueur              | `player`          | Un joueur                                          |
+| Tirage              | `draw`            | L'algorithme d'appariement d'un round              |
+| Chapeau             | `bye`             | Équipe sans adversaire sur un round (points forfait)|
+| Piquet / emplacement| `location`        | Emplacement physique de jeu                        |
+| Classement          | `ranking` / `rank`| Classement des équipes / rang d'une équipe         |
+| Victoire            | `win` / `wins`    | Partie gagnée (terme retenu ; **pas** `victory`)   |
+| Score d'une manche  | `score`           | Points marqués sur une manche                      |
+
+> **Joker** : le terme `joker` est conservé (intelligible en anglais). C'est un
+> nombre de départage **optionnel** saisi à l'inscription d'une équipe (valeur par
+> défaut `0`). L'UI doit permettre de le saisir sans le rendre obligatoire. Il n'est
+> utilisé que pour départager le classement.
+
+> **Identifiant d'équipe** : le numéro d'équipe est un **identifiant** (`team.id`,
+> pas `number`). Le numéro d'un **round** reste un numéro séquentiel (`round.number`).
+
+> **Uniformisation du vocabulaire** : utiliser **`wins`** (et non `victories`) et
+> **`rank`** (et non `place`). Le classement expose `rank` ; une équipe expose `wins`.
 
 ### États (voir `tourbillon/core/cst.py`)
-- **Match** : `M_EN_COURS`, `M_TERMINEE`
-- **Team** : `E_INCOMPLETE`, `E_ATTEND_TIRAGE`, `E_EN_COURS`
-- **Round** : `P_ATTEND_TIRAGE`, `P_EN_COURS`, `P_COMPLETE`, `P_TERMINEE`
-- **Tournament** : `T_INSCRIPTION`, `T_ATTEND_TIRAGE`, `T_PARTIE_EN_COURS`
+- **Match** : `MATCH_IN_PROGRESS`, `MATCH_FINISHED`
+- **Team** : `TEAM_INCOMPLETE`, `TEAM_WAITING_DRAW`, `TEAM_IN_PROGRESS`
+- **Round** : `ROUND_WAITING_DRAW`, `ROUND_IN_PROGRESS`, `ROUND_COMPLETE`, `ROUND_FINISHED`
+- **Tournament** : `TOURNAMENT_REGISTRATION`, `TOURNAMENT_WAITING_DRAW`, `TOURNAMENT_ROUND_IN_PROGRESS`
+- **Résultat de manche** (valeurs **persistées en français** pour la rétro-compat des
+  archives — ne pas changer les chaînes) : `BYE='chapeau'`, `WON='gagné'`,
+  `LOST='perdu'`, `FORFEIT='forfait'`.
 
 ---
 
-## 2. État actuel du code (legacy)
-
-### Structure `TourBillon/tourbillon/`
-- `__main__.py` — point d'entrée ; choisit GUI (wxPython) ou serveur selon options.
-- `config.py`, `logger.py` — configuration et logs.
-- `core/` — **cœur métier réutilisable** :
-  - `tournament.py` — classe `Tournament` (+ `load`/`dump` YAML).
-  - `round.py` — classe `Round`.
-  - `team.py` — classe `Team`.
-  - `player.py` — classe `Player` + `PlayerHistory`.
-  - `match.py` — classe `Match`.
-  - `cst.py` — constantes d'état.
-  - `exception.py` — exceptions métier.
-  - `draws/` — algorithmes de tirage (voir §3).
-- `gui/` — **interface wxPython (à supprimer)** : `app.py`, `fenetre.py`, `grille.py`,
-  `dlg*.py`, `barres.py`, `evenements.py`.
-- `server/app.py` — squelette serveur non implémenté (`TourBillonServer`).
-- `assets/` — ressources statiques hors code : `banner.txt` (entête ASCII écrite en
-  tête des dumps YAML) exposée via `assets.banner()`. L'ancien dossier `images/`,
-  spécifique wxPython, a été supprimé.
-
-### Persistance
-- Format **YAML** (`.yml` / `.trb`), voir `Sauvegardes Tournois/`.
-- Clés YAML en français : `tournoi`, `inscription`, `jokers`, `parties`, `enregistrement`.
-- **À conserver** : la rétro-compatibilité de lecture des anciens fichiers est
-  obligatoire (données historiques 2005→aujourd'hui).
-
-### Le projet `billon-web/` (prototype existant)
-- FastAPI minimal (`main.py`) + pages HTML statiques (`ranking.html`, `round.html`)
-  + jQuery. Lit les données via `billon/loader.py`, `rankings.py`, `rounds.py`.
-- **Rôle** : c'est une **HMI d'affichage** (dashboard) destinée à montrer les
-  résultats de la partie en cours sur **écran géant** (classement, matchs du round).
-  Lecture seule, pas de saisie. Sert de **base d'inspiration** pour l'interface
-  d'affichage (voir §6), mais sera remplacé/fusionné (abandon de jQuery).
-
----
-
-## 3. Algorithmes de tirage (`core/draws/`)
-
-Chargement dynamique des modules dans `draws/__init__.py` ; chaque module expose
-une classe `ThreadTirage` avec `NOM`, `DESCRIPTION`, `DEFAUT` (config).
-
-Modules présents : `ascending.py`, `level_ag.py`, `level_dt.py`, `random_ag.py`,
-plus des `.pyc` legacy (algorithmes génétiques `*_ag`, `*_dt`).
-
-**Correspondance legacy → cible** (repartir de zéro, supprimer le legacy) :
-- `level_dt` (`*_dt`) → nouveau tirage **`deterministic`**.
-- `level_ag` (`*_ag`) → nouveau tirage **`genetic`**.
-- `random_ag` → nouveau tirage **`random`** (sans règles suisses).
-- `ascending` et les autres variantes legacy → **supprimés**.
-Les anciens modules servent uniquement de **référence** (règles, calculs) ; le code
-est réécrit proprement (async, typage primitif, testable), pas migré tel quel.
-
-### Problèmes actuels
-- Basés sur `threading.Thread` (`BaseThreadTirage` dans `utils.py`) avec `Event`,
-  callbacks et rapports — complexe et difficile à tester.
-- Mélange de la logique de calcul et de la mécanique de threads.
-- Algorithmes génétiques (`*_ag`) coûteux et peu déterministes.
-
-### Cible
-- **Fonctions/coroutines pures** : `async def draw(...) -> list[Match]`.
-- Remplacer `threading` par **`asyncio`** (+ `run_in_executor` si CPU-bound, ou
-  `anyio.to_thread` pour les gros calculs). Progression via `async` generator /
-  callback `async`.
-- **Trois types de tirages à refaire** (les autres variantes legacy sont supprimées) :
-  1. **Déterministe** (`deterministic`) — applique les règles du système suisse.
-     Calcule une **matrice de possibilités** d'appariements (compatibilités entre
-     équipes selon victoires, re-rencontres, `max_disparity`) puis en dérive un
-     appariement valide. À **optimiser via du calcul matriciel** (p. ex. `numpy`)
-     pour accélérer le calcul sur beaucoup d'équipes. Algorithme **par défaut**
-     (déterministe et reproductible).
-  2. **Génétique** (`genetic`) — applique aussi les règles du système suisse.
-     Recherche heuristique (population/mutation/sélection) pour les cas où l'espace
-     de solutions est trop grand ; CPU-bound → isoler via un executor. Rendre le
-     résultat **reproductible** en tests (seed fixée).
-  3. **Aléatoire** (`random`) — **n'applique pas** les règles du système suisse.
-     Appariement purement aléatoire (utile pour tests, démo, ou premier round sans
-     historique). Seed configurable pour la reproductibilité.
-- Respecter la contrainte **`max_disparity`** (§1) — paramètre **de tirage** fourni
-  via `config`, pas un paramètre global : n'apparier que des équipes dont l'écart de
-  victoires est `<= max_disparity`. Si aucun appariement valide n'existe, lever une
-  exception métier (voir `core/exception.py`) invitant l'opérateur à augmenter le
-  paramètre — ne pas produire un tirage invalide. (Ne s'applique pas au tirage
-  `random`, qui ignore les règles suisses.)
-- API cible d'un tirage (typage primitif uniquement, pas d'import `typing`) :
-  ```python
-  async def generate_draw(
-      teams_by_match: int,
-      stats: dict,
-      bye_teams: list = (),
-      config: dict | None = None,
-      on_progress=None,  # optional async callback: async (percent: float, message: str)
-  ) -> list:            # list of matches, each a tuple of team numbers
-      ...
-  ```
-
----
-
-## 4. Objectifs de la refonte
-
-1. **Supprimer wxPython** et tout le dossier `gui/`.
-2. **Interface 100 % web** : backend API + frontend web moderne.
-3. **Simplifier les tirages** : logique pure, `asyncio` au lieu de `threading`.
-4. **Conserver le cœur métier** `core/` (Tournament/Round/Team/Player/Match) en le
-   nettoyant progressivement (nommage anglais, typage, tests).
-5. **Garder la compatibilité YAML** en lecture (fichiers historiques).
-6. **Refondre la configuration** (`config.py`) : purger les paramètres liés à
-   wxPython, réorganiser autour des nouveaux besoins (API, UI web, tirages).
-
-### Non-objectifs (pour l'instant)
-- Réécriture complète du modèle de données (migration progressive préférée).
-- Changement de format de persistance (YAML conservé, DB optionnelle plus tard).
-
----
-
-## 5. Architecture cible
+## 2. Architecture du projet
 
 ```
-tourbillon/
-  core/                 # Domaine métier (conservé, nettoyé, typé, testé)
-    tournament.py, round.py, team.py, player.py, match.py, cst.py, exception.py
-    draws/              # Tirages : fonctions async pures + registre
-  api/                  # NOUVEAU : backend FastAPI
-    app.py              # création de l'app + montage des routers
-    routers/            # tournaments, rounds, teams, draws, rankings
-    schemas.py          # modèles Pydantic (DTO)
-    services.py         # orchestration métier ↔ persistance
-    state.py            # état applicatif (tournoi courant, verrous asyncio)
-  web/                  # NOUVEAU : frontend (3 interfaces, voir §6)
-    admin/              # Inscription des équipes + gestion des résultats
-    display/            # Affichage écran géant de la partie en cours (lecture seule)
-    history/            # Statistiques par joueur d'année en année (tous les fichiers)
-  __main__.py           # point d'entrée : lance uvicorn (plus de wxPython)
+tourbillon/                 # Package Python (backend)
+  __main__.py               # Point d'entrée : lance uvicorn (commande `tourbillon`)
+  settings.py               # Configuration typée (YAML + env TOURBILLON_*)
+  logger.py, singleton.py   # Utilitaires
+  assets/                   # Ressources statiques (banner.txt pour l'entête des dumps YAML)
+  core/                     # Domaine métier — indépendant de FastAPI
+    tournament.py, round.py, team.py, player.py, match.py
+    cst.py                  # Constantes d'état et clés de statistiques
+    exception.py            # Exceptions métier
+    draws/                  # Tirages : coroutines pures + registre
+      __init__.py           # Registre (DRAWS, DEFAULT_DRAW, available, generate)
+      common.py             # Helpers partagés (stats, disparity, byes…)
+      deterministic.py, genetic.py, random.py
+  api/                      # Backend FastAPI
+    app.py                  # create_app() : monte les routers + StaticFiles
+    state.py                # État applicatif (tournoi courant, verrous asyncio)
+    schemas.py              # DTO Pydantic (v2)
+    services.py             # Orchestration métier ↔ persistance YAML
+    history.py              # Agrégation multi-tournois (stats par joueur)
+    routers/                # tournament, teams, rounds, draws, rankings, history, ws
+
+tourbillon-ui/              # Frontend SPA Vue 3 + Vite
+  src/
+    main.js, App.vue
+    router/index.js         # Routes /admin, /display, /history
+    api/client.js           # Client REST
+    stores/tournament.js    # Store Pinia
+    views/
+      admin/                # Inscription, tirage, round, classement
+      display/              # Affichage écran géant (lecture seule)
+      history/              # Stats par joueur d'année en année
+  dist/                     # Build servi par FastAPI en production
+
+tests/                      # pytest (asyncio_mode=auto)
+  conftest.py, data/        # Fixtures + jeux de données
+  test_*.py
 ```
 
-- **Backend** : FastAPI + Uvicorn, endpoints REST + **WebSocket/SSE** pour la
-  progression des tirages et le rafraîchissement temps réel des scores.
+- **Backend** : FastAPI + Uvicorn, endpoints REST + **WebSocket** (`/ws`) pour la
+  progression des tirages et le rafraîchissement temps réel.
 - **Persistance** : services au-dessus de `core.tournament.load/dump` (YAML).
-- **Concurrence** : `asyncio`, un verrou par tournoi pour les écritures.
+- **Concurrence** : `asyncio`, verrou par tournoi pour les écritures (voir `state.py`).
+- **Frontend** servi en production via `StaticFiles` depuis `tourbillon-ui/dist/`.
 
-### Rework de la configuration (`config.py`)
-
-La config actuelle (`TypedConfigParser`, format `.ini`, clés en français) est
-fortement couplée à wxPython et mélange des préoccupations très différentes. Elle
-doit être refondue :
-
-- **À supprimer** (spécifique wxPython / affichage legacy) : section `INTERFACE`
-  (`GEOMETRIE`, `MAXIMISER`, `PLEIN_ECRAN`, `IMAGE`…) et toute la section `AFFICHAGE`
-  (polices au format wx `"12;70;90;..."`, couleurs RGBA, `GRILLE_*`, `MESSAGE_*`).
-- **À conserver / migrer** (métier, réutilisable) : section `TOURNOI`
-  (`JOUEURS_PAR_EQUIPE`, `POINTS_PAR_MANCHE`, `EQUIPES_PAR_MANCHE`,
-  `CLASSEMENT_*`, `ALGORITHME_DEFAUT`…) et les sections de **tirages** (une par
-  algorithme, alimentées par `draws.TIRAGES[...].DEFAUT`).
-- **Cible** :
-  - Séparer clairement **3 domaines** de configuration :
-    1. **Serveur / API** (hôte, port, chemin des sauvegardes, auto-save…).
-    2. **Métier / tournoi** (valeurs par défaut d'un nouveau tournoi + tirages).
-    3. **UI web** : préférences côté client (thème, langue, options d'affichage
-       écran géant), gérées par le frontend et **non** dans `config.py` Python.
-  - Remplacer le `.ini` par un format simple et typé côté backend (au choix :
-    YAML/TOML chargé en `dict`, ou modèles Pydantic `Settings`).
-  - Clés et valeurs en **anglais**, **typage primitif uniquement** (§9).
-  - Exposer les valeurs par défaut du tournoi et les options de tirage via l'API
-    (`GET /api/draws`, config d'un nouveau tournoi) pour que l'UI web les consomme.
+### Configuration (`settings.py`)
+Une seule classe `Settings` (source unique de vérité) lit/écrit un YAML simple
+(clés/valeurs en anglais, types primitifs). Surcharge possible par variables
+d'environnement `TOURBILLON_*`. Deux domaines backend : **serveur/API** (host, port,
+`save_dir`, `auto_save`) et **métier** (valeurs par défaut d'un nouveau tournoi +
+`default_draw`). Les préférences UI vivent côté frontend. Les options de tirage ne
+sont **pas** stockées ici : elles sont exposées via `GET /api/draws`.
 
 ---
 
-## 6. Frontend web
+## 3. Cœur métier (`core/`)
 
-- **Stack imposée** : **Vue 3** + Vite. UI moderne et responsive. Éviter jQuery
-  (le prototype `billon-web` est legacy).
-- **Trois interfaces distinctes** :
+Modèle : `Tournament` contient des `Team` (dict `_teams` indexé par `id`) et des
+`Round` (liste `_rounds`). Chaque `Team` porte une liste de résultats (`_results`,
+un `Match` par round). Un `Round` calcule ses appariements à partir des résultats
+des équipes.
 
-  ### 6.1 Interface d'administration (`web/admin/`)
-  Poste opérateur — inscription et gestion. Écrans :
-  1. **Inscription** des équipes / joueurs.
-  2. **Lancement d'un tirage** (choix algorithme + options, barre de progression).
-  3. **Round courant** : matchs par emplacement, **saisie des scores**.
-  4. **Classement** (consultation), filtrable par round.
-  5. **Historique** / export (impression, PDF).
+Points clés :
+- API **entièrement en anglais** (méthodes, attributs, docstrings, messages).
+- `load()`/`dump()` de `tournament.py` **conservent les clés YAML en français**
+  (`tournoi`, `inscription`, `jokers`, `parties`, `enregistrement`, `debut`,
+  `equipes_par_manche`, `joueurs_par_equipe`, `points_par_manche`) pour la
+  **rétro-compatibilité** avec les archives (`../Sauvegardes Tournois/*.yml` / `*.trb`).
+- Le dict `Match.data` garde aussi ses clés françaises (`etat`, `debut`, `fin`,
+  `adversaires`, `piquet`) pour la même raison. **Ne jamais casser la lecture des
+  anciens fichiers.**
+- `core/` ne doit **jamais** importer FastAPI ni Pydantic (indépendance du framework).
+- Motif documenté : `Round` manipule volontairement des membres « protégés » de
+  `Team` (`_add_round`, `_modify_round`, `_remove_round`, `_results`). Les
+  avertissements de linter « protected member » sur ce point sont attendus.
 
-  ### 6.2 Interface d'affichage écran géant (`web/display/`)
-  HMI **lecture seule** (inspirée de `billon-web/`), plein écran, grande
-  typographie, pensée pour être projetée dans la salle. Écrans :
-  1. **Inscription** des équipes / joueurs (uniquement pendant la phase d'inscription).
-  2. **Classement en temps réel** de la partie en cours.
-  3. **Matchs du round courant** par emplacement (qui joue où).
-  - Rafraîchissement automatique via WebSocket/SSE, aucune interaction requise.
-
-  ### 6.3 Interface d'historique (`web/history/`)
-  HMI **lecture seule** de consultation transverse — **statistiques par joueur
-  d'année en année**. Charge **tous les fichiers de sauvegarde** présents dans le
-  dossier des sauvegardes (`Sauvegardes Tournois/*.yml` / `*.trb`), les agrège et
-  affiche l'évolution des performances par personne au fil des éditions. Écrans :
-  1. **Fiche joueur** : participations, classements, victoires, points par année.
-  2. **Palmarès / comparatifs** : évolution multi-années, records, tendances.
-  - S'appuie sur des endpoints d'agrégation (voir §7) ; la lecture doit rester
-    rétro-compatible avec les anciens fichiers YAML (§2).
-
-- Communication : REST pour CRUD, WebSocket/SSE pour temps réel.
-- Servir le(s) build(s) statique(s) via FastAPI (`StaticFiles`) en production.
+### Statistiques (clés en mémoire, non persistées — voir `cst.py`)
+`STAT_POINTS`, `STAT_WINS`, `STAT_BYES`, `STAT_OPPONENTS`, `STAT_MATCHES`,
+`STAT_RANK`. C'est le format du dict `stats` consommé par les tirages.
 
 ---
 
-## 7. API REST (esquisse)
+## 4. Tirages (`core/draws/`)
+
+Chaque tirage est un module exposant `NAME`, `DESCRIPTION`, `DEFAULT` (dict d'options)
+et une coroutine :
+
+```python
+async def generate_draw(
+    teams_by_match: int,
+    stats: dict,
+    bye_teams: list = (),
+    config: dict | None = None,
+    on_progress=None,      # callback async optionnel : async (percent: float, message: str)
+) -> list:                 # liste de manches, chaque manche = liste triée de numéros d'équipes
+    ...
+```
+
+Le registre (`draws/__init__.py`) expose `DRAWS`, `DEFAULT_DRAW`, `available()`,
+`default_config(name)` et `generate(name, ...)`.
+
+Trois algorithmes :
+1. **`deterministic`** (par défaut) — applique les règles suisses. Calcul matriciel
+   (`numpy`) d'une matrice de possibilités puis dérivation d'un appariement valide.
+   Déterministe et reproductible.
+2. **`genetic`** — applique aussi les règles suisses. Recherche heuristique
+   (population/mutation/sélection) pour les grands espaces de solutions ; CPU-bound
+   → isoler via un executor. Reproductible avec une seed fixée.
+3. **`random`** — **n'applique pas** les règles suisses. Appariement aléatoire
+   (tests, démo, premier round sans historique). Seed configurable.
+
+Contrainte `max_disparity` (cf. §1) fournie via `config` (sauf `random`). Si aucun
+appariement valide n'existe, lever une exception métier de `core/exception.py`
+(`DrawImpossibleError`) invitant à augmenter le paramètre.
+
+---
+
+## 5. API REST + WebSocket
 
 | Méthode | Route                         | Description                         |
 |---------|-------------------------------|-------------------------------------|
@@ -278,67 +209,91 @@ doit être refondue :
 | PUT     | `/api/rounds/{n}/matches/{m}` | Saisir un résultat                  |
 | GET     | `/api/rankings?round=n`       | Classement                          |
 | GET     | `/api/draws`                  | Algorithmes disponibles + options   |
-| WS      | `/ws/draw`                    | Progression du tirage en cours      |
+| WS      | `/ws`                         | Progression du tirage / temps réel  |
 | GET     | `/api/history/tournaments`    | Liste des sauvegardes (toutes années)|
 | GET     | `/api/history/players`        | Stats agrégées par joueur (multi-années)|
 | GET     | `/api/history/players/{name}` | Fiche joueur : détail année par année|
 
----
+Les DTO Pydantic (`schemas.py`) exposent des champs anglais : `TeamDTO` (`number`,
+`wins`, `byes`, `points`, `status`, `joker`, `players`), `RankEntryDTO`
+(`rank`, `team`, `wins`, `points`), etc. La traduction des états métier français vers
+des valeurs d'API stables se fait dans `services.py`.
 
-## 8. Plan de migration (par étapes)
-
-1. **Étape 0 — Cadre** : ce fichier + mise à jour `pyproject.toml`
-   (retirer le groupe `gui`/`wxPython`, ajouter `fastapi`, `uvicorn`, `websockets`).
-2. **Étape 1 — Nettoyer le cœur** : typage, tests `pytest` sur
-   `core/` (tournament, round, team, player, match). Supprimer les `.pyc` legacy.
-3. **Étape 2 — Tirages async** : refondre `draws/` en fonctions/coroutines pures,
-   implémenter les 3 tirages (`deterministic`, `genetic`, `random`), retirer
-   `BaseThreadTirage` et les variantes legacy, couvrir de tests.
-4. **Étape 3 — Backend API** : créer `tourbillon/api/` (FastAPI) avec services de
-   persistance YAML et endpoints REST + WebSocket de progression. Inclut le
-   **rework de `config.py`** (voir §5) : purge wxPython, découpage serveur/métier,
-   format typé, exposition via l'API.
-5. **Étape 4 — Frontend** : SPA (Vue/Vite) consommant l'API ; écrans inscription,
-   tirage, round, classement.
-6. **Étape 5 — Suppression wxPython** : supprimer `gui/`, adapter `__main__.py`
-   pour lancer uvicorn, mettre à jour la doc (`README.rst`).
-7. **Étape 6 — Packaging** : build frontend servi par FastAPI, scripts poetry,
-   éventuel binaire (pyinstaller) mono-fichier lançant le serveur + navigateur.
+> **Autocomplétion des joueurs** : il n'existe **pas** de stockage d'historique de
+> joueurs côté serveur (l'ancienne classe `PlayerHistory`/fichier `hist_jrs`, vestige
+> wxPython, a été **supprimée**). Pour proposer des suggestions de prénom/nom à
+> l'inscription, le frontend interroge `GET /api/history/players` : chaque entrée
+> agrégée expose `name`, `firstname`, `lastname` (+ stats). C'est la **source unique**
+> des joueurs des éditions précédentes.
 
 ---
 
-## 9. Conventions de développement
+## 6. Frontend web (`tourbillon-ui/`)
 
-- **Gestion des dépendances & venv** : **Poetry** exclusivement (`pyproject.toml`,
-  `poetry.lock`). Ne pas utiliser pip/venv/pipenv/conda directement.
-- **Python 3.10+**, avec annotations de type dans le nouveau code, mais **typage
-  simple uniquement** : n'utiliser que les **primitives Python** (`int`, `str`,
-  `float`, `bool`, `list`, `dict`, `tuple`, `set`, `None`). **Pas de types
-  complexes** ni d'`import` depuis `typing` (pas de `Optional`, `Union`, `Callable`,
-  `Awaitable`, `TypeVar`, `Generic`, etc.). Utiliser la syntaxe native
-  (`list`, `dict`, `str | None`) plutôt que des génériques importés.
-- **Langue : anglais obligatoire pour TOUT** — noms (variables, fonctions, classes,
-  modules), commentaires, docstrings, messages de log/exception, et documentation
-  technique (README, docstrings, commentaires de code). Migrer le legacy français
-  au fil de l'eau. (Ce fichier d'instructions peut rester en français.)
-- **Tests** : `pytest` (dossier `tests/`). Toute nouvelle logique métier ou de
-  tirage doit être testée. Les tirages doivent être **déterministes et testables**.
+SPA **Vue 3 + Vite** (Pinia pour l'état, `api/client.js` pour REST). Trois espaces
+servis par le routeur (`/admin`, `/display`, `/history`) :
+
+- **Admin** (`views/admin/`) : inscription des équipes/joueurs, lancement d'un tirage
+  (choix algo + options + progression), round courant avec **saisie des scores**,
+  classement. L'inscription propose l'**autocomplétion des prénoms/noms** à partir de
+  `GET /api/history/players` (joueurs des éditions précédentes).
+- **Display** (`views/display/`) : HMI **lecture seule** plein écran pour projection
+  (inscriptions, classement temps réel, matchs du round par emplacement). Rafraîchi
+  via WebSocket.
+- **History** (`views/history/`) : consultation transverse **lecture seule** — charge
+  toutes les sauvegardes du dossier et affiche les **statistiques par joueur d'année
+  en année** (fiche joueur, palmarès, évolution).
+
+REST pour le CRUD, WebSocket pour le temps réel. Éviter jQuery.
+
+---
+
+## 7. Conventions de développement
+
+- **Dépendances & venv** : **Poetry** exclusivement (`pyproject.toml`, `poetry.lock`).
+  Ne pas utiliser pip/venv/pipenv/conda directement. Toute dépendance **importée
+  directement** dans le code doit être **déclarée explicitement** (p. ex. `pydantic`).
+  Réciproquement, **ne déclarer QUE les dépendances importées directement** : ne pas
+  lister dans le `pyproject.toml` celles qui ne sont que tirées transitivement
+  (p. ex. `httpx` ou `websockets`, fournies via `fastapi.testclient`/`uvicorn[standard]`).
+- **Python 3.10+**, annotations de type dans le nouveau code, mais **typage simple
+  uniquement** : n'utiliser que les **primitives** (`int`, `str`, `float`, `bool`,
+  `list`, `dict`, `tuple`, `set`, `None`). **Pas** d'`import` depuis `typing`. Syntaxe
+  native (`list`, `dict`, `str | None`).
+- **Langue : anglais obligatoire pour TOUT le code** — noms, commentaires, docstrings,
+  messages de log/exception, doc technique. (Ce fichier d'instructions peut rester en
+  français.) **Seules exceptions** : les clés YAML persistées et les clés du dict
+  `Match.data`, gardées en français pour la rétro-compat.
+- **Tests** : `pytest` (dossier `tests/`, `asyncio_mode = "auto"`). Toute nouvelle
+  logique métier ou de tirage doit être testée ; les tirages doivent être
+  **déterministes et testables**.
 - **Async** : privilégier `asyncio` ; isoler le CPU-bound via un executor.
-- **Ne jamais casser** la lecture des anciens fichiers YAML (`Sauvegardes Tournois/`).
-- Garder `core/` **indépendant** de l'API et du framework web (pas d'import FastAPI
-  dans `core/`).
-- **Exceptions** : importer directement les exceptions métier depuis
-  `core/exception.py` là où on en a besoin (p. ex. `from ...core.exception import
-  DrawError`). Ne pas créer de module d'indirection/ré-export dans l'API. Les
-  sous-classes suffisent : attraper `DrawError` couvre `DrawImpossibleError` et
+- **Ne jamais casser** la lecture des anciens fichiers YAML.
+- Garder `core/` **indépendant** de l'API et du framework web.
+- **Exceptions** : importer directement depuis `core/exception.py` là où on en a
+  besoin (p. ex. `from ...core.exception import DrawError`). Pas de module
+  d'indirection/ré-export. Attraper `DrawError` couvre `DrawImpossibleError` et
   `DrawStopError`.
-- Commits/PR ciblés par étape du plan ci-dessus.
+
+### Exécuter localement
+```bash
+poetry install                      # backend
+cd tourbillon-ui && npm install && npm run build && cd ..   # frontend
+poetry run tourbillon               # démarre le serveur (http://localhost:8000)
+poetry run pytest                   # suite de tests
+```
+Interfaces : `/admin`, `/display`, `/history`.
+
+> **Note environnement** : dans certains shells la sortie du terminal peut être
+> tronquée/brouillée. En cas de doute sur le résultat d'une commande, rediriger vers
+> un fichier du workspace puis le lire.
 
 ---
 
-## 10. Références rapides
+## 8. Références rapides
 
-- Fichiers de sauvegarde d'exemple : `../Sauvegardes Tournois/*.yml` / `*.trb`.
-- Prototype web existant : `../billon-web/` (FastAPI + jQuery — pour l'affichage sur écran gean de l'inscription ou de la partie en cours).
-- Algorithmes de référence (legacy, à réécrire) : `tourbillon/core/draws/level_dt.py`
-  (→ `deterministic`), `level_ag.py` (→ `genetic`), `random_ag.py` (→ `random`).
+- Fichiers de sauvegarde d'exemple : `../Sauvegardes Tournois/*.yml` / `*.trb`
+  (données historiques 2005→aujourd'hui, à garder lisibles).
+- Prototype web historique (obsolète, jQuery) : `../billon-web/` — source d'inspiration
+  pour l'affichage écran géant uniquement, **ne pas** en réutiliser le code.
+- Entête ASCII des dumps YAML : `tourbillon/assets/banner.txt` via `assets.banner()`.

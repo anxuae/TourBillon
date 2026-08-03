@@ -8,104 +8,99 @@ from tourbillon.core.exception import StatusError
 from data import t2teams2players
 
 
-def test_statistiques(equ2jn1, adversaires=[], points=0, victoires=0, forfaits=0, parties=0,
-                      chapeaux=0, moy_billon=0, min_billon=0, max_billon=0,
-                      moy_duree=timedelta(0), min_duree=timedelta(0), max_duree=timedelta(0)):
-    assert equ2jn1.adversaires() == adversaires
+def check_statistics(equ2jn1, opponents=[], points=0, wins=0, forfeits=0, rounds=0,
+                     byes=0, average_score=0, min_score=0, max_score=0,
+                     average_duration=timedelta(0), min_duration=timedelta(0),
+                     max_duration=timedelta(0)):
+    assert equ2jn1.opponents() == opponents
     assert equ2jn1.points() == points
-    assert equ2jn1.victoires() == victoires
-    assert equ2jn1.forfaits() == forfaits
-    assert equ2jn1.parties() == parties
-    assert equ2jn1.chapeaux() == chapeaux
-    assert equ2jn1.moyenne_billon() == moy_billon
-    assert equ2jn1.min_billon() == min_billon
-    assert equ2jn1.max_billon() == max_billon
-    assert equ2jn1.moyenne_duree() == moy_duree
-    assert equ2jn1.min_duree() == min_duree
-    assert equ2jn1.max_duree() == max_duree
+    assert equ2jn1.wins() == wins
+    assert equ2jn1.forfeits() == forfeits
+    assert equ2jn1.rounds() == rounds
+    assert equ2jn1.byes() == byes
+    assert equ2jn1.average_score() == average_score
+    assert equ2jn1.min_score() == min_score
+    assert equ2jn1.max_score() == max_score
+    assert equ2jn1.average_duration() == average_duration
+    assert equ2jn1.min_duration() == min_duration
+    assert equ2jn1.max_duration() == max_duration
 
 
-def test_statut_equipe_vide(equ2jn1):
-    assert equ2jn1.statut == cst.E_INCOMPLETE
+def test_empty_team_status(equ2jn1):
+    assert equ2jn1.status == cst.TEAM_INCOMPLETE
 
 
-def test_nb_joueurs_equipe_vide(equ2jn1):
-    assert len(equ2jn1.joueurs()) == 0
+def test_empty_team_nb_players(equ2jn1):
+    assert len(equ2jn1.players()) == 0
 
 
-@pytest.mark.parametrize('joueur', t2teams2players.JOUEURS_1)
-def test_ajouter_joueur(equ2jn1, joueur):
-    equ2jn1.ajout_joueur(*joueur)
+@pytest.mark.parametrize('player', t2teams2players.PLAYERS_1)
+def test_add_player(equ2jn1, player):
+    equ2jn1.add_player(*player)
 
 
-def test_statut_equipe_complete(equ2jn1):
-    assert equ2jn1.statut == cst.E_ATTEND_TIRAGE
+def test_complete_team_status(equ2jn1):
+    assert equ2jn1.status == cst.TEAM_WAITING_DRAW
 
 
-def test_nb_joueurs_equipe_complete(equ2jn1):
-    assert len(equ2jn1.joueurs()) == t2teams2players.JOUEURS_PAR_EQUIPE
+def test_complete_team_nb_players(equ2jn1):
+    assert len(equ2jn1.players()) == t2teams2players.PLAYERS_BY_TEAM
 
 
-def test_statistiques_equipe_complete(equ2jn1):
-    test_statistiques(equ2jn1)
+def test_complete_team_statistics(equ2jn1):
+    check_statistics(equ2jn1)
 
 
-class TestAjoutParties:
+def test_add_rounds(equ2jn1):
+    """Add each round one by one and check the accumulated statistics."""
+    previous_stat = None
+    for i, round_data in enumerate(t2teams2players.ROUNDS_1):
+        stat_data = t2teams2players.STATS_1[i]
+        in_progress = round_data['result'] not in (cst.FORFEIT, cst.BYE)
 
-    scenarios = [('parie%s' % i, {'data_partie': t2teams2players.PARTIES_1[i], 'data_stat': t2teams2players.STATISTIQUES_1[i]})
-                 for i in range(len(t2teams2players.PARTIES_1))]
-    stat_precedent = None
+        # Status before adding the round
+        assert equ2jn1.status == cst.TEAM_WAITING_DRAW
 
-    def test_statut(self, equ2jn1, data_partie, data_stat):
-        assert equ2jn1.statut == cst.E_ATTEND_TIRAGE
-
-    def test_ajout_partie(self, equ2jn1, data_partie, data_stat):
-        if data_partie['etat'] != cst.FORFAIT and data_partie['etat'] != cst.CHAPEAU:
-            # L'état est inconnu et la manche est en cours
-            equ2jn1._ajout_partie(data_partie['debut'], data_partie['adversaires'], None, 1)
+        # Add the round
+        if in_progress:
+            # The result is unknown and the match is in progress
+            equ2jn1._add_round(round_data['start'], round_data['opponents'], None, 1)
             with pytest.raises(StatusError):
-                equ2jn1._ajout_partie(data_partie['debut'], data_partie['adversaires'], None, 1)
+                equ2jn1._add_round(round_data['start'], round_data['opponents'], None, 1)
+            assert equ2jn1.status == cst.TEAM_IN_PROGRESS
         else:
-            equ2jn1._ajout_partie(data_partie['debut'], data_partie['adversaires'], data_partie['etat'], 1)
+            equ2jn1._add_round(round_data['start'], round_data['opponents'], round_data['result'], 1)
+            assert equ2jn1.status == cst.TEAM_WAITING_DRAW
 
-    def test_statut_apres_partie(self, equ2jn1, data_partie, data_stat):
-        if data_partie['etat'] != cst.FORFAIT and data_partie['etat'] != cst.CHAPEAU:
-            assert equ2jn1.statut == cst.E_EN_COURS
-        else:
-            assert equ2jn1.statut == cst.E_ATTEND_TIRAGE
-
-    def test_statistiques_avant_resultat(self, equ2jn1, data_partie, data_stat):
-        if data_partie['etat'] != cst.FORFAIT and data_partie['etat'] != cst.CHAPEAU:
-            if not TestAjoutParties.stat_precedent:
-                test_statistiques(equ2jn1, adversaires=data_stat['adversaires'],
-                                  parties=data_stat['parties'])
+        # Statistics before entering the result
+        if in_progress:
+            if previous_stat is None:
+                check_statistics(equ2jn1, opponents=stat_data['opponents'],
+                                 rounds=stat_data['rounds'])
             else:
-                test_statistiques(equ2jn1, adversaires=data_stat['adversaires'],
-                                  points=TestAjoutParties.stat_precedent['points'],
-                                  victoires=TestAjoutParties.stat_precedent['victoires'],
-                                  forfaits=TestAjoutParties.stat_precedent['forfaits'],
-                                  parties=data_stat['parties'],
-                                  chapeaux=TestAjoutParties.stat_precedent['chapeaux'],
-                                  moy_billon=TestAjoutParties.stat_precedent['moy_billon'],
-                                  min_billon=TestAjoutParties.stat_precedent['min_billon'],
-                                  max_billon=TestAjoutParties.stat_precedent['max_billon'],
-                                  moy_duree=TestAjoutParties.stat_precedent['moy_duree'],
-                                  min_duree=TestAjoutParties.stat_precedent['min_duree'],
-                                  max_duree=TestAjoutParties.stat_precedent['max_duree'])
+                check_statistics(equ2jn1, opponents=stat_data['opponents'],
+                                 points=previous_stat['points'],
+                                 wins=previous_stat['wins'],
+                                 forfeits=previous_stat['forfeits'],
+                                 rounds=stat_data['rounds'],
+                                 byes=previous_stat['byes'],
+                                 average_score=previous_stat['average_score'],
+                                 min_score=previous_stat['min_score'],
+                                 max_score=previous_stat['max_score'],
+                                 average_duration=previous_stat['average_duration'],
+                                 min_duration=previous_stat['min_duration'],
+                                 max_duration=previous_stat['max_duration'])
         else:
-            test_statistiques(equ2jn1, **data_stat)
+            check_statistics(equ2jn1, **stat_data)
 
-    def test_modifier_partie(self, equ2jn1, data_partie, data_stat):
-        if data_partie['etat'] != cst.FORFAIT and data_partie['etat'] != cst.CHAPEAU:
-            fin = data_partie['debut'] + data_partie['duree']
-        else:
-            # L'équipe est CHAPEAU ou FORFAIT
-            fin = None
+        # Enter the result
+        end = round_data['start'] + round_data['duration'] if in_progress else None
         with pytest.raises(ValueError):
-            equ2jn1._modif_partie(10, data_partie['points'], data_partie['etat'], fin)
-        equ2jn1._modif_partie(t2teams2players.PARTIES_1.index(data_partie) + 1,
-                              data_partie['points'], data_partie['etat'], fin)
+            equ2jn1._modify_round(10, round_data['points'], round_data['result'], end)
+        equ2jn1._modify_round(i + 1, round_data['points'], round_data['result'], end)
 
-    def test_statistiques_apres_resultat(self, equ2jn1, data_partie, data_stat):
-        test_statistiques(equ2jn1, **data_stat)
-        TestAjoutParties.stat_precedent = data_stat
+        # Statistics after entering the result
+        check_statistics(equ2jn1, **stat_data)
+        previous_stat = stat_data
+
+

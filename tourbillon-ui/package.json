@@ -1,0 +1,24 @@
+{
+  "name": "tourbillon-ui",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "TourBillon web UI (admin, display, history)",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "lint": "eslint . --ext .vue,.js,.ts --fix --ignore-path .gitignore"
+  },
+  "dependencies": {
+    "pinia": "^2.1.7",
+    "vue": "^3.4.21",
+    "vue-router": "^4.3.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.0.4",
+    "eslint": "^8.57.0",
+    "eslint-plugin-vue": "^9.23.0",
+    "vite": "^5.2.0"
+  }
+}

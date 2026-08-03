@@ -1,39 +1,42 @@
 # -*- coding: UTF-8 -*-
 
-# Match result
-CHAPEAU = 'chapeau'  # BYE
-GAGNE = 'gagné'      # VICTORY
-PERDU = 'perdu'      # LOSS
-FORFAIT = 'forfait'  # FORFEIT
+# Match result.
+# The values are persisted in the YAML save files: DO NOT change them to keep
+# the retro-compatibility with the historical archives.
+BYE = 'chapeau'      # BYE
+WON = 'gagné'        # WIN
+LOST = 'perdu'       # LOSS
+FORFEIT = 'forfait'  # FORFEIT
 
-# State of match
-M_EN_COURS = "en cours"
-M_TERMINEE = "terminée"
+# State of a match
+MATCH_IN_PROGRESS = "en cours"
+MATCH_FINISHED = "terminée"
 
 # State of a team
-E_INCOMPLETE = "incomplète"
-E_ATTEND_TIRAGE = "attend tirage"
-E_EN_COURS = "en cours"
+TEAM_INCOMPLETE = "incomplète"
+TEAM_WAITING_DRAW = "attend tirage"
+TEAM_IN_PROGRESS = "en cours"
 
 # State of a round
-P_ATTEND_TIRAGE = "attend tirage"
-P_EN_COURS = "en cours"
-P_COMPLETE = "complète"
-P_TERMINEE = "terminée"
+ROUND_WAITING_DRAW = "attend tirage"
+ROUND_IN_PROGRESS = "en cours"
+ROUND_COMPLETE = "complète"
+ROUND_FINISHED = "terminée"
 
 # State of a tournament
-T_INSCRIPTION = "inscription"
-T_ATTEND_TIRAGE = "attend tirage"
-T_PARTIE_EN_COURS = "en cours"
+TOURNAMENT_REGISTRATION = "inscription"
+TOURNAMENT_WAITING_DRAW = "attend tirage"
+TOURNAMENT_ROUND_IN_PROGRESS = "en cours"
 
 # Genetic algorithm parameter
-MAXIMISE = "maximise"
-MINIMISE = "minimise"
+MAXIMIZE = "maximise"
+MINIMIZE = "minimise"
 
-# Sorting key to display statistics view
+# Keys of the statistics mapping consumed by the draws.
+# These are in-memory keys only (not persisted), so they use English values.
 STAT_POINTS = 'points'
-STAT_VICTOIRES = 'victoires'
-STAT_CHAPEAUX = 'chapeaux'
-STAT_ADVERSAIRES = 'adversaires'
-STAT_MANCHES = 'manches'
-STAT_PLACE = 'place'
+STAT_WINS = 'wins'
+STAT_BYES = 'byes'
+STAT_OPPONENTS = 'opponents'
+STAT_MATCHES = 'matches'
+STAT_RANK = 'rank'

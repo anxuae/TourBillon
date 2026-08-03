@@ -12,26 +12,28 @@ class Match:
     A match represent the team result on a given round.
     """
 
-    def __init__(self, debut=datetime.now(), adversaires=()):
+    def __init__(self, start=datetime.now(), opponents=()):
+        # The dict keys are persisted as-is in the YAML save files: DO NOT
+        # rename them to keep retro-compatibility with the historical archives.
         self.data = {'points': 0,
                      'etat': None,
-                     'debut': debut,
+                     'debut': start,
                      'fin': None,
-                     'adversaires': adversaires or [],
+                     'adversaires': opponents or [],
                      'piquet': None}
 
     def __str__(self):
         return f"""
         Match
-            Start        : {self.debut}
-            Result       : {self.etat}
+            Start        : {self.start}
+            Result       : {self.result}
             Points       : {self.points}
-            Competitors  : {self.adversaires}
+            Competitors  : {self.opponents}
 
-            Status       : {self.statut}
+            Status       : {self.status}
         """
 
-    def charger(self, data: dict) -> None:
+    def load(self, data: dict) -> None:
         """
         Retro-compatible method to load the data of a match via a dictionary.
         (Used by the loading function of a tournament)
@@ -50,19 +52,19 @@ class Match:
                 self.data['fin'] = self.data['debut']
 
     @property
-    def statut(self) -> str:
+    def status(self) -> str:
         """
         Return the match status:
 
-        M_EN_COURS => match is not started or in progress
-        M_TERMINEE => match is finished (end timestamps is set)
+        MATCH_IN_PROGRESS => match is not started or in progress
+        MATCH_FINISHED    => match is finished (end timestamps is set)
         """
-        if self.data['etat'] == cst.CHAPEAU or self.data['etat'] == cst.FORFAIT:
-            return cst.M_TERMINEE
+        if self.data['etat'] == cst.BYE or self.data['etat'] == cst.FORFEIT:
+            return cst.MATCH_FINISHED
         elif self.data['fin'] is None:
-            return cst.M_EN_COURS
+            return cst.MATCH_IN_PROGRESS
         else:
-            return cst.M_TERMINEE
+            return cst.MATCH_FINISHED
 
     @property
     def points(self) -> int:
@@ -80,50 +82,50 @@ class Match:
         """
         if not isinstance(value, int) or value < 0:
             raise TypeError("Points must be a positive or zero integer")
-        if self.data['etat'] == cst.FORFAIT:
+        if self.data['etat'] == cst.FORFEIT:
             raise ValueError("Points of FORFEIT match cannot be changed")
         self.data['points'] = value
 
     @property
-    def etat(self) -> str:
+    def result(self) -> str:
         """
         Return the result.
         """
         return self.data['etat']
 
-    @etat.setter
-    def etat(self, value: str) -> None:
+    @result.setter
+    def result(self, value: str) -> None:
         """
         Set the match result:
-            * VICTORY
-            * LOSS
+            * WON
+            * LOST
             * BYE
             * FORFEIT
-        
+
         :param value: result to set
         """
-        if value not in [cst.GAGNE, cst.PERDU, cst.CHAPEAU, cst.FORFAIT]:
+        if value not in [cst.WON, cst.LOST, cst.BYE, cst.FORFEIT]:
             raise TypeError("Match result must be one of the following value:"
-                            f"{cst.GAGNE}, {cst.PERDU}, {cst.CHAPEAU}, {cst.FORFAIT}")
-        if value in [cst.GAGNE, cst.PERDU] and self.data['fin'] is None:
+                            f"{cst.WON}, {cst.LOST}, {cst.BYE}, {cst.FORFEIT}")
+        if value in [cst.WON, cst.LOST] and self.data['fin'] is None:
             self.data['fin'] = datetime.now()
-        if value in [cst.CHAPEAU, cst.FORFAIT]:
+        if value in [cst.BYE, cst.FORFEIT]:
             self.data['adversaires'] = []
             self.data['fin'] = self.data['debut']
-        if value in [cst.FORFAIT]:
+        if value in [cst.FORFEIT]:
             self.data['points'] = 0
 
         self.data['etat'] = value
 
     @property
-    def debut(self) -> datetime:
+    def start(self) -> datetime:
         """
         Return start timestamp.
         """
         return self.data['debut']
 
-    @debut.setter
-    def debut(self, value: datetime) -> None:
+    @start.setter
+    def start(self, value: datetime) -> None:
         """
         Set start timestamp.
 
@@ -132,7 +134,7 @@ class Match:
         self.data['debut'] = value
 
     @property
-    def duree(self) -> timedelta:
+    def duration(self) -> timedelta:
         """
         Return the match duration (end timestamp - start timestamp).
         """
@@ -141,51 +143,51 @@ class Match:
         else:
             return self.data['fin'] - self.data['debut']
 
-    @duree.setter
-    def duree(self, value: timedelta) -> None:
+    @duration.setter
+    def duration(self, value: timedelta) -> None:
         """
         Set the match duration.
 
         :param value: match duration
         """
-        if self.data['etat'] in [cst.CHAPEAU, cst.FORFAIT]:
+        if self.data['etat'] in [cst.BYE, cst.FORFEIT]:
             raise ValueError("Duration of a BYE or FORFEIT match cannot be modified")
         self.data['fin'] = self.data['debut'] + value
 
     @property
-    def fin(self) -> datetime:
+    def end(self) -> datetime:
         """
         Return end timestamp.
         """
         return self.data['fin']
 
-    @fin.setter
-    def fin(self, value: datetime) -> None:
+    @end.setter
+    def end(self, value: datetime) -> None:
         """
         Set end timestamp.
 
         :param value: end timestamp as datetime instance
         """
-        if self.data['etat'] in [cst.CHAPEAU, cst.FORFAIT]:
+        if self.data['etat'] in [cst.BYE, cst.FORFEIT]:
             raise ValueError("End date of a BYE or FORFEIT match cannot be changed")
         self.data['fin'] = value
 
     @property
-    def adversaires(self) -> list:
+    def opponents(self) -> list:
         """
         Return the list of team's competitors.
         """
         return self.data['adversaires']
 
-    @adversaires.setter
-    def adversaires(self, value: list) -> None:
+    @opponents.setter
+    def opponents(self, value: list) -> None:
         """
         Set competitors list.
         """
         for num in value:
             if not isinstance(num, int):
                 raise TypeError(f"'{num}' is not an integer")
-        if self.data['etat'] in [cst.CHAPEAU, cst.FORFAIT]:
+        if self.data['etat'] in [cst.BYE, cst.FORFEIT]:
             raise ValueError("Can not add competitors for a BYE ou FORFEIT match")
         self.data['adversaires'] = value
 

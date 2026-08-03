@@ -21,7 +21,7 @@ def _iter_save_files(save_dir):
 def _year_of(trn, path):
     """Return the tournament year (from its start date, else the filename)."""
     try:
-        return trn.debut.year
+        return trn.start_date.year
     except Exception:
         return osp.splitext(osp.basename(path))[0]
 
@@ -38,8 +38,8 @@ def list_tournaments(save_dir):
             {
                 "filename": osp.basename(path),
                 "year": _year_of(trn, path),
-                "nb_teams": trn.nb_equipes(),
-                "nb_rounds": trn.nb_parties(),
+                "nb_teams": trn.nb_teams(),
+                "nb_rounds": trn.nb_rounds(),
             }
         )
     return result
@@ -47,7 +47,7 @@ def list_tournaments(save_dir):
 
 def _player_name(player):
     """Return a stable display name for a player."""
-    return f"{player.prenom} {player.nom}".strip()
+    return f"{player.firstname} {player.lastname}".strip()
 
 
 def aggregate_players(save_dir):
@@ -59,22 +59,23 @@ def aggregate_players(save_dir):
         except Exception:
             continue
         year = _year_of(trn, path)
-        ranking = dict(trn.classement())
-        for team in trn.equipes():
-            place = ranking.get(team)
-            for player in team.joueurs():
+        ranking = dict(trn.ranking())
+        for team in trn.teams():
+            rank = ranking.get(team)
+            for player in team.players():
                 name = _player_name(player)
                 entry = players.setdefault(
                     name,
-                    {"name": name, "participations": 0, "victories": 0,
-                     "points": 0, "best_place": None, "years": []},
+                    {"name": name, "firstname": player.firstname,
+                     "lastname": player.lastname, "participations": 0,
+                     "wins": 0, "points": 0, "best_rank": None, "years": []},
                 )
                 entry["participations"] += 1
-                entry["victories"] += team.victoires()
+                entry["wins"] += team.wins()
                 entry["points"] += team.points()
-                if place is not None:
-                    if entry["best_place"] is None or place < entry["best_place"]:
-                        entry["best_place"] = place
+                if rank is not None:
+                    if entry["best_rank"] is None or rank < entry["best_rank"]:
+                        entry["best_rank"] = rank
                 entry["years"].append(year)
     return sorted(players.values(), key=lambda e: e["name"])
 
@@ -88,18 +89,18 @@ def player_detail(save_dir, name):
         except Exception:
             continue
         year = _year_of(trn, path)
-        ranking = dict(trn.classement())
-        for team in trn.equipes():
-            for player in team.joueurs():
+        ranking = dict(trn.ranking())
+        for team in trn.teams():
+            for player in team.players():
                 if _player_name(player) == name:
                     if detail is None:
                         detail = {"name": name, "editions": []}
                     detail["editions"].append(
                         {
                             "year": year,
-                            "team": team.numero,
-                            "place": ranking.get(team),
-                            "victories": team.victoires(),
+                            "team": team.id,
+                            "rank": ranking.get(team),
+                            "wins": team.wins(),
                             "points": team.points(),
                         }
                     )
