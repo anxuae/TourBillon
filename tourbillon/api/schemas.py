@@ -54,12 +54,19 @@ class TournamentDTO(BaseModel):
     nb_teams: int
     nb_rounds: int
     filename: str | None
+    changed: bool
+    auto_save: bool
 
 
 class TournamentCreate(BaseModel):
+    title: str | None = None
     teams_by_match: int | None = None
     points_by_match: int | None = None
     players_by_team: int | None = None
+
+
+class TournamentLoad(BaseModel):
+    filename: str
 
 
 class DrawInfoDTO(BaseModel):
@@ -80,30 +87,14 @@ class MatchResult(BaseModel):
 
 
 class SettingsDTO(BaseModel):
-    host: str
-    port: int
-    save_dir: str
-    auto_save: bool
-    players_by_team: int
-    points_by_match: int
-    teams_by_match: int
-    rank_by_wins: bool
-    rank_by_joker: bool
-    rank_by_duration: bool
-    default_draw: str
+    # Settings grouped into sections (the sections are defined once in
+    # tourbillon/settings.py and never redeclared here or in the frontend).
+    general: dict
+    tournament: dict
     draws: dict
 
 
 class SettingsUpdate(BaseModel):
-    host: str | None = None
-    port: int | None = None
-    save_dir: str | None = None
-    auto_save: bool | None = None
-    players_by_team: int | None = None
-    points_by_match: int | None = None
-    teams_by_match: int | None = None
-    rank_by_wins: bool | None = None
-    rank_by_joker: bool | None = None
-    rank_by_duration: bool | None = None
-    default_draw: str | None = None
+    general: dict | None = None
+    tournament: dict | None = None
     draws: dict | None = None

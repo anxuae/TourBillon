@@ -42,7 +42,7 @@ def test_get_settings(client):
     resp = client.get("/api/settings")
     assert resp.status_code == 200
     body = resp.json()
-    assert "teams_by_match" in body
+    assert "default_draw" in body["tournament"]
     assert "draws" in body
     assert "genetic" in body["draws"]
 
@@ -50,23 +50,24 @@ def test_get_settings(client):
 def test_update_settings_persisted(client):
     resp = client.put(
         "/api/settings",
-        json={"points_by_match": 15, "draws": {"genetic": {"max_disparity": 5}}},
+        json={"tournament": {"rank_by_duration": True},
+              "draws": {"genetic": {"max_disparity": 5}}},
     )
     assert resp.status_code == 200
     body = resp.json()
-    assert body["points_by_match"] == 15
+    assert body["tournament"]["rank_by_duration"] is True
     assert body["draws"]["genetic"]["max_disparity"] == 5
 
     # The change is reflected on the next read.
     reread = client.get("/api/settings").json()
-    assert reread["points_by_match"] == 15
+    assert reread["tournament"]["rank_by_duration"] is True
     assert reread["draws"]["genetic"]["max_disparity"] == 5
 
 
 def test_update_settings_ignores_unknown_keys(client):
-    resp = client.put("/api/settings", json={"points_by_match": 20})
+    resp = client.put("/api/settings", json={"tournament": {"rank_by_joker": False}})
     assert resp.status_code == 200
-    assert resp.json()["points_by_match"] == 20
+    assert resp.json()["tournament"]["rank_by_joker"] is False
 
 
 # --------------------------------------------------------------------------- #
@@ -85,6 +86,55 @@ def test_create_tournament(client):
     assert body["players_by_team"] == 1
     assert body["status"] == "registration"
     assert body["nb_teams"] == 0
+
+
+def test_load_tournament_by_filename(client):
+    # Create, save, then reload by bare filename (resolved against save_dir).
+    client.post("/api/tournament", json={"teams_by_match": 2, "players_by_team": 1})
+    saved = client.post("/api/tournament/save").json()["filename"]
+    from pathlib import Path
+
+    resp = client.post("/api/tournament/load", json={"filename": Path(saved).name})
+    assert resp.status_code == 200
+    assert resp.json()["status"] == "registration"
+
+
+def test_upload_tournament_conflict_and_overwrite(client):
+    # Produce a valid save file to reuse as the uploaded content.
+    client.post("/api/tournament", json={"teams_by_match": 2, "players_by_team": 1})
+    saved = client.post("/api/tournament/save").json()["filename"]
+    from pathlib import Path
+
+    content = Path(saved).read_bytes()
+
+    # First upload under a new name succeeds.
+    resp = client.post(
+        "/api/tournament/upload",
+        files={"file": ("uploaded.yml", content, "application/x-yaml")},
+    )
+    assert resp.status_code == 200
+
+    # Same name without overwrite conflicts.
+    resp = client.post(
+        "/api/tournament/upload",
+        files={"file": ("uploaded.yml", content, "application/x-yaml")},
+    )
+    assert resp.status_code == 409
+
+    # With overwrite it succeeds again.
+    resp = client.post(
+        "/api/tournament/upload?overwrite=true",
+        files={"file": ("uploaded.yml", content, "application/x-yaml")},
+    )
+    assert resp.status_code == 200
+
+
+def test_upload_tournament_rejects_non_yaml(client):
+    resp = client.post(
+        "/api/tournament/upload",
+        files={"file": ("bad.txt", b"nope", "text/plain")},
+    )
+    assert resp.status_code == 400
 
 
 # --------------------------------------------------------------------------- #

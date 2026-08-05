@@ -7,8 +7,10 @@ configuration is split into three backend domains (the web UI preferences live
 in the frontend and are not handled here):
 
 1. **Server / API**: host, port, save directory, auto-save.
-2. **Business / tournament**: default values used when creating a new tournament
-   and the default draw algorithm.
+2. **Business / tournament**: cross-tournament preferences (ranking tie-breakers
+   and the default draw algorithm). The per-tournament parameters (teams per
+   match, points per match, players per team) are chosen at tournament creation
+   and are therefore NOT stored here.
 3. **Draw options**: the per-algorithm options under the ``draws`` section.
 
 A single :class:`Settings` class reads, writes, loads and saves a simple YAML
@@ -75,7 +77,6 @@ def default_settings_path():
 SECTIONS = {
     "general": ("host", "port", "save_dir", "auto_save"),
     "tournament": (
-        "players_by_team", "points_by_match", "teams_by_match",
         "rank_by_wins", "rank_by_joker", "rank_by_duration", "default_draw",
     ),
 }
@@ -87,10 +88,10 @@ DEFAULTS = {
     "port": 8000,
     "save_dir": str(Path.home() / "TourBillon"),
     "auto_save": True,
-    # Business / tournament domain (defaults for a new tournament).
-    "players_by_team": 2,
-    "points_by_match": 12,
-    "teams_by_match": 2,
+    # Business / tournament domain. The per-tournament parameters (teams per
+    # match, points per match, players per team) are NOT stored here: they are
+    # chosen when creating a tournament. Only cross-tournament preferences live
+    # here (ranking tie-breakers and the default draw algorithm).
     "rank_by_wins": True,
     "rank_by_joker": True,
     "rank_by_duration": False,
@@ -163,10 +164,13 @@ class Settings:
     def update(self, values):
         """Update several settings at once (unknown keys are ignored).
 
-        The ``draws`` section is merged per algorithm and per option so that
-        missing options keep their built-in default.
+        Accepts the sectioned shape (``{section: {key: value}}`` plus the
+        ``draws`` mapping) as well as a legacy flat mapping. The ``draws``
+        section is merged per algorithm and per option so that missing options
+        keep their built-in default.
         """
-        for key, value in values.items():
+        flat = _flatten(values)
+        for key, value in flat.items():
             if key == "draws" and isinstance(value, dict):
                 for name, config in value.items():
                     if name in self._data["draws"] and isinstance(config, dict):
@@ -237,18 +241,6 @@ class Settings:
         return data
 
     # ------------------------------------------------------------------ #
-    # Helpers
-    # ------------------------------------------------------------------ #
-    def new_tournament_defaults(self):
-        """Return the default parameters used to create a new tournament."""
-        return {
-            "teams_by_match": self._data["teams_by_match"],
-            "points_by_match": self._data["points_by_match"],
-            "players_by_team": self._data["players_by_team"],
-            "default_draw": self._data["default_draw"],
-        }
-
-    # ------------------------------------------------------------------ #
     # Draw options (read-only accessor)
     # ------------------------------------------------------------------ #
     def draw_config(self, name):
@@ -260,5 +252,11 @@ class Settings:
         return dict(self._data["draws"][name])
 
     def as_dict(self):
-        """Return the settings as a plain dictionary."""
-        return dict(self._data)
+        """Return the settings grouped into sections (the public shape).
+
+        The structure mirrors the persisted YAML: ``{section: {key: value}}``
+        for the scalar sections plus a nested ``draws`` mapping. This is the
+        single place that defines the settings sections, so consumers (API,
+        frontend) never redeclare them.
+        """
+        return self._as_sections()

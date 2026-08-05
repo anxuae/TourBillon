@@ -133,21 +133,35 @@ tests/                      # pytest (asyncio_mode=auto)
 - **Frontend** servi en production via `StaticFiles` depuis `tourbillon-ui/dist/`.
 
 ### Configuration (`settings.py`)
-Une seule classe `Settings` (source unique de vérité) lit/écrit un YAML simple
-(clés/valeurs en anglais, types primitifs). Surcharge possible par variables
-d'environnement `TOURBILLON_*`. Trois domaines backend : **serveur/API** (host, port,
-`save_dir`, `auto_save`), **métier** (valeurs par défaut d'un nouveau tournoi +
-`default_draw`) et **options de tirage** (section `draws` : options effectives par
-algorithme). Les préférences UI vivent côté frontend. Les **valeurs par défaut** de
-chaque tirage restent définies dans les modules d'algorithme (`DEFAULT`) ; à la
-construction des `Settings`, la section `draws` est **initialisée** depuis ces
-`DEFAULT`, puis **enrichie** par le fichier de settings au chargement (fusion par
-algo et par option ; options inconnues ignorées, manquantes conservées). Le cycle de
-vie est simple : **chargement au démarrage, sauvegarde à l'arrêt** (lifespan FastAPI) —
-tout passe par le module `settings`, **aucune** mutation/écriture intermédiaire dans
-les routers ou services. `GET /api/draws` expose en lecture le `default` (de l'algo)
-et la `config` effective (des settings). Sans chemin explicite (`-c`), les settings
-sont écrits dans `<save_dir>/settings.yml`.
+Une seule classe `Settings` (source unique de vérité) lit/écrit un fichier YAML.
+Surcharge possible par variables d'environnement `TOURBILLON_*`. Trois domaines
+backend, exposés **en sections** : **`general`** (host, port, `save_dir`, `auto_save`),
+**`tournament`** (valeurs par défaut d'un nouveau tournoi + `default_draw`) et
+**`draws`** (options effectives par algorithme). Le regroupement des clés en sections
+est défini **à un seul endroit** (`SECTIONS` dans `settings.py`) : c'est le format
+persisté sur disque **et** le format échangé par l'API (`as_dict()`/`update()` et les
+DTO sont **sectionnés**, plus de format plat). En mémoire, l'accès aux scalaires reste
+néanmoins direct (`settings.host`, `settings.teams_by_match`…). L'ajout/renommage d'une
+section ne se fait donc qu'à cet endroit ; l'API et l'UI (modale) suivent
+automatiquement (le front itère sur les sections reçues, sans les redéclarer). Les
+préférences UI vivent côté frontend. Les **valeurs par défaut** de chaque tirage
+restent définies dans les modules d'algorithme (`DEFAULT`) ; à la construction des
+`Settings`, la section `draws` est **initialisée** depuis ces `DEFAULT`, puis
+**enrichie** par le fichier de settings au chargement (fusion par algo et par option ;
+options inconnues ignorées, manquantes conservées). Le cycle de vie est simple :
+**chargement au démarrage, sauvegarde à l'arrêt** (lifespan FastAPI) — tout passe par
+le module `settings`, **aucune** mutation/écriture intermédiaire dans les routers ou
+services. `GET /api/draws` expose en lecture le `default` (de l'algo) et la `config`
+effective (des settings). Le fichier de settings est **indépendant de `save_dir`** :
+sans chemin explicite (`-c`), il est lu/écrit dans le **dossier de configuration
+standard de la plateforme** (`config_dir()` / `default_settings_path()` — p. ex.
+`~/.config/tourbillon/settings.yml` sous Linux, `~/Library/Application Support/
+tourbillon/settings.yml` sous macOS, `%APPDATA%\tourbillon\settings.yml` sous Windows),
+si bien que changer `save_dir` ne perd jamais les réglages. Le chemin effectivement
+chargé est journalisé au démarrage. Pour le rechargement `--reload` d'uvicorn (qui
+exige une import string), l'app est reconstruite via la fabrique
+`create_app_from_env()`, le chemin de settings étant transmis par la variable
+d'environnement `SETTINGS_PATH_ENV` (`TOURBILLON_SETTINGS_PATH`).
 
 ---
 

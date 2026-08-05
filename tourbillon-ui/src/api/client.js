@@ -25,12 +25,41 @@ async function request(method, url, body) {
   return response.json()
 }
 
+// Upload a file as multipart/form-data. On error, throws an Error whose
+// ``status`` property carries the HTTP status (e.g. 409 for a name conflict).
+async function upload(url, file) {
+  const form = new FormData()
+  form.append('file', file)
+  const response = await fetch(url, { method: 'POST', body: form })
+  if (!response.ok) {
+    let detail = response.statusText
+    try {
+      const data = await response.json()
+      detail = data.detail || detail
+    } catch (error) {
+      // Ignore body parsing errors.
+    }
+    const err = new Error(`${response.status}: ${detail}`)
+    err.status = response.status
+    throw err
+  }
+  return response.json()
+}
+
 export const api = {
   // Tournament
   getTournament: () => request('GET', '/api/tournament'),
   createTournament: (payload) => request('POST', '/api/tournament', payload),
   loadTournament: (filename) => request('POST', '/api/tournament/load', { filename }),
-  saveTournament: () => request('POST', '/api/tournament/save'),
+  saveTournament: (filename) =>
+    request(
+      'POST',
+      filename
+        ? `/api/tournament/save?filename=${encodeURIComponent(filename)}`
+        : '/api/tournament/save',
+    ),
+  uploadTournament: (file, overwrite = false) =>
+    upload(`/api/tournament/upload?overwrite=${overwrite ? 'true' : 'false'}`, file),
 
   // Teams
   listTeams: () => request('GET', '/api/teams'),
@@ -57,8 +86,7 @@ export const api = {
 
   // History
   listHistoryTournaments: () => request('GET', '/api/history/tournaments'),
-  listHistoryPlayers: () => request('GET', '/api/history/players'),
-  getHistoryPlayer: (name) =>
+  listHistoryPlayers: () => request('GET', '/api/history/players'),  getHistoryPlayer: (name) =>
     request('GET', `/api/history/players/${encodeURIComponent(name)}`),
 
   // About

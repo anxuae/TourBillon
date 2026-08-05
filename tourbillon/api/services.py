@@ -7,6 +7,7 @@ and handles persistence (YAML) and draw execution. It keeps ``core`` fully
 independent from FastAPI.
 """
 
+import re
 from datetime import datetime
 from pathlib import Path
 
@@ -19,24 +20,84 @@ from . import schemas
 # Tournament lifecycle
 # --------------------------------------------------------------------------- #
 def create_tournament(state, params):
-    """Create a fresh tournament using the given (or default) parameters."""
-    defaults = state.settings.new_tournament_defaults()
-    trn = core_tournament.Tournament(
-        teams_by_match=params.teams_by_match or defaults["teams_by_match"],
-        points_by_match=params.points_by_match or defaults["points_by_match"],
-        players_by_team=params.players_by_team or defaults["players_by_team"],
-    )
+    """Create a fresh tournament using the given parameters.
+
+    The per-tournament parameters are provided by the request; any omitted
+    value falls back to the ``core.Tournament`` built-in defaults (they are no
+    longer stored in the settings).
+    """
+    kwargs = {}
+    if params.teams_by_match:
+        kwargs["teams_by_match"] = params.teams_by_match
+    if params.points_by_match:
+        kwargs["points_by_match"] = params.points_by_match
+    if params.players_by_team:
+        kwargs["players_by_team"] = params.players_by_team
+    trn = core_tournament.Tournament(**kwargs)
     state.tournament = trn
-    state.filename = None
+    # The title (if any) is only used to name the save file; the core model
+    # does not carry it. Any following save/auto-save reuses this path.
+    state.filename = _title_to_filename(state, params.title)
     return trn
+
+
+def _title_to_filename(state, title):
+    """Turn a tournament title into a save file path, or ``None``.
+
+    The title is sanitized into a safe base name (kept letters, digits, dash,
+    underscore and dots; other runs become a single underscore) and resolved
+    against the save directory with a ``.yml`` extension.
+    """
+    if not title or not title.strip():
+        return None
+    safe = re.sub(r"[^\w.-]+", "_", title.strip()).strip("._")
+    if not safe:
+        return None
+    if not safe.lower().endswith((".yml", ".yaml")):
+        safe += ".yml"
+    return str(Path(state.settings.save_dir) / safe)
 
 
 def load_tournament(state, filename):
-    """Load a tournament from a YAML file (retro-compatible)."""
-    trn = core_tournament.load(filename)
+    """Load a tournament from a YAML file (retro-compatible).
+
+    A bare file name (no directory) is resolved against the save directory so
+    the frontend can load a file listed by ``/api/history/tournaments``.
+    """
+    path = Path(filename)
+    if path.parent == Path("."):
+        path = Path(state.settings.save_dir) / path
+    trn = core_tournament.load(str(path))
     state.tournament = trn
-    state.filename = filename
+    state.filename = str(path)
     return trn
+
+
+def upload_tournament(state, filename, content, overwrite=False):
+    """Save an uploaded YAML file into the save dir, then load it.
+
+    The file is stored under the save directory using its base name only (any
+    directory component is stripped). If a file with the same name already
+    exists and ``overwrite`` is false, a :class:`FileExistsError` is raised so
+    the caller can ask the user for confirmation.
+
+    :param state: application state
+    :param filename: original file name of the upload
+    :param content: raw file bytes
+    :param overwrite: allow replacing an existing file
+    :return: the loaded tournament
+    """
+    name = Path(filename).name
+    if Path(name).suffix.lower() not in (".yml", ".yaml"):
+        raise ValueError("Only .yml or .yaml save files are accepted")
+
+    target = Path(state.settings.save_dir) / name
+    if target.exists() and not overwrite:
+        raise FileExistsError(name)
+
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_bytes(content)
+    return load_tournament(state, name)
 
 
 def save_tournament(state, filename=None):
@@ -72,6 +133,8 @@ def tournament_dto(state):
         nb_teams=trn.nb_teams(),
         nb_rounds=trn.nb_rounds(),
         filename=state.filename,
+        changed=trn.changed,
+        auto_save=state.settings.auto_save,
     )
 
 

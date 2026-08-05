@@ -11,7 +11,7 @@ from tourbillon.settings import Settings, DEFAULTS
 def test_defaults(tmp_path):
     settings = Settings({"save_dir": str(tmp_path)})
     assert settings.host == DEFAULTS["host"]
-    assert settings.teams_by_match == DEFAULTS["teams_by_match"]
+    assert settings.rank_by_wins == DEFAULTS["rank_by_wins"]
     assert settings.default_draw == "deterministic"
 
 
@@ -38,13 +38,13 @@ def test_update_ignores_unknown_keys(tmp_path):
 def test_save_and_load_roundtrip(tmp_path):
     path = str(tmp_path / "settings.yml")
     settings = Settings({"save_dir": str(tmp_path), "port": 4242}, path=path)
-    settings.teams_by_match = 3
+    settings.rank_by_duration = True
     settings.save()
 
     assert Path(path).is_file()
     reloaded = Settings.load(path)
     assert reloaded.port == 4242
-    assert reloaded.teams_by_match == 3
+    assert reloaded.rank_by_duration is True
 
 
 def test_save_without_path_uses_config_dir(tmp_path, monkeypatch):
@@ -96,15 +96,8 @@ def test_env_override(tmp_path, monkeypatch):
     assert settings.save_dir == str(tmp_path)
 
 
-def test_new_tournament_defaults(tmp_path):
-    settings = Settings({"save_dir": str(tmp_path), "teams_by_match": 4})
-    defaults = settings.new_tournament_defaults()
-    assert defaults["teams_by_match"] == 4
-    assert defaults["default_draw"] == "deterministic"
-
-
 def test_as_dict_is_a_copy(tmp_path):
     settings = Settings({"save_dir": str(tmp_path)})
     data = settings.as_dict()
-    data["port"] = -1
+    data["general"]["port"] = -1
     assert settings.port != -1

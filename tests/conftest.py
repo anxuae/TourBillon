@@ -6,9 +6,23 @@ from pathlib import Path
 from fastapi.testclient import TestClient
 
 from data import t2teams2players
-from tourbillon.core import cst, draws, team, tournament
+from tourbillon.core import cst, team, tournament
 from tourbillon.api.app import create_app
 from tourbillon.settings import Settings
+
+
+@pytest.fixture(autouse=True)
+def isolate_settings_file(tmp_path, monkeypatch):
+    """Redirect the user settings file into a temp dir for every test.
+
+    Guarantees that no test ever reads or writes the real application settings
+    file (``default_settings_path()``), even when ``Settings.load`` or
+    ``Settings.save`` are called without an explicit path.
+    """
+    import tourbillon.settings as settings_mod
+
+    config_file = tmp_path / "settings.yml"
+    monkeypatch.setattr(settings_mod, "default_settings_path", lambda: config_file)
 
 
 def make_stats(specs):
@@ -104,8 +118,15 @@ def stats_odd():
 
 @pytest.fixture
 def client(tmp_path):
-    """Return a TestClient backed by a fresh app with a temp save dir."""
-    settings = Settings({"save_dir": str(tmp_path), "auto_save": False})
+    """Return a TestClient backed by a fresh app with a temp save dir.
+
+    Both the save directory and the settings file live under ``tmp_path`` so
+    the tests never touch the real application settings file.
+    """
+    settings = Settings(
+        {"save_dir": str(tmp_path), "auto_save": False},
+        path=str(tmp_path / "settings.yml"),
+    )
     app = create_app(settings)
     return TestClient(app)
 

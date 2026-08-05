@@ -10,7 +10,10 @@ const { tournament, error } = storeToRefs(store)
 
 const settingsOpen = ref(false)
 
+// The Tournament tab is always available (it creates/loads a tournament); the
+// other tabs require a loaded tournament and stay disabled until then.
 const tabs = [
+  { name: 'admin-tournament', label: 'Tournament', always: true },
   { name: 'admin-teams', label: 'Teams' },
   { name: 'admin-draw', label: 'Draw' },
   { name: 'admin-round', label: 'Round' },
@@ -28,15 +31,19 @@ onMounted(() => {
       <RouterLink to="/" class="brand">TourBillon</RouterLink>
       <span class="role">Admin</span>
       <nav>
-        <RouterLink
-          v-for="tab in tabs"
-          :key="tab.name"
-          :to="{ name: tab.name }"
-          class="nav-link"
-          active-class="active"
-        >
-          {{ tab.label }}
-        </RouterLink>
+        <template v-for="tab in tabs" :key="tab.name">
+          <RouterLink
+            v-if="tab.always || tournament"
+            :to="{ name: tab.name }"
+            class="nav-link"
+            active-class="active"
+          >
+            {{ tab.label }}
+          </RouterLink>
+          <span v-else class="nav-link disabled" :title="'Load or create a tournament first'">
+            {{ tab.label }}
+          </span>
+        </template>
       </nav>
       <div class="status">
         <template v-if="tournament">
@@ -105,6 +112,12 @@ nav {
 .nav-link.active {
   background: var(--color-primary);
   color: #fff;
+}
+
+.nav-link.disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
 }
 
 .status {

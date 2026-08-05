@@ -2,7 +2,7 @@
 
 """Tournament lifecycle endpoints."""
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 
 from .. import services, schemas
 from ..state import get_state
@@ -28,13 +28,35 @@ async def create_tournament(payload: schemas.TournamentCreate, state=Depends(get
 
 
 @router.post("/load", response_model=schemas.TournamentDTO)
-async def load_tournament(filename: str, state=Depends(get_state)):
-    """Load a tournament from a YAML file."""
+async def load_tournament(payload: schemas.TournamentLoad, state=Depends(get_state)):
+    """Load a tournament from a YAML file (name relative to the save dir)."""
     async with state.lock:
         try:
-            services.load_tournament(state, filename)
+            services.load_tournament(state, payload.filename)
         except Exception as ex:
             raise HTTPException(status_code=400, detail=str(ex))
+        return services.tournament_dto(state)
+
+
+@router.post("/upload", response_model=schemas.TournamentDTO)
+async def upload_tournament(
+    file: UploadFile = File(...),
+    overwrite: bool = False,
+    state=Depends(get_state),
+):
+    """Upload a YAML save file into the save dir and load it.
+
+    Returns HTTP 409 if a file with the same name already exists and
+    ``overwrite`` is not set, so the frontend can ask for confirmation.
+    """
+    content = await file.read()
+    async with state.lock:
+        try:
+            services.upload_tournament(state, file.filename, content, overwrite)
+        except FileExistsError as ex:
+            raise HTTPException(status_code=409, detail=str(ex)) from ex
+        except Exception as ex:
+            raise HTTPException(status_code=400, detail=str(ex)) from ex
         return services.tournament_dto(state)
 
 

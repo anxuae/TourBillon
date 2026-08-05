@@ -40,6 +40,7 @@ def list_tournaments(save_dir):
                 "year": _year_of(trn, path),
                 "nb_teams": trn.nb_teams(),
                 "nb_rounds": trn.nb_rounds(),
+                "modified": Path(path).stat().st_mtime,
             }
         )
     return result

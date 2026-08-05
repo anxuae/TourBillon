@@ -12,8 +12,13 @@ const routes = [
     path: '/admin',
     name: 'admin',
     component: () => import('@/views/admin/AdminLayout.vue'),
-    redirect: { name: 'admin-teams' },
+    redirect: { name: 'admin-tournament' },
     children: [
+      {
+        path: 'tournament',
+        name: 'admin-tournament',
+        component: () => import('@/views/admin/TournamentView.vue'),
+      },
       {
         path: 'teams',
         name: 'admin-teams',
@@ -80,7 +85,28 @@ const routes = [
   },
 ]
 
-export default createRouter({
+const router = createRouter({
   history: createWebHistory(),
   routes,
 })
+
+// Admin tabs other than "Tournament" require a loaded tournament. Guard direct
+// URL access: if none is loaded, redirect to the tournament create/load view.
+const ADMIN_OPEN_ROUTES = new Set(['admin', 'admin-tournament'])
+
+router.beforeEach(async (to) => {
+  if (!to.name || !String(to.name).startsWith('admin')) return true
+  if (ADMIN_OPEN_ROUTES.has(to.name)) return true
+
+  const { useTournamentStore } = await import('@/stores/tournament')
+  const store = useTournamentStore()
+  if (!store.tournament) {
+    await store.refreshTournament()
+  }
+  if (!store.tournament) {
+    return { name: 'admin-tournament' }
+  }
+  return true
+})
+
+export default router
