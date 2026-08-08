@@ -191,8 +191,7 @@ Points clés :
   avertissements de linter « protected member » sur ce point sont attendus.
 
 ### Statistiques (clés en mémoire, non persistées — voir `cst.py`)
-`STAT_POINTS`, `STAT_WINS`, `STAT_BYES`, `STAT_OPPONENTS`, `STAT_MATCHES`,
-`STAT_RANK`. C'est le format du dict `stats` consommé par les tirages.
+`STAT_POINTS`, `STAT_WINS`, `STAT_BYES`, `STAT_OPPONENTS`, `STAT_MATCHES`. C'est le format du dict `stats` consommé par les tirages.
 
 ---
 

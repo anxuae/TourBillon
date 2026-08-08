@@ -81,13 +81,13 @@ def _search(stats, teams_by_match, max_disparity, allow_rematch, cfg):
         rng.shuffle(individual)
         population.append(individual)
 
-    def fitness(individual):
+    def parametrized_fitness(individual):
         return _fitness(_chunk(individual, teams_by_match), stats,
                         max_disparity, allow_rematch, cfg)
 
     for _ in range(generations):
-        population.sort(key=fitness)
-        if fitness(population[0]) == 0.0:
+        population.sort(key=parametrized_fitness)
+        if parametrized_fitness(population[0]) == 0.0:
             break
 
         # Elitism: keep the best half, breed the rest.
@@ -107,7 +107,7 @@ def _search(stats, teams_by_match, max_disparity, allow_rematch, cfg):
             children.append(child)
         population = survivors + children
 
-    population.sort(key=fitness)
+    population.sort(key=parametrized_fitness)
     best = population[0]
     return _chunk(best, teams_by_match)
 

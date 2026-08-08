@@ -12,8 +12,7 @@ function defaultTitle() {
   return `Tournoi Billon ${today}`
 }
 
-// New-tournament parameters, pre-filled with the usual defaults. These match
-// the core Tournament defaults and are no longer stored in the settings.
+// New-tournament parameters, pre-filled with the usual defaults.
 const params = reactive({
   title: defaultTitle(),
   teams_by_match: 2,

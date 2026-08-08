@@ -54,7 +54,7 @@ def test_no_bye_when_even(stats_even):
 def test_one_bye_when_odd(stats_odd):
     byes = draws.select_bye_teams(stats_odd, 2)
     assert len(byes) == 1
-    weakest = common.order_by_weakness(stats_odd)[0]
+    weakest = common.order_by_strength(stats_odd, weakest_first=True)[0]
     assert byes[0] == weakest
 
 
@@ -83,7 +83,7 @@ def test_bye_minimizes_count_per_team():
 def test_bye_reused_only_when_all_already_bye():
     # Every team has been BYE once: pick again, weakest first.
     stats = make_stats({1: (0, 0, 1), 2: (1, 0, 1), 3: (10, 3, 1)})
-    weakest = common.order_by_weakness(stats)[0]
+    weakest = common.order_by_strength(stats, weakest_first=True)[0]
     assert draws.select_bye_teams(stats, 2) == [weakest]
 
 

@@ -133,6 +133,7 @@ class Round:
         for team in self.tournament.teams():
             if team.round_exists(self.number):
                 teams.append(team)
+
         return teams
 
     def forfeits(self) -> list:

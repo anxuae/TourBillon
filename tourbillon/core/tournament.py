@@ -187,16 +187,13 @@ class Tournament:
         Statistics on the previous rounds of the specified teams.
         """
         stat = {}
-        ranking = dict(self.ranking())
         for team in self.teams():
             if not excluded_teams or team not in excluded_teams:
-
                 stat[team.id] = {cst.STAT_POINTS: team.points(round_limit),
                                  cst.STAT_WINS: team.wins(round_limit),
                                  cst.STAT_BYES: team.byes(round_limit),
                                  cst.STAT_OPPONENTS: team.opponents(round_limit),
-                                 cst.STAT_MATCHES: team.matches(round_limit),
-                                 cst.STAT_RANK: ranking[team]}
+                                 cst.STAT_MATCHES: team.matches(round_limit)}
         return stat
 
     def locations(self):

@@ -44,8 +44,7 @@ def make_stats(specs):
             cst.STAT_WINS: wins,
             cst.STAT_BYES: byes,
             cst.STAT_OPPONENTS: [],
-            cst.STAT_MATCHES: [],
-            cst.STAT_RANK: ranking[num],
+            cst.STAT_MATCHES: []
         }
     return stats
 

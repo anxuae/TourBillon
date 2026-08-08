@@ -17,8 +17,6 @@ operator can increase ``max_disparity`` (or allow rematches).
 import asyncio
 from itertools import combinations
 
-import numpy as np
-
 from . import common
 from ..exception import DrawImpossibleError
 
@@ -29,13 +27,6 @@ DEFAULT = {
     "allow_rematch": False,
     "win_weight": 100,
 }
-
-
-def _cost_vector(stats, teams, win_weight):
-    """Return a numpy strength vector aligned with ``teams`` (weakest first)."""
-    points = np.array([stats[num][common.cst.STAT_POINTS] for num in teams], dtype=float)
-    wins = np.array([common.wins(stats[num]) for num in teams], dtype=float)
-    return points + win_weight * wins
 
 
 def _build(order, stats, teams_by_match, max_disparity, allow_rematch):
@@ -90,17 +81,14 @@ async def generate_draw(teams_by_match, stats, bye_teams=(), config=None, on_pro
 
     # Order teams by strength; the weakest are paired first because they have
     # the fewest valid partners under the disparity constraint.
-    order_strong = common.order_by_strength(playing)
-    strength = _cost_vector(playing, order_strong, win_weight)
-    # Weakest first (numpy argsort keeps the computation vectorized/fast).
-    weakest_first = [order_strong[i] for i in np.argsort(strength, kind="stable")]
+    order_weakest = common.order_by_strength(playing, weakest_first=True)
 
     if on_progress:
         await on_progress(30.0, "Searching for a valid pairing")
 
     # Run the CPU-bound backtracking off the event loop.
     matches = await asyncio.to_thread(
-        _build, weakest_first, playing, teams_by_match, max_disparity, allow_rematch
+        _build, order_weakest, playing, teams_by_match, max_disparity, allow_rematch
     )
 
     if matches is None:

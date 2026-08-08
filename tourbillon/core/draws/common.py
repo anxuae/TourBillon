@@ -3,17 +3,16 @@
 """Pure helper functions shared by the draw algorithms.
 
 The ``stats`` mapping consumed by the draws is the one produced by
-:meth:`tourbillon.core.tournament.Tournament.statistiques`. Each entry is keyed
+:meth:`tourbillon.core.tournament.Tournament.statistics`. Each entry is keyed
 by the team number and holds the following fields (see ``core.cst``):
 
     {
         team_number: {
             cst.STAT_POINTS:     int,   # cumulated points
-            cst.STAT_WINS:     int,   # number of wins
-            cst.STAT_BYES:     int,   # number of byes (count as a win)
-            cst.STAT_OPPONENTS: list, # opponents already met (team numbers)
-            cst.STAT_MATCHES:  list,  # matches already played (sorted team lists)
-            cst.STAT_PLACE:      int,   # current ranking position
+            cst.STAT_WINS:       int,   # number of wins
+            cst.STAT_BYES:       int,   # number of byes (count as a win)
+            cst.STAT_OPPONENTS:  list,  # opponents already met (team ids)
+            cst.STAT_MATCHES:    list,  # matches already played (sorted team ids)
         },
         ...
     }
@@ -47,26 +46,24 @@ def wins(team_stats):
     return team_stats[cst.STAT_WINS] + team_stats[cst.STAT_BYES]
 
 
-def order_by_strength(stats):
-    """Return the team numbers ordered from the strongest to the weakest.
+def order_by_strength(stats, weakest_first=False):
+    """Return the team ids ordered:
+
+    - from the strongest to the weakest if ``weakest_first`` is ``False`` (default), or
+    - from the weakest to the strongest if ``weakest_first`` is ``True``.
 
     Teams are compared first by number of wins, then by points, then by team
-    number (to keep the result fully deterministic).
+    id (to keep the result fully deterministic).
     """
     return sorted(
         stats.keys(),
         key=lambda num: (wins(stats[num]), stats[num][cst.STAT_POINTS], -num),
-        reverse=True,
+        reverse=not weakest_first,
     )
 
 
-def order_by_weakness(stats):
-    """Return the team numbers ordered from the weakest to the strongest."""
-    return list(reversed(order_by_strength(stats)))
-
-
 def select_bye_teams(stats, teams_by_match, forced=()):
-    """Return the list of team numbers to set as BYE for the next round.
+    """Return the list of team ids to set as BYE for the next round.
 
     The number of BYEs per team is minimized: teams that were BYE the fewest
     times are chosen first (weakest first to break ties). A team is therefore
@@ -76,7 +73,7 @@ def select_bye_teams(stats, teams_by_match, forced=()):
 
     :param stats: statistics mapping (see module docstring)
     :param teams_by_match: number of teams gathered in a single match
-    :param forced: optional list of team numbers to force as BYE
+    :param forced: optional list of team ids to force as BYE
     """
     count = bye_count(len(stats), teams_by_match)
     forced = list(forced)
@@ -97,7 +94,7 @@ def select_bye_teams(stats, teams_by_match, forced=()):
     # Minimize the number of BYEs per team: pick teams with the fewest BYEs
     # first, weakest first to break ties. A team already BYE is only chosen
     # again once every remaining team has been BYE at least as often.
-    candidates = order_by_weakness(stats)
+    candidates = order_by_strength(stats, weakest_first=True)
     ordered = sorted(candidates, key=lambda num: stats[num][cst.STAT_BYES])
 
     return sorted(ordered[:count])
@@ -126,17 +123,6 @@ def disparity(stats, match):
     return max(values) - min(values)
 
 
-def match_cost(stats, match, win_weight):
-    """Return the cost of a match (lower is better, weakest teams first).
-
-    ``cost = sum(points) + win_weight * sum(wins)``
-    """
-    total = 0
-    for num in match:
-        total += stats[num][cst.STAT_POINTS] + win_weight * wins(stats[num])
-    return total
-
-
 def is_match_valid(stats, match, max_disparity, allow_rematch):
     """Return ``True`` if a match satisfies the Swiss constraints."""
     if not allow_rematch and has_already_played(stats, match):
@@ -144,17 +130,3 @@ def is_match_valid(stats, match, max_disparity, allow_rematch):
     if disparity(stats, match) > max_disparity:
         return False
     return True
-
-
-def to_locations(matches, locations=None):
-    """Map a list of matches to physical locations.
-
-    :param matches: list of matches (each a list/tuple of team numbers)
-    :param locations: optional list of location IDs to use
-    :return: dict {location_id: match}
-    """
-    if locations is None:
-        locations = list(range(1, len(matches) + 1))
-    if len(locations) < len(matches):
-        raise DrawError("Not enough locations for the generated matches")
-    return {locations[i]: list(match) for i, match in enumerate(matches)}
