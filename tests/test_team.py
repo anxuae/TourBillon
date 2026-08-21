@@ -12,7 +12,7 @@ def check_statistics(equ2jn1, opponents=[], points=0, wins=0, forfeits=0, rounds
                      byes=0, average_score=0, min_score=0, max_score=0,
                      average_duration=timedelta(0), min_duration=timedelta(0),
                      max_duration=timedelta(0)):
-    assert equ2jn1.opponents() == opponents
+    assert equ2jn1.opponent_ids() == opponents
     assert equ2jn1.points() == points
     assert equ2jn1.wins() == wins
     assert equ2jn1.forfeits() == forfeits

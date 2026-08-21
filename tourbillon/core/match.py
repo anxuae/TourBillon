@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-
 
-"""Match class definition"""
+"""Match result class definition"""
 
 from datetime import datetime, timedelta
 
@@ -30,26 +30,26 @@ _LEGACY_TO_RESULT = {
 _RESULT_TO_LEGACY = {value: key for key, value in _LEGACY_TO_RESULT.items()}
 
 
-class Match:
+class MatchResult:
     """
     A match represent the team result on a given round.
     """
 
-    def __init__(self, start=datetime.now(), opponents=()):
+    def __init__(self, start=datetime.now(), opponent_ids=()):
         self.data = {'points': 0,
                      'state': None,
                      'start': start,
                      'end': None,
-                     'opponents': opponents or [],
+                     'opponents': opponent_ids or [],
                      'location': None}
 
     def __str__(self):
         return f"""
-        Match
+        MatchResult
             Start        : {self.start}
             Result       : {self.result}
             Points       : {self.points}
-            Competitors  : {self.opponents}
+            Competitors  : {self.opponent_ids}
 
             Status       : {self.status}
         """
@@ -213,16 +213,16 @@ class Match:
         self.data['end'] = value
 
     @property
-    def opponents(self) -> list:
+    def opponent_ids(self) -> list:
         """
-        Return the list of team's competitors.
+        Return the list of competitor team identifiers.
         """
         return self.data['opponents']
 
-    @opponents.setter
-    def opponents(self, value: list) -> None:
+    @opponent_ids.setter
+    def opponent_ids(self, value: list) -> None:
         """
-        Set competitors list.
+        Set competitor team identifiers.
         """
         for num in value:
             if not isinstance(num, int):
@@ -244,3 +244,4 @@ class Match:
         Set the match location.
         """
         self.data['location'] = value
+

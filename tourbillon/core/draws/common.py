@@ -52,12 +52,26 @@ def order_by_strength(stats, weakest_first=False):
     - from the strongest to the weakest if ``weakest_first`` is ``False`` (default), or
     - from the weakest to the strongest if ``weakest_first`` is ``True``.
 
-    Teams are compared first by number of wins, then by points, then by team
-    id (to keep the result fully deterministic).
+    Teams are compared by:
+
+    1) wins,
+    2) points,
+    3) truncated Buchholz,
+    4) goal average,
+    5) team id (to keep the result fully deterministic).
+
+    ``stats`` entries that do not provide the optional tie-break fields are
+    considered with a default value of ``0`` for those fields.
     """
     return sorted(
         stats.keys(),
-        key=lambda num: (wins(stats[num]), stats[num][cst.STAT_POINTS], -num),
+        key=lambda num: (
+            wins(stats[num]),
+            stats[num][cst.STAT_POINTS],
+            stats[num].get(cst.STAT_BUCHHOLZ, 0),
+            stats[num].get(cst.STAT_GOAL_AVERAGE, 0),
+            -num,
+        ),
         reverse=not weakest_first,
     )
 

@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 
 from . import cst
 from .exception import BoundError, StatusError
-from .match import Match
+from .match import MatchResult
 from .player import Player
 
 
@@ -74,7 +74,7 @@ class Team:
             raise StatusError(
                 f"Cannot create round for team n°{self.id}. (round in progress: {len(self._results)})")
         else:
-            m = Match(start, opponents)
+            m = MatchResult(start, opponents)
             if result == cst.BYE:
                 m.points = self.tournament.points_by_match
             if result:
@@ -210,9 +210,9 @@ class Team:
         else:
             return self._results[round_number - 1]
 
-    def opponents(self, round_limit: int = None):
+    def opponent_ids(self, round_limit: int | None = None):
         """
-        Return the list of competitors encountered since the
+        Return the list of competitor team identifiers encountered since the
         first to the given round number.
 
         :param round_limit: last round number (included)
@@ -220,11 +220,23 @@ class Team:
         if round_limit is None:
             round_limit = len(self._results)
         l = []
+        seen = set()
         for m in self._results[:round_limit]:
-            for ad in m.opponents:
-                l.append(ad)
+            for ad in m.opponent_ids:
+                if ad not in seen:
+                    seen.add(ad)
+                    l.append(ad)
 
         return l
+
+    def opponents(self, round_limit: int | None = None):
+        """
+        Return the list of opponent teams encountered since the first
+        to the given round number.
+
+        :param round_limit: last round number (included)
+        """
+        return [self.tournament.team(opponent_id) for opponent_id in self.opponent_ids(round_limit)]
 
     def matches(self, round_limit: int = None):
         """
@@ -238,7 +250,7 @@ class Team:
         l = []
         for m in self._results[:round_limit]:
             if m.result in [cst.WON, cst.LOST]:
-                match = sorted(m.opponents + [self.id])
+                match = sorted(m.opponent_ids + [self.id])
                 l.append(match)
 
         return l
@@ -414,3 +426,78 @@ class Team:
             return timedelta(0)
         else:
             return max(l)
+
+    def buchholz_truncated(self, round_limit: int = None):
+        """
+        Return the truncated Buchholz score.
+
+        The Buchholz score is the sum of the points obtained by all
+        opponents encountered by the team.
+
+        From the second round onward, the opponent with the lowest
+        cumulative score is removed.
+
+        BYE and FORFEIT rounds are ignored.
+
+        :param round_limit: last round number (included)
+        """
+        if round_limit is None:
+            round_limit = len(self._results)
+
+        opponent_scores = []
+
+        for opponent in self.opponents(round_limit):
+            opponent_scores.append(opponent.points(round_limit))
+
+        if not opponent_scores:
+            return 0
+
+        # Truncation only when there are at least 2 rounds.
+        if round_limit >= 2:
+            opponent_scores.remove(min(opponent_scores))
+
+        return sum(opponent_scores)
+
+
+    def goal_average(self, round_limit: int = None):
+        """
+        Return the goal average.
+
+        In this tournament:
+            goals for     = team's points
+            goals against = opponent's points
+
+        The goal average is therefore:
+
+            total points scored - total points conceded
+
+        BYE and FORFEIT rounds are ignored.
+
+        :param round_limit: last round number (included)
+        """
+        if round_limit is None:
+            round_limit = len(self._results)
+
+        goal_for = 0
+        goal_against = 0
+
+        for round_number, match in enumerate(
+            self._results[:round_limit],
+            start=1
+        ):
+            # BYE and FORFEIT do not count.
+            if match.result in [cst.BYE, cst.FORFEIT]:
+                continue
+
+            # Points scored by this team.
+            goal_for += match.points
+
+            # Points scored by the opponent(s).
+            for opponent_id in match.opponent_ids:
+                opponent = self.tournament.team(opponent_id)
+                opponent_match = opponent.result(round_number)
+
+                if opponent_match.result not in [cst.BYE, cst.FORFEIT]:
+                    goal_against += opponent_match.points
+
+        return goal_for - goal_against

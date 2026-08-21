@@ -6,7 +6,7 @@ import copy
 from datetime import datetime
 
 from . import cst
-from .match import Match
+from .match import MatchResult
 from .exception import StatusError, InconsistencyError, ResultError
 
 
@@ -102,11 +102,11 @@ class Round:
                     l.append(team.id)
 
                     m = team.result(self.number)
-                    for a in m.opponents:
+                    for a in m.opponent_ids:
                         l.append(a)
 
-                    if m.opponents != []:
-                        matches.append(sorted([team.id] + m.opponents))
+                    if m.opponent_ids != []:
+                        matches.append(sorted([team.id] + m.opponent_ids))
 
         return matches
 
@@ -159,22 +159,6 @@ class Round:
                 incomplete.append(team)
 
         return incomplete
-
-    def opponents(self, team) -> list:
-        """
-        Return a team's competitors.
-
-        :param team: team identifier (int) or team (object)
-        """
-        if isinstance(team, int):
-            team = self.tournament.team(team)
-
-        competitors = []
-        if self.status != cst.ROUND_WAITING_DRAW:
-            for adv in team.result(self.number).opponents:
-                competitors.append(self.tournament.team(adv))
-
-        return sorted(competitors)
 
     def start(self, matches: dict, byes: list = ()) -> None:
         """
@@ -243,7 +227,7 @@ class Round:
                     byes = [t.id for t in self.byes()]
                     # Modify all the existing byes
                     for adv in self.byes():
-                        m = Match(self.start_time(), [team.id] + [num for num in byes if num != adv.id])
+                        m = MatchResult(self.start_time(), [team.id] + [num for num in byes if num != adv.id])
                         m.location = location
                         adv._results[self.number - 1] = m
 

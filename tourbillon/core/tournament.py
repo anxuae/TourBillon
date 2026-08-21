@@ -11,7 +11,7 @@ import yaml
 
 from . import cst
 from .exception import FileError, StatusError, InconsistencyError
-from .match import Match
+from .match import MatchResult
 from .team import Team
 from .round import Round
 from ..assets import banner
@@ -44,7 +44,7 @@ def load(filename):
         # Rounds info
         for num in y['parties']:
             for data in y['parties'][num]:
-                m = Match()
+                m = MatchResult()
                 m.load(data)
                 tournament.team(num)._results.append(m)
 
@@ -192,8 +192,10 @@ class Tournament:
                 stat[team.id] = {cst.STAT_POINTS: team.points(round_limit),
                                  cst.STAT_WINS: team.wins(round_limit),
                                  cst.STAT_BYES: team.byes(round_limit),
-                                 cst.STAT_OPPONENTS: team.opponents(round_limit),
-                                 cst.STAT_MATCHES: team.matches(round_limit)}
+                                 cst.STAT_OPPONENTS: team.opponent_ids(round_limit),
+                                 cst.STAT_MATCHES: team.matches(round_limit),
+                                 cst.STAT_BUCHHOLZ: team.buchholz_truncated(round_limit),
+                                 cst.STAT_GOAL_AVERAGE: team.goal_average(round_limit)}
         return stat
 
     def locations(self):
