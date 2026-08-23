@@ -2,7 +2,7 @@
 
 """Tournament lifecycle endpoints."""
 
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, File, HTTPException, Response, UploadFile
 
 from .. import services, schemas
 from ..state import get_state
@@ -20,21 +20,25 @@ def get_tournament(state=Depends(get_state)):
 
 
 @router.post("", response_model=schemas.TournamentDTO)
-async def create_tournament(payload: schemas.TournamentCreate, state=Depends(get_state)):
+async def create_tournament(payload: schemas.TournamentCreateDTO, state=Depends(get_state)):
     """Create a new tournament."""
     async with state.lock:
         services.create_tournament(state, payload)
+        await state.progress.publish({"type": "tournament_changed", "action": "created"})
+        await state.progress.publish({"type": "teams_updated"})
         return services.tournament_dto(state)
 
 
 @router.post("/load", response_model=schemas.TournamentDTO)
-async def load_tournament(payload: schemas.TournamentLoad, state=Depends(get_state)):
+async def load_tournament(payload: schemas.TournamentLoadDTO, state=Depends(get_state)):
     """Load a tournament from a YAML file (name relative to the save dir)."""
     async with state.lock:
         try:
             services.load_tournament(state, payload.filename)
         except Exception as ex:
             raise HTTPException(status_code=400, detail=str(ex))
+        await state.progress.publish({"type": "tournament_changed", "action": "loaded"})
+        await state.progress.publish({"type": "teams_updated"})
         return services.tournament_dto(state)
 
 
@@ -57,6 +61,8 @@ async def upload_tournament(
             raise HTTPException(status_code=409, detail=str(ex)) from ex
         except Exception as ex:
             raise HTTPException(status_code=400, detail=str(ex)) from ex
+        await state.progress.publish({"type": "tournament_changed", "action": "uploaded"})
+        await state.progress.publish({"type": "teams_updated"})
         return services.tournament_dto(state)
 
 
@@ -69,3 +75,20 @@ async def save_tournament(filename: str | None = None, state=Depends(get_state))
         except LookupError:
             raise HTTPException(status_code=404, detail="No tournament loaded")
         return {"filename": saved}
+
+
+@router.delete("/file", status_code=204)
+async def delete_tournament_file(state=Depends(get_state)):
+    """Delete the save file of the currently loaded tournament."""
+    async with state.lock:
+        try:
+            services.delete_tournament_file(state)
+        except LookupError:
+            raise HTTPException(status_code=404, detail="No tournament loaded")
+        except FileNotFoundError as ex:
+            raise HTTPException(status_code=404, detail=str(ex)) from ex
+        except ValueError as ex:
+            raise HTTPException(status_code=400, detail=str(ex)) from ex
+        await state.progress.publish({"type": "tournament_changed", "action": "deleted"})
+        await state.progress.publish({"type": "teams_updated"})
+        return Response(status_code=204)

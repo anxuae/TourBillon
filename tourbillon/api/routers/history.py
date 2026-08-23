@@ -24,13 +24,24 @@ def list_history_tournaments(state=Depends(get_state)):
 @router.get("/players")
 def list_history_players(state=Depends(get_state)):
     """Return aggregated per-player statistics across every save file."""
-    return history_service.aggregate_players(state.settings.save_dir)
+    return history_service.aggregate_players(
+        state.settings.save_dir,
+        with_wins=state.settings.rank_by_wins,
+        with_joker=state.settings.rank_by_joker,
+        with_duration=state.settings.rank_by_duration,
+    )
 
 
 @router.get("/players/{name}")
 def get_history_player(name: str, state=Depends(get_state)):
     """Return the year-by-year detail of a single player."""
-    data = history_service.player_detail(state.settings.save_dir, name)
+    data = history_service.player_detail(
+        state.settings.save_dir,
+        name,
+        with_wins=state.settings.rank_by_wins,
+        with_joker=state.settings.rank_by_joker,
+        with_duration=state.settings.rank_by_duration,
+    )
     if data is None:
         raise HTTPException(status_code=404, detail=f"Unknown player '{name}'")
     return data

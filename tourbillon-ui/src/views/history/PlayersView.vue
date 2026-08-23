@@ -46,7 +46,7 @@ onMounted(async () => {
     </header>
 
     <p v-if="loading" class="muted">Loading history...</p>
-    <p v-else-if="error" class="error">{{ error }}</p>
+    <p v-else-if="error" class="muted">Unable to load history data.</p>
 
     <table v-else-if="filteredPlayers.length">
       <thead>

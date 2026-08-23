@@ -73,14 +73,6 @@ def test_ajout_equipes(trb2e2j, numero):
     assert trb2e2j.add_team(numero).status == cst.TEAM_INCOMPLETE
 
 
-@pytest.mark.parametrize('numero', EQUIPES)
-def test_joker(trb2e2j, numero):
-    equipe = trb2e2j.team(numero)
-    equipe.joker = trb2e2j.generate_joker()
-    assert equipe.joker < 1001
-    assert [e.joker for e in trb2e2j.teams()].count(equipe.joker) == 1
-
-
 def test_nb_equipes_apres_inscription(trb2e2j):
     assert trb2e2j.nb_teams() == NB_EQUIPES
 

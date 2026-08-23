@@ -2,6 +2,7 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useTournamentStore } from '@/stores/tournament'
+import { pushApiError } from '@/api/client'
 
 const store = useTournamentStore()
 const { tournament, savedTournaments, loading } = storeToRefs(store)
@@ -20,7 +21,6 @@ const params = reactive({
   players_by_team: 2,
 })
 
-const localError = ref(null)
 const dragging = ref(false)
 const fileInput = ref(null)
 
@@ -70,30 +70,45 @@ function cleanParams() {
   return out
 }
 
+function confirmReplaceWithUnsaved(actionLabel) {
+  if (!hasChanges.value) return true
+  return window.confirm(
+    `There are unsaved changes in the current tournament. Continue and ${actionLabel}?`,
+  )
+}
+
 async function createTournament() {
-  localError.value = null
+  if (!confirmReplaceWithUnsaved('create a new tournament')) return
   try {
     await store.createTournament(cleanParams())
-  } catch (err) {
-    localError.value = err.message
+  } catch {
   }
 }
 
 async function saveTournament() {
-  localError.value = null
   try {
     await store.saveTournament()
-  } catch (err) {
-    localError.value = err.message
+  } catch {
+  }
+}
+
+async function deleteCurrentFile() {
+  if (!tournament.value || !tournament.value.filename) return
+  if (!confirmReplaceWithUnsaved('delete the current save file')) return
+  const filename = currentFile.value || tournament.value.filename
+  const ok = window.confirm(`Delete save file "${filename}"? This cannot be undone.`)
+  if (!ok) return
+  try {
+    await store.deleteTournamentFile()
+  } catch {
   }
 }
 
 async function loadFile(filename) {
-  localError.value = null
+  if (!confirmReplaceWithUnsaved(`load "${filename}"`)) return
   try {
     await store.loadTournament(filename)
-  } catch (err) {
-    localError.value = err.message
+  } catch {
   }
 }
 
@@ -104,9 +119,9 @@ function isYaml(file) {
 
 async function handleFile(file) {
   if (!file) return
-  localError.value = null
+  if (!confirmReplaceWithUnsaved(`load "${file.name}"`)) return
   if (!isYaml(file)) {
-    localError.value = 'Only .yml or .yaml save files are accepted.'
+    pushApiError('Only .yml or .yaml save files are accepted.')
     return
   }
   try {
@@ -120,11 +135,8 @@ async function handleFile(file) {
       if (!ok) return
       try {
         await store.uploadTournament(file, true)
-      } catch (err2) {
-        localError.value = err2.message
+      } catch {
       }
-    } else {
-      localError.value = err.message
     }
   }
 }
@@ -145,8 +157,6 @@ function onPick(event) {
 <template>
   <section class="tournament">
     <h1>Tournament</h1>
-
-    <p v-if="localError" class="error">{{ localError }}</p>
 
     <div v-if="tournament" class="card current">
       <h2>Current tournament</h2>
@@ -173,6 +183,17 @@ function onPick(event) {
           @click="saveTournament"
         >
           {{ saveLabel }}
+        </button>
+        <button
+          v-if="tournament.filename"
+          type="button"
+          class="delete-file-btn"
+          :disabled="loading"
+          title="Delete current save file"
+          aria-label="Delete current save file"
+          @click="deleteCurrentFile"
+        >
+          Remove
         </button>
       </div>
     </div>
@@ -273,12 +294,13 @@ function onPick(event) {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
-  max-width: 900px;
+  width: 100%;
+  max-width: none;
 }
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
   gap: 1.5rem;
 }
 
@@ -294,6 +316,19 @@ function onPick(event) {
 
 .current .badge {
   margin-right: 0.5rem;
+}
+
+.current {
+  padding: 1rem;
+  gap: 0.45rem;
+}
+
+.current h2 {
+  margin: 0;
+}
+
+.current p {
+  margin: 0.15rem 0;
 }
 
 .field {
@@ -332,9 +367,12 @@ button:disabled {
 }
 
 .save-row {
-  margin-top: 0.5rem;
-  padding-top: 0.75rem;
+  margin-top: 0.35rem;
+  padding-top: 0.5rem;
   border-top: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 /* Green Save button: enabled when there are unsaved changes. */
@@ -351,6 +389,21 @@ button:disabled {
 /* ...but turn grey when auto-save handles persistence automatically. */
 .save-btn.auto-save:disabled {
   background: var(--color-muted, #9ca3af);
+  opacity: 0.5;
+}
+
+.delete-file-btn {
+  background: #dc2626;
+  color: #fff;
+  padding: 0.5rem 0.8rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius);
+}
+
+.delete-file-btn:disabled {
+  background: #dc2626;
   opacity: 0.5;
 }
 

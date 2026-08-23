@@ -34,7 +34,7 @@ onMounted(async () => {
     <h1>{{ detail?.name || route.params.name }}</h1>
 
     <p v-if="loading" class="muted">Loading player detail...</p>
-    <p v-else-if="error" class="error">{{ error }}</p>
+    <p v-else-if="error" class="muted">Unable to load player detail.</p>
 
     <table v-else-if="sortedEditions.length">
       <thead>
@@ -49,7 +49,7 @@ onMounted(async () => {
       <tbody>
         <tr v-for="row in sortedEditions" :key="`${row.year}-${row.team}`">
           <td>{{ row.year }}</td>
-          <td>#{{ row.team }}</td>
+          <td>{{ row.team }}</td>
           <td>{{ row.rank ?? '—' }}</td>
           <td>{{ row.wins }}</td>
           <td>{{ row.points }}</td>

@@ -32,7 +32,7 @@ def get_round(number: int, state=Depends(get_state)):
 
 
 @router.post("", response_model=schemas.RoundDTO)
-async def create_round(request: schemas.DrawRequest, state=Depends(get_state)):
+async def create_round(request: schemas.DrawRequestDTO, state=Depends(get_state)):
     """Create a new round by running a draw (broadcasts progress on /ws/draw)."""
     async with state.lock:
 
@@ -54,7 +54,7 @@ async def create_round(request: schemas.DrawRequest, state=Depends(get_state)):
 
 
 @router.put("/{number}/matches/{match}", response_model=schemas.RoundDTO)
-async def set_result(number: int, match: int, result: schemas.MatchResult, state=Depends(get_state)):
+async def set_result(number: int, match: int, result: schemas.MatchResultDTO, state=Depends(get_state)):
     """Register the score of a match (``match`` is kept for REST symmetry)."""
     async with state.lock:
         try:
@@ -65,3 +65,18 @@ async def set_result(number: int, match: int, result: schemas.MatchResult, state
             raise HTTPException(status_code=400, detail=str(ex))
         await state.progress.publish({"type": "score_updated", "round": number})
         return dto
+
+
+@router.delete("/{number}")
+async def delete_round(number: int, state=Depends(get_state)):
+    """Delete an existing round."""
+    async with state.lock:
+        try:
+            services.delete_round(state, number)
+        except LookupError:
+            raise HTTPException(status_code=404, detail="No tournament loaded")
+        except ValueError as ex:
+            raise HTTPException(status_code=400, detail=str(ex))
+
+        await state.progress.publish({"type": "round_deleted", "round": number})
+        return {"deleted": number}

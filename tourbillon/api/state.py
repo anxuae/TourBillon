@@ -39,6 +39,7 @@ class AppState:
         self.settings = settings
         self.tournament = None
         self.filename = None
+        self.display_view = 'display-rankings'
         self.lock = asyncio.Lock()
         self.progress = ProgressHub()
 
@@ -50,18 +51,17 @@ class AppState:
 
 
 # Singleton state, initialised by the application factory.
-_state = None
+_state_holder = {"state": None}
 
 
 def init_state(settings):
     """Initialise and return the global application state."""
-    global _state
-    _state = AppState(settings)
-    return _state
+    _state_holder["state"] = AppState(settings)
+    return _state_holder["state"]
 
 
 def get_state():
     """Return the global application state (FastAPI dependency)."""
-    if _state is None:
+    if _state_holder["state"] is None:
         raise RuntimeError("Application state is not initialised")
-    return _state
+    return _state_holder["state"]

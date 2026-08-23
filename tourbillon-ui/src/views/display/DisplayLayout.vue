@@ -1,25 +1,73 @@
 <script setup>
-import { onMounted } from 'vue'
-import { RouterLink, RouterView } from 'vue-router'
+import { onBeforeUnmount, onMounted, provide, ref } from 'vue'
+import { RouterView, useRoute, useRouter } from 'vue-router'
 import { useTournamentStore } from '@/stores/tournament'
+import { api, openDrawSocket } from '@/api/client'
 
 const store = useTournamentStore()
+const router = useRouter()
+const route = useRoute()
 
-onMounted(() => {
+const rotationSeconds = ref(12)
+provide('displayRotationSeconds', rotationSeconds)
+
+let socket = null
+
+function syncView(view) {
+  if (!view || route.name === view) return
+  router.replace({ name: view })
+}
+
+async function refreshRotationSettings() {
+  try {
+    const settings = await api.getSettings()
+    const raw = Number(settings?.display?.rotation_seconds)
+    if (Number.isFinite(raw) && raw > 0) {
+      rotationSeconds.value = raw
+    }
+  } catch {
+  }
+}
+
+function connectSocket() {
+  if (socket) {
+    socket.close()
+  }
+  socket = openDrawSocket()
+  socket.onmessage = (event) => {
+    try {
+      const payload = JSON.parse(event.data)
+      if (payload.type === 'display_view_changed' && payload.view) {
+        syncView(payload.view)
+      } else if (payload.type === 'tournament_changed') {
+        store.refreshAll()
+      }
+    } catch {
+    }
+  }
+}
+
+onMounted(async () => {
   store.refreshAll()
+  await refreshRotationSettings()
+  try {
+    const payload = await api.getDisplayView()
+    syncView(payload.view)
+  } catch {
+  }
+  connectSocket()
+})
+
+onBeforeUnmount(() => {
+  if (socket) {
+    socket.close()
+    socket = null
+  }
 })
 </script>
 
 <template>
   <div class="display-layout">
-    <header class="topbar">
-      <RouterLink to="/" class="brand">TourBillon</RouterLink>
-      <nav>
-        <RouterLink to="/display/teams" active-class="active">Teams</RouterLink>
-        <RouterLink to="/display/rankings" active-class="active">Rankings</RouterLink>
-        <RouterLink to="/display/round" active-class="active">Round</RouterLink>
-      </nav>
-    </header>
     <main>
       <RouterView />
     </main>
@@ -33,34 +81,9 @@ onMounted(() => {
   color: #f8fafc;
 }
 
-.topbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem 2rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.brand {
-  font-weight: 700;
-  font-size: 1.2rem;
-}
-
-nav {
-  display: flex;
-  gap: 1rem;
-}
-
-nav a {
-  opacity: 0.7;
-}
-
-nav a.active {
-  opacity: 1;
-  font-weight: 600;
-}
-
 main {
   padding: 2rem;
+  height: 100vh;
+  overflow: hidden;
 }
 </style>

@@ -284,6 +284,11 @@ servis par le routeur (`/admin`, `/display`, `/history`) :
   toutes les sauvegardes du dossier et affiche les **statistiques par joueur d'année
   en année** (fiche joueur, palmarès, évolution).
 
+> **Location (piquet) — règle simple** : l'UI n'invente jamais de location.
+> Afficher uniquement `match.location` renvoyé par l'API (source `core`).
+> **Ne pas** faire de fallback auto-calculé (ex. `index + 1`). Si absent,
+> afficher une valeur neutre (`—`).
+
 REST pour le CRUD, WebSocket pour le temps réel. Éviter jQuery.
 
 ---

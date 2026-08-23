@@ -113,6 +113,44 @@ def save_tournament(state, filename=None):
     return filename
 
 
+def delete_tournament_file(state):
+    """Delete the save file bound to the current tournament.
+
+    The file must exist and be located inside the configured save directory.
+    After deletion, the current tournament is unloaded.
+    """
+    state.require_tournament()
+    if not state.filename:
+        raise ValueError("Current tournament has no save file")
+
+    target = Path(state.filename).resolve()
+    save_dir = Path(state.settings.save_dir).resolve()
+
+    if target.parent != save_dir:
+        raise ValueError("Cannot delete a file outside the save directory")
+    if not target.exists() or not target.is_file():
+        raise FileNotFoundError(str(target))
+
+    target.unlink()
+    state.tournament = None
+    state.filename = None
+    return str(target)
+
+
+def get_display_view(state):
+    """Return the currently selected display view."""
+    return {"view": state.display_view}
+
+
+def set_display_view(state, view):
+    """Update the shared display view and broadcast it to connected clients."""
+    allowed = {"display-teams", "display-rankings", "display-round"}
+    if view not in allowed:
+        raise ValueError(f"Unknown display view '{view}'")
+    state.display_view = view
+    return {"view": state.display_view}
+
+
 def auto_save(state):
     """Persist the tournament if auto-save is enabled."""
     if state.settings.auto_save:
@@ -164,7 +202,8 @@ def round_dto(trn, rnd):
         for num in match:
             result = trn.team(num).result(rnd.number)
             points[num] = result.points
-            location = result.location
+            if location is None and result.location is not None:
+                location = result.location
             if result.status == cst.MATCH_IN_PROGRESS:
                 finished = False
         matches.append(
@@ -184,16 +223,21 @@ def round_dto(trn, rnd):
     )
 
 
-def ranking_dto(trn):
+def ranking_dto(state, trn, round_limit=None):
     """Return the ranking as a list of :class:`schemas.RankEntryDTO`."""
     entries = []
-    for team, rank in trn.ranking():
+    for team, rank in trn.ranking(
+        with_wins=state.settings.rank_by_wins,
+        with_joker=state.settings.rank_by_joker,
+        with_duration=state.settings.rank_by_duration,
+        round_limit=round_limit,
+    ):
         entries.append(
             schemas.RankEntryDTO(
                 rank=rank,
                 team=team.id,
-                wins=team.wins(),
-                points=team.points(),
+                wins=team.wins(round_limit),
+                points=team.points(round_limit),
             )
         )
     return entries
@@ -211,7 +255,7 @@ def list_teams(state):
 def add_team(state, payload):
     """Register a new team (and its players)."""
     trn = state.require_tournament()
-    team = trn.add_team(payload.number)
+    team = trn.add_team(payload.number, payload.joker)
     for player in payload.players:
         team.add_player(player.firstname, player.lastname)
     auto_save(state)
@@ -244,7 +288,7 @@ async def create_round(state, request, on_progress=None):
     """Create a new round by running a draw and starting it.
 
     :param state: application state
-    :param request: :class:`schemas.DrawRequest`
+    :param request: :class:`schemas.DrawRequestDTO`
     :param on_progress: optional async callback ``async (percent, message)``
     :return: the created round as a DTO
     """
@@ -283,6 +327,13 @@ def set_match_result(state, round_number, result):
     rnd.add_result({int(k): int(v) for k, v in result.points.items()}, datetime.now())
     auto_save(state)
     return round_dto(trn, rnd)
+
+
+def delete_round(state, number):
+    """Delete a round from the current tournament."""
+    trn = state.require_tournament()
+    trn.remove_round(number)
+    auto_save(state)
 
 
 # --------------------------------------------------------------------------- #

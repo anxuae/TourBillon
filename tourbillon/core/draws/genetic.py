@@ -28,7 +28,7 @@ DEFAULT = {
     "generations": 500,
     "crossover_rate": 0.9,
     "mutation_rate": 0.2,
-    "seed": 0,
+    "seed": None,
     "rematch_penalty": 100000,
     "disparity_penalty": 100000,
 }

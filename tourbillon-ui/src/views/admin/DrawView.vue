@@ -1,7 +1,7 @@
 <script setup>
 import { onMounted, ref } from 'vue'
 import { storeToRefs } from 'pinia'
-import { api, openDrawSocket } from '@/api/client'
+import { api, openDrawSocket, pushApiError } from '@/api/client'
 import { useTournamentStore } from '@/stores/tournament'
 
 const store = useTournamentStore()
@@ -15,7 +15,6 @@ const randomSeed = ref('')
 const progress = ref(0)
 const message = ref('Idle')
 const running = ref(false)
-const localError = ref(null)
 
 let socket = null
 
@@ -38,7 +37,7 @@ function connectSocket() {
         progress.value = Math.round(payload.percent || 0)
         message.value = payload.message || 'Running'
       } else if (payload.type === 'draw_error') {
-        localError.value = payload.message || 'Draw error'
+        pushApiError(payload.message || 'Draw error')
         running.value = false
       } else if (payload.type === 'round_created') {
         running.value = false
@@ -52,7 +51,6 @@ function connectSocket() {
 }
 
 async function runDraw() {
-  localError.value = null
   progress.value = 0
   message.value = 'Starting draw...'
   running.value = true
@@ -76,8 +74,7 @@ async function runDraw() {
     await store.refreshRounds()
     await store.refreshRankings()
     await store.refreshTournament()
-  } catch (error) {
-    localError.value = error.message
+  } catch {
     running.value = false
   }
 }
@@ -120,7 +117,6 @@ async function runDraw() {
       <div class="actions">
         <button :disabled="running || !tournament" @click="runDraw">Run draw</button>
       </div>
-      <p v-if="localError" class="error">{{ localError }}</p>
     </div>
 
     <div class="card progress-card">

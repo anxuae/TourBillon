@@ -13,6 +13,7 @@ def test_defaults(tmp_path):
     assert settings.host == DEFAULTS["host"]
     assert settings.rank_by_wins == DEFAULTS["rank_by_wins"]
     assert settings.default_draw == "deterministic"
+    assert settings.rotation_seconds == DEFAULTS["rotation_seconds"]
 
 
 def test_attribute_read_write(tmp_path):
@@ -101,3 +102,16 @@ def test_as_dict_is_a_copy(tmp_path):
     data = settings.as_dict()
     data["general"]["port"] = -1
     assert settings.port != -1
+
+
+def test_as_dict_contains_display_section(tmp_path):
+    settings = Settings({"save_dir": str(tmp_path)})
+    data = settings.as_dict()
+    assert "display" in data
+    assert data["display"]["rotation_seconds"] == settings.rotation_seconds
+
+
+def test_rotation_seconds_accepts_small_value(tmp_path):
+    settings = Settings({"save_dir": str(tmp_path)})
+    settings.update({"display": {"rotation_seconds": 1}})
+    assert settings.rotation_seconds == 1

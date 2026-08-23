@@ -1,5 +1,16 @@
 // Lightweight fetch-based client for the TourBillon REST API.
 
+export const API_ERROR_EVENT = 'tourbillon:api-error'
+export const API_ERROR_CLEAR_EVENT = 'tourbillon:api-error-clear'
+
+export function pushApiError(message, status = null) {
+  window.dispatchEvent(new CustomEvent(API_ERROR_EVENT, { detail: { message, status } }))
+}
+
+export function clearApiError() {
+  window.dispatchEvent(new CustomEvent(API_ERROR_CLEAR_EVENT))
+}
+
 async function request(method, url, body) {
   const options = {
     method,
@@ -17,7 +28,9 @@ async function request(method, url, body) {
     } catch (error) {
       // Ignore body parsing errors.
     }
-    throw new Error(`${response.status}: ${detail}`)
+    const message = `${response.status}: ${detail}`
+    pushApiError(message, response.status)
+    throw new Error(message)
   }
   if (response.status === 204) {
     return null
@@ -39,7 +52,9 @@ async function upload(url, file) {
     } catch (error) {
       // Ignore body parsing errors.
     }
-    const err = new Error(`${response.status}: ${detail}`)
+    const message = `${response.status}: ${detail}`
+    pushApiError(message, response.status)
+    const err = new Error(message)
     err.status = response.status
     throw err
   }
@@ -58,6 +73,7 @@ export const api = {
         ? `/api/tournament/save?filename=${encodeURIComponent(filename)}`
         : '/api/tournament/save',
     ),
+  deleteTournamentFile: () => request('DELETE', '/api/tournament/file'),
   uploadTournament: (file, overwrite = false) =>
     upload(`/api/tournament/upload?overwrite=${overwrite ? 'true' : 'false'}`, file),
 
@@ -70,6 +86,7 @@ export const api = {
   listRounds: () => request('GET', '/api/rounds'),
   getRound: (number) => request('GET', `/api/rounds/${number}`),
   createRound: (payload) => request('POST', '/api/rounds', payload),
+  deleteRound: (number) => request('DELETE', `/api/rounds/${number}`),
   setMatchResult: (round, match, points) =>
     request('PUT', `/api/rounds/${round}/matches/${match}`, { points }),
 
@@ -83,6 +100,10 @@ export const api = {
   // Settings
   getSettings: () => request('GET', '/api/settings'),
   updateSettings: (values) => request('PUT', '/api/settings', values),
+
+  // Display
+  getDisplayView: () => request('GET', '/api/display/view'),
+  setDisplayView: (view) => request('PUT', '/api/display/view', { view }),
 
   // History
   listHistoryTournaments: () => request('GET', '/api/history/tournaments'),

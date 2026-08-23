@@ -35,7 +35,6 @@ async function refreshRankings() {
             After round {{ round.number }}
           </option>
         </select>
-        <button class="secondary" @click="refreshRankings">Refresh</button>
       </div>
     </header>
 

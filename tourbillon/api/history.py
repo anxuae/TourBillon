@@ -51,7 +51,7 @@ def _player_name(player):
     return f"{player.firstname} {player.lastname}".strip()
 
 
-def aggregate_players(save_dir):
+def aggregate_players(save_dir, with_wins=True, with_joker=True, with_duration=True):
     """Return aggregated statistics per player across every edition."""
     players = {}
     for path in _iter_save_files(save_dir):
@@ -60,7 +60,13 @@ def aggregate_players(save_dir):
         except Exception:
             continue
         year = _year_of(trn, path)
-        ranking = dict(trn.ranking())
+        ranking = dict(
+            trn.ranking(
+                with_wins=with_wins,
+                with_joker=with_joker,
+                with_duration=with_duration,
+            )
+        )
         for team in trn.teams():
             rank = ranking.get(team)
             for player in team.players():
@@ -81,7 +87,7 @@ def aggregate_players(save_dir):
     return sorted(players.values(), key=lambda e: e["name"])
 
 
-def player_detail(save_dir, name):
+def player_detail(save_dir, name, with_wins=True, with_joker=True, with_duration=True):
     """Return the year-by-year detail of a single player, or ``None``."""
     detail = None
     for path in _iter_save_files(save_dir):
@@ -90,7 +96,13 @@ def player_detail(save_dir, name):
         except Exception:
             continue
         year = _year_of(trn, path)
-        ranking = dict(trn.ranking())
+        ranking = dict(
+            trn.ranking(
+                with_wins=with_wins,
+                with_joker=with_joker,
+                with_duration=with_duration,
+            )
+        )
         for team in trn.teams():
             for player in team.players():
                 if _player_name(player) == name:

@@ -29,7 +29,7 @@ watch(
   <div v-if="open" class="overlay" @click.self="emit('close')">
     <div class="modal card" role="dialog" aria-modal="true" aria-label="About TourBillon">
       <h2>About</h2>
-      <p v-if="error" class="error">{{ error }}</p>
+      <p v-if="error" class="muted">Unable to load version information.</p>
       <template v-else-if="info">
         <p class="name">{{ info.name }}</p>
         <p class="version">Version {{ info.version }}</p>

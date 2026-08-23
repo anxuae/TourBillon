@@ -60,7 +60,7 @@ async function save() {
   <div v-if="open" class="overlay" @click.self="emit('close')">
     <div class="modal card" role="dialog" aria-modal="true" aria-label="Settings">
       <h2>Settings</h2>
-      <p v-if="error" class="error">{{ error }}</p>
+      <p v-if="error" class="muted">Unable to load settings.</p>
 
       <form v-if="form" @submit.prevent="save">
         <fieldset v-for="[section, fields] in scalarSections" :key="section">
@@ -108,7 +108,7 @@ async function save() {
           </button>
         </div>
       </form>
-      <p v-else class="muted">Loading…</p>
+      <p v-else-if="!error" class="muted">Loading…</p>
     </div>
   </div>
 </template>

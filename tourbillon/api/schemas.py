@@ -20,8 +20,9 @@ class TeamDTO(BaseModel):
     byes: int
 
 
-class TeamCreate(BaseModel):
+class TeamCreateDTO(BaseModel):
     number: int | None = None
+    joker: int = 0
     players: list[PlayerDTO] = []
 
 
@@ -58,14 +59,14 @@ class TournamentDTO(BaseModel):
     auto_save: bool
 
 
-class TournamentCreate(BaseModel):
+class TournamentCreateDTO(BaseModel):
     title: str | None = None
     teams_by_match: int | None = None
     points_by_match: int | None = None
     players_by_team: int | None = None
 
 
-class TournamentLoad(BaseModel):
+class TournamentLoadDTO(BaseModel):
     filename: str
 
 
@@ -76,14 +77,18 @@ class DrawInfoDTO(BaseModel):
     config: dict
 
 
-class DrawRequest(BaseModel):
+class DrawRequestDTO(BaseModel):
     algorithm: str | None = None
     config: dict | None = None
     bye_teams: list[int] = []
 
 
-class MatchResult(BaseModel):
+class MatchResultDTO(BaseModel):
     points: dict[int, int]
+
+
+class DisplayViewDTO(BaseModel):
+    view: str
 
 
 class SettingsDTO(BaseModel):
@@ -91,10 +96,12 @@ class SettingsDTO(BaseModel):
     # tourbillon/settings.py and never redeclared here or in the frontend).
     general: dict
     tournament: dict
+    display: dict
     draws: dict
 
 
-class SettingsUpdate(BaseModel):
+class SettingsUpdateDTO(BaseModel):
     general: dict | None = None
     tournament: dict | None = None
+    display: dict | None = None
     draws: dict | None = None

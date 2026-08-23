@@ -257,18 +257,6 @@ class Tournament:
             i += 1
         return i
 
-    def generate_joker(self):
-        """
-        Return an unused random number between 1 and 1000.
-        """
-        if self.nb_teams() > 1000:
-            raise ValueError("The player limit has been reached")
-        choices = list(range(1, 1001))
-        for team in self.teams():
-            if team.joker in choices:
-                choices.remove(team.joker)
-        return random.choice(choices)
-
     def add_team(self, id=None, joker=0):
         """
         Add and return a new team with the specified identifier. If no
@@ -294,6 +282,10 @@ class Tournament:
         """
         if id not in self._teams:
             raise ValueError("Team n°%s does not exist." % id)
+
+        team = self._teams[id]
+        if team.rounds() != 0:
+            raise StatusError("Team n°%s cannot be removed once linked to rounds." % id)
 
         team = self._teams.pop(id)
         self.changed = True
