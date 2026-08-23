@@ -75,8 +75,12 @@ function scrollTimeline(direction) {
   el.scrollBy({ left: direction * amount, behavior: 'smooth' })
 }
 
-function initPoints(match) {
-  const key = String(match.location ?? match.teams.join('-'))
+function matchPointsKey(roundNumber, matchIndex, match) {
+  return `${roundNumber}:${matchIndex}:${match.location ?? match.teams.join('-')}`
+}
+
+function initPoints(roundNumber, matchIndex, match) {
+  const key = matchPointsKey(roundNumber, matchIndex, match)
   if (!pointsByMatch.value[key]) {
     const data = {}
     for (const team of match.teams) {
@@ -88,8 +92,8 @@ function initPoints(match) {
 }
 
 async function saveMatch(roundNumber, index, match) {
-  const key = String(match.location ?? match.teams.join('-'))
-  const points = pointsByMatch.value[key] || initPoints(match)
+  const key = matchPointsKey(roundNumber, index, match)
+  const points = pointsByMatch.value[key] || initPoints(roundNumber, index, match)
   try {
     await api.setMatchResult(roundNumber, index + 1, points)
     await store.refreshRounds()
@@ -282,7 +286,7 @@ async function deleteSelectedRound() {
               <div class="points">
                 <label v-for="team in match.teams" :key="team">
                   T{{ team }}
-                  <input v-model.number="initPoints(match)[team]" type="number" min="0" />
+                  <input v-model.number="initPoints(currentRound.number, index, match)[team]" type="number" min="0" />
                 </label>
               </div>
             </td>
