@@ -45,6 +45,9 @@ class RankEntryDTO(BaseModel):
     team: int
     wins: int
     points: int
+    joker: int
+    buchholz: int
+    goal_average: int
 
 
 class TournamentDTO(BaseModel):

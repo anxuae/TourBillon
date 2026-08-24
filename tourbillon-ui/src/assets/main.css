@@ -69,6 +69,16 @@ button.danger {
   background: var(--color-danger);
 }
 
+button.danger-outline {
+  background: transparent;
+  border: 1px solid #c62828;
+  color: #c62828;
+}
+
+button.danger-outline:hover {
+  background: rgba(198, 40, 40, 0.08);
+}
+
 button:disabled {
   opacity: 0.5;
   cursor: not-allowed;

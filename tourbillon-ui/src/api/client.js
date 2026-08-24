@@ -2,6 +2,7 @@
 
 export const API_ERROR_EVENT = 'tourbillon:api-error'
 export const API_ERROR_CLEAR_EVENT = 'tourbillon:api-error-clear'
+export const SETTINGS_UPDATED_EVENT = 'tourbillon:settings-updated'
 
 export function pushApiError(message, status = null) {
   window.dispatchEvent(new CustomEvent(API_ERROR_EVENT, { detail: { message, status } }))
@@ -9,6 +10,10 @@ export function pushApiError(message, status = null) {
 
 export function clearApiError() {
   window.dispatchEvent(new CustomEvent(API_ERROR_CLEAR_EVENT))
+}
+
+export function notifySettingsUpdated(settings) {
+  window.dispatchEvent(new CustomEvent(SETTINGS_UPDATED_EVENT, { detail: settings }))
 }
 
 async function request(method, url, body) {
@@ -99,7 +104,11 @@ export const api = {
 
   // Settings
   getSettings: () => request('GET', '/api/settings'),
-  updateSettings: (values) => request('PUT', '/api/settings', values),
+  updateSettings: async (values) => {
+    const settings = await request('PUT', '/api/settings', values)
+    notifySettingsUpdated(settings)
+    return settings
+  },
 
   // Display
   getDisplayView: () => request('GET', '/api/display/view'),

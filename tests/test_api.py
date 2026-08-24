@@ -43,6 +43,8 @@ def test_get_settings(client):
     assert resp.status_code == 200
     body = resp.json()
     assert "default_draw" in body["tournament"]
+    assert "rank_by_buchholz" in body["tournament"]
+    assert "rank_by_goal_avg" in body["tournament"]
     assert "rotation_seconds" in body["display"]
     assert "draws" in body
     assert "genetic" in body["draws"]
@@ -51,19 +53,23 @@ def test_get_settings(client):
 def test_update_settings_persisted(client):
     resp = client.put(
         "/api/settings",
-          json={"tournament": {"rank_by_duration": True},
+        json={"tournament": {"rank_by_joker": False, "rank_by_buchholz": False, "rank_by_goal_avg": False},
               "display": {"rotation_seconds": 9},
               "draws": {"genetic": {"max_disparity": 5}}},
     )
     assert resp.status_code == 200
     body = resp.json()
-    assert body["tournament"]["rank_by_duration"] is True
+    assert body["tournament"]["rank_by_joker"] is False
+    assert body["tournament"]["rank_by_buchholz"] is False
+    assert body["tournament"]["rank_by_goal_avg"] is False
     assert body["display"]["rotation_seconds"] == 9
     assert body["draws"]["genetic"]["max_disparity"] == 5
 
     # The change is reflected on the next read.
     reread = client.get("/api/settings").json()
-    assert reread["tournament"]["rank_by_duration"] is True
+    assert reread["tournament"]["rank_by_joker"] is False
+    assert reread["tournament"]["rank_by_buchholz"] is False
+    assert reread["tournament"]["rank_by_goal_avg"] is False
     assert reread["display"]["rotation_seconds"] == 9
     assert reread["draws"]["genetic"]["max_disparity"] == 5
 

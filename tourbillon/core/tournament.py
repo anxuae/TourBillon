@@ -386,8 +386,9 @@ class Tournament:
     def compare(self, team1, team2, round_limit=None):
         """
         Compare the strength of two teams. The comparison is based on the number
-        of wins (if enabled), the number of points, the joker number and finally
-        the average duration of a round (if enabled).
+        of wins (if enabled), the number of points, the joker number (if
+        enabled), Buchholz score (if enabled) and finally goal average (if
+        enabled).
 
         :param team1: Team instance
         :param team2: Team instance
@@ -427,21 +428,29 @@ class Tournament:
         if self.cmp_with_joker and joker != 0:
             return joker
 
-        # priority 4: comparison of average durations
-        # (team is superior if smaller duration)
-        if team1.average_duration(round_limit) < team2.average_duration(round_limit):
-            dur = 1
-        elif team1.average_duration(round_limit) == team2.average_duration(round_limit):
-            dur = 0
-        elif team1.average_duration(round_limit) > team2.average_duration(round_limit):
-            dur = -1
+        # priority 4: comparison of Buchholz scores
+        buchholz = team1.buchholz_truncated(round_limit) - team2.buchholz_truncated(round_limit)
+        if buchholz > 0:
+            buchholz = 1
+        elif buchholz < 0:
+            buchholz = -1
 
-        if self.cmp_with_duration and dur != 0:
-            return dur
+        if self.cmp_with_buchholz and buchholz != 0:
+            return buchholz
+
+        # priority 5: comparison of goal average
+        goal_average = team1.goal_average(round_limit) - team2.goal_average(round_limit)
+        if goal_average > 0:
+            goal_average = 1
+        elif goal_average < 0:
+            goal_average = -1
+
+        if self.cmp_with_goal_avg and goal_average != 0:
+            return goal_average
 
         return 0
 
-    def ranking(self, with_wins=True, with_joker=True, with_duration=True, round_limit=None):
+    def ranking(self, with_wins=True, with_joker=True, with_buchholz=True, with_goal_avg=True, round_limit=None):
         """
         Return a list of tuples indicating the team and its place in the
         ranking. In case of a tie, the place(s) following the ex aequo are no
@@ -452,12 +461,14 @@ class Tournament:
 
         :param with_wins: the ranking takes into account the number of wins of the team.
         :param with_joker: the ranking takes into account the greatest joker number.
-        :param with_duration: the ranking takes into account the average duration of a round.
+        :param with_buchholz: the ranking takes into account the Buchholz score.
+        :param with_goal_avg: the ranking takes into account the goal average.
         :param round_limit: limit for the ranking computation
         """
         self.cmp_with_wins = with_wins
         self.cmp_with_joker = with_joker
-        self.cmp_with_duration = with_duration
+        self.cmp_with_buchholz = with_buchholz
+        self.cmp_with_goal_avg = with_goal_avg
         l = sorted(self.teams(), key=cmp_to_key(partial(self.compare, round_limit=round_limit)), reverse=True)
 
         ranking = []
@@ -467,7 +478,7 @@ class Tournament:
             ranking.append((l[0], place))
             i = 1
             while i < len(l):
-                if self.compare(l[i - 1], l[i]) != 0:
+                if self.compare(l[i - 1], l[i], round_limit=round_limit) != 0:
                     place = i + 1
                 ranking.append((l[i], place))
                 i += 1

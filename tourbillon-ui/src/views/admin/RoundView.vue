@@ -20,6 +20,7 @@ const randomSeed = ref('')
 const drawProgress = ref(0)
 const drawMessage = ref('Idle')
 const drawRunning = ref(false)
+const teamFilterInput = ref('')
 
 let drawSocket = null
 
@@ -29,6 +30,40 @@ const currentRound = computed(() => {
   }
   const number = Number(selectedRound.value || rounds.value[rounds.value.length - 1].number)
   return rounds.value.find((item) => item.number === number) || null
+})
+
+const sortedRoundMatches = computed(() => {
+  if (!currentRound.value) {
+    return []
+  }
+  return currentRound.value.matches
+    .map((match, index) => ({ match, index }))
+    .sort((left, right) => {
+      const leftLocation = left.match.location
+      const rightLocation = right.match.location
+      if (leftLocation == null && rightLocation == null) {
+        return left.index - right.index
+      }
+      if (leftLocation == null) {
+        return 1
+      }
+      if (rightLocation == null) {
+        return -1
+      }
+      return leftLocation - rightLocation
+    })
+})
+
+const filteredRoundMatches = computed(() => {
+  const raw = String(teamFilterInput.value ?? '').trim()
+  if (!raw) {
+    return sortedRoundMatches.value
+  }
+  const teamNumber = Number(raw)
+  if (!Number.isInteger(teamNumber) || teamNumber <= 0) {
+    return []
+  }
+  return sortedRoundMatches.value.filter(({ match }) => match.teams.includes(teamNumber))
 })
 
 onMounted(async () => {
@@ -75,6 +110,10 @@ function scrollTimeline(direction) {
   el.scrollBy({ left: direction * amount, behavior: 'smooth' })
 }
 
+function clearTeamFilter() {
+  teamFilterInput.value = ''
+}
+
 function matchPointsKey(roundNumber, matchIndex, match) {
   return `${roundNumber}:${matchIndex}:${match.location ?? match.teams.join('-')}`
 }
@@ -89,6 +128,22 @@ function initPoints(roundNumber, matchIndex, match) {
     pointsByMatch.value[key] = data
   }
   return pointsByMatch.value[key]
+}
+
+function hasMatchChanges(roundNumber, matchIndex, match) {
+  const key = matchPointsKey(roundNumber, matchIndex, match)
+  const editedPoints = pointsByMatch.value[key]
+  if (!editedPoints) {
+    return false
+  }
+  for (const team of match.teams) {
+    const initial = Number(match.points[team] ?? 0)
+    const edited = Number(editedPoints[team] ?? 0)
+    if (edited !== initial) {
+      return true
+    }
+  }
+  return false
 }
 
 async function saveMatch(roundNumber, index, match) {
@@ -215,7 +270,7 @@ async function deleteSelectedRound() {
     </header>
 
     <div class="round-controls">
-      <div v-if="rounds.length" class="round-timeline-wrap">
+      <div class="round-timeline-wrap">
         <button
           v-if="canScrollLeft"
           type="button"
@@ -243,6 +298,14 @@ async function deleteSelectedRound() {
           >
             Round {{ round.number }}
           </button>
+          <button
+            type="button"
+            class="round-pill new-round-pill"
+            :disabled="!canCreateRound"
+            @click="openAddRoundModal"
+          >
+            New
+          </button>
         </div>
 
         <button
@@ -255,16 +318,35 @@ async function deleteSelectedRound() {
           ›
         </button>
       </div>
-
-      <button class="add-round-btn" :disabled="!canCreateRound" @click="openAddRoundModal">
-        Add new round
-      </button>
     </div>
 
     <div v-if="currentRound" class="card">
       <h3 class="round-title">
-        <span>Round {{ currentRound.number }} <span class="badge">{{ currentRound.status }}</span></span>
-        <button class="danger" @click="deleteSelectedRound">Delete round</button>
+        <span class="round-title-main">Round {{ currentRound.number }} <span class="badge">{{ currentRound.status }}</span></span>
+        <label class="round-search" for="round-team-filter">
+          <span>Team</span>
+          <span class="round-search-control">
+            <input
+              id="round-team-filter"
+              v-model="teamFilterInput"
+              type="text"
+              inputmode="numeric"
+              pattern="[0-9]*"
+              placeholder="e.g. 12"
+            />
+            <button
+              v-if="teamFilterInput"
+              type="button"
+              class="round-search-clear"
+              aria-label="Clear team filter"
+              title="Clear"
+              @click="clearTeamFilter"
+            >
+              ×
+            </button>
+          </span>
+        </label>
+        <button class="danger-outline" @click="deleteSelectedRound">Delete</button>
       </h3>
       <p v-if="currentRound.byes?.length" class="muted">Byes: {{ currentRound.byes.join(', ') }}</p>
 
@@ -272,29 +354,36 @@ async function deleteSelectedRound() {
         <thead>
           <tr>
             <th>Location</th>
-            <th>Teams</th>
-            <th>Points</th>
+            <th>Results</th>
             <th>Status</th>
             <th></th>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="(match, index) in currentRound.matches" :key="`${currentRound.number}-${index}`">
+          <tr v-for="{ match, index } in filteredRoundMatches" :key="`${currentRound.number}-${index}`">
             <td>{{ match.location ?? '—' }}</td>
-            <td>{{ match.teams.join(' vs ') }}</td>
             <td>
-              <div class="points">
-                <label v-for="team in match.teams" :key="team">
-                  T{{ team }}
+              <div class="results-lines">
+                <div v-for="team in match.teams" :key="team" class="result-line">
+                  <span class="team-chip">
+                    <span class="team-chip-label">Team</span>
+                    <span class="team-chip-number">{{ team }}</span>
+                  </span>
                   <input v-model.number="initPoints(currentRound.number, index, match)[team]" type="number" min="0" />
-                </label>
+                </div>
               </div>
             </td>
             <td>
               <span class="badge">{{ match.finished ? 'finished' : 'in_progress' }}</span>
             </td>
             <td>
-              <button class="secondary" @click="saveMatch(currentRound.number, index, match)">Save</button>
+              <button
+                class="secondary"
+                :disabled="!hasMatchChanges(currentRound.number, index, match)"
+                @click="saveMatch(currentRound.number, index, match)"
+              >
+                Save
+              </button>
             </td>
           </tr>
         </tbody>
@@ -356,6 +445,11 @@ async function deleteSelectedRound() {
 </template>
 
 <style scoped>
+section {
+  --round-action-width: 9.2rem;
+  --round-pill-width: 6.8rem;
+}
+
 .head {
   display: flex;
   align-items: center;
@@ -369,49 +463,108 @@ async function deleteSelectedRound() {
 .round-title {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   gap: 0.75rem;
-}
-
-.danger {
-  background: transparent;
-  border: 1px solid #c62828;
-  color: #c62828;
-}
-
-.danger:hover {
-  background: rgba(198, 40, 40, 0.08);
-}
-
-.points {
-  display: flex;
-  gap: 0.5rem;
   flex-wrap: wrap;
 }
 
-.points label {
-  display: flex;
+.round-title-main {
+  margin-right: auto;
+}
+
+.round-search {
+  display: inline-flex;
   align-items: center;
   gap: 0.4rem;
   font-size: 0.85rem;
 }
 
-.points input {
-  width: 70px;
+.round-search-control {
+  position: relative;
+  display: inline-flex;
+  width: var(--round-action-width);
+}
+
+.round-search input {
+  width: 100%;
+  padding-right: 1.7rem;
+}
+
+.round-title .danger-outline {
+  width: var(--round-action-width);
+}
+
+.round-search-clear {
+  position: absolute;
+  right: 0.25rem;
+  top: 50%;
+  transform: translateY(-50%);
+  border: none;
+  background: transparent;
+  color: var(--color-muted);
+  width: 1.2rem;
+  height: 1.2rem;
+  line-height: 1;
+  padding: 0;
+  cursor: pointer;
+}
+
+.round-search-clear:hover {
+  color: var(--color-text);
+}
+
+.results-lines {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(140px, 1fr));
+  gap: 0.4rem;
+}
+
+.result-line {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.team-chip {
+  min-width: 4.6rem;
+  display: inline-grid;
+  grid-template-columns: auto 2ch;
+  align-items: center;
+  column-gap: 0.35rem;
+  font-weight: 600;
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.team-chip-number {
+  text-align: right;
+}
+
+.result-line input {
+  width: 80px;
+}
+
+@media (max-width: 980px) {
+  .results-lines {
+    grid-template-columns: 1fr;
+  }
 }
 
 .round-timeline {
   position: relative;
   display: flex;
+  align-items: center;
   gap: 0.5rem;
   overflow-x: auto;
   overflow-y: hidden;
   white-space: nowrap;
-  padding: 0.25rem 0.1rem 0.6rem;
+  padding: 0.25rem 0.1rem;
   margin-bottom: 0;
   scrollbar-width: thin;
   flex: 1 1 auto;
   min-width: 0;
+  scroll-snap-type: x mandatory;
+  scroll-padding-inline: 0.1rem;
 }
 
 .round-timeline-wrap {
@@ -425,34 +578,7 @@ async function deleteSelectedRound() {
 .round-controls {
   display: flex;
   align-items: center;
-  gap: 0.8rem;
   margin-bottom: 1rem;
-}
-
-.add-round-btn {
-  flex: 0 0 auto;
-}
-
-.round-timeline.has-left::before,
-.round-timeline.has-right::after {
-  content: '';
-  position: sticky;
-  top: 0;
-  width: 28px;
-  height: 100%;
-  pointer-events: none;
-  z-index: 1;
-}
-
-.round-timeline.has-left::before {
-  left: 0;
-  background: linear-gradient(to right, var(--color-bg), transparent);
-}
-
-.round-timeline.has-right::after {
-  right: 0;
-  margin-left: auto;
-  background: linear-gradient(to left, var(--color-bg), transparent);
 }
 
 .timeline-arrow {
@@ -486,13 +612,16 @@ async function deleteSelectedRound() {
 }
 
 .round-pill {
-  flex: 0 0 auto;
+  flex: 0 0 var(--round-pill-width);
+  width: var(--round-pill-width);
   padding: 0.35rem 0.8rem;
   border: 1px solid var(--color-border);
   border-radius: 999px;
   background: transparent;
   color: var(--color-muted);
   font: inherit;
+  text-align: center;
+  scroll-snap-align: start;
   cursor: pointer;
 }
 
@@ -506,6 +635,12 @@ async function deleteSelectedRound() {
   background: color-mix(in srgb, var(--color-primary) 14%, transparent);
   color: var(--color-text);
   font-weight: 600;
+}
+
+.new-round-pill {
+  border-style: dashed;
+  font-weight: 600;
+  text-transform: lowercase;
 }
 
 .overlay {

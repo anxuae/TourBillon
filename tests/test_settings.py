@@ -12,6 +12,8 @@ def test_defaults(tmp_path):
     settings = Settings({"save_dir": str(tmp_path)})
     assert settings.host == DEFAULTS["host"]
     assert settings.rank_by_wins == DEFAULTS["rank_by_wins"]
+    assert settings.rank_by_buchholz == DEFAULTS["rank_by_buchholz"]
+    assert settings.rank_by_goal_avg == DEFAULTS["rank_by_goal_avg"]
     assert settings.default_draw == "deterministic"
     assert settings.rotation_seconds == DEFAULTS["rotation_seconds"]
 
@@ -39,13 +41,17 @@ def test_update_ignores_unknown_keys(tmp_path):
 def test_save_and_load_roundtrip(tmp_path):
     path = str(tmp_path / "settings.yml")
     settings = Settings({"save_dir": str(tmp_path), "port": 4242}, path=path)
-    settings.rank_by_duration = True
+    settings.rank_by_joker = False
+    settings.rank_by_buchholz = False
+    settings.rank_by_goal_avg = False
     settings.save()
 
     assert Path(path).is_file()
     reloaded = Settings.load(path)
     assert reloaded.port == 4242
-    assert reloaded.rank_by_duration is True
+    assert reloaded.rank_by_joker is False
+    assert reloaded.rank_by_buchholz is False
+    assert reloaded.rank_by_goal_avg is False
 
 
 def test_save_without_path_uses_config_dir(tmp_path, monkeypatch):

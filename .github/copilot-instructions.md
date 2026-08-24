@@ -291,6 +291,18 @@ servis par le routeur (`/admin`, `/display`, `/history`) :
 
 REST pour le CRUD, WebSocket pour le temps réel. Éviter jQuery.
 
+### Charte UI (cohérence visuelle)
+- Les actions destructives de l'UI (suppression, suppression d'un round/équipe, etc.)
+  utilisent **exclusivement** la classe globale `danger-outline` définie dans
+  `tourbillon-ui/src/assets/main.css`.
+- Éviter de redéfinir localement (dans les `<style scoped>`) des variantes
+  concurrentes de bouton de suppression ; préférer la réutilisation de la classe
+  globale pour conserver la même charte graphique sur toutes les vues.
+- Les actions positives (`create`, `add`, `new`, `save`) utilisent la couleur
+  primaire globale (style par défaut des `button` dans `main.css`) ; éviter les
+  variantes locales ad hoc (ex. vert spécifique dans une seule vue), sauf besoin
+  métier explicitement validé.
+
 ---
 
 ## 7. Conventions de développement

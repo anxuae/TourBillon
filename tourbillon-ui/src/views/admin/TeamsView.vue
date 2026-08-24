@@ -245,7 +245,7 @@ function playerNames(team) {
           <td>{{ playerNames(team) }}</td>
           <td><span class="badge">{{ team.status }}</span></td>
           <td class="right">
-            <button class="danger" @click="removeTeam(team.number)">Remove</button>
+            <button class="danger-outline" @click="removeTeam(team.number)">Remove</button>
           </td>
         </tr>
       </tbody>

@@ -427,7 +427,7 @@ class Team:
         else:
             return max(l)
 
-    def buchholz_truncated(self, round_limit: int = None):
+    def buchholz_truncated(self, round_limit: int | None = None):
         """
         Return the truncated Buchholz score.
 
@@ -459,7 +459,7 @@ class Team:
         return sum(opponent_scores)
 
 
-    def goal_average(self, round_limit: int = None):
+    def goal_average(self, round_limit: int | None = None):
         """
         Return the goal average.
 

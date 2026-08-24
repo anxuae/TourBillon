@@ -28,7 +28,8 @@ def list_history_players(state=Depends(get_state)):
         state.settings.save_dir,
         with_wins=state.settings.rank_by_wins,
         with_joker=state.settings.rank_by_joker,
-        with_duration=state.settings.rank_by_duration,
+        with_buchholz=state.settings.rank_by_buchholz,
+        with_goal_avg=state.settings.rank_by_goal_avg,
     )
 
 
@@ -40,7 +41,8 @@ def get_history_player(name: str, state=Depends(get_state)):
         name,
         with_wins=state.settings.rank_by_wins,
         with_joker=state.settings.rank_by_joker,
-        with_duration=state.settings.rank_by_duration,
+        with_buchholz=state.settings.rank_by_buchholz,
+        with_goal_avg=state.settings.rank_by_goal_avg,
     )
     if data is None:
         raise HTTPException(status_code=404, detail=f"Unknown player '{name}'")

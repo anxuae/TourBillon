@@ -177,8 +177,7 @@ function onPick(event) {
       <div class="save-row">
         <button
           type="button"
-          class="save-btn"
-          :class="{ 'auto-save': autoSave }"
+          class="action-btn"
           :disabled="saveDisabled"
           @click="saveTournament"
         >
@@ -187,7 +186,7 @@ function onPick(event) {
         <button
           v-if="tournament.filename"
           type="button"
-          class="delete-file-btn"
+          class="danger-outline action-btn"
           :disabled="loading"
           title="Delete current save file"
           aria-label="Delete current save file"
@@ -217,7 +216,7 @@ function onPick(event) {
           <span>Players per team</span>
           <input type="number" min="1" v-model.number="params.players_by_team" />
         </label>
-        <button type="submit" :disabled="loading">Create</button>
+        <button type="submit" class="action-btn create-btn" :disabled="loading">Create</button>
       </form>
 
       <form class="card" @submit.prevent>
@@ -291,6 +290,8 @@ function onPick(event) {
 
 <style scoped>
 .tournament {
+  --action-btn-width: 9.2rem;
+  --action-btn-height: 2.3rem;
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
@@ -346,7 +347,7 @@ function onPick(event) {
 }
 
 button {
-  align-self: flex-start;
+  align-self: flex-end;
   padding: 0.5rem 1.25rem;
   border: none;
   border-radius: var(--radius);
@@ -361,6 +362,30 @@ button:disabled {
   cursor: not-allowed;
 }
 
+.action-btn {
+  width: var(--action-btn-width);
+  min-width: var(--action-btn-width);
+  height: var(--action-btn-height);
+  min-height: var(--action-btn-height);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.create-btn {
+  align-self: center;
+}
+
+button.danger-outline {
+  background: transparent;
+  border: 1px solid #c62828;
+  color: #c62828;
+}
+
+button.danger-outline:hover {
+  background: rgba(198, 40, 40, 0.08);
+}
+
 .hint {
   font-size: 0.85rem;
   color: var(--color-muted);
@@ -372,39 +397,8 @@ button:disabled {
   border-top: 1px solid var(--color-border);
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: 0.5rem;
-}
-
-/* Green Save button: enabled when there are unsaved changes. */
-.save-btn {
-  background: #16a34a;
-}
-
-.save-btn:disabled {
-  /* Keep the green tint when disabled because changes are already saved... */
-  background: #16a34a;
-  opacity: 0.5;
-}
-
-/* ...but turn grey when auto-save handles persistence automatically. */
-.save-btn.auto-save:disabled {
-  background: var(--color-muted, #9ca3af);
-  opacity: 0.5;
-}
-
-.delete-file-btn {
-  background: #dc2626;
-  color: #fff;
-  padding: 0.5rem 0.8rem;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: var(--radius);
-}
-
-.delete-file-btn:disabled {
-  background: #dc2626;
-  opacity: 0.5;
 }
 
 .file-list {

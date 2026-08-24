@@ -77,7 +77,7 @@ def default_settings_path():
 SECTIONS = {
     "general": ("host", "port", "save_dir", "auto_save"),
     "tournament": (
-        "rank_by_wins", "rank_by_joker", "rank_by_duration", "default_draw",
+        "rank_by_wins", "rank_by_joker", "rank_by_buchholz", "rank_by_goal_avg", "default_draw",
     ),
     "display": ("rotation_seconds",),
 }
@@ -95,7 +95,8 @@ DEFAULTS = {
     # here (ranking tie-breakers and the default draw algorithm).
     "rank_by_wins": True,
     "rank_by_joker": True,
-    "rank_by_duration": False,
+    "rank_by_buchholz": True,
+    "rank_by_goal_avg": True,
     "default_draw": draws.DEFAULT_DRAW,
     # Display domain: automatic carousel delay on giant screens.
     "rotation_seconds": 12,

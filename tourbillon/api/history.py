@@ -51,7 +51,7 @@ def _player_name(player):
     return f"{player.firstname} {player.lastname}".strip()
 
 
-def aggregate_players(save_dir, with_wins=True, with_joker=True, with_duration=True):
+def aggregate_players(save_dir, with_wins=True, with_joker=True, with_buchholz=True, with_goal_avg=True):
     """Return aggregated statistics per player across every edition."""
     players = {}
     for path in _iter_save_files(save_dir):
@@ -64,7 +64,8 @@ def aggregate_players(save_dir, with_wins=True, with_joker=True, with_duration=T
             trn.ranking(
                 with_wins=with_wins,
                 with_joker=with_joker,
-                with_duration=with_duration,
+                with_buchholz=with_buchholz,
+                with_goal_avg=with_goal_avg,
             )
         )
         for team in trn.teams():
@@ -87,7 +88,7 @@ def aggregate_players(save_dir, with_wins=True, with_joker=True, with_duration=T
     return sorted(players.values(), key=lambda e: e["name"])
 
 
-def player_detail(save_dir, name, with_wins=True, with_joker=True, with_duration=True):
+def player_detail(save_dir, name, with_wins=True, with_joker=True, with_buchholz=True, with_goal_avg=True):
     """Return the year-by-year detail of a single player, or ``None``."""
     detail = None
     for path in _iter_save_files(save_dir):
@@ -100,7 +101,8 @@ def player_detail(save_dir, name, with_wins=True, with_joker=True, with_duration
             trn.ranking(
                 with_wins=with_wins,
                 with_joker=with_joker,
-                with_duration=with_duration,
+                with_buchholz=with_buchholz,
+                with_goal_avg=with_goal_avg,
             )
         )
         for team in trn.teams():

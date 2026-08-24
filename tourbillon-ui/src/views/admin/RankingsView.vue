@@ -2,6 +2,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useTournamentStore } from '@/stores/tournament'
+import { useRankingColumns } from '@/composables/useRankingColumns'
 
 const store = useTournamentStore()
 const { rounds, rankings } = storeToRefs(store)
@@ -15,8 +16,17 @@ const currentRoundNumber = computed(() => {
   return Number(selectedRound.value)
 })
 
+const {
+  isTieRank,
+  showWins,
+  showJoker,
+  showBuchholz,
+  showGoalAvg,
+  refreshRankingOptions,
+} = useRankingColumns(rankings)
+
 onMounted(async () => {
-  await Promise.all([store.refreshRounds(), store.refreshRankings()])
+  await Promise.all([store.refreshRounds(), store.refreshRankings(), refreshRankingOptions()])
 })
 
 async function refreshRankings() {
@@ -43,16 +53,25 @@ async function refreshRankings() {
         <tr>
           <th>Rank</th>
           <th>Team</th>
-          <th>Wins</th>
+          <th v-if="showWins">Wins</th>
           <th>Points</th>
+          <th v-if="showJoker">Joker</th>
+          <th v-if="showBuchholz">Buchholz</th>
+          <th v-if="showGoalAvg">Goal Avg</th>
         </tr>
       </thead>
       <tbody>
         <tr v-for="row in rankings" :key="row.team">
-          <td>{{ row.rank }}</td>
+          <td>
+            <span>{{ row.rank }}</span>
+            <span v-if="isTieRank(row.rank)" class="tie-indicator" aria-label="Tied rank" title="Tied rank">⇄</span>
+          </td>
           <td>{{ row.team }}</td>
-          <td>{{ row.wins }}</td>
+          <td v-if="showWins">{{ row.wins }}</td>
           <td>{{ row.points }}</td>
+          <td v-if="showJoker">{{ row.joker }}</td>
+          <td v-if="showBuchholz">{{ row.buchholz }}</td>
+          <td v-if="showGoalAvg">{{ row.goal_average }}</td>
         </tr>
       </tbody>
     </table>
@@ -75,5 +94,15 @@ async function refreshRankings() {
 .row {
   display: flex;
   gap: 0.5rem;
+}
+
+.tie-indicator {
+  margin-left: 0.45rem;
+  padding: 0.08rem 0.42rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  background: color-mix(in srgb, var(--color-primary) 14%, transparent);
+  color: var(--color-primary-dark);
 }
 </style>

@@ -229,7 +229,8 @@ def ranking_dto(state, trn, round_limit=None):
     for team, rank in trn.ranking(
         with_wins=state.settings.rank_by_wins,
         with_joker=state.settings.rank_by_joker,
-        with_duration=state.settings.rank_by_duration,
+        with_buchholz=state.settings.rank_by_buchholz,
+        with_goal_avg=state.settings.rank_by_goal_avg,
         round_limit=round_limit,
     ):
         entries.append(
@@ -238,6 +239,9 @@ def ranking_dto(state, trn, round_limit=None):
                 team=team.id,
                 wins=team.wins(round_limit),
                 points=team.points(round_limit),
+                joker=team.joker,
+                buchholz=team.buchholz_truncated(round_limit),
+                goal_average=team.goal_average(round_limit),
             )
         )
     return entries
