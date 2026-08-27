@@ -289,25 +289,179 @@ def get_round(state, number):
 
 
 async def create_round(state, request, on_progress=None):
-    """Create a new round by running a draw and starting it.
+    """Create a new round either from a draft or by running a draw.
 
     :param state: application state
-    :param request: :class:`schemas.DrawRequestDTO`
+    :param request: :class:`schemas.RoundCreateDTO`
     :param on_progress: optional async callback ``async (percent, message)``
     :return: the created round as a DTO
     """
+    trn = state.require_tournament()
+
+    if request.matches:
+        matches = []
+        used = []
+        for match in request.matches:
+            clean = [team_id for team_id in match if team_id is not None]
+            if clean and len(clean) != trn.teams_by_match:
+                raise ValueError(f"Each match must contain exactly {trn.teams_by_match} teams")
+            if clean:
+                matches.append(clean)
+                used.extend(clean)
+
+        used.extend(request.byes)
+        used.extend(request.forfeits)
+
+        if len(used) != len(set(used)):
+            raise ValueError("A team is assigned multiple times")
+
+        all_teams = set([team.id for team in trn.teams()])
+        used_set = set(used)
+
+        missing = sorted(all_teams - used_set)
+        if missing:
+            raise ValueError(f"Some teams are unassigned: {missing}")
+
+        extras = sorted(used_set - all_teams)
+        if extras:
+            raise ValueError(f"Unknown teams in draft: {extras}")
+
+        byes = request.byes
+    else:
+        algorithm = request.algorithm or state.settings.default_draw
+
+        stats = trn.statistics()
+        byes = draws.select_bye_teams(stats, trn.teams_by_match, forced=request.bye_teams)
+
+        # Effective options: algorithm defaults < saved user settings < request.
+        config = state.settings.draw_config(algorithm)
+        if request.config:
+            config.update(request.config)
+
+        matches = await draws.generate(
+            algorithm,
+            trn.teams_by_match,
+            stats,
+            bye_teams=byes,
+            config=config,
+            on_progress=on_progress,
+        )
+
+    rnd = trn.add_round()
+    locations = trn.locations()
+    if len(matches) > len(locations):
+        raise ValueError("Too many matches for available locations")
+
+    match_map = {locations[i]: match for i, match in enumerate(matches)}
+    rnd.start(match_map, byes=byes)
+    auto_save(state)
+    return round_dto(trn, rnd)
+
+
+def _team_metric(team, round_limit=None, opponents=None):
+    wins = team.wins(round_limit) + team.byes(round_limit)
+    points = team.points(round_limit)
+    joker = team.joker
+    buchholz = team.buchholz_truncated(round_limit)
+    goal_average = team.goal_average(round_limit)
+
+    return {
+        "team": team.id,
+        "wins": wins,
+        "points": points,
+        "joker": joker,
+        "buchholz": buchholz,
+        "goal_average": goal_average,
+        "opponents": sorted(set([int(team_id) for team_id in (opponents or [])])),
+    }
+
+
+def _power_scale_maxima(metrics):
+    if not metrics:
+        return {
+            "points": 0,
+            "buchholz": 0,
+            "wins": 0,
+            "goal_average": 0,
+        }
+
+    return {
+        "points": max([int(item.get("points", 0)) for item in metrics]),
+        "buchholz": max([int(item.get("buchholz", 0)) for item in metrics]),
+        "wins": max([int(item.get("wins", 0)) for item in metrics]),
+        "goal_average": max([int(item.get("goal_average", 0)) for item in metrics]),
+    }
+
+
+def _normalized_ratio(value, maximum):
+    safe_value = float(value or 0)
+    safe_max = float(maximum or 0)
+    if safe_max <= 0:
+        return 0.0
+    return max(0.0, min(1.0, safe_value / safe_max))
+
+
+def _metric_power_score(metric, maxima):
+    ratio_points = _normalized_ratio(metric.get("points", 0), maxima.get("points", 0))
+    ratio_buchholz = _normalized_ratio(metric.get("buchholz", 0), maxima.get("buchholz", 0))
+    ratio_wins = _normalized_ratio(metric.get("wins", 0), maxima.get("wins", 0))
+    ratio_goal_average = _normalized_ratio(
+        metric.get("goal_average", 0), maxima.get("goal_average", 0)
+    )
+
+    score = ratio_points * 2.5 + ratio_buchholz * 1 + ratio_wins * 1 + ratio_goal_average * 0.5
+    return max(0.0, min(5.0, score))
+
+
+def _match_violations(match, stats, max_disparity):
+    violations = []
+    win_values = [stats[num][cst.STAT_WINS] for num in match]
+    disparity = max(win_values) - min(win_values) if win_values else 0
+
+    if max_disparity is not None and disparity > max_disparity:
+        violations.append(f"disparity>{max_disparity}")
+
+    rematch_pairs = 0
+    total_pairs = 0
+    for index, team_id in enumerate(match):
+        previous_opponents = set(stats[team_id][cst.STAT_OPPONENTS])
+        for opponent in match[index + 1 :]:
+            total_pairs += 1
+            if opponent in previous_opponents:
+                rematch_pairs += 1
+
+    if rematch_pairs > 0:
+        violations.append("rematch")
+
+    if total_pairs > 0 and rematch_pairs == total_pairs:
+        violations.append("full_rematch")
+
+    return sorted(set(violations))
+
+
+def _rematch_pairs(match, stats):
+    pairs = []
+    for index, team_id in enumerate(match):
+        previous_opponents = set(stats[team_id][cst.STAT_OPPONENTS])
+        for opponent in match[index + 1 :]:
+            if opponent in previous_opponents:
+                pairs.append([team_id, opponent])
+    return pairs
+
+
+async def preview_draw(state, request, on_progress=None):
+    """Run a draw preview without creating a round."""
     trn = state.require_tournament()
     algorithm = request.algorithm or state.settings.default_draw
 
     stats = trn.statistics()
     byes = draws.select_bye_teams(stats, trn.teams_by_match, forced=request.bye_teams)
 
-    # Effective options: algorithm defaults < saved user settings < request.
     config = state.settings.draw_config(algorithm)
     if request.config:
         config.update(request.config)
 
-    matches = await draws.generate(
+    proposed_matches = await draws.generate(
         algorithm,
         trn.teams_by_match,
         stats,
@@ -316,12 +470,86 @@ async def create_round(state, request, on_progress=None):
         on_progress=on_progress,
     )
 
-    rnd = trn.add_round()
     locations = trn.locations()
-    match_map = {locations[i]: match for i, match in enumerate(matches)}
-    rnd.start(match_map, byes=byes)
-    auto_save(state)
-    return round_dto(trn, rnd)
+    preview_matches = []
+    alerts = []
+    max_disparity = config.get("max_disparity") if isinstance(config, dict) else None
+
+    all_metrics = []
+    for match in proposed_matches:
+        for num in match:
+            all_metrics.append(
+                _team_metric(
+                    trn.team(num),
+                    opponents=stats[num][cst.STAT_OPPONENTS],
+                )
+            )
+    maxima = _power_scale_maxima(all_metrics)
+
+    for index, match in enumerate(proposed_matches):
+        metrics = [
+            _team_metric(
+                trn.team(num),
+                opponents=stats[num][cst.STAT_OPPONENTS],
+            )
+            for num in match
+        ]
+        for metric in metrics:
+            metric["power_score"] = _metric_power_score(metric, maxima)
+        group_wins = max([metric["wins"] for metric in metrics]) if metrics else 0
+        violations = _match_violations(match, stats, max_disparity)
+        rematch_pairs = _rematch_pairs(match, stats)
+
+        quality = 100
+        if "rematch" in violations:
+            quality -= 40
+        disparity_items = [item for item in violations if item.startswith("disparity>")]
+        if disparity_items:
+            quality -= 30
+
+        quality = max(0, quality)
+        match_id = f"m{index + 1}"
+
+        for code in violations:
+            alerts.append(
+                {
+                    "code": code,
+                    "severity": "warning",
+                    "message": f"Match {index + 1}: {code}",
+                    "match_id": match_id,
+                }
+            )
+
+        preview_matches.append(
+            {
+                "id": match_id,
+                "location": locations[index] if index < len(locations) else None,
+                "teams": list(match),
+                "group_wins": group_wins,
+                "quality": quality,
+                "violations": violations,
+                "rematch_pairs": rematch_pairs,
+                "team_metrics": metrics,
+            }
+        )
+
+    assigned = set()
+    for match in proposed_matches:
+        assigned.update(match)
+    assigned.update(byes)
+
+    all_teams = set([team.id for team in trn.teams()])
+    forfeits = sorted(all_teams - assigned)
+
+    return schemas.DrawPreviewDTO(
+        algorithm=algorithm,
+        matches=preview_matches,
+        byes=sorted(byes),
+        forfeits=forfeits,
+        unassigned=[],
+        alerts=alerts,
+        can_create=True,
+    )
 
 
 def set_match_result(state, round_number, result):

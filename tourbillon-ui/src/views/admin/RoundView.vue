@@ -1,28 +1,21 @@
 <script setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { storeToRefs } from 'pinia'
-import { api, openDrawSocket, pushApiError } from '@/api/client'
+import { api } from '@/api/client'
 import { useTournamentStore } from '@/stores/tournament'
+import DrawView from '@/views/admin/DrawView.vue'
 
 const store = useTournamentStore()
-const { rounds, tournament, draws } = storeToRefs(store)
+const { rounds, tournament } = storeToRefs(store)
 
 const selectedRound = ref(null)
 const pointsByMatch = ref({})
 const timelineRef = ref(null)
 const canScrollLeft = ref(false)
 const canScrollRight = ref(false)
-const drawModalOpen = ref(false)
-const selectedAlgorithm = ref('')
-const maxDisparity = ref(1)
-const allowRematch = ref(false)
-const randomSeed = ref('')
-const drawProgress = ref(0)
-const drawMessage = ref('Idle')
-const drawRunning = ref(false)
 const teamFilterInput = ref('')
-
-let drawSocket = null
+const drawModalOpen = ref(false)
+const drawBlockingIssues = ref([])
 
 const currentRound = computed(() => {
   if (!rounds.value.length) {
@@ -67,12 +60,9 @@ const filteredRoundMatches = computed(() => {
 })
 
 onMounted(async () => {
-  await Promise.all([store.refreshRounds(), store.refreshDraws()])
+  await store.refreshRounds()
   if (rounds.value.length) {
     selectedRound.value = rounds.value[rounds.value.length - 1].number
-  }
-  if (draws.value.length && !selectedAlgorithm.value) {
-    selectedAlgorithm.value = draws.value[0].name
   }
   await nextTick()
   updateTimelineOverflow()
@@ -81,7 +71,6 @@ onMounted(async () => {
 
 onBeforeUnmount(() => {
   window.removeEventListener('resize', updateTimelineOverflow)
-  closeDrawSocket()
 })
 
 watch(
@@ -154,89 +143,52 @@ async function saveMatch(roundNumber, index, match) {
     await store.refreshRounds()
     await store.refreshRankings(roundNumber)
   } catch {
+    // API errors are handled globally by ApiErrorBanner.
   }
 }
 
 const canCreateRound = computed(() => {
   if (!tournament.value) return false
-  return tournament.value.nb_teams >= tournament.value.teams_by_match
+  if (tournament.value.nb_teams < tournament.value.teams_by_match) return false
+  if (!rounds.value.length) return true
+
+  const lastRound = rounds.value[rounds.value.length - 1]
+  return lastRound.status === 'finished' || lastRound.status === 'complete'
 })
 
-function openAddRoundModal() {
-  drawProgress.value = 0
-  drawMessage.value = 'Idle'
-  if (draws.value.length && !selectedAlgorithm.value) {
-    selectedAlgorithm.value = draws.value[0].name
-  }
+function openDrawPopup() {
+  drawBlockingIssues.value = []
   drawModalOpen.value = true
 }
 
-function closeAddRoundModal() {
-  if (drawRunning.value) return
+function closeDrawPopup() {
   drawModalOpen.value = false
+  drawBlockingIssues.value = []
 }
 
-function closeDrawSocket() {
-  if (drawSocket) {
-    drawSocket.close()
-    drawSocket = null
-  }
+function updateDrawBlockingIssues(issues) {
+  drawBlockingIssues.value = Array.isArray(issues) ? issues : []
 }
 
-function connectDrawSocket() {
-  closeDrawSocket()
-  drawSocket = openDrawSocket()
-  drawSocket.onmessage = (event) => {
-    try {
-      const payload = JSON.parse(event.data)
-      if (payload.type === 'draw_progress') {
-        drawProgress.value = Math.round(payload.percent || 0)
-        drawMessage.value = payload.message || 'Running'
-      } else if (payload.type === 'draw_error') {
-        pushApiError(payload.message || 'Draw error')
-      } else if (payload.type === 'round_created') {
-        drawProgress.value = 100
-        drawMessage.value = `Round ${payload.round} created`
-      }
-    } catch {
-    }
-  }
-}
-
-async function addNewRound() {
-  drawProgress.value = 0
-  drawMessage.value = 'Starting draw...'
-  drawRunning.value = true
-  connectDrawSocket()
-
-  const config = {}
-  if (selectedAlgorithm.value !== 'random') {
-    config.max_disparity = Number(maxDisparity.value)
-    config.allow_rematch = allowRematch.value
-  }
-  if (randomSeed.value.trim()) {
-    config.seed = Number(randomSeed.value)
-  }
+async function handleRoundCreated() {
+  closeDrawPopup()
 
   try {
-    await api.createRound({
-      algorithm: selectedAlgorithm.value || null,
-      config,
-      bye_teams: [],
-    })
     await Promise.all([
       store.refreshRounds(),
-      store.refreshRankings(),
       store.refreshTournament(),
     ])
-    if (rounds.value.length) {
-      selectedRound.value = rounds.value[rounds.value.length - 1].number
-    }
-    drawModalOpen.value = false
   } catch {
-  } finally {
-    drawRunning.value = false
-    closeDrawSocket()
+    // API errors are handled globally by ApiErrorBanner.
+  }
+
+  if (rounds.value.length) {
+    selectedRound.value = rounds.value[rounds.value.length - 1].number
+    try {
+      await store.refreshRankings(selectedRound.value)
+    } catch {
+      // API errors are handled globally by ApiErrorBanner.
+    }
   }
 }
 
@@ -259,6 +211,7 @@ async function deleteSelectedRound() {
       selectedRound.value = null
     }
   } catch {
+    // API errors are handled globally by ApiErrorBanner.
   }
 }
 </script>
@@ -302,7 +255,7 @@ async function deleteSelectedRound() {
             type="button"
             class="round-pill new-round-pill"
             :disabled="!canCreateRound"
-            @click="openAddRoundModal"
+            @click="openDrawPopup"
           >
             New
           </button>
@@ -320,10 +273,16 @@ async function deleteSelectedRound() {
       </div>
     </div>
 
-    <div v-if="currentRound" class="card">
+    <div
+      v-if="currentRound"
+      class="card"
+    >
       <h3 class="round-title">
         <span class="round-title-main">Round {{ currentRound.number }} <span class="badge">{{ currentRound.status }}</span></span>
-        <label class="round-search" for="round-team-filter">
+        <label
+          class="round-search"
+          for="round-team-filter"
+        >
           <span>Team</span>
           <span class="round-search-control">
             <input
@@ -333,7 +292,7 @@ async function deleteSelectedRound() {
               inputmode="numeric"
               pattern="[0-9]*"
               placeholder="e.g. 12"
-            />
+            >
             <button
               v-if="teamFilterInput"
               type="button"
@@ -346,9 +305,28 @@ async function deleteSelectedRound() {
             </button>
           </span>
         </label>
-        <button class="danger-outline" @click="deleteSelectedRound">Delete</button>
+        <button
+          class="danger-outline"
+          @click="deleteSelectedRound"
+        >
+          Delete
+        </button>
       </h3>
-      <p v-if="currentRound.byes?.length" class="muted">Byes: {{ currentRound.byes.join(', ') }}</p>
+      <p
+        v-if="currentRound.byes?.length"
+        class="status-row"
+      >
+        <span class="status-row-label">Byes:</span>
+        <span class="status-row-list">
+          <span
+            v-for="teamId in currentRound.byes"
+            :key="`round-bye-${teamId}`"
+            class="status-badge status-bye"
+          >
+            Team {{ teamId }}
+          </span>
+        </span>
+      </p>
 
       <table>
         <thead>
@@ -356,20 +334,31 @@ async function deleteSelectedRound() {
             <th>Location</th>
             <th>Results</th>
             <th>Status</th>
-            <th></th>
+            <th />
           </tr>
         </thead>
         <tbody>
-          <tr v-for="{ match, index } in filteredRoundMatches" :key="`${currentRound.number}-${index}`">
+          <tr
+            v-for="{ match, index } in filteredRoundMatches"
+            :key="`${currentRound.number}-${index}`"
+          >
             <td>{{ match.location ?? '—' }}</td>
             <td>
               <div class="results-lines">
-                <div v-for="team in match.teams" :key="team" class="result-line">
+                <div
+                  v-for="team in match.teams"
+                  :key="team"
+                  class="result-line"
+                >
                   <span class="team-chip">
                     <span class="team-chip-label">Team</span>
                     <span class="team-chip-number">{{ team }}</span>
                   </span>
-                  <input v-model.number="initPoints(currentRound.number, index, match)[team]" type="number" min="0" />
+                  <input
+                    v-model.number="initPoints(currentRound.number, index, match)[team]"
+                    type="number"
+                    min="0"
+                  >
                 </div>
               </div>
             </td>
@@ -378,7 +367,7 @@ async function deleteSelectedRound() {
             </td>
             <td>
               <button
-                class="secondary"
+                class="secondary action-btn"
                 :disabled="!hasMatchChanges(currentRound.number, index, match)"
                 @click="saveMatch(currentRound.number, index, match)"
               >
@@ -390,54 +379,57 @@ async function deleteSelectedRound() {
       </table>
     </div>
 
-    <p v-else class="muted">No round available yet.</p>
+    <p
+      v-else
+      class="muted"
+    >
+      No round available yet.
+    </p>
 
-    <div v-if="drawModalOpen" class="overlay" @click.self="closeAddRoundModal">
-      <div class="modal card" role="dialog" aria-modal="true" aria-label="Add new round">
-        <h2>Add new round</h2>
-
-        <div class="draw-grid">
-          <label>
-            Algorithm
-            <select v-model="selectedAlgorithm" :disabled="drawRunning">
-              <option v-for="draw in draws" :key="draw.name" :value="draw.name">
-                {{ draw.name }}
-              </option>
-            </select>
-          </label>
-
-          <label v-if="selectedAlgorithm !== 'random'">
-            Max disparity
-            <input v-model.number="maxDisparity" type="number" min="0" :disabled="drawRunning" />
-          </label>
-
-          <label>
-            Seed (optional)
-            <input v-model="randomSeed" type="number" placeholder="42" :disabled="drawRunning" />
-          </label>
-
-          <label v-if="selectedAlgorithm !== 'random'" class="check">
-            <input v-model="allowRematch" type="checkbox" :disabled="drawRunning" />
-            Allow rematch
-          </label>
-        </div>
-
-        <div class="progress-card">
-          <div class="progress-head">
-            <strong>Progress</strong>
-            <span>{{ drawProgress }}%</span>
+    <div
+      v-if="drawModalOpen"
+      class="overlay"
+      @click.self="closeDrawPopup"
+    >
+      <div
+        class="popup card"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Draw preview"
+      >
+        <header class="popup-head">
+          <h2>Draw preview</h2>
+          <div
+            v-if="drawBlockingIssues.length"
+            class="modal-issues-indicator"
+          >
+            <button
+              type="button"
+              class="status-badge status-lost"
+              :aria-label="`${drawBlockingIssues.length} blocking issues`"
+            >
+              {{ drawBlockingIssues.length }} blocking issue{{ drawBlockingIssues.length > 1 ? 's' : '' }}
+            </button>
+            <div class="modal-issues-tooltip">
+              <strong>Blocking issues</strong>
+              <ul>
+                <li
+                  v-for="issue in drawBlockingIssues"
+                  :key="issue"
+                >
+                  {{ issue }}
+                </li>
+              </ul>
+            </div>
           </div>
-          <div class="bar">
-            <div class="fill" :style="{ width: `${drawProgress}%` }"></div>
-          </div>
-          <p class="muted">{{ drawMessage }}</p>
-        </div>
-
-        <div class="modal-actions">
-          <button class="secondary" :disabled="drawRunning" @click="closeAddRoundModal">Cancel</button>
-          <button :disabled="drawRunning || !tournament || !selectedAlgorithm" @click="addNewRound">
-            {{ drawRunning ? 'Running…' : 'Run draw' }}
-          </button>
+        </header>
+        <div class="popup-body">
+          <DrawView
+            :show-header="false"
+            @cancel="closeDrawPopup"
+            @created="handleRoundCreated"
+            @issues-change="updateDrawBlockingIssues"
+          />
         </div>
       </div>
     </div>
@@ -494,6 +486,10 @@ section {
   width: var(--round-action-width);
 }
 
+.action-btn {
+  width: var(--round-action-width);
+}
+
 .round-search-clear {
   position: absolute;
   right: 0.25rem;
@@ -542,6 +538,24 @@ section {
 
 .result-line input {
   width: 80px;
+}
+
+.status-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.status-row-label {
+  color: var(--color-muted);
+}
+
+.status-row-list {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.35rem;
 }
 
 @media (max-width: 980px) {
@@ -640,77 +654,88 @@ section {
 .new-round-pill {
   border-style: dashed;
   font-weight: 600;
-  text-transform: lowercase;
 }
 
 .overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.6);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: 1200;
+  padding: 1rem;
 }
 
-.modal {
-  width: min(92vw, 560px);
-  max-height: 85vh;
-  overflow-y: auto;
-  padding: 1.25rem;
-}
-
-.modal h2 {
-  margin-top: 0;
-}
-
-.draw-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 0.75rem;
-}
-
-.draw-grid label {
+.popup {
+  width: min(96vw, 1700px);
+  height: min(94vh, 1100px);
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
-  font-size: 0.9rem;
-}
-
-.draw-grid label.check {
-  flex-direction: row;
-  align-items: center;
-  margin-top: 1.8rem;
-}
-
-.progress-card {
-  margin-top: 1rem;
-}
-
-.progress-head {
-  display: flex;
-  justify-content: space-between;
-}
-
-.bar {
-  width: 100%;
-  height: 12px;
-  border-radius: 999px;
-  background: #e8ecf5;
+  padding: 0;
   overflow: hidden;
-  margin: 0.6rem 0;
 }
 
-.fill {
-  height: 100%;
-  background: linear-gradient(90deg, #2c6bed, #6ea8ff);
-  transition: width 0.2s ease;
-}
-
-.modal-actions {
-  margin-top: 1rem;
+.popup-head {
   display: flex;
-  justify-content: flex-end;
+  align-items: center;
+  justify-content: space-between;
   gap: 0.75rem;
+  padding: 0.9rem 1rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.popup-head h2 {
+  margin: 0;
+}
+
+.modal-issues-indicator {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.modal-issues-indicator > button {
+  cursor: help;
+}
+
+.modal-issues-tooltip {
+  position: absolute;
+  top: calc(100% + 0.35rem);
+  right: 0;
+  min-width: 280px;
+  max-width: min(420px, calc(100vw - 3rem));
+  display: none;
+  background: #1f2937;
+  color: #f9fafb;
+  border-radius: 8px;
+  padding: 0.5rem 0.65rem;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.25);
+  font-size: 0.78rem;
+  line-height: 1.25;
+  z-index: 20;
+}
+
+.modal-issues-tooltip strong {
+  display: inline-block;
+  margin-bottom: 0.3rem;
+}
+
+.modal-issues-tooltip ul {
+  margin: 0;
+  padding-left: 1rem;
+}
+
+.modal-issues-indicator:hover .modal-issues-tooltip,
+.modal-issues-indicator:focus-within .modal-issues-tooltip {
+  display: block;
+}
+
+.popup-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  overflow: hidden;
+  padding: 1rem;
 }
 </style>

@@ -26,6 +26,7 @@ async function refreshRotationSettings() {
       rotationSeconds.value = raw
     }
   } catch {
+    // Keep the default rotation value when settings are unavailable.
   }
 }
 
@@ -43,6 +44,7 @@ function connectSocket() {
         store.refreshAll()
       }
     } catch {
+      // Ignore malformed websocket payload.
     }
   }
 }
@@ -54,6 +56,7 @@ onMounted(async () => {
     const payload = await api.getDisplayView()
     syncView(payload.view)
   } catch {
+    // Keep current view if display endpoint is temporarily unavailable.
   }
   connectSocket()
 })

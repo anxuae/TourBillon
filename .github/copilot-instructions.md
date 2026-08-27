@@ -269,7 +269,7 @@ SPA **Vue 3 + Vite** (Pinia pour l'état, `api/client.js` pour REST). Trois espa
 servis par le routeur (`/admin`, `/display`, `/history`) :
 
 - **Admin** (`views/admin/`) : inscription des équipes/joueurs, lancement d'un tirage
-  (choix algo + options + progression), round courant avec **saisie des scores**,
+  (choix de l'algo + progression ; options via la modale Settings), round courant avec **saisie des scores**,
   classement. L'inscription propose l'**autocomplétion des prénoms/noms** à partir de
   `GET /api/history/players` (joueurs des éditions précédentes). L'**édition des
   settings** (modale `SettingsModal.vue`, via `GET`/`PUT /api/settings`) est réservée
@@ -302,6 +302,31 @@ REST pour le CRUD, WebSocket pour le temps réel. Éviter jQuery.
   primaire globale (style par défaut des `button` dans `main.css`) ; éviter les
   variantes locales ad hoc (ex. vert spécifique dans une seule vue), sauf besoin
   métier explicitement validé.
+- Sur le **popup de tirage** (Round → Draw), le bouton final de validation doit
+  rester une action positive primaire (libellé recommandé : **`Create round`**).
+  L'action de prévisualisation peut être en style secondaire.
+- Sur le **popup de tirage** (Round → Draw), la **progression** doit rester
+  **visible en haut** (intégrée dans l'en-tête de modale ou en carte sticky)
+  pendant le scroll.
+- La fermeture des modales/popup privilégie un contrôle **simple et élégant**
+  de type **croix** (`×`) en en-tête (avec `aria-label` explicite), plutôt
+  qu'un gros bouton d'action textuel.
+- Dans les barres d'actions de modales (ex. `Cancel` / `Save`, `Preview` /
+  `Create`), garder des boutons de **taille homogène** (même largeur/hauteur)
+  pour une cohérence visuelle inter-vues.
+- Les options booléennes visibles (ex. filtres d'affichage, toggles de réglages)
+  utilisent de préférence un contrôle **switch glissant (slider)** plutôt qu'une
+  simple case à cocher, pour améliorer la lisibilité et l'état ON/OFF.
+- Un **code couleur des statuts** doit être respecté sur tout le frontend pour
+  les éléments graphiques (badges, pills, tags, boutons d'action de statut,
+  etc.) : **`BYE` jaune**, **`WON/WIN` vert**, **`LOST` rouge**,
+  **`FORFEIT` gris foncé**.
+- Tous les **autres statuts** du frontend (hors `BYE/WON/LOST/FORFEIT`) utilisent
+  un **violet** avec **fond pastel** et **liseré plus foncé** (même logique
+  visuelle que les badges de résultat).
+- Règle visuelle générale pour ces statuts : privilégier un **fond pastel**
+  (lisible et non agressif) avec un **liseré/bordure légèrement plus foncé(e)**
+  de la même teinte, pour mieux détacher les badges sur toutes les vues.
 
 ---
 

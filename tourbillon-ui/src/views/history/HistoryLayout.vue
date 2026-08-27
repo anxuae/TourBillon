@@ -5,9 +5,19 @@ import { RouterLink, RouterView } from 'vue-router'
 <template>
   <div class="history-layout">
     <header class="topbar">
-      <RouterLink to="/" class="brand">TourBillon</RouterLink>
+      <RouterLink
+        to="/"
+        class="brand"
+      >
+        TourBillon
+      </RouterLink>
       <nav>
-        <RouterLink to="/history/players" active-class="active">Players</RouterLink>
+        <RouterLink
+          to="/history/players"
+          active-class="active"
+        >
+          Players
+        </RouterLink>
       </nav>
     </header>
     <main>

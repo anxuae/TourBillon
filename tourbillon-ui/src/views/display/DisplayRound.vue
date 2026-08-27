@@ -68,19 +68,43 @@ const { pageItems: visibleMatches } = useAutoDisplayPaging(
 </script>
 
 <template>
-  <section ref="containerRef" class="display-section">
-    <div v-if="currentRound" class="grid">
+  <section
+    ref="containerRef"
+    class="display-section"
+  >
+    <div
+      v-if="currentRound"
+      class="grid"
+    >
       <article
         v-for="(match, index) in visibleMatches"
         :key="`${currentRound.number}-${index}`"
         class="match"
       >
         <h3>Location {{ match.location ?? '—' }}</h3>
-        <p class="teams">{{ match.teams.join(' vs ') }}</p>
+        <p class="teams">
+          {{ match.teams.join(' vs ') }}
+        </p>
       </article>
     </div>
-    <p v-if="currentRound?.byes?.length">Byes: {{ currentRound.byes.join(', ') }}</p>
-    <p v-else-if="!currentRound">No round in progress.</p>
+    <p
+      v-if="currentRound?.byes?.length"
+      class="status-row"
+    >
+      <span class="status-row-label">Byes:</span>
+      <span class="status-row-list">
+        <span
+          v-for="teamId in currentRound.byes"
+          :key="`display-bye-${teamId}`"
+          class="status-badge status-bye"
+        >
+          Team {{ teamId }}
+        </span>
+      </span>
+    </p>
+    <p v-else-if="!currentRound">
+      No round in progress.
+    </p>
   </section>
 </template>
 
@@ -104,5 +128,24 @@ const { pageItems: visibleMatches } = useAutoDisplayPaging(
 .teams {
   font-size: 1.3rem;
   font-weight: 700;
+}
+
+.status-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-top: 0.9rem;
+}
+
+.status-row-label {
+  color: #dbeafe;
+}
+
+.status-row-list {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.35rem;
 }
 </style>

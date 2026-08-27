@@ -26,18 +26,45 @@ watch(
 </script>
 
 <template>
-  <div v-if="open" class="overlay" @click.self="emit('close')">
-    <div class="modal card" role="dialog" aria-modal="true" aria-label="About TourBillon">
+  <div
+    v-if="open"
+    class="overlay"
+    @click.self="emit('close')"
+  >
+    <div
+      class="modal card"
+      role="dialog"
+      aria-modal="true"
+      aria-label="About TourBillon"
+    >
       <h2>About</h2>
-      <p v-if="error" class="muted">Unable to load version information.</p>
+      <p
+        v-if="error"
+        class="muted"
+      >
+        Unable to load version information.
+      </p>
       <template v-else-if="info">
-        <p class="name">{{ info.name }}</p>
-        <p class="version">Version {{ info.version }}</p>
+        <p class="name">
+          {{ info.name }}
+        </p>
+        <p class="version">
+          Version {{ info.version }}
+        </p>
       </template>
-      <p v-else class="muted">Loading…</p>
-      <p class="muted tagline">Swiss-system tournament manager for the Billon game.</p>
+      <p
+        v-else
+        class="muted"
+      >
+        Loading…
+      </p>
+      <p class="muted tagline">
+        Swiss-system tournament manager for the Billon game.
+      </p>
       <div class="actions">
-        <button @click="emit('close')">Close</button>
+        <button @click="emit('close')">
+          Close
+        </button>
       </div>
     </div>
   </div>

@@ -83,6 +83,7 @@ function connectDisplaySocket() {
         displayView.value = payload.view
       }
     } catch {
+      // Ignore malformed websocket payload.
     }
   }
 }
@@ -92,6 +93,7 @@ async function refreshDisplayView() {
     const payload = await api.getDisplayView()
     displayView.value = payload.view || displayView.value
   } catch {
+    // Keep current value when backend is temporarily unavailable.
   }
 }
 
@@ -99,7 +101,7 @@ async function selectDisplayView(view) {
   displayView.value = view
   try {
     await api.setDisplayView(view)
-  } catch (error) {
+  } catch {
     await refreshDisplayView()
   }
 }
@@ -121,10 +123,18 @@ onBeforeUnmount(() => {
 <template>
   <div class="admin">
     <aside class="sidebar">
-      <RouterLink to="/" class="brand">TourBillon</RouterLink>
+      <RouterLink
+        to="/"
+        class="brand"
+      >
+        TourBillon
+      </RouterLink>
       <span class="role">Admin</span>
       <nav>
-        <template v-for="tab in tabs" :key="tab.name">
+        <template
+          v-for="tab in tabs"
+          :key="tab.name"
+        >
           <RouterLink
             v-if="isTabEnabled(tab)"
             :to="{ name: tab.name }"
@@ -132,16 +142,28 @@ onBeforeUnmount(() => {
             active-class="active"
           >
             <span>{{ tab.label }}</span>
-            <span v-if="hasCount(tab.name)" class="tab-count">{{ countFor(tab.name) }}</span>
+            <span
+              v-if="hasCount(tab.name)"
+              class="tab-count"
+            >{{ countFor(tab.name) }}</span>
           </RouterLink>
-          <span v-else class="nav-link disabled" :title="disabledTitle(tab)">
+          <span
+            v-else
+            class="nav-link disabled"
+            :title="disabledTitle(tab)"
+          >
             <span>{{ tab.label }}</span>
-            <span v-if="hasCount(tab.name)" class="tab-count">{{ countFor(tab.name) }}</span>
+            <span
+              v-if="hasCount(tab.name)"
+              class="tab-count"
+            >{{ countFor(tab.name) }}</span>
           </span>
         </template>
       </nav>
-      <hr class="separator" />
-      <div class="section-label">Display</div>
+      <hr class="separator">
+      <div class="section-label">
+        Display
+      </div>
       <nav>
         <button
           v-for="tab in displayTabs"
@@ -153,15 +175,27 @@ onBeforeUnmount(() => {
           @click="selectDisplayView(tab.name)"
         >
           <span>{{ tab.label }}</span>
-          <span v-if="displayView === tab.name" class="active-badge">active</span>
+          <span
+            v-if="displayView === tab.name"
+            class="active-badge"
+          >active</span>
         </button>
       </nav>
-      <button class="settings-btn" @click="settingsOpen = true">⚙ Settings</button>
+      <button
+        class="settings-btn"
+        @click="settingsOpen = true"
+      >
+        ⚙ Settings
+      </button>
     </aside>
     <main class="content">
       <RouterView />
     </main>
-    <SettingsModal :open="settingsOpen" @close="settingsOpen = false" @saved="store.refreshAll()" />
+    <SettingsModal
+      :open="settingsOpen"
+      @close="settingsOpen = false"
+      @saved="store.refreshAll()"
+    />
   </div>
 </template>
 

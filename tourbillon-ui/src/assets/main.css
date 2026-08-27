@@ -8,6 +8,21 @@
   --color-muted: #6b7280;
   --color-success: #1f9d55;
   --color-danger: #e03131;
+  --status-bye-bg: #fff8df;
+  --status-bye-fg: #7a5a00;
+  --status-bye-border: #caa23a;
+  --status-won-bg: #e8f8ef;
+  --status-won-fg: #1f7a44;
+  --status-won-border: #5ca57a;
+  --status-lost-bg: #fdeaea;
+  --status-lost-fg: #9e1d1d;
+  --status-lost-border: #c97d7d;
+  --status-forfeit-bg: #eceff3;
+  --status-forfeit-fg: #2f3742;
+  --status-forfeit-border: #4b5563;
+  --status-generic-bg: #f1eaff;
+  --status-generic-fg: #5a3aa2;
+  --status-generic-border: #7b5cc3;
   --radius: 10px;
   --shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 4px 12px rgba(0, 0, 0, 0.05);
   --font: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
@@ -138,12 +153,15 @@ tr:last-child td {
 }
 
 .badge {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   padding: 0.15rem 0.6rem;
   border-radius: 999px;
   font-size: 0.8rem;
-  background: #eef2fb;
-  color: var(--color-primary-dark);
+  background: var(--status-generic-bg);
+  color: var(--status-generic-fg);
+  border: 1px solid var(--status-generic-border);
 }
 
 .error {
@@ -153,4 +171,63 @@ tr:last-child td {
 
 .muted {
   color: var(--color-muted);
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  padding: 0.16rem 0.56rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  line-height: 1.1;
+}
+
+button.status-action {
+  border-radius: 999px;
+  border: 1px solid transparent;
+  font-weight: 600;
+}
+
+.status-bye {
+  background: var(--status-bye-bg);
+  color: var(--status-bye-fg);
+  border-color: var(--status-bye-border);
+}
+
+.status-won {
+  background: var(--status-won-bg);
+  color: var(--status-won-fg);
+  border-color: var(--status-won-border);
+}
+
+.status-lost {
+  background: var(--status-lost-bg);
+  color: var(--status-lost-fg);
+  border-color: var(--status-lost-border);
+}
+
+.status-forfeit {
+  background: var(--status-forfeit-bg);
+  color: var(--status-forfeit-fg);
+  border-color: var(--status-forfeit-border);
+}
+
+button.status-action.status-bye:hover {
+  background: color-mix(in srgb, var(--status-bye-bg) 80%, #e8c859);
+}
+
+button.status-action.status-won:hover {
+  background: color-mix(in srgb, var(--status-won-bg) 82%, #5cad7f);
+}
+
+button.status-action.status-lost:hover {
+  background: color-mix(in srgb, var(--status-lost-bg) 82%, #db7f7f);
+}
+
+button.status-action.status-forfeit:hover {
+  background: color-mix(in srgb, var(--status-forfeit-bg) 86%, #2f3742);
 }

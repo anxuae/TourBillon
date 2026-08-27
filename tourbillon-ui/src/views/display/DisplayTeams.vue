@@ -67,20 +67,44 @@ function playerLabel(player) {
 </script>
 
 <template>
-  <section ref="containerRef" class="display-section">
-    <div v-if="teams.length" class="grid">
-      <article v-for="team in visibleTeams" :key="team.number" class="team-card">
-        <div class="team-number">{{ team.number }}</div>
+  <section
+    ref="containerRef"
+    class="display-section"
+  >
+    <div
+      v-if="teams.length"
+      class="grid"
+    >
+      <article
+        v-for="team in visibleTeams"
+        :key="team.number"
+        class="team-card"
+      >
+        <div class="team-number">
+          {{ team.number }}
+        </div>
 
         <div class="players-col">
-          <p v-if="!team.players.length" class="player-line">—</p>
-          <p v-for="(player, index) in team.players" v-else :key="`${team.number}-${index}`" class="player-line">
+          <p
+            v-if="!team.players.length"
+            class="player-line"
+          >
+            —
+          </p>
+          <p
+            v-for="(player, index) in team.players"
+            v-else
+            :key="`${team.number}-${index}`"
+            class="player-line"
+          >
             {{ playerLabel(player) }}
           </p>
         </div>
       </article>
     </div>
-    <p v-else>No teams available.</p>
+    <p v-else>
+      No teams available.
+    </p>
   </section>
 </template>
 

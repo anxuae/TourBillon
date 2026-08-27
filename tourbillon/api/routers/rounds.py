@@ -16,8 +16,8 @@ def list_rounds(state=Depends(get_state)):
     """Return every round of the tournament."""
     try:
         return services.list_rounds(state)
-    except LookupError:
-        raise HTTPException(status_code=404, detail="No tournament loaded")
+    except LookupError as exc:
+        raise HTTPException(status_code=404, detail="No tournament loaded") from exc
 
 
 @router.get("/{number}", response_model=schemas.RoundDTO)
@@ -25,14 +25,14 @@ def get_round(number: int, state=Depends(get_state)):
     """Return a single round and its matches."""
     try:
         return services.get_round(state, number)
-    except LookupError:
-        raise HTTPException(status_code=404, detail="No tournament loaded")
+    except LookupError as exc:
+        raise HTTPException(status_code=404, detail="No tournament loaded") from exc
     except ValueError as ex:
-        raise HTTPException(status_code=404, detail=str(ex))
+        raise HTTPException(status_code=404, detail=str(ex)) from ex
 
 
 @router.post("", response_model=schemas.RoundDTO)
-async def create_round(request: schemas.DrawRequestDTO, state=Depends(get_state)):
+async def create_round(request: schemas.RoundCreateDTO, state=Depends(get_state)):
     """Create a new round by running a draw (broadcasts progress on /ws/draw)."""
     async with state.lock:
 
@@ -43,11 +43,11 @@ async def create_round(request: schemas.DrawRequestDTO, state=Depends(get_state)
 
         try:
             dto = await services.create_round(state, request, on_progress=on_progress)
-        except LookupError:
-            raise HTTPException(status_code=404, detail="No tournament loaded")
-        except (DrawError, StatusError) as ex:
+        except LookupError as exc:
+            raise HTTPException(status_code=404, detail="No tournament loaded") from exc
+        except (DrawError, StatusError, ValueError) as ex:
             await state.progress.publish({"type": "draw_error", "message": str(ex)})
-            raise HTTPException(status_code=409, detail=str(ex))
+            raise HTTPException(status_code=409, detail=str(ex)) from ex
 
         await state.progress.publish({"type": "round_created", "round": dto.number})
         return dto
@@ -58,11 +58,12 @@ async def set_result(number: int, match: int, result: schemas.MatchResultDTO, st
     """Register the score of a match (``match`` is kept for REST symmetry)."""
     async with state.lock:
         try:
+            _ = match
             dto = services.set_match_result(state, number, result)
-        except LookupError:
-            raise HTTPException(status_code=404, detail="No tournament loaded")
+        except LookupError as exc:
+            raise HTTPException(status_code=404, detail="No tournament loaded") from exc
         except Exception as ex:
-            raise HTTPException(status_code=400, detail=str(ex))
+            raise HTTPException(status_code=400, detail=str(ex)) from ex
         await state.progress.publish({"type": "score_updated", "round": number})
         return dto
 
@@ -73,10 +74,10 @@ async def delete_round(number: int, state=Depends(get_state)):
     async with state.lock:
         try:
             services.delete_round(state, number)
-        except LookupError:
-            raise HTTPException(status_code=404, detail="No tournament loaded")
+        except LookupError as exc:
+            raise HTTPException(status_code=404, detail="No tournament loaded") from exc
         except ValueError as ex:
-            raise HTTPException(status_code=400, detail=str(ex))
+            raise HTTPException(status_code=400, detail=str(ex)) from ex
 
         await state.progress.publish({"type": "round_deleted", "round": number})
         return {"deleted": number}

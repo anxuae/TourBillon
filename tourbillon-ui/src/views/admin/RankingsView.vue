@@ -39,9 +39,18 @@ async function refreshRankings() {
     <header class="head">
       <h1>Rankings</h1>
       <div class="row">
-        <select v-model="selectedRound" @change="refreshRankings">
-          <option value="">Current</option>
-          <option v-for="round in rounds" :key="round.number" :value="round.number">
+        <select
+          v-model="selectedRound"
+          @change="refreshRankings"
+        >
+          <option value="">
+            Current
+          </option>
+          <option
+            v-for="round in rounds"
+            :key="round.number"
+            :value="round.number"
+          >
             After round {{ round.number }}
           </option>
         </select>
@@ -53,29 +62,58 @@ async function refreshRankings() {
         <tr>
           <th>Rank</th>
           <th>Team</th>
-          <th v-if="showWins">Wins</th>
+          <th v-if="showWins">
+            Wins
+          </th>
           <th>Points</th>
-          <th v-if="showJoker">Joker</th>
-          <th v-if="showBuchholz">Buchholz</th>
-          <th v-if="showGoalAvg">Goal Avg</th>
+          <th v-if="showJoker">
+            Joker
+          </th>
+          <th v-if="showBuchholz">
+            Buchholz
+          </th>
+          <th v-if="showGoalAvg">
+            Goal Avg
+          </th>
         </tr>
       </thead>
       <tbody>
-        <tr v-for="row in rankings" :key="row.team">
+        <tr
+          v-for="row in rankings"
+          :key="row.team"
+        >
           <td>
             <span>{{ row.rank }}</span>
-            <span v-if="isTieRank(row.rank)" class="tie-indicator" aria-label="Tied rank" title="Tied rank">⇄</span>
+            <span
+              v-if="isTieRank(row.rank)"
+              class="tie-indicator"
+              aria-label="Tied rank"
+              title="Tied rank"
+            >⇄</span>
           </td>
           <td>{{ row.team }}</td>
-          <td v-if="showWins">{{ row.wins }}</td>
+          <td v-if="showWins">
+            {{ row.wins }}
+          </td>
           <td>{{ row.points }}</td>
-          <td v-if="showJoker">{{ row.joker }}</td>
-          <td v-if="showBuchholz">{{ row.buchholz }}</td>
-          <td v-if="showGoalAvg">{{ row.goal_average }}</td>
+          <td v-if="showJoker">
+            {{ row.joker }}
+          </td>
+          <td v-if="showBuchholz">
+            {{ row.buchholz }}
+          </td>
+          <td v-if="showGoalAvg">
+            {{ row.goal_average }}
+          </td>
         </tr>
       </tbody>
     </table>
-    <p v-else class="muted">No ranking data available.</p>
+    <p
+      v-else
+      class="muted"
+    >
+      No ranking data available.
+    </p>
   </section>
 </template>
 

@@ -57,58 +57,131 @@ async function save() {
 </script>
 
 <template>
-  <div v-if="open" class="overlay" @click.self="emit('close')">
-    <div class="modal card" role="dialog" aria-modal="true" aria-label="Settings">
+  <div
+    v-if="open"
+    class="overlay"
+    @click.self="emit('close')"
+  >
+    <div
+      class="modal card"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Settings"
+    >
       <h2>Settings</h2>
-      <p v-if="error" class="muted">Unable to load settings.</p>
+      <p
+        v-if="error"
+        class="muted"
+      >
+        Unable to load settings.
+      </p>
 
-      <form v-if="form" @submit.prevent="save">
-        <fieldset v-for="[section, fields] in scalarSections" :key="section">
-          <legend>{{ section }}</legend>
-          <label v-for="(value, key) in fields" :key="key" class="field">
-            <span class="label">{{ key }}</span>
-            <input
-              v-if="inputType(value) === 'checkbox'"
-              type="checkbox"
-              v-model="form[section][key]"
-            />
-            <input
-              v-else-if="inputType(value) === 'number'"
-              type="number"
-              step="any"
-              v-model.number="form[section][key]"
-            />
-            <input v-else type="text" v-model="form[section][key]" />
-          </label>
-        </fieldset>
+      <form
+        v-if="form"
+        class="settings-form"
+        @submit.prevent="save"
+      >
+        <div class="settings-scroll">
+          <fieldset
+            v-for="[section, fields] in scalarSections"
+            :key="section"
+          >
+            <legend>{{ section }}</legend>
+            <label
+              v-for="(value, key) in fields"
+              :key="key"
+              class="field"
+            >
+              <span class="label">{{ key }}</span>
+              <input
+                v-if="inputType(value) === 'checkbox'"
+                v-model="form[section][key]"
+                type="checkbox"
+                class="visually-hidden"
+              >
+              <span
+                v-if="inputType(value) === 'checkbox'"
+                class="field-switch"
+                aria-hidden="true"
+              >
+                <span class="field-switch-slider" />
+              </span>
+              <input
+                v-else-if="inputType(value) === 'number'"
+                v-model.number="form[section][key]"
+                type="number"
+                step="any"
+              >
+              <input
+                v-else
+                v-model="form[section][key]"
+                type="text"
+              >
+            </label>
+          </fieldset>
 
-        <fieldset v-for="(config, algo) in form.draws" :key="algo">
-          <legend>Draw · {{ algo }}</legend>
-          <label v-for="(value, option) in config" :key="option" class="field">
-            <span class="label">{{ option }}</span>
-            <input
-              v-if="typeof value === 'boolean'"
-              type="checkbox"
-              v-model="form.draws[algo][option]"
-            />
-            <input
-              v-else-if="typeof value === 'number'"
-              type="number"
-              step="any"
-              v-model.number="form.draws[algo][option]"
-            />
-            <input v-else type="text" v-model="form.draws[algo][option]" />
-          </label>
-        </fieldset>
+          <fieldset
+            v-for="(config, algo) in form.draws"
+            :key="algo"
+          >
+            <legend>Draw · {{ algo }}</legend>
+            <label
+              v-for="(value, option) in config"
+              :key="option"
+              class="field"
+            >
+              <span class="label">{{ option }}</span>
+              <input
+                v-if="typeof value === 'boolean'"
+                v-model="form.draws[algo][option]"
+                type="checkbox"
+                class="visually-hidden"
+              >
+              <span
+                v-if="typeof value === 'boolean'"
+                class="field-switch"
+                aria-hidden="true"
+              >
+                <span class="field-switch-slider" />
+              </span>
+              <input
+                v-else-if="typeof value === 'number'"
+                v-model.number="form.draws[algo][option]"
+                type="number"
+                step="any"
+              >
+              <input
+                v-else
+                v-model="form.draws[algo][option]"
+                type="text"
+              >
+            </label>
+          </fieldset>
+        </div>
 
         <div class="actions">
-          <button type="button" class="secondary" @click="emit('close')">Cancel</button>
-          <button type="submit" :disabled="saving">
+          <button
+            type="button"
+            class="secondary action-btn"
+            @click="emit('close')"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            class="action-btn"
+            :disabled="saving"
+          >
             {{ saving ? 'Saving…' : 'Save' }}
           </button>
         </div>
       </form>
-      <p v-else-if="!error" class="muted">Loading…</p>
+      <p
+        v-else-if="!error"
+        class="muted"
+      >
+        Loading…
+      </p>
     </div>
   </div>
 </template>
@@ -127,8 +200,10 @@ async function save() {
 .modal {
   width: min(92vw, 520px);
   max-height: 85vh;
-  overflow-y: auto;
+  overflow: hidden;
   padding: 2rem;
+  display: flex;
+  flex-direction: column;
 }
 
 .modal h2 {
@@ -140,6 +215,19 @@ fieldset {
   border-radius: 8px;
   margin: 0 0 1rem;
   padding: 0.75rem 1rem 1rem;
+}
+
+.settings-form {
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+}
+
+.settings-scroll {
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 0.2rem;
 }
 
 legend {
@@ -156,9 +244,64 @@ legend {
   padding: 0.35rem 0;
 }
 
+.field:has(.visually-hidden) {
+  cursor: pointer;
+}
+
 .label {
   font-family: monospace;
   opacity: 0.85;
+}
+
+.visually-hidden {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+.field-switch {
+  position: relative;
+  display: inline-flex;
+  width: 2.2rem;
+  height: 1.25rem;
+  flex: 0 0 auto;
+}
+
+.field-switch-slider {
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  background: #cbd5e1;
+  transition: background 0.2s ease;
+}
+
+.field-switch-slider::before {
+  content: '';
+  position: absolute;
+  left: 2px;
+  top: 50%;
+  width: 0.85rem;
+  height: 0.85rem;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+  transform: translateY(-50%);
+  transition: transform 0.2s ease;
+}
+
+.field .visually-hidden:checked + .field-switch .field-switch-slider {
+  background: color-mix(in srgb, var(--color-primary) 70%, #1d4ed8);
+}
+
+.field .visually-hidden:checked + .field-switch .field-switch-slider::before {
+  transform: translate(0.95rem, -50%);
+}
+
+.field .visually-hidden:focus-visible + .field-switch .field-switch-slider {
+  outline: 2px solid color-mix(in srgb, var(--color-primary) 55%, white);
+  outline-offset: 2px;
 }
 
 .field input[type='text'],
@@ -170,7 +313,16 @@ legend {
   display: flex;
   justify-content: flex-end;
   gap: 0.75rem;
-  margin-top: 1rem;
+  margin-top: auto;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
+.action-btn {
+  width: 9.2rem;
+  min-width: 9.2rem;
+  min-height: 2.3rem;
 }
 
 .secondary {

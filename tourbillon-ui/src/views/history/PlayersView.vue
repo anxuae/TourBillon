@@ -40,13 +40,28 @@ onMounted(async () => {
     <header class="head">
       <div>
         <h1>Player History</h1>
-        <p class="muted">{{ tournaments.length }} tournaments aggregated</p>
+        <p class="muted">
+          {{ tournaments.length }} tournaments aggregated
+        </p>
       </div>
-      <input v-model="query" placeholder="Search player..." />
+      <input
+        v-model="query"
+        placeholder="Search player..."
+      >
     </header>
 
-    <p v-if="loading" class="muted">Loading history...</p>
-    <p v-else-if="error" class="muted">Unable to load history data.</p>
+    <p
+      v-if="loading"
+      class="muted"
+    >
+      Loading history...
+    </p>
+    <p
+      v-else-if="error"
+      class="muted"
+    >
+      Unable to load history data.
+    </p>
 
     <table v-else-if="filteredPlayers.length">
       <thead>
@@ -56,11 +71,14 @@ onMounted(async () => {
           <th>Total wins</th>
           <th>Total points</th>
           <th>Best rank</th>
-          <th></th>
+          <th />
         </tr>
       </thead>
       <tbody>
-        <tr v-for="player in filteredPlayers" :key="player.name">
+        <tr
+          v-for="player in filteredPlayers"
+          :key="player.name"
+        >
           <td>{{ player.name }}</td>
           <td>{{ player.participations }}</td>
           <td>{{ player.wins }}</td>
@@ -68,13 +86,20 @@ onMounted(async () => {
           <td>{{ player.best_rank ?? '—' }}</td>
           <td>
             <RouterLink :to="`/history/players/${encodeURIComponent(player.name)}`">
-              <button class="secondary">Details</button>
+              <button class="secondary">
+                Details
+              </button>
             </RouterLink>
           </td>
         </tr>
       </tbody>
     </table>
-    <p v-else class="muted">No player found.</p>
+    <p
+      v-else
+      class="muted"
+    >
+      No player found.
+    </p>
   </section>
 </template>
 

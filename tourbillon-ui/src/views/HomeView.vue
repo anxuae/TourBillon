@@ -31,19 +31,36 @@ const interfaces = [
   <main class="home">
     <header class="home-header">
       <h1>TourBillon</h1>
-      <p class="muted">Swiss-system tournament manager for the Billon game.</p>
+      <p class="muted">
+        Swiss-system tournament manager for the Billon game.
+      </p>
     </header>
     <div class="grid">
-      <RouterLink v-for="item in interfaces" :key="item.to" :to="item.to" class="tile card">
+      <RouterLink
+        v-for="item in interfaces"
+        :key="item.to"
+        :to="item.to"
+        class="tile card"
+      >
         <span class="icon">{{ item.icon }}</span>
         <h2>{{ item.title }}</h2>
-        <p class="muted">{{ item.text }}</p>
+        <p class="muted">
+          {{ item.text }}
+        </p>
       </RouterLink>
     </div>
     <footer class="home-footer">
-      <button class="link" @click="aboutOpen = true">About</button>
+      <button
+        class="link"
+        @click="aboutOpen = true"
+      >
+        About
+      </button>
     </footer>
-    <AboutModal :open="aboutOpen" @close="aboutOpen = false" />
+    <AboutModal
+      :open="aboutOpen"
+      @close="aboutOpen = false"
+    />
   </main>
 </template>
 

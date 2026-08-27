@@ -44,6 +44,7 @@ export function useDrawSocket({ onMessage, onOpen } = {}) {
           onMessage(payload)
         }
       } catch {
+        // Ignore malformed websocket payload.
       }
     })
 

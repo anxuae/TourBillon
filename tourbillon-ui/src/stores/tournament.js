@@ -35,7 +35,7 @@ export const useTournamentStore = defineStore('tournament', {
     async refreshTournament() {
       try {
         this.tournament = await api.getTournament()
-      } catch (error) {
+      } catch {
         this.tournament = null
       }
     },
@@ -54,14 +54,14 @@ export const useTournamentStore = defineStore('tournament', {
     async refreshHistoryPlayers() {
       try {
         this.historyPlayers = await api.listHistoryPlayers()
-      } catch (error) {
+      } catch {
         this.historyPlayers = []
       }
     },
     async refreshSavedTournaments() {
       try {
         this.savedTournaments = await api.listHistoryTournaments()
-      } catch (error) {
+      } catch {
         this.savedTournaments = []
       }
     },

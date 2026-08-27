@@ -127,6 +127,7 @@ async function addTeam() {
     await store.refreshTournament()
     resetRegistrationMeta()
   } catch {
+    // API errors are handled globally by ApiErrorBanner.
   }
 }
 
@@ -136,6 +137,7 @@ async function removeTeam(number) {
     await store.refreshTeams()
     await store.refreshTournament()
   } catch {
+    // API errors are handled globally by ApiErrorBanner.
   }
 }
 
@@ -157,7 +159,10 @@ function playerNames(team) {
       <h3>Register a team</h3>
       <div class="register-grid">
         <div class="team-number-panel">
-          <label class="team-number-label" for="team-number-input">Team number</label>
+          <label
+            class="team-number-label"
+            for="team-number-input"
+          >Team number</label>
           <div class="team-number-row">
             <input
               id="team-number-input"
@@ -166,7 +171,7 @@ function playerNames(team) {
               type="number"
               min="1"
               :disabled="!tournament"
-            />
+            >
             <button
               type="button"
               class="secondary quick-action-btn"
@@ -175,44 +180,65 @@ function playerNames(team) {
               :disabled="!tournament"
               @click="teamNumberInput = nextAvailableTeamNumber()"
             >
-              <span class="quick-action-icon" aria-hidden="true">↻</span>
+              <span
+                class="quick-action-icon"
+                aria-hidden="true"
+              >↻</span>
             </button>
           </div>
         </div>
 
         <div class="register-right">
           <div class="player-list">
-          <div
-            v-for="(player, index) in playerInputs"
-            :key="index"
-            class="row player-row"
-          >
-            <input
-              v-model="player.firstname"
-              list="player-suggestions"
-              :placeholder="`Player ${index + 1} first name`"
-              @change="applyMatch(player)"
-              @keyup.enter="addTeam"
-            />
-            <input
-              v-model="player.lastname"
-              list="player-suggestions"
-              :placeholder="`Player ${index + 1} last name`"
-              @change="applyMatch(player)"
-              @keyup.enter="addTeam"
-            />
-          </div>
+            <div
+              v-for="(player, index) in playerInputs"
+              :key="index"
+              class="row player-row"
+            >
+              <input
+                v-model="player.firstname"
+                list="player-suggestions"
+                :placeholder="`Player ${index + 1} first name`"
+                @change="applyMatch(player)"
+                @keyup.enter="addTeam"
+              >
+              <input
+                v-model="player.lastname"
+                list="player-suggestions"
+                :placeholder="`Player ${index + 1} last name`"
+                @change="applyMatch(player)"
+                @keyup.enter="addTeam"
+              >
+            </div>
           </div>
           <datalist id="player-suggestions">
-            <option v-for="name in fullnameSuggestions" :key="name" :value="name" />
+            <option
+              v-for="name in fullnameSuggestions"
+              :key="name"
+              :value="name"
+            />
           </datalist>
-          <p v-if="!tournament" class="muted">Load or create a tournament first.</p>
+          <p
+            v-if="!tournament"
+            class="muted"
+          >
+            Load or create a tournament first.
+          </p>
         </div>
 
         <div class="register-actions">
-          <label class="team-number-label" for="joker-input">Joker</label>
+          <label
+            class="team-number-label"
+            for="joker-input"
+          >Joker</label>
           <div class="field-inline">
-            <input id="joker-input" v-model.number="jokerInput" type="number" min="0" :disabled="!tournament" />
+            <input
+              id="joker-input"
+              v-model.number="jokerInput"
+              type="number"
+              min="0"
+              :disabled="!tournament"
+            >
             <button
               type="button"
               class="secondary quick-action-btn"
@@ -221,12 +247,19 @@ function playerNames(team) {
               :disabled="!tournament"
               @click="pickRandomJoker"
             >
-              <span class="quick-action-icon" aria-hidden="true">↻</span>
+              <span
+                class="quick-action-icon"
+                aria-hidden="true"
+              >↻</span>
             </button>
           </div>
-          <button :disabled="!tournament" @click="addTeam">Add team</button>
+          <button
+            :disabled="!tournament"
+            @click="addTeam"
+          >
+            Add team
+          </button>
         </div>
-
       </div>
     </div>
 
@@ -236,21 +269,34 @@ function playerNames(team) {
           <th>Team</th>
           <th>Players</th>
           <th>Status</th>
-          <th></th>
+          <th />
         </tr>
       </thead>
       <tbody>
-        <tr v-for="team in teams" :key="team.number">
+        <tr
+          v-for="team in teams"
+          :key="team.number"
+        >
           <td>{{ team.number }}</td>
           <td>{{ playerNames(team) }}</td>
           <td><span class="badge">{{ team.status }}</span></td>
           <td class="right">
-            <button class="danger-outline" @click="removeTeam(team.number)">Remove</button>
+            <button
+              class="danger-outline"
+              @click="removeTeam(team.number)"
+            >
+              Remove
+            </button>
           </td>
         </tr>
       </tbody>
     </table>
-    <p v-else class="muted">No team registered yet.</p>
+    <p
+      v-else
+      class="muted"
+    >
+      No team registered yet.
+    </p>
   </section>
 </template>
 

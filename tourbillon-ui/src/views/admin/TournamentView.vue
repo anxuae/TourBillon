@@ -82,6 +82,7 @@ async function createTournament() {
   try {
     await store.createTournament(cleanParams())
   } catch {
+    // API errors are handled globally by ApiErrorBanner.
   }
 }
 
@@ -89,6 +90,7 @@ async function saveTournament() {
   try {
     await store.saveTournament()
   } catch {
+    // API errors are handled globally by ApiErrorBanner.
   }
 }
 
@@ -101,6 +103,7 @@ async function deleteCurrentFile() {
   try {
     await store.deleteTournamentFile()
   } catch {
+    // API errors are handled globally by ApiErrorBanner.
   }
 }
 
@@ -109,6 +112,7 @@ async function loadFile(filename) {
   try {
     await store.loadTournament(filename)
   } catch {
+    // API errors are handled globally by ApiErrorBanner.
   }
 }
 
@@ -136,6 +140,7 @@ async function handleFile(file) {
       try {
         await store.uploadTournament(file, true)
       } catch {
+        // API errors are handled globally by ApiErrorBanner.
       }
     }
   }
@@ -158,7 +163,10 @@ function onPick(event) {
   <section class="tournament">
     <h1>Tournament</h1>
 
-    <div v-if="tournament" class="card current">
+    <div
+      v-if="tournament"
+      class="card current"
+    >
       <h2>Current tournament</h2>
       <p>
         <span class="badge">{{ tournament.status }}</span>
@@ -169,7 +177,12 @@ function onPick(event) {
         {{ tournament.points_by_match }} points/match ·
         {{ tournament.players_by_team }} players/team
       </p>
-      <p v-if="tournament.filename" class="muted">File: {{ tournament.filename }}</p>
+      <p
+        v-if="tournament.filename"
+        class="muted"
+      >
+        File: {{ tournament.filename }}
+      </p>
       <p class="hint">
         A tournament is loaded: the other tabs are now available. Creating or
         loading another one will replace it.
@@ -198,28 +211,55 @@ function onPick(event) {
     </div>
 
     <div class="grid">
-      <form class="card" @submit.prevent="createTournament">
+      <form
+        class="card"
+        @submit.prevent="createTournament"
+      >
         <h2>New tournament</h2>
         <label class="field">
           <span>Title</span>
-          <input type="text" v-model="params.title" />
+          <input
+            v-model="params.title"
+            type="text"
+          >
         </label>
         <label class="field">
           <span>Teams per match</span>
-          <input type="number" min="2" v-model.number="params.teams_by_match" />
+          <input
+            v-model.number="params.teams_by_match"
+            type="number"
+            min="2"
+          >
         </label>
         <label class="field">
           <span>Points per match</span>
-          <input type="number" min="1" v-model.number="params.points_by_match" />
+          <input
+            v-model.number="params.points_by_match"
+            type="number"
+            min="1"
+          >
         </label>
         <label class="field">
           <span>Players per team</span>
-          <input type="number" min="1" v-model.number="params.players_by_team" />
+          <input
+            v-model.number="params.players_by_team"
+            type="number"
+            min="1"
+          >
         </label>
-        <button type="submit" class="action-btn create-btn" :disabled="loading">Create</button>
+        <button
+          type="submit"
+          class="action-btn create-btn"
+          :disabled="loading"
+        >
+          Create
+        </button>
       </form>
 
-      <form class="card" @submit.prevent>
+      <form
+        class="card"
+        @submit.prevent
+      >
         <h2>Load a tournament</h2>
 
         <div
@@ -231,7 +271,11 @@ function onPick(event) {
           @dragleave.prevent="dragging = false"
           @drop.prevent="onDrop"
         >
-          <svg class="drop-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <svg
+            class="drop-icon"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
             <path
               d="M12 3v10m0 0 4-4m-4 4-4-4M5 17v2a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-2"
               fill="none"
@@ -243,7 +287,7 @@ function onPick(event) {
           </svg>
           <p class="drop-text">
             Drop a <strong>.yml</strong> / <strong>.yaml</strong> save file here
-            <br /><span class="muted">or click to browse</span>
+            <br><span class="muted">or click to browse</span>
           </p>
           <input
             ref="fileInput"
@@ -251,10 +295,13 @@ function onPick(event) {
             accept=".yml,.yaml"
             class="hidden-input"
             @change="onPick"
-          />
+          >
         </div>
 
-        <p v-if="!savedTournaments.length" class="muted">
+        <p
+          v-if="!savedTournaments.length"
+          class="muted"
+        >
           No save file found in the save directory.
         </p>
         <template v-else>
@@ -264,9 +311,12 @@ function onPick(event) {
             type="search"
             class="search-input"
             placeholder="Search a save file…"
-          />
+          >
           <ul class="file-list scrollable">
-            <li v-for="save in filteredTournaments" :key="save.filename">
+            <li
+              v-for="save in filteredTournaments"
+              :key="save.filename"
+            >
               <button
                 type="button"
                 class="file-item"
@@ -278,7 +328,10 @@ function onPick(event) {
                 <span class="muted">{{ save.nb_teams }} teams · {{ save.nb_rounds }} rounds</span>
               </button>
             </li>
-            <li v-if="!filteredTournaments.length" class="muted no-match">
+            <li
+              v-if="!filteredTournaments.length"
+              class="muted no-match"
+            >
               No file matches “{{ search }}”.
             </li>
           </ul>
@@ -374,16 +427,6 @@ button:disabled {
 
 .create-btn {
   align-self: center;
-}
-
-button.danger-outline {
-  background: transparent;
-  border: 1px solid #c62828;
-  color: #c62828;
-}
-
-button.danger-outline:hover {
-  background: rgba(198, 40, 40, 0.08);
 }
 
 .hint {

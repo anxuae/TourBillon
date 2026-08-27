@@ -16,26 +16,33 @@ export function notifySettingsUpdated(settings) {
   window.dispatchEvent(new CustomEvent(SETTINGS_UPDATED_EVENT, { detail: settings }))
 }
 
-async function request(method, url, body) {
-  const options = {
+async function request(method, url, body, requestOptions = {}) {
+  const { suppressErrorStatuses = [] } = requestOptions
+
+  const fetchOptions = {
     method,
     headers: { 'Content-Type': 'application/json' },
   }
   if (body !== undefined) {
-    options.body = JSON.stringify(body)
+    fetchOptions.body = JSON.stringify(body)
   }
-  const response = await fetch(url, options)
+  const response = await fetch(url, fetchOptions)
   if (!response.ok) {
     let detail = response.statusText
     try {
       const data = await response.json()
       detail = data.detail || detail
-    } catch (error) {
+    } catch {
       // Ignore body parsing errors.
     }
     const message = `${response.status}: ${detail}`
-    pushApiError(message, response.status)
-    throw new Error(message)
+    const err = new Error(message)
+    err.status = response.status
+    err.detail = detail
+    if (!suppressErrorStatuses.includes(response.status)) {
+      pushApiError(message, response.status)
+    }
+    throw err
   }
   if (response.status === 204) {
     return null
@@ -54,7 +61,7 @@ async function upload(url, file) {
     try {
       const data = await response.json()
       detail = data.detail || detail
-    } catch (error) {
+    } catch {
       // Ignore body parsing errors.
     }
     const message = `${response.status}: ${detail}`
@@ -68,7 +75,8 @@ async function upload(url, file) {
 
 export const api = {
   // Tournament
-  getTournament: () => request('GET', '/api/tournament'),
+  getTournament: () =>
+    request('GET', '/api/tournament', undefined, { suppressErrorStatuses: [404] }),
   createTournament: (payload) => request('POST', '/api/tournament', payload),
   loadTournament: (filename) => request('POST', '/api/tournament/load', { filename }),
   saveTournament: (filename) =>
@@ -101,6 +109,7 @@ export const api = {
 
   // Draws
   listDraws: () => request('GET', '/api/draws'),
+  runDraw: (payload) => request('POST', '/api/draws/run', payload),
 
   // Settings
   getSettings: () => request('GET', '/api/settings'),

@@ -79,11 +79,25 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div v-if="message" class="api-error-banner" role="alert" aria-live="assertive">
+  <div
+    v-if="message"
+    class="api-error-banner"
+    role="alert"
+    aria-live="assertive"
+  >
     <span class="message">{{ message }}</span>
     <div class="actions">
-      <span v-if="pendingCount > 0" class="pending-badge">{{ pendingLabel }}</span>
-      <button type="button" class="close-btn" @click="close">✕</button>
+      <span
+        v-if="pendingCount > 0"
+        class="pending-badge"
+      >{{ pendingLabel }}</span>
+      <button
+        type="button"
+        class="close-btn"
+        @click="close"
+      >
+        ✕
+      </button>
     </div>
   </div>
 </template>
