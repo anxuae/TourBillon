@@ -21,6 +21,7 @@ Only primitive Python types are used across this module.
 """
 
 from itertools import combinations
+import random
 
 from .. import cst
 from ..exception import DrawError
@@ -70,10 +71,32 @@ def order_by_strength(stats, weakest_first=False):
             stats[num][cst.STAT_POINTS],
             stats[num].get(cst.STAT_BUCHHOLZ, 0),
             stats[num].get(cst.STAT_GOAL_AVERAGE, 0),
-            -num,
+            num,
         ),
         reverse=not weakest_first,
     )
+
+
+def _prepare_bye_selection(stats, teams_by_match, forced=()):
+    """Validate BYE selection inputs and normalize forced teams.
+
+    :return: tuple ``(count, forced_or_none)`` where ``forced_or_none`` is
+             ``None`` when no forced BYE is provided.
+    """
+    count = bye_count(len(stats), teams_by_match)
+    forced = list(forced)
+
+    if not forced:
+        return count, None
+
+    if len(forced) != count:
+        raise DrawError(
+            f"Wrong number of BYE teams (given: {len(forced)}, expected: {count})"
+        )
+    for num in forced:
+        if num not in stats:
+            raise DrawError(f"Unknown BYE team n°{num}")
+    return count, sorted(forced)
 
 
 def select_bye_teams(stats, teams_by_match, forced=()):
@@ -89,18 +112,10 @@ def select_bye_teams(stats, teams_by_match, forced=()):
     :param teams_by_match: number of teams gathered in a single match
     :param forced: optional list of team ids to force as BYE
     """
-    count = bye_count(len(stats), teams_by_match)
-    forced = list(forced)
+    count, forced_teams = _prepare_bye_selection(stats, teams_by_match, forced=forced)
 
-    if forced:
-        if len(forced) != count:
-            raise DrawError(
-                f"Wrong number of BYE teams (given: {len(forced)}, expected: {count})"
-            )
-        for num in forced:
-            if num not in stats:
-                raise DrawError(f"Unknown BYE team n°{num}")
-        return sorted(forced)
+    if forced_teams is not None:
+        return forced_teams
 
     if count == 0:
         return []
@@ -112,6 +127,43 @@ def select_bye_teams(stats, teams_by_match, forced=()):
     ordered = sorted(candidates, key=lambda num: stats[num][cst.STAT_BYES])
 
     return sorted(ordered[:count])
+
+
+def select_bye_teams_random(stats, teams_by_match, forced=(), seed=None):
+    """Return the list of team ids to set as BYE using random selection.
+
+    If ``forced`` is provided, validation and output are identical to
+    :func:`select_bye_teams`.
+
+    :param stats: statistics mapping (see module docstring)
+    :param teams_by_match: number of teams gathered in a single match
+    :param forced: optional list of team ids to force as BYE
+    :param seed: optional random seed
+    """
+    count, forced_teams = _prepare_bye_selection(stats, teams_by_match, forced=forced)
+
+    if forced_teams is not None:
+        return forced_teams
+
+    if count == 0:
+        return []
+
+    rng = random.Random(seed)
+    pool = list(stats.keys())
+    selected = []
+
+    while len(selected) < count:
+        min_byes = min(stats[num][cst.STAT_BYES] for num in pool)
+        tier = [num for num in pool if stats[num][cst.STAT_BYES] == min_byes]
+        remaining = count - len(selected)
+        if len(tier) <= remaining:
+            picked = tier
+        else:
+            picked = rng.sample(tier, remaining)
+        selected.extend(picked)
+        pool = [num for num in pool if num not in picked]
+
+    return sorted(selected)
 
 
 def has_already_played(stats, match):

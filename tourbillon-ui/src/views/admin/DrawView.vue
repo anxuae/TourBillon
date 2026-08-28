@@ -88,6 +88,7 @@ function connectSocket() {
 }
 
 async function runDraw() {
+  store.setDrawPreviewReady(false)
   progress.value = 0
   message.value = 'Generating preview...'
   running.value = true
@@ -100,9 +101,11 @@ async function runDraw() {
     })
     draft.value = JSON.parse(JSON.stringify(preview))
     stage.value = 'review'
+    store.setDrawPreviewReady(true)
     message.value = 'Preview generated'
     progress.value = 100
   } catch {
+    store.setDrawPreviewReady(false)
     running.value = false
   } finally {
     running.value = false
@@ -617,6 +620,7 @@ async function commitDraft() {
 }
 
 function resetDrawState() {
+  store.setDrawPreviewReady(false)
   stage.value = 'config'
   draft.value = null
   swapSelection.value = []
@@ -1125,7 +1129,7 @@ label.check {
 }
 
 .matches-grid {
-  --match-card-width-base: clamp(180px, 30vw, 220px);
+  --match-card-width-base: clamp(172px, 28vw, 210px);
   --match-card-width: var(--match-card-width-base);
   display: grid;
   width: 100%;

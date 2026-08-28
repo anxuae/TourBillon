@@ -87,6 +87,35 @@ def test_bye_reused_only_when_all_already_bye():
     assert draws.select_bye_teams(stats, 2) == [weakest]
 
 
+def test_bye_first_round_tie_picks_lowest_team_id():
+    # No round played yet: every team has identical stats, tie-break uses team id.
+    stats = make_stats({1: (0, 0, 0), 2: (0, 0, 0), 3: (0, 0, 0)})
+    assert draws.select_bye_teams(stats, 2) == [1]
+
+
+def test_bye_random_algorithm_uses_seeded_randomness():
+    stats = make_stats({1: (0, 0, 0), 2: (0, 0, 0), 3: (0, 0, 0)})
+    byes_a = draws.select_bye_teams(stats, 2, algorithm="random", config={"seed": 1})
+    byes_b = draws.select_bye_teams(stats, 2, algorithm="random", config={"seed": 1})
+    byes_c = draws.select_bye_teams(stats, 2, algorithm="random", config={"seed": 5})
+    assert byes_a == byes_b
+    assert byes_a != byes_c
+
+
+def test_bye_random_algorithm_can_differ_from_deterministic():
+    stats = make_stats({1: (0, 0, 0), 2: (0, 0, 0), 3: (0, 0, 0)})
+    deterministic_bye = draws.select_bye_teams(stats, 2)
+    random_bye = draws.select_bye_teams(stats, 2, algorithm="random", config={"seed": 0})
+    assert deterministic_bye == [1]
+    assert random_bye != deterministic_bye
+
+
+def test_bye_random_prefers_lowest_bye_count():
+    stats = make_stats({1: (0, 0, 2), 2: (0, 0, 0), 3: (0, 0, 0)})
+    byes = draws.select_bye_teams(stats, 2, algorithm="random", config={"seed": 1})
+    assert byes[0] in [2, 3]
+
+
 # --------------------------------------------------------------------------- #
 # Common draw guarantees (parametrized over every algorithm)
 # --------------------------------------------------------------------------- #

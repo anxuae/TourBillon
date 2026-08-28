@@ -331,12 +331,19 @@ async def create_round(state, request, on_progress=None):
         algorithm = request.algorithm or state.settings.default_draw
 
         stats = trn.statistics()
-        byes = draws.select_bye_teams(stats, trn.teams_by_match, forced=request.bye_teams)
 
         # Effective options: algorithm defaults < saved user settings < request.
         config = state.settings.draw_config(algorithm)
         if request.config:
             config.update(request.config)
+
+        byes = draws.select_bye_teams(
+            stats,
+            trn.teams_by_match,
+            forced=request.bye_teams,
+            algorithm=algorithm,
+            config=config,
+        )
 
         matches = await draws.generate(
             algorithm,
@@ -419,11 +426,18 @@ async def preview_draw(state, request, on_progress=None):
     algorithm = request.algorithm or state.settings.default_draw
 
     stats = trn.statistics()
-    byes = draws.select_bye_teams(stats, trn.teams_by_match, forced=request.bye_teams)
 
     config = state.settings.draw_config(algorithm)
     if request.config:
         config.update(request.config)
+
+    byes = draws.select_bye_teams(
+        stats,
+        trn.teams_by_match,
+        forced=request.bye_teams,
+        algorithm=algorithm,
+        config=config,
+    )
 
     proposed_matches = await draws.generate(
         algorithm,

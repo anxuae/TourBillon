@@ -29,11 +29,16 @@ const displayTabs = [
   { name: 'display-rankings', label: 'Rankings' },
 ]
 
-const tabCounts = computed(() => ({
-  'admin-tournament': tournament.value ? 1 : 0,
-  'admin-teams': tournament.value ? store.teams.length : 0,
-  'admin-round': tournament.value ? store.rounds.length : 0,
-}))
+const tabCounts = computed(() => {
+  const counts = {
+    'admin-tournament': tournament.value ? 1 : 0,
+    'admin-teams': tournament.value ? store.teams.length : 0,
+    'admin-round': tournament.value ? store.rounds.length : 0,
+    'admin-draw': tournament.value ? (store.drawPreviewReady ? 1 : 0) : 0,
+  }
+
+  return counts
+})
 
 const canOpenRound = computed(() => {
   if (!tournament.value) return false

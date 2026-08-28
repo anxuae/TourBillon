@@ -8,6 +8,7 @@ export const useTournamentStore = defineStore('tournament', {
     rounds: [],
     rankings: [],
     draws: [],
+    drawPreviewReady: false,
     historyPlayers: [],
     savedTournaments: [],
     loading: false,
@@ -66,11 +67,13 @@ export const useTournamentStore = defineStore('tournament', {
       }
     },
     async createTournament(params) {
+      this.drawPreviewReady = false
       this.tournament = await this.wrap(api.createTournament(params))
       await this.refreshAll()
       return this.tournament
     },
     async loadTournament(filename) {
+      this.drawPreviewReady = false
       this.tournament = await this.wrap(api.loadTournament(filename))
       await this.refreshAll()
       return this.tournament
@@ -89,16 +92,21 @@ export const useTournamentStore = defineStore('tournament', {
       this.teams = []
       this.rounds = []
       this.rankings = []
+      this.drawPreviewReady = false
       await this.refreshSavedTournaments()
       return null
     },
     async uploadTournament(file, overwrite = false) {
       // May throw an Error with ``status === 409`` when the file name already
       // exists and overwrite is false: the caller handles the confirmation.
+      this.drawPreviewReady = false
       this.tournament = await api.uploadTournament(file, overwrite)
       await this.refreshSavedTournaments()
       await this.refreshAll()
       return this.tournament
+    },
+    setDrawPreviewReady(value) {
+      this.drawPreviewReady = Boolean(value)
     },
     async refreshAll() {
       await this.refreshTournament()

@@ -71,9 +71,19 @@ async def generate(name, teams_by_match, stats, bye_teams=(), config=None, on_pr
     )
 
 
-def select_bye_teams(stats, teams_by_match, forced=()):
+def select_bye_teams(stats, teams_by_match, forced=(), algorithm=None, config=None):
     """Return the team numbers to set as BYE for the next round.
 
     Convenience re-export of :func:`common.select_bye_teams`.
     """
+    if algorithm == random.NAME:
+        seed = None
+        if isinstance(config, dict):
+            seed = config.get("seed")
+        return common.select_bye_teams_random(
+            stats,
+            teams_by_match,
+            forced=forced,
+            seed=seed,
+        )
     return common.select_bye_teams(stats, teams_by_match, forced=forced)
