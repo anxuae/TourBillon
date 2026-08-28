@@ -19,6 +19,7 @@ const tabs = [
   { name: 'admin-tournament', label: 'Tournament', always: true },
   { name: 'admin-teams', label: 'Teams' },
   { name: 'admin-round', label: 'Rounds' },
+  { name: 'admin-draw', label: 'Draw' },
   { name: 'admin-rankings', label: 'Rankings' },
 ]
 
@@ -39,6 +40,13 @@ const canOpenRound = computed(() => {
   return tournament.value.nb_teams >= tournament.value.teams_by_match
 })
 
+const canOpenDraw = computed(() => {
+  if (!canOpenRound.value) return false
+  if (!store.rounds.length) return true
+  const lastRound = store.rounds[store.rounds.length - 1]
+  return ['complete', 'finished'].includes(lastRound.status)
+})
+
 const canOpenRankings = computed(() => {
   if (!tournament.value) return false
   return store.rounds.some((round) => ['complete', 'finished'].includes(round.status))
@@ -48,6 +56,7 @@ function isTabEnabled(tab) {
   if (tab.always) return true
   if (!tournament.value) return false
   if (tab.name === 'admin-round') return canOpenRound.value
+  if (tab.name === 'admin-draw') return canOpenDraw.value
   if (tab.name === 'admin-rankings') return canOpenRankings.value
   return true
 }
@@ -56,6 +65,9 @@ function disabledTitle(tab) {
   if (!tournament.value) return 'Load or create a tournament first'
   if (tab.name === 'admin-round' && !canOpenRound.value) {
     return `Register at least ${tournament.value.teams_by_match} teams first`
+  }
+  if (tab.name === 'admin-draw' && !canOpenDraw.value) {
+    return 'Finish the current round before creating a new one'
   }
   if (tab.name === 'admin-rankings' && !canOpenRankings.value) {
     return 'Complete at least one round first'
@@ -189,7 +201,11 @@ onBeforeUnmount(() => {
       </button>
     </aside>
     <main class="content">
-      <RouterView />
+      <RouterView v-slot="{ Component }">
+        <KeepAlive>
+          <component :is="Component" />
+        </KeepAlive>
+      </RouterView>
     </main>
     <SettingsModal
       :open="settingsOpen"

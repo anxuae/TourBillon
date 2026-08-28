@@ -30,6 +30,11 @@ const routes = [
         component: () => import('@/views/admin/RoundView.vue'),
       },
       {
+        path: 'draw',
+        name: 'admin-draw',
+        component: () => import('@/views/admin/DrawView.vue'),
+      },
+      {
         path: 'rankings',
         name: 'admin-rankings',
         component: () => import('@/views/admin/RankingsView.vue'),
@@ -103,14 +108,28 @@ router.beforeEach(async (to) => {
   }
 
   if (
-    to.name === 'admin-round'
+    (to.name === 'admin-round' || to.name === 'admin-draw')
     && store.tournament.nb_teams < store.tournament.teams_by_match
   ) {
     return { name: 'admin-teams' }
   }
 
+  if (to.name === 'admin-draw') {
+    if (!store.rounds.length) {
+      await store.refreshRounds()
+    }
+    if (store.rounds.length) {
+      const lastRound = store.rounds[store.rounds.length - 1]
+      if (!['complete', 'finished'].includes(lastRound.status)) {
+        return { name: 'admin-round' }
+      }
+    }
+  }
+
   if (to.name === 'admin-rankings') {
-    await store.refreshRounds()
+    if (!store.rounds.length) {
+      await store.refreshRounds()
+    }
     const canOpenRankings = store.rounds.some((round) =>
       ['complete', 'finished'].includes(round.status),
     )

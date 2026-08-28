@@ -298,10 +298,17 @@ REST pour le CRUD, WebSocket pour le temps réel. Éviter jQuery.
 - Éviter de redéfinir localement (dans les `<style scoped>`) des variantes
   concurrentes de bouton de suppression ; préférer la réutilisation de la classe
   globale pour conserver la même charte graphique sur toutes les vues.
+- Ne pas définir de règle locale générique `button { ... }` qui redéfinit les
+  propriétés visuelles globales (notamment `background`, `color`, `border`,
+  `hover`, `disabled`) : cela casse la classe `danger-outline`. Les styles locaux
+  de bouton doivent se limiter au layout (ex. largeur, alignement, hauteur).
 - Les actions positives (`create`, `add`, `new`, `save`) utilisent la couleur
   primaire globale (style par défaut des `button` dans `main.css`) ; éviter les
   variantes locales ad hoc (ex. vert spécifique dans une seule vue), sauf besoin
   métier explicitement validé.
+- Pour toute action destructive, conserver la classe `danger-outline` sans
+  surcharge locale concurrente ; seules les contraintes de layout sont autorisées
+  (ex. largeur fixe dans une toolbar).
 - Sur le **popup de tirage** (Round → Draw), le bouton final de validation doit
   rester une action positive primaire (libellé recommandé : **`Create round`**).
   L'action de prévisualisation peut être en style secondaire.
@@ -317,6 +324,16 @@ REST pour le CRUD, WebSocket pour le temps réel. Éviter jQuery.
 - Les options booléennes visibles (ex. filtres d'affichage, toggles de réglages)
   utilisent de préférence un contrôle **switch glissant (slider)** plutôt qu'une
   simple case à cocher, pour améliorer la lisibilité et l'état ON/OFF.
+- Les **tooltips d'information** (icônes d'aide, indicateurs de qualité/power, etc.)
+  suivent un style cohérent sur toutes les vues : **fond sombre**, **coins arrondis**,
+  apparition/disparition **rapide** (hover/focus), et curseur **`help`** sur l'élément
+  déclencheur.
+- Pour les tooltips, **ne pas** s'appuyer sur l'attribut natif `title` : utiliser un
+  rendu CSS dédié avec classes partagées (p. ex. `has-tooltip` + `app-tooltip`) afin
+  de garantir un positionnement et une animation homogènes dans toute l'application.
+- Règle de curseur globale : `cursor: help` pour les aides/indicateurs informatifs,
+  `cursor: pointer` pour les actions cliquables, et éviter les variantes locales
+  incohérentes pour un même type d'interaction.
 - Un **code couleur des statuts** doit être respecté sur tout le frontend pour
   les éléments graphiques (badges, pills, tags, boutons d'action de statut,
   etc.) : **`BYE` jaune**, **`WON/WIN` vert**, **`LOST` rouge**,

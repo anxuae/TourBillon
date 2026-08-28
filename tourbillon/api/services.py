@@ -373,44 +373,8 @@ def _team_metric(team, round_limit=None, opponents=None):
         "buchholz": buchholz,
         "goal_average": goal_average,
         "opponents": sorted(set([int(team_id) for team_id in (opponents or [])])),
+        "power_score": team.power(round_limit),
     }
-
-
-def _power_scale_maxima(metrics):
-    if not metrics:
-        return {
-            "points": 0,
-            "buchholz": 0,
-            "wins": 0,
-            "goal_average": 0,
-        }
-
-    return {
-        "points": max([int(item.get("points", 0)) for item in metrics]),
-        "buchholz": max([int(item.get("buchholz", 0)) for item in metrics]),
-        "wins": max([int(item.get("wins", 0)) for item in metrics]),
-        "goal_average": max([int(item.get("goal_average", 0)) for item in metrics]),
-    }
-
-
-def _normalized_ratio(value, maximum):
-    safe_value = float(value or 0)
-    safe_max = float(maximum or 0)
-    if safe_max <= 0:
-        return 0.0
-    return max(0.0, min(1.0, safe_value / safe_max))
-
-
-def _metric_power_score(metric, maxima):
-    ratio_points = _normalized_ratio(metric.get("points", 0), maxima.get("points", 0))
-    ratio_buchholz = _normalized_ratio(metric.get("buchholz", 0), maxima.get("buchholz", 0))
-    ratio_wins = _normalized_ratio(metric.get("wins", 0), maxima.get("wins", 0))
-    ratio_goal_average = _normalized_ratio(
-        metric.get("goal_average", 0), maxima.get("goal_average", 0)
-    )
-
-    score = ratio_points * 2.5 + ratio_buchholz * 1 + ratio_wins * 1 + ratio_goal_average * 0.5
-    return max(0.0, min(5.0, score))
 
 
 def _match_violations(match, stats, max_disparity):
@@ -475,17 +439,6 @@ async def preview_draw(state, request, on_progress=None):
     alerts = []
     max_disparity = config.get("max_disparity") if isinstance(config, dict) else None
 
-    all_metrics = []
-    for match in proposed_matches:
-        for num in match:
-            all_metrics.append(
-                _team_metric(
-                    trn.team(num),
-                    opponents=stats[num][cst.STAT_OPPONENTS],
-                )
-            )
-    maxima = _power_scale_maxima(all_metrics)
-
     for index, match in enumerate(proposed_matches):
         metrics = [
             _team_metric(
@@ -494,8 +447,6 @@ async def preview_draw(state, request, on_progress=None):
             )
             for num in match
         ]
-        for metric in metrics:
-            metric["power_score"] = _metric_power_score(metric, maxima)
         group_wins = max([metric["wins"] for metric in metrics]) if metrics else 0
         violations = _match_violations(match, stats, max_disparity)
         rematch_pairs = _rematch_pairs(match, stats)

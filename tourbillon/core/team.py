@@ -501,3 +501,39 @@ class Team:
                     goal_against += opponent_match.points
 
         return goal_for - goal_against
+
+    def power(self, round_limit: int | None = None):
+        """
+        Return a normalized display 'power' score in the range [0, 5].
+
+        The score is based on current tournament-wide maxima for:
+            - wins + byes (weight 2)
+            - points (weight 1.5)
+            - truncated Buchholz (weight 1)
+            - goal average (weight 0.5)
+
+        :param round_limit: last round number (included)
+        """
+        teams_pool = list(self.tournament.teams())
+        if self not in teams_pool:
+            teams_pool.append(self)
+
+        def normalized_ratio(value, maximum):
+            safe_value = float(value or 0)
+            safe_max = float(maximum or 0)
+            if safe_max <= 0:
+                return 0.0
+            return max(0.0, min(1.0, safe_value / safe_max))
+
+        maxima_points = max([team.points(round_limit) for team in teams_pool], default=0)
+        maxima_buchholz = max([team.buchholz_truncated(round_limit) for team in teams_pool], default=0)
+        maxima_wins = max([team.wins(round_limit) + team.byes(round_limit) for team in teams_pool], default=0)
+        maxima_goal_average = max([team.goal_average(round_limit) for team in teams_pool], default=0)
+
+        ratio_points = normalized_ratio(self.points(round_limit), maxima_points)
+        ratio_buchholz = normalized_ratio(self.buchholz_truncated(round_limit), maxima_buchholz)
+        ratio_wins = normalized_ratio(self.wins(round_limit) + self.byes(round_limit), maxima_wins)
+        ratio_goal_average = normalized_ratio(self.goal_average(round_limit), maxima_goal_average)
+
+        score = ratio_wins * 2 + ratio_points * 1.5 + ratio_buchholz * 1 + ratio_goal_average * 0.5
+        return max(0.0, min(5.0, score))

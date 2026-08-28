@@ -1,12 +1,14 @@
 <script setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { api } from '@/api/client'
 import { useTournamentStore } from '@/stores/tournament'
-import DrawView from '@/views/admin/DrawView.vue'
 
 const store = useTournamentStore()
 const { rounds, tournament } = storeToRefs(store)
+const router = useRouter()
+const route = useRoute()
 
 const selectedRound = ref(null)
 const pointsByMatch = ref({})
@@ -14,8 +16,31 @@ const timelineRef = ref(null)
 const canScrollLeft = ref(false)
 const canScrollRight = ref(false)
 const teamFilterInput = ref('')
-const drawModalOpen = ref(false)
-const drawBlockingIssues = ref([])
+
+function requestedRoundNumber() {
+  const raw = route.query?.round
+  const value = Array.isArray(raw) ? raw[0] : raw
+  const number = Number(value)
+  if (!Number.isInteger(number) || number <= 0) {
+    return null
+  }
+  return number
+}
+
+function selectRequestedOrLatestRound() {
+  if (!rounds.value.length) {
+    selectedRound.value = null
+    return
+  }
+
+  const requested = requestedRoundNumber()
+  if (requested && rounds.value.some((item) => item.number === requested)) {
+    selectedRound.value = requested
+    return
+  }
+
+  selectedRound.value = rounds.value[rounds.value.length - 1].number
+}
 
 const currentRound = computed(() => {
   if (!rounds.value.length) {
@@ -60,10 +85,10 @@ const filteredRoundMatches = computed(() => {
 })
 
 onMounted(async () => {
-  await store.refreshRounds()
-  if (rounds.value.length) {
-    selectedRound.value = rounds.value[rounds.value.length - 1].number
+  if (!rounds.value.length) {
+    await store.refreshRounds()
   }
+  selectRequestedOrLatestRound()
   await nextTick()
   updateTimelineOverflow()
   window.addEventListener('resize', updateTimelineOverflow)
@@ -75,9 +100,19 @@ onBeforeUnmount(() => {
 
 watch(
   () => rounds.value.length,
-  async () => {
+  async (newLength, oldLength) => {
+    if (newLength > 0 && newLength !== oldLength) {
+      selectRequestedOrLatestRound()
+    }
     await nextTick()
     updateTimelineOverflow()
+  },
+)
+
+watch(
+  () => route.query?.round,
+  () => {
+    selectRequestedOrLatestRound()
   },
 )
 
@@ -157,39 +192,10 @@ const canCreateRound = computed(() => {
 })
 
 function openDrawPopup() {
-  drawBlockingIssues.value = []
-  drawModalOpen.value = true
-}
-
-function closeDrawPopup() {
-  drawModalOpen.value = false
-  drawBlockingIssues.value = []
-}
-
-function updateDrawBlockingIssues(issues) {
-  drawBlockingIssues.value = Array.isArray(issues) ? issues : []
-}
-
-async function handleRoundCreated() {
-  closeDrawPopup()
-
-  try {
-    await Promise.all([
-      store.refreshRounds(),
-      store.refreshTournament(),
-    ])
-  } catch {
-    // API errors are handled globally by ApiErrorBanner.
+  if (!canCreateRound.value) {
+    return
   }
-
-  if (rounds.value.length) {
-    selectedRound.value = rounds.value[rounds.value.length - 1].number
-    try {
-      await store.refreshRankings(selectedRound.value)
-    } catch {
-      // API errors are handled globally by ApiErrorBanner.
-    }
-  }
+  router.push({ name: 'admin-draw' })
 }
 
 async function deleteSelectedRound() {
@@ -386,53 +392,6 @@ async function deleteSelectedRound() {
       No round available yet.
     </p>
 
-    <div
-      v-if="drawModalOpen"
-      class="overlay"
-      @click.self="closeDrawPopup"
-    >
-      <div
-        class="popup card"
-        role="dialog"
-        aria-modal="true"
-        aria-label="Draw preview"
-      >
-        <header class="popup-head">
-          <h2>Draw preview</h2>
-          <div
-            v-if="drawBlockingIssues.length"
-            class="modal-issues-indicator"
-          >
-            <button
-              type="button"
-              class="status-badge status-lost"
-              :aria-label="`${drawBlockingIssues.length} blocking issues`"
-            >
-              {{ drawBlockingIssues.length }} blocking issue{{ drawBlockingIssues.length > 1 ? 's' : '' }}
-            </button>
-            <div class="modal-issues-tooltip">
-              <strong>Blocking issues</strong>
-              <ul>
-                <li
-                  v-for="issue in drawBlockingIssues"
-                  :key="issue"
-                >
-                  {{ issue }}
-                </li>
-              </ul>
-            </div>
-          </div>
-        </header>
-        <div class="popup-body">
-          <DrawView
-            :show-header="false"
-            @cancel="closeDrawPopup"
-            @created="handleRoundCreated"
-            @issues-change="updateDrawBlockingIssues"
-          />
-        </div>
-      </div>
-    </div>
   </section>
 </template>
 
@@ -654,88 +613,5 @@ section {
 .new-round-pill {
   border-style: dashed;
   font-weight: 600;
-}
-
-.overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.6);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1200;
-  padding: 1rem;
-}
-
-.popup {
-  width: min(96vw, 1700px);
-  height: min(94vh, 1100px);
-  display: flex;
-  flex-direction: column;
-  padding: 0;
-  overflow: hidden;
-}
-
-.popup-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  padding: 0.9rem 1rem;
-  border-bottom: 1px solid var(--color-border);
-}
-
-.popup-head h2 {
-  margin: 0;
-}
-
-.modal-issues-indicator {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-}
-
-.modal-issues-indicator > button {
-  cursor: help;
-}
-
-.modal-issues-tooltip {
-  position: absolute;
-  top: calc(100% + 0.35rem);
-  right: 0;
-  min-width: 280px;
-  max-width: min(420px, calc(100vw - 3rem));
-  display: none;
-  background: #1f2937;
-  color: #f9fafb;
-  border-radius: 8px;
-  padding: 0.5rem 0.65rem;
-  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.25);
-  font-size: 0.78rem;
-  line-height: 1.25;
-  z-index: 20;
-}
-
-.modal-issues-tooltip strong {
-  display: inline-block;
-  margin-bottom: 0.3rem;
-}
-
-.modal-issues-tooltip ul {
-  margin: 0;
-  padding-left: 1rem;
-}
-
-.modal-issues-indicator:hover .modal-issues-tooltip,
-.modal-issues-indicator:focus-within .modal-issues-tooltip {
-  display: block;
-}
-
-.popup-body {
-  flex: 1 1 auto;
-  min-height: 0;
-  display: flex;
-  overflow: hidden;
-  padding: 1rem;
 }
 </style>

@@ -3,7 +3,7 @@
 import pytest
 from datetime import timedelta
 
-from tourbillon.core import cst
+from tourbillon.core import cst, team, tournament
 from tourbillon.core.exception import StatusError
 from data import t2teams2players
 
@@ -102,5 +102,41 @@ def test_add_rounds(equ2jn1):
         # Statistics after entering the result
         check_statistics(equ2jn1, **stat_data)
         previous_stat = stat_data
+
+
+def test_team_power_is_zero_for_empty_standalone_team():
+    standalone = team.Team(
+        tournament.Tournament(
+            t2teams2players.TEAMS_BY_MATCH,
+            t2teams2players.POINTS_BY_MATCH,
+            t2teams2players.PLAYERS_BY_TEAM,
+        ),
+        1,
+    )
+    assert standalone.power() == 0.0
+
+
+def test_team_power_uses_tournament_maxima(trb4e1j):
+    teams = trb4e1j.teams()
+
+    max_points = max([item.points() for item in teams], default=0)
+    max_buchholz = max([item.buchholz_truncated() for item in teams], default=0)
+    max_wins = max([item.wins() + item.byes() for item in teams], default=0)
+    max_goal_average = max([item.goal_average() for item in teams], default=0)
+
+    def normalized_ratio(value, maximum):
+        if maximum <= 0:
+            return 0.0
+        return max(0.0, min(1.0, value / maximum))
+
+    for item in teams:
+        score = (
+            normalized_ratio(item.points(), max_points) * 2.5
+            + normalized_ratio(item.buchholz_truncated(), max_buchholz) * 1
+            + normalized_ratio(item.wins() + item.byes(), max_wins) * 1
+            + normalized_ratio(item.goal_average(), max_goal_average) * 0.5
+        )
+        expected = max(0.0, min(5.0, score))
+        assert item.power() == expected
 
 

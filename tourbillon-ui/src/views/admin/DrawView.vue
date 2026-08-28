@@ -1,5 +1,6 @@
 <script setup>
 import { computed, nextTick, onMounted, ref, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { api, openDrawSocket, pushApiError } from '@/api/client'
 import { useTournamentStore } from '@/stores/tournament'
@@ -16,6 +17,7 @@ const emit = defineEmits(['cancel', 'issues-change', 'created'])
 
 const store = useTournamentStore()
 const { draws, tournament, teams } = storeToRefs(store)
+const router = useRouter()
 
 const selectedAlgorithm = ref('')
 
@@ -33,11 +35,29 @@ const hideFullMatches = ref(false)
 let socket = null
 
 onMounted(async () => {
-  await Promise.all([store.refreshDraws(), store.refreshTeams()])
+  const tasks = []
+  if (!draws.value.length) {
+    tasks.push(store.refreshDraws())
+  }
+  if (!teams.value.length) {
+    tasks.push(store.refreshTeams())
+  }
+  if (tasks.length) {
+    await Promise.all(tasks)
+  }
   if (draws.value.length && !selectedAlgorithm.value) {
     selectedAlgorithm.value = draws.value[0].name
   }
 })
+
+watch(
+  () => tournament.value?.filename ?? null,
+  (nextFilename, previousFilename) => {
+    if (nextFilename !== previousFilename) {
+      resetDrawState()
+    }
+  },
+)
 
 function connectSocket() {
   if (socket) {
@@ -313,6 +333,13 @@ function isMatchIncomplete(match) {
 }
 
 function moveTeamTo(teamId, target) {
+  if (!draft.value) return
+
+  const hadByeBefore = draft.value.byes.includes(teamId)
+  if (target === 'bye' && !hadByeBefore && disableByeAction.value) {
+    return
+  }
+
   for (const match of draft.value.matches) {
     for (let index = 0; index < match.teams.length; index += 1) {
       if (match.teams[index] === teamId) {
@@ -399,6 +426,23 @@ const teamsByMatch = computed(() => {
   return Number(tournament.value?.teams_by_match || 0)
 })
 
+const maxAllowedByes = computed(() => {
+  if (!draft.value) return 0
+  const perMatch = teamsByMatch.value
+  if (!perMatch) return 0
+
+  const registeredTeamsCount = teams.value.length
+  const forfeitCount = new Set(draft.value.forfeits || []).size
+  const activeTeamsCount = Math.max(0, registeredTeamsCount - forfeitCount)
+  return activeTeamsCount % perMatch
+})
+
+const disableByeAction = computed(() => {
+  if (!draft.value) return false
+  const byeCount = new Set(draft.value.byes || []).size
+  return byeCount >= maxAllowedByes.value
+})
+
 function normalizeDraftForCommit(sourceDraft) {
   if (!sourceDraft) {
     return { matches: [], byes: [], forfeits: [], invalidPartialMatches: [] }
@@ -441,28 +485,6 @@ function normalizeDraftForCommit(sourceDraft) {
 }
 
 const normalizedDraft = computed(() => normalizeDraftForCommit(draft.value))
-
-const suggestedByeTeams = computed(() => {
-  if (!draft.value) return []
-
-  const suggestions = []
-  for (const match of draft.value.matches || []) {
-    const clean = (match.teams || []).filter((teamId) => teamId != null)
-    if (clean.length !== 1) continue
-
-    const solo = clean[0]
-    if (draft.value.byes.includes(solo) || draft.value.forfeits.includes(solo)) {
-      continue
-    }
-    suggestions.push(solo)
-  }
-
-  return [...new Set(suggestions)]
-})
-
-function moveSuggestedToBye(teamId) {
-  moveTeamTo(teamId, 'bye')
-}
 
 function assignBenchTeam(teamId, matchId, index) {
   const slot = findSlot(matchId, index)
@@ -523,13 +545,16 @@ watch(
 const alertItems = computed(() => {
   if (!draft.value) return []
 
+  const hiddenCodes = new Set(['rematch', 'full_rematch'])
   const items = []
   for (const alert of draft.value.alerts || []) {
+    if (hiddenCodes.has(alert.code)) continue
     items.push(alert)
   }
 
   for (const match of draft.value.matches || []) {
     for (const violation of match.violations || []) {
+      if (hiddenCodes.has(violation)) continue
       items.push({
         code: violation,
         severity: 'warning',
@@ -558,7 +583,7 @@ async function commitDraft() {
   message.value = 'Creating round...'
   try {
     const prepared = normalizeDraftForCommit(draft.value)
-    await api.createRound({
+    const createdRound = await api.createRound({
       matches: prepared.matches,
       byes: prepared.byes,
       forfeits: prepared.forfeits,
@@ -575,8 +600,14 @@ async function commitDraft() {
       // Keep modal close behavior even if a follow-up refresh fails.
     }
 
-    stage.value = 'done'
-    message.value = 'Round created'
+    resetDrawState()
+    const targetRound = Number(createdRound?.number)
+    await router.push({
+      name: 'admin-round',
+      query: Number.isInteger(targetRound) && targetRound > 0
+        ? { round: String(targetRound) }
+        : undefined,
+    })
   } catch {
     pushApiError('Unable to create round from draft')
   } finally {
@@ -585,18 +616,17 @@ async function commitDraft() {
   }
 }
 
-function cancelDraftReview() {
-  if (props.showHeader) {
-    stage.value = 'config'
-    draft.value = null
-    swapSelection.value = []
-    dragged.value = null
-    focusedMatchId.value = null
-    progress.value = 0
-    message.value = 'Idle'
-    return
-  }
-  emit('cancel')
+function resetDrawState() {
+  stage.value = 'config'
+  draft.value = null
+  swapSelection.value = []
+  dragged.value = null
+  focusedMatchId.value = null
+  progress.value = 0
+  message.value = 'Idle'
+  hideFullMatches.value = false
+  running.value = false
+  committing.value = false
 }
 </script>
 
@@ -611,64 +641,65 @@ function cancelDraftReview() {
         <span class="badge">{{ tournament?.status || 'no tournament' }}</span>
       </header>
 
-      <div class="card form">
-        <div class="draw-toolbar">
-          <label class="algorithm-field">
-            <strong>Algorithm</strong>
-            <select v-model="selectedAlgorithm">
-              <option
-                v-for="draw in draws"
-                :key="draw.name"
-                :value="draw.name"
-              >
-                {{ draw.name }}
-              </option>
-            </select>
-          </label>
+      <div class="top-row">
+        <div class="card form">
+          <div class="algorithm-panel">
+            <h2 class="algorithm-title">Algorithm</h2>
+            <div class="draw-toolbar">
+              <div class="algorithm-field">
+                <select v-model="selectedAlgorithm">
+                  <option
+                    v-for="draw in draws"
+                    :key="draw.name"
+                    :value="draw.name"
+                  >
+                    {{ draw.name }}
+                  </option>
+                </select>
+              </div>
+
+              <div class="toolbar-actions">
+                <button
+                  class="action-btn"
+                  :disabled="running || !tournament"
+                  @click="runDraw"
+                >
+                  Generate
+                </button>
+              </div>
+            </div>
+          </div>
 
           <div
             class="algorithm-progress"
             aria-live="polite"
           >
-            <div class="progress-head">
-              <strong>Progress</strong>
-              <span>{{ progress }}%</span>
+            <div class="progress-row">
+              <div class="bar">
+                <div
+                  class="fill"
+                  :style="{ width: `${progress}%` }"
+                />
+              </div>
             </div>
-            <div class="bar">
-              <div
-                class="fill"
-                :style="{ width: `${progress}%` }"
-              />
+            <div class="progress-meta">
+              <p class="muted progress-message">
+                {{ message }}
+              </p>
+              <p class="progress-percent">{{ progress }}%</p>
             </div>
-            <p class="muted progress-message">
-              {{ message }}
-            </p>
-          </div>
-
-          <div class="toolbar-actions">
-            <button
-              class="secondary action-btn"
-              :disabled="running || !tournament"
-              @click="runDraw"
-            >
-              Generate preview
-            </button>
           </div>
         </div>
-      </div>
 
-      <div
-        v-if="stage === 'review' && draft && (normalizedDraft.byes.length || normalizedDraft.forfeits.length || suggestedByeTeams.length)"
-      >
-        <DrawBenchPanel
-          :byes="draft.byes"
-          :forfeits="draft.forfeits"
-          :suggested-bye-teams="suggestedByeTeams"
-          @drop-to-bench="dropToBench"
-          @drag-start-from-bench="onDragStartFromBench"
-          @move-suggested-to-bye="moveSuggestedToBye"
-          @allow-drop="allowDrop"
-        />
+        <div class="top-row-bench">
+          <DrawBenchPanel
+            :byes="draft?.byes ?? []"
+            :forfeits="draft?.forfeits ?? []"
+            @drop-to-bench="dropToBench"
+            @drag-start-from-bench="onDragStartFromBench"
+            @allow-drop="allowDrop"
+          />
+        </div>
       </div>
 
       <div
@@ -707,12 +738,16 @@ function cancelDraftReview() {
                 </span>
               </h3>
             </div>
-            <div class="matches-grid">
+            <div
+              class="matches-grid"
+              :class="{ 'matches-grid-wide': teamsByMatch >= 4 }"
+            >
               <DrawMatchCard
                 v-for="match in group.matches"
                 :key="match.id"
                 :match="match"
                 :is-match-incomplete="isMatchIncomplete"
+                :teams-two-columns="teamsByMatch >= 4"
                 :team-power-score="teamPowerScore"
                 :team-power-arm-fill="teamPowerArmFill"
                 :focused="focusedMatchId === match.id"
@@ -723,6 +758,7 @@ function cancelDraftReview() {
                 :match-label="matchLabel"
                 :match-stars="matchStars"
                 :star-loss-reasons="starLossReasons"
+                :disable-bye-action="disableByeAction"
                 @select-slot="selectSlot"
                 @allow-drop="allowDrop"
                 @drop-to-slot="dropToSlot"
@@ -765,13 +801,6 @@ function cancelDraftReview() {
 
     <div class="draw-modal-footer">
       <button
-        class="secondary action-btn"
-        :disabled="running"
-        @click="cancelDraftReview"
-      >
-        Cancel
-      </button>
-      <button
         class="action-btn"
         :disabled="running || !canCommit"
         @click="commitDraft"
@@ -790,6 +819,7 @@ section {
   flex: 1 1 auto;
   flex-direction: column;
   min-width: 0;
+  overflow: hidden;
 }
 
 .draw-content-scroll {
@@ -811,51 +841,100 @@ section {
 }
 
 .form {
+  margin-bottom: 0;
+  min-height: var(--top-row-card-min-height);
+  --toolbar-control-height: 38px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.top-row {
+  --top-row-card-min-height: 140px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(420px, 520px);
+  gap: 1rem;
+  align-items: stretch;
   margin-bottom: 1rem;
+}
+
+.top-row-bench {
+  min-width: 0;
+  height: 100%;
+  display: flex;
+}
+
+.top-row-bench :deep(.bench-zone) {
+  margin-bottom: 0;
+  height: 100%;
+  flex: 1 1 auto;
+}
+
+.top-row-bench :deep(.bench-row) {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+  height: 100%;
+  align-items: stretch;
+}
+
+.top-row-bench :deep(.bench-subcard) {
+  min-height: var(--top-row-card-min-height);
+  height: 100%;
 }
 
 .draw-toolbar {
   display: flex;
-  align-items: stretch;
+  align-items: center;
   gap: 0.9rem;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+}
+
+.algorithm-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.algorithm-title {
+  margin: 0;
 }
 
 .algorithm-field {
-  width: 230px;
-  min-width: 210px;
+  width: 100%;
+  min-width: 0;
   justify-content: flex-start;
-  align-self: stretch;
-  height: 100%;
 }
 
 .algorithm-field select {
   flex: 1 1 auto;
-  min-height: 44px;
+  width: 100%;
+  min-height: var(--toolbar-control-height);
+  height: var(--toolbar-control-height);
 }
 
 .algorithm-progress {
-  flex: 1 1 auto;
-  min-width: 0;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
-  align-self: stretch;
-  height: 100%;
+  margin-top: 0.8rem;
 }
 
 .toolbar-actions {
   display: flex;
   flex-direction: column;
   gap: 0.65rem;
-  align-self: stretch;
   justify-content: center;
+  flex: 0 0 auto;
 }
 
 .toolbar-actions .action-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  min-height: var(--toolbar-control-height);
+  height: var(--toolbar-control-height);
 }
 
 label {
@@ -958,7 +1037,7 @@ label.check {
 
 .group-block {
   display: grid;
-  grid-template-columns: clamp(3.1rem, 4.4vw, 3.8rem) minmax(0, 1fr);
+  grid-template-columns: clamp(2.5rem, 3.4vw, 3rem) minmax(0, 1fr);
   align-items: stretch;
   column-gap: 0.65rem;
   border: 1px solid var(--group-border, var(--color-border));
@@ -985,9 +1064,11 @@ label.check {
 }
 
 .group-wins {
-  font-size: clamp(1.45rem, 2.6vw, 1.85rem);
+  font-family: 'Avenir Next', 'Segoe UI', sans-serif;
+  font-size: clamp(1.95rem, 3.5vw, 2.55rem);
   font-weight: 700;
   line-height: 1;
+  color: #334155;
 }
 
 .group-label-wrap {
@@ -1000,6 +1081,7 @@ label.check {
 }
 
 .group-label {
+  font-family: 'Avenir Next', 'Segoe UI', sans-serif;
   display: inline-block;
   font-size: 0.72rem;
   line-height: 1;
@@ -1009,6 +1091,7 @@ label.check {
   text-align: center;
   transform-origin: center;
   transform: rotate(-90deg);
+  color: #64748b;
 }
 
 .group-tone-0 {
@@ -1042,18 +1125,19 @@ label.check {
 }
 
 .matches-grid {
+  --match-card-width-base: clamp(180px, 30vw, 220px);
+  --match-card-width: var(--match-card-width-base);
   display: grid;
+  width: 100%;
   gap: 0.75rem;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 300px));
+  grid-template-columns: repeat(auto-fill, minmax(var(--match-card-width), var(--match-card-width)));
   justify-content: flex-start;
   align-items: start;
-  grid-auto-rows: 250px;
+  grid-auto-rows: auto;
 }
 
-@media (max-width: 720px) {
-  .matches-grid {
-    grid-template-columns: 1fr;
-  }
+.matches-grid.matches-grid-wide {
+  --match-card-width: calc(var(--match-card-width-base) * 2 + 0.45rem);
 }
 
 .alerts-panel {
@@ -1076,13 +1160,34 @@ label.check {
   padding: 0;
 }
 
-.progress-head {
+.progress-row {
+  display: block;
+}
+
+.progress-row .bar {
+  margin: 0;
+}
+
+.progress-meta {
+  margin-top: 0.2rem;
   display: flex;
-  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.progress-percent {
+  margin: 0;
+  margin-left: auto;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-size: 0.85rem;
+  color: var(--color-muted);
 }
 
 .progress-message {
   margin: 0;
+  flex: 1 1 auto;
+  min-width: 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1099,17 +1204,16 @@ label.check {
 
 .fill {
   height: 100%;
-  background: linear-gradient(90deg, #2c6bed, #6ea8ff);
+  background: var(--color-primary);
   transition: width 0.2s ease;
 }
 
 .draw-modal-footer {
   display: flex;
+  flex: 0 0 auto;
   gap: 0.75rem;
   justify-content: flex-end;
-  padding: 0.75rem 0;
+  padding: 0.75rem 0 0;
   margin-top: auto;
-  background: var(--color-surface);
-  border-top: 1px solid var(--color-border);
 }
 </style>

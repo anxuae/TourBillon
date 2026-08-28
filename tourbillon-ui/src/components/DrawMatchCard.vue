@@ -8,6 +8,10 @@ const props = defineProps({
     type: Function,
     required: true,
   },
+  teamsTwoColumns: {
+    type: Boolean,
+    default: false,
+  },
   focused: {
     type: Boolean,
     default: false,
@@ -47,6 +51,10 @@ const props = defineProps({
   starLossReasons: {
     type: Function,
     required: true,
+  },
+  disableByeAction: {
+    type: Boolean,
+    default: false,
   },
 })
 
@@ -91,7 +99,7 @@ function assignBench(teamId, index) {
     :class="{ focused: props.focused }"
   >
     <header>
-      <strong>{{ props.matchLabel(props.match.id) }}</strong>
+      <span class="match-title">{{ props.matchLabel(props.match.id) }}</span>
       <span
         v-if="!props.isMatchIncomplete(props.match)"
         class="quality-wrap"
@@ -113,7 +121,7 @@ function assignBench(teamId, index) {
         </span>
         <span
           v-if="props.starLossReasons(props.match).length > 0"
-          class="quality-tooltip"
+          class="quality-tooltip app-tooltip"
           role="tooltip"
         >
           <span
@@ -124,7 +132,10 @@ function assignBench(teamId, index) {
       </span>
     </header>
 
-    <div class="teams-grid">
+    <div
+      class="teams-grid"
+      :class="{ 'teams-grid-two-columns': props.teamsTwoColumns }"
+    >
       <div
         v-for="(teamId, teamIndex) in props.match.teams"
         :key="`${props.match.id}-${teamIndex}`"
@@ -138,12 +149,15 @@ function assignBench(teamId, index) {
       >
         <template v-if="teamId != null">
           <div class="team-head-row">
-            <span class="team-main">Team {{ teamId }}</span>
+            <small class="team-stats">
+              W{{ props.metricsByTeam[teamId]?.wins ?? 0 }} ·
+              P{{ props.metricsByTeam[teamId]?.points ?? 0 }}
+            </small>
             <span
-              class="power-arms"
-              :title="`Power ${props.teamPowerScore(teamId).toFixed(2)} / 5`"
+              class="power-wrap has-tooltip"
               :aria-label="`Power ${props.teamPowerScore(teamId).toFixed(2)} out of 5`"
             >
+              <span class="power-arms" role="img" aria-label="Team power level">
               <span
                 v-for="index in 5"
                 :key="`${props.match.id}-${teamId}-arm-${index}`"
@@ -155,15 +169,17 @@ function assignBench(teamId, index) {
                   :style="{ width: `${props.teamPowerArmFill(teamId, index) * 100}%` }"
                 >⬢</span>
               </span>
+              </span>
+              <span class="power-tooltip app-tooltip" role="tooltip">
+                Power {{ props.teamPowerScore(teamId).toFixed(2) }} / 5
+              </span>
             </span>
           </div>
-          <small>
-            W{{ props.metricsByTeam[teamId]?.wins ?? 0 }} ·
-            P{{ props.metricsByTeam[teamId]?.points ?? 0 }}
-          </small>
+          <span class="team-number">{{ teamId }}</span>
           <div class="chip-actions">
             <button
               class="mini status-action status-bye"
+              :disabled="props.disableByeAction"
               @click.stop="moveTo(teamId, 'bye')"
             >
               BYE
@@ -191,18 +207,6 @@ function assignBench(teamId, index) {
         </template>
       </div>
     </div>
-
-    <ul
-      v-if="props.match.violations.length"
-      class="violations"
-    >
-      <li
-        v-for="violation in props.match.violations"
-        :key="violation"
-      >
-        ⚠ {{ violation }}
-      </li>
-    </ul>
   </article>
 </template>
 
@@ -211,10 +215,10 @@ function assignBench(teamId, index) {
   border: 1px solid var(--color-border);
   border-radius: 8px;
   padding: 0.65rem;
-  height: 100%;
+  height: auto;
   display: flex;
   flex-direction: column;
-  overflow: auto;
+  overflow: visible;
   background: #ffffff;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
@@ -231,6 +235,16 @@ function assignBench(teamId, index) {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 0.5rem;
+}
+
+.match-title {
+  font-family: 'Avenir Next', 'Segoe UI', sans-serif;
+  font-size: 1.08rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  line-height: 1.05;
+  color: #64748b;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.65);
 }
 
 .quality-wrap {
@@ -267,14 +281,17 @@ function assignBench(teamId, index) {
   cursor: help;
 }
 
-.quality-tooltip {
+.app-tooltip {
   position: absolute;
   top: calc(100% + 0.35rem);
   right: 0;
   min-width: 250px;
   max-width: 340px;
   z-index: 20;
-  display: none;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-2px);
+  pointer-events: none;
   background: #1f2937;
   color: #f9fafb;
   border-radius: 8px;
@@ -282,6 +299,11 @@ function assignBench(teamId, index) {
   box-shadow: 0 8px 18px rgba(0, 0, 0, 0.25);
   font-size: 0.78rem;
   line-height: 1.25;
+  transition: opacity 0.12s ease, transform 0.12s ease, visibility 0.12s ease;
+}
+
+.quality-tooltip {
+  min-width: 250px;
 }
 
 .quality-tooltip span {
@@ -290,20 +312,29 @@ function assignBench(teamId, index) {
 
 .quality-wrap.has-tooltip:hover .quality-tooltip,
 .quality-wrap.has-tooltip:focus-within .quality-tooltip {
-  display: block;
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
 }
 
 .teams-grid {
   display: grid;
+  grid-template-columns: 1fr;
   gap: 0.45rem;
+}
+
+.teams-grid.teams-grid-two-columns {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .team-chip {
   border: 1px solid var(--color-border);
   border-radius: 7px;
   padding: 0.45rem;
+  min-height: 5.4rem;
   cursor: pointer;
-  display: grid;
+  display: flex;
+  flex-direction: column;
   gap: 0.2rem;
 }
 
@@ -311,13 +342,26 @@ function assignBench(teamId, index) {
   background: rgba(0, 0, 0, 0.03);
 }
 
+.team-chip.empty .bench-assign {
+  margin-top: auto;
+}
+
 .team-chip.selected {
   border-color: var(--color-primary);
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary) 30%, transparent);
 }
 
-.team-main {
-  font-weight: 700;
+.team-stats {
+  margin: 0;
+}
+
+.team-number {
+  margin-top: auto;
+  margin-bottom: auto;
+  text-align: center;
+  font-size: 1.56rem;
+  line-height: 1;
+  font-weight: 800;
 }
 
 .team-head-row {
@@ -331,6 +375,28 @@ function assignBench(teamId, index) {
   display: inline-flex;
   align-items: center;
   gap: 0.12rem;
+}
+
+.power-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.power-wrap.has-tooltip {
+  cursor: help;
+}
+
+.power-tooltip {
+  min-width: max-content;
+  right: 0;
+}
+
+.power-wrap.has-tooltip:hover .power-tooltip,
+.power-wrap.has-tooltip:focus-within .power-tooltip {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
 }
 
 .power-arm {
@@ -365,8 +431,8 @@ function assignBench(teamId, index) {
 .chip-actions {
   display: flex;
   gap: 0.35rem;
-  margin-top: 0.25rem;
-  justify-content: flex-end;
+  margin-top: 0;
+  justify-content: center;
 }
 
 .mini {
@@ -389,8 +455,4 @@ function assignBench(teamId, index) {
   flex-wrap: wrap;
 }
 
-.violations {
-  margin: 0.4rem 0 0;
-  padding-left: 1.1rem;
-}
 </style>

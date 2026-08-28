@@ -399,22 +399,6 @@ function onPick(event) {
   font: inherit;
 }
 
-button {
-  align-self: flex-end;
-  padding: 0.5rem 1.25rem;
-  border: none;
-  border-radius: var(--radius);
-  background: var(--color-primary);
-  color: #fff;
-  font: inherit;
-  cursor: pointer;
-}
-
-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
 .action-btn {
   width: var(--action-btn-width);
   min-width: var(--action-btn-width);

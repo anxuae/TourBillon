@@ -8,16 +8,11 @@ const props = defineProps({
     type: Array,
     default: () => [],
   },
-  suggestedByeTeams: {
-    type: Array,
-    default: () => [],
-  },
 })
 
 const emit = defineEmits([
   'drop-to-bench',
   'drag-start-from-bench',
-  'move-suggested-to-bye',
   'allow-drop',
 ])
 
@@ -27,10 +22,6 @@ function dropTo(target) {
 
 function dragStart(teamId, source) {
   emit('drag-start-from-bench', teamId, source)
-}
-
-function moveSuggested(teamId) {
-  emit('move-suggested-to-bye', teamId)
 }
 
 function allow(event) {
@@ -46,26 +37,7 @@ function allow(event) {
         @dragover="allow"
         @drop="dropTo('bye')"
       >
-        <h2>BYE</h2>
-
-        <div
-          v-if="props.suggestedByeTeams.length"
-          class="bye-suggestions"
-        >
-          <p class="muted">
-            Suggested from single-team matches
-          </p>
-          <div class="chips">
-            <button
-              v-for="teamId in props.suggestedByeTeams"
-              :key="`suggested-bye-${teamId}`"
-              class="mini status-action status-bye"
-              @click="moveSuggested(teamId)"
-            >
-              Add team {{ teamId }}
-            </button>
-          </div>
-        </div>
+        <h2>Bye</h2>
 
         <div class="chips">
           <span
@@ -85,7 +57,7 @@ function allow(event) {
         @dragover="allow"
         @drop="dropTo('forfeit')"
       >
-        <h2>FORFEIT</h2>
+        <h2>Forfeit</h2>
         <div class="chips">
           <span
             v-for="teamId in props.forfeits"
@@ -104,41 +76,39 @@ function allow(event) {
 
 <style scoped>
 .bench-zone {
-  margin-bottom: 1rem;
+  margin-bottom: 0;
+  height: 100%;
 }
 
 .bench-row {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1rem;
+  height: 100%;
+  align-items: stretch;
 }
 
 .bench-subcard {
   min-height: 120px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
 }
 
-.bye-suggestions {
-  margin-bottom: 0.75rem;
-}
-
-.bye-suggestions .chips {
-  margin-top: 0.45rem;
+.bench-subcard h2 {
+  margin: 0 0 0.55rem;
 }
 
 .chips {
   display: flex;
   flex-wrap: wrap;
   gap: 0.35rem;
+  align-content: flex-start;
 }
 
 .pill {
   border-radius: 999px;
   padding: 0.2rem 0.55rem;
-}
-
-@media (max-width: 900px) {
-  .bench-row {
-    grid-template-columns: 1fr;
-  }
 }
 </style>
