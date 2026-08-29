@@ -302,27 +302,32 @@ function onPick(event) {
             placeholder="Search a save file…"
           >
           <ul class="file-list scrollable">
-            <li v-for="save in filteredTournaments" :key="save.filename" class="file-row">
+            <li
+              v-for="save in filteredTournaments"
+              :key="save.filename"
+              class="file-row"
+              :class="{ current: save.filename === currentFile }"
+            >
               <button
                 type="button"
                 class="file-item file-item-load"
-                :class="{ current: save.filename === currentFile }"
                 :disabled="loading"
                 @click="loadFile(save.filename)"
               >
-                <div class="file-info"> <!-- NOUVEAU : Conteneur pour nom + infos -->
+                <div class="file-info">
                   <span class="file-name">{{ save.filename }}</span>
                   <span class="muted">{{ save.nb_teams }} teams · {{ save.nb_rounds }} rounds</span>
                 </div>
-                <button
-                  type="button"
-                  class="danger-outline file-delete-btn"
-                  :disabled="loading"
-                  :aria-label="`Delete save file ${save.filename}`"
-                  @click.stop="deleteSavedFile(save.filename)"
-                >
-                  Delete
-                </button>
+              </button>
+
+              <button
+                type="button"
+                class="danger-outline file-delete-btn"
+                :disabled="loading"
+                :aria-label="`Delete save file ${save.filename}`"
+                @click="deleteSavedFile(save.filename)"
+              >
+                Delete
               </button>
             </li>
             <li
@@ -451,55 +456,62 @@ function onPick(event) {
 .no-match {
   padding: 0.5rem 0.25rem;
 }
-.file-item {
-  width: 100%;
+.file-row {
   display: flex;
-  flex-direction: row; /* Horizontal */
-  justify-content: space-between; /* Nom/infos à gauche, Delete à droite */
-  align-items: center; /* Centre verticalement */
-  padding: 0.5rem 0.75rem;
-  background: transparent;
-  color: inherit;
+  align-items: stretch;
+  gap: 0.5rem;
+  padding: 0.5rem;
   border: 1px solid var(--color-border);
   border-radius: var(--radius);
-  text-align: left;
-  cursor: pointer;
+  background: var(--color-surface);
   transition: border-color 0.15s, background 0.15s;
-  gap: 0.5rem; /* Espace entre file-info et file-delete-btn */
 }
 
-.file-item:hover:not(:disabled) {
+.file-row:hover {
   border-color: var(--color-primary);
   background: color-mix(in srgb, var(--color-primary) 6%, transparent);
 }
 
 /* Currently loaded save file. */
-.file-item.current {
+.file-row.current {
   border-color: var(--color-primary);
   background: color-mix(in srgb, var(--color-primary) 12%, transparent);
 }
 
+.file-item {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 0.75rem;
+  background: transparent;
+  color: inherit;
+  border: 0;
+  border-radius: calc(var(--radius) * 0.75);
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.file-item:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--color-primary) 8%, transparent);
+}
+
+.file-item.current {
+  background: transparent;
+}
+
 .file-info {
   display: flex;
-  flex-direction: column; /* Vertical pour nom + infos */
-  align-items: flex-start; /* Aligné à gauche */
-  gap: 0.15rem; /* Espace entre nom et infos */
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.15rem;
 }
 
 .file-delete-btn {
   flex: 0 0 auto;
   min-width: 5.8rem;
-  align-self: center; /* Centre verticalement */
-}
-
-.file-row {
-  display: flex;
-  align-items: stretch;
-  gap: 0.5rem;
-}
-
-.file-item-load {
-  flex: 1 1 auto;
+  align-self: center;
 }
 
 .file-name {

@@ -1,17 +1,18 @@
 <script setup>
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { RouterLink, RouterView } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useTournamentStore } from '@/stores/tournament'
 import SettingsModal from '@/components/SettingsModal.vue'
-import { api, openEventsSocket } from '@/api/client'
+import { api } from '@/api/client'
+import { useEvents } from '@/events/eventsClient'
 
 const store = useTournamentStore()
 const { tournament } = storeToRefs(store)
 
 const settingsOpen = ref(false)
 const displayView = ref('display-rankings')
-let displaySocket = null
+const { subscribe } = useEvents()
 
 // The Tournament tab is always available (it creates/loads a tournament); the
 // other tabs require a loaded tournament and stay disabled until then.
@@ -88,22 +89,11 @@ function countFor(tabName) {
   return tabCounts.value[tabName] ?? 0
 }
 
-function connectDisplaySocket() {
-  if (displaySocket) {
-    displaySocket.close()
-  }
-  displaySocket = openEventsSocket()
-  displaySocket.onmessage = (event) => {
-    try {
-      const payload = JSON.parse(event.data)
-      if (payload.type === 'display_view_changed' && payload.view) {
-        displayView.value = payload.view
-      }
-    } catch {
-      // Ignore malformed websocket payload.
-    }
-  }
+function handleDisplayViewChanged(payload) {
+  if (payload.view) displayView.value = payload.view
 }
+
+subscribe('display_view_changed', handleDisplayViewChanged)
 
 async function refreshDisplayView() {
   try {
@@ -126,15 +116,8 @@ async function selectDisplayView(view) {
 onMounted(() => {
   store.refreshAll()
   refreshDisplayView()
-  connectDisplaySocket()
 })
 
-onBeforeUnmount(() => {
-  if (displaySocket) {
-    displaySocket.close()
-    displaySocket = null
-  }
-})
 </script>
 
 <template>

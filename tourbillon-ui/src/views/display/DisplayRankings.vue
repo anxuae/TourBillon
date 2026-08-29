@@ -1,8 +1,8 @@
 <script setup>
-import { computed, inject, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, inject, nextTick, onMounted, ref, watch } from 'vue'
 import { api } from '@/api/client'
 import { useAutoDisplayPaging } from '@/composables/useAutoDisplayPaging'
-import { useDrawSocket } from '@/composables/useDrawSocket'
+import { useEvents } from '@/events/eventsClient'
 import { useRankingColumns } from '@/composables/useRankingColumns'
 
 const rankings = ref([])
@@ -22,39 +22,23 @@ async function refreshRankingOptions() {
   await rankingColumns.refreshRankingOptions()
 }
 
-const { connect, disconnect } = useDrawSocket({
-  onOpen: () => {
-    Promise.all([refreshRankings(), refreshRankingOptions()]).catch(() => {})
-  },
-  onMessage: (message) => {
-    if (
-      message.type === 'score_updated'
-      || message.type === 'round_created'
-      || message.type === 'round_deleted'
-      || message.type === 'tournament_changed'
-      || message.type === 'teams_updated'
-      || message.type === 'settings_updated'
-    ) {
-      if (message.type === 'settings_updated') {
-        Promise.all([refreshRankings(), refreshRankingOptions()]).catch(() => {})
-      } else {
-        refreshRankings().catch(() => {})
-        if (message.type === 'tournament_changed') {
-          refreshRankingOptions().catch(() => {})
-        }
-      }
-    }
-  },
+const { subscribe } = useEvents()
+
+for (const type of ['score_updated', 'round_created', 'round_deleted', 'teams_updated']) {
+  subscribe(type, () => refreshRankings().catch(() => {}))
+}
+subscribe('settings_updated', () => {
+  Promise.all([refreshRankings(), refreshRankingOptions()]).catch(() => {})
 })
+subscribe('tournament_changed', () => {
+  Promise.all([refreshRankings(), refreshRankingOptions()]).catch(() => {})
+})
+
 
 onMounted(async () => {
   await Promise.all([refreshRankings(), refreshRankingOptions()])
-  connect()
 })
 
-onBeforeUnmount(() => {
-  disconnect()
-})
 
 const allRankings = computed(() => rankings.value)
 const rankingColumns = useRankingColumns(rankings)

@@ -1,8 +1,8 @@
 <script setup>
-import { computed, inject, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, inject, onMounted, ref } from 'vue'
 import { api } from '@/api/client'
 import { useAutoDisplayPaging } from '@/composables/useAutoDisplayPaging'
-import { useDrawSocket } from '@/composables/useDrawSocket'
+import { useEvents } from '@/events/eventsClient'
 
 const currentRound = ref(null)
 const rotationSeconds = inject('displayRotationSeconds', ref(12))
@@ -21,30 +21,17 @@ async function refreshRound() {
   }
 }
 
-const { connect, disconnect } = useDrawSocket({
-  onOpen: () => {
-    refreshRound().catch(() => {})
-  },
-  onMessage: (message) => {
-    if (
-      message.type === 'score_updated'
-      || message.type === 'round_created'
-      || message.type === 'round_deleted'
-      || message.type === 'tournament_changed'
-    ) {
-      refreshRound().catch(() => {})
-    }
-  },
-})
+const { subscribe } = useEvents()
+
+for (const type of ['score_updated', 'round_created', 'round_deleted', 'tournament_changed']) {
+  subscribe(type, () => refreshRound().catch(() => {}))
+}
+
 
 onMounted(async () => {
   await refreshRound()
-  connect()
 })
 
-onBeforeUnmount(() => {
-  disconnect()
-})
 
 const allMatches = computed(() => currentRound.value?.matches || [])
 

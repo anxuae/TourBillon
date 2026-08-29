@@ -1,8 +1,8 @@
 <script setup>
-import { computed, inject, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, inject, onMounted, ref } from 'vue'
 import { api } from '@/api/client'
 import { useAutoDisplayPaging } from '@/composables/useAutoDisplayPaging'
-import { useDrawSocket } from '@/composables/useDrawSocket'
+import { useEvents } from '@/events/eventsClient'
 
 const teams = ref([])
 const rotationSeconds = inject('displayRotationSeconds', ref(12))
@@ -16,25 +16,20 @@ async function refreshTeams() {
   }
 }
 
-const { connect, disconnect } = useDrawSocket({
-  onOpen: () => {
-    refreshTeams().catch(() => {})
-  },
-  onMessage: (message) => {
-    if (message.type === 'teams_updated' || message.type === 'tournament_changed') {
-      refreshTeams().catch(() => {})
-    }
-  },
+const { subscribe } = useEvents()
+
+subscribe('teams_updated', () => {
+  refreshTeams().catch(() => {})
 })
+subscribe('tournament_changed', () => {
+  refreshTeams().catch(() => {})
+})
+
 
 onMounted(async () => {
   await refreshTeams()
-  connect()
 })
 
-onBeforeUnmount(() => {
-  disconnect()
-})
 
 const allTeams = computed(() => [...teams.value].sort((left, right) => left.number - right.number))
 

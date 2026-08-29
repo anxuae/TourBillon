@@ -133,9 +133,3 @@ export const api = {
   // About
   getVersion: () => request('GET', '/api/version'),
 }
-
-// Open the draw-progress and live event WebSocket.
-export function openEventsSocket() {
-  const proto = window.location.protocol === 'https:' ? 'wss' : 'ws'
-  return new WebSocket(`${proto}://${window.location.host}/ws/events`)
-}

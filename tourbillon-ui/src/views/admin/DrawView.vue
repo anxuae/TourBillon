@@ -2,7 +2,8 @@
 import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
-import { api, openEventsSocket, pushApiError } from '@/api/client'
+import { api, pushApiError } from '@/api/client'
+import { useEvents } from '@/events/eventsClient'
 import { useTournamentStore } from '@/stores/tournament'
 import DrawBenchPanel from '@/components/DrawBenchPanel.vue'
 import DrawMatchCard from '@/components/DrawMatchCard.vue'
@@ -32,7 +33,7 @@ const focusedMatchId = ref(null)
 const committing = ref(false)
 const hideFullMatches = ref(false)
 
-let socket = null
+const { subscribe } = useEvents()
 
 onMounted(async () => {
   const tasks = []
@@ -59,40 +60,33 @@ watch(
   },
 )
 
-function connectSocket() {
-  if (socket) {
-    socket.close()
+subscribe('draw_progress', (payload) => {
+  progress.value = Math.round(payload.percent || 0)
+  message.value = payload.message || 'Running'
+})
+
+subscribe('draw_error', (payload) => {
+  pushApiError(payload.message || 'Draw error')
+  running.value = false
+})
+
+subscribe('draw_preview_ready', () => {
+  progress.value = 100
+  message.value = 'Preview ready'
+})
+
+subscribe('round_created', (payload) => {
+  if (committing.value) {
+    message.value = `Round ${payload.round} created`
   }
-  socket = openEventsSocket()
-  socket.onmessage = (event) => {
-    try {
-      const payload = JSON.parse(event.data)
-      if (payload.type === 'draw_progress') {
-        progress.value = Math.round(payload.percent || 0)
-        message.value = payload.message || 'Running'
-      } else if (payload.type === 'draw_error') {
-        pushApiError(payload.message || 'Draw error')
-        running.value = false
-      } else if (payload.type === 'draw_preview_ready') {
-        progress.value = 100
-        message.value = 'Preview ready'
-      } else if (payload.type === 'round_created') {
-        if (committing.value) {
-          message.value = `Round ${payload.round} created`
-        }
-      }
-    } catch {
-      // Ignore malformed events.
-    }
-  }
-}
+})
+
 
 async function runDraw() {
   store.setDrawPreviewReady(false)
   progress.value = 0
   message.value = 'Generating preview...'
   running.value = true
-  connectSocket()
 
   try {
     const preview = await api.runDraw({

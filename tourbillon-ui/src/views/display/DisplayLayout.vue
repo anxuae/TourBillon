@@ -1,8 +1,9 @@
 <script setup>
-import { onBeforeUnmount, onMounted, provide, ref } from 'vue'
+import { onMounted, provide, ref } from 'vue'
 import { RouterView, useRoute, useRouter } from 'vue-router'
 import { useTournamentStore } from '@/stores/tournament'
-import { api, openEventsSocket } from '@/api/client'
+import { api } from '@/api/client'
+import { useEvents } from '@/events/eventsClient'
 
 const store = useTournamentStore()
 const router = useRouter()
@@ -11,7 +12,7 @@ const route = useRoute()
 const rotationSeconds = ref(12)
 provide('displayRotationSeconds', rotationSeconds)
 
-let socket = null
+const { subscribe } = useEvents()
 
 function syncView(view) {
   if (!view || route.name === view) return
@@ -30,24 +31,13 @@ async function refreshRotationSettings() {
   }
 }
 
-function connectSocket() {
-  if (socket) {
-    socket.close()
-  }
-  socket = openEventsSocket()
-  socket.onmessage = (event) => {
-    try {
-      const payload = JSON.parse(event.data)
-      if (payload.type === 'display_view_changed' && payload.view) {
-        syncView(payload.view)
-      } else if (payload.type === 'tournament_changed') {
-        store.refreshAll()
-      }
-    } catch {
-      // Ignore malformed websocket payload.
-    }
-  }
-}
+subscribe('display_view_changed', (payload) => {
+  if (payload.view) syncView(payload.view)
+})
+
+subscribe('tournament_changed', () => {
+  store.refreshAll()
+})
 
 onMounted(async () => {
   store.refreshAll()
@@ -58,15 +48,8 @@ onMounted(async () => {
   } catch {
     // Keep current view if display endpoint is temporarily unavailable.
   }
-  connectSocket()
 })
 
-onBeforeUnmount(() => {
-  if (socket) {
-    socket.close()
-    socket = null
-  }
-})
 </script>
 
 <template>
