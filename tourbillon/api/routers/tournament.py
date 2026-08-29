@@ -15,8 +15,8 @@ def get_tournament(state=Depends(get_state)):
     """Return the current tournament and its status."""
     try:
         return services.tournament_dto(state)
-    except LookupError:
-        raise HTTPException(status_code=404, detail="No tournament loaded")
+    except LookupError as ex:
+        raise HTTPException(status_code=404, detail="No tournament loaded") from ex
 
 
 @router.post("", response_model=schemas.TournamentDTO)
@@ -36,7 +36,7 @@ async def load_tournament(payload: schemas.TournamentLoadDTO, state=Depends(get_
         try:
             services.load_tournament(state, payload.filename)
         except Exception as ex:
-            raise HTTPException(status_code=400, detail=str(ex))
+            raise HTTPException(status_code=400, detail=str(ex)) from ex
         await state.progress.publish({"type": "tournament_changed", "action": "loaded"})
         await state.progress.publish({"type": "teams_updated"})
         return services.tournament_dto(state)
@@ -72,19 +72,17 @@ async def save_tournament(filename: str | None = None, state=Depends(get_state))
     async with state.lock:
         try:
             saved = services.save_tournament(state, filename)
-        except LookupError:
-            raise HTTPException(status_code=404, detail="No tournament loaded")
+        except LookupError as ex:
+            raise HTTPException(status_code=404, detail="No tournament loaded") from ex
         return {"filename": saved}
 
 
-@router.delete("/file", status_code=204)
-async def delete_tournament_file(state=Depends(get_state)):
-    """Delete the save file of the currently loaded tournament."""
+@router.delete("/files/{filename}", status_code=204)
+async def delete_tournament_file(filename: str, state=Depends(get_state)):
+    """Delete a save file from the save directory by base filename."""
     async with state.lock:
         try:
-            services.delete_tournament_file(state)
-        except LookupError:
-            raise HTTPException(status_code=404, detail="No tournament loaded")
+            services.delete_tournament_file(state, filename)
         except FileNotFoundError as ex:
             raise HTTPException(status_code=404, detail=str(ex)) from ex
         except ValueError as ex:

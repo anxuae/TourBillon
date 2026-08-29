@@ -238,7 +238,7 @@ class Team:
         """
         return [self.tournament.team(opponent_id) for opponent_id in self.opponent_ids(round_limit)]
 
-    def matches(self, round_limit: int = None):
+    def matches(self, round_limit: int | None = None):
         """
         Return the list of team numbers already encountered since the
         first to the given round number.
@@ -255,7 +255,7 @@ class Team:
 
         return l
 
-    def points(self, round_limit: int = None):
+    def points(self, round_limit: int | None = None):
         """
         Return the sum of the points since the first
         to the given round number.
@@ -268,7 +268,7 @@ class Team:
         l = [m.points for m in self._results[:round_limit]]
         return sum(l)
 
-    def wins(self, round_limit: int = None):
+    def wins(self, round_limit: int | None = None):
         """
         Return the number of wins since the first
         to the given round number.
@@ -281,7 +281,7 @@ class Team:
         l = [m.result for m in self._results[:round_limit] if m.result == cst.WON]
         return len(l)
 
-    def forfeits(self, round_limit: int = None):
+    def forfeits(self, round_limit: int | None = None):
         """
         Return the number of forfeits since the first
         to the given round number.
@@ -294,7 +294,7 @@ class Team:
         l = [m.result for m in self._results[:round_limit] if m.result == cst.FORFEIT]
         return len(l)
 
-    def byes(self, round_limit: int = None):
+    def byes(self, round_limit: int | None = None):
         """
         Return the number of byes since the first
         to the given round number.
@@ -307,7 +307,7 @@ class Team:
         l = [m.result for m in self._results[:round_limit] if m.result == cst.BYE]
         return len(l)
 
-    def rounds(self, round_limit: int = None):
+    def rounds(self, round_limit: int | None = None):
         """
         Return the number of rounds which are not forfeit since the first
         to the given round number.
@@ -321,7 +321,7 @@ class Team:
         l = [m.result for m in self._results[:round_limit] if m.result != cst.FORFEIT]
         return len(l)
 
-    def average_score(self, round_limit: int = None):
+    def average_score(self, round_limit: int | None = None):
         """
         Return the average points of a match since the first
         to the given round number.
@@ -340,7 +340,7 @@ class Team:
         else:
             return round(pts / rounds, 2)
 
-    def min_score(self, round_limit: int = None):
+    def min_score(self, round_limit: int | None = None):
         """
         Returns the min points of a match from the first
         to the given round number.
@@ -357,7 +357,7 @@ class Team:
         else:
             return min(l)
 
-    def max_score(self, round_limit: int = None):
+    def max_score(self, round_limit: int | None = None):
         """
         Return the max points of a match since the first
         to the given round number.
@@ -373,7 +373,7 @@ class Team:
         else:
             return max(l)
 
-    def average_duration(self, round_limit: int = None):
+    def average_duration(self, round_limit: int | None = None):
         """
         Return the average duration of a match since the first
         to the given round number.
@@ -393,7 +393,7 @@ class Team:
                 r += t
             return r // len(l)
 
-    def min_duration(self, round_limit: int = None):
+    def min_duration(self, round_limit: int | None = None):
         """
         Return the min duration of a match since the first
         to the given round number.
@@ -410,7 +410,7 @@ class Team:
         else:
             return min(l)
 
-    def max_duration(self, round_limit: int = None):
+    def max_duration(self, round_limit: int | None = None):
         """
         Return the max duration of a match since the first
         to the given round number.
@@ -504,7 +504,7 @@ class Team:
 
     def power(self, round_limit: int | None = None):
         """
-        Return a normalized display 'power' score in the range [0, 5].
+        Return a normalized display 'power' score in the range [0.00, 5.00].
 
         The score is based on current tournament-wide maxima for:
             - wins + byes (weight 2)
@@ -536,4 +536,4 @@ class Team:
         ratio_goal_average = normalized_ratio(self.goal_average(round_limit), maxima_goal_average)
 
         score = ratio_wins * 2 + ratio_points * 1.5 + ratio_buchholz * 1 + ratio_goal_average * 0.5
-        return max(0.0, min(5.0, score))
+        return round(max(0.0, min(5.0, score)), 2)

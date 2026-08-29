@@ -131,12 +131,12 @@ def test_team_power_uses_tournament_maxima(trb4e1j):
 
     for item in teams:
         score = (
-            normalized_ratio(item.points(), max_points) * 2.5
+            normalized_ratio(item.points(), max_points) * 1.5
             + normalized_ratio(item.buchholz_truncated(), max_buchholz) * 1
-            + normalized_ratio(item.wins() + item.byes(), max_wins) * 1
+            + normalized_ratio(item.wins() + item.byes(), max_wins) * 2
             + normalized_ratio(item.goal_average(), max_goal_average) * 0.5
         )
         expected = max(0.0, min(5.0, score))
-        assert item.power() == expected
+        assert item.power() == round(expected, 2)
 
 

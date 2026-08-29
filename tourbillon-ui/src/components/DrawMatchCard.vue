@@ -155,7 +155,7 @@ function assignBench(teamId, index) {
             </small>
             <span
               class="power-wrap has-tooltip"
-              :aria-label="`Power ${props.teamPowerScore(teamId).toFixed(2)} out of 5`"
+              :aria-label="`Power ${props.teamPowerScore(teamId)} out of 5`"
             >
               <span class="power-arms" role="img" aria-label="Team power level">
               <span
@@ -171,7 +171,7 @@ function assignBench(teamId, index) {
               </span>
               </span>
               <span class="power-tooltip app-tooltip" role="tooltip">
-                Power {{ props.teamPowerScore(teamId).toFixed(2) }} / 5
+                Power {{ props.teamPowerScore(teamId) }} / 5
               </span>
             </span>
           </div>

@@ -87,6 +87,8 @@ export const api = {
         : '/api/tournament/save',
     ),
   deleteTournamentFile: () => request('DELETE', '/api/tournament/file'),
+  deleteTournamentSave: (filename) =>
+    request('DELETE', `/api/tournament/files/${encodeURIComponent(filename)}`),
   uploadTournament: (file, overwrite = false) =>
     upload(`/api/tournament/upload?overwrite=${overwrite ? 'true' : 'false'}`, file),
 

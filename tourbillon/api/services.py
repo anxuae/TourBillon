@@ -113,17 +113,19 @@ def save_tournament(state, filename=None):
     return filename
 
 
-def delete_tournament_file(state):
-    """Delete the save file bound to the current tournament.
+def delete_tournament_file(state, filename):
+    """Delete a save file by base name from the configured save directory.
 
-    The file must exist and be located inside the configured save directory.
-    After deletion, the current tournament is unloaded.
+    If the deleted file is currently loaded, the current tournament is unloaded.
     """
-    state.require_tournament()
-    if not state.filename:
-        raise ValueError("Current tournament has no save file")
+    if not filename or not filename.strip():
+        raise ValueError("Missing save filename")
 
-    target = Path(state.filename).resolve()
+    name = Path(filename).name
+    if name != filename:
+        raise ValueError("Only a save base filename is allowed")
+
+    target = (Path(state.settings.save_dir) / name).resolve()
     save_dir = Path(state.settings.save_dir).resolve()
 
     if target.parent != save_dir:
@@ -132,8 +134,11 @@ def delete_tournament_file(state):
         raise FileNotFoundError(str(target))
 
     target.unlink()
-    state.tournament = None
-    state.filename = None
+
+    if state.filename and Path(state.filename).resolve() == target:
+        state.tournament = None
+        state.filename = None
+
     return str(target)
 
 

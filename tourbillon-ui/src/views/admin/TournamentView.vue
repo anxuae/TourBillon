@@ -94,14 +94,14 @@ async function saveTournament() {
   }
 }
 
-async function deleteCurrentFile() {
-  if (!tournament.value || !tournament.value.filename) return
-  if (!confirmReplaceWithUnsaved('delete the current save file')) return
-  const filename = currentFile.value || tournament.value.filename
+async function deleteSavedFile(filename) {
+  if (!filename) return
+  const isCurrent = filename === currentFile.value
+  if (isCurrent && !confirmReplaceWithUnsaved('delete the currently loaded save file')) return
   const ok = window.confirm(`Delete save file "${filename}"? This cannot be undone.`)
   if (!ok) return
   try {
-    await store.deleteTournamentFile()
+    await store.deleteTournamentSave(filename)
   } catch {
     // API errors are handled globally by ApiErrorBanner.
   }
@@ -195,17 +195,6 @@ function onPick(event) {
           @click="saveTournament"
         >
           {{ saveLabel }}
-        </button>
-        <button
-          v-if="tournament.filename"
-          type="button"
-          class="danger-outline action-btn"
-          :disabled="loading"
-          title="Delete current save file"
-          aria-label="Delete current save file"
-          @click="deleteCurrentFile"
-        >
-          Remove
         </button>
       </div>
     </div>
@@ -313,19 +302,27 @@ function onPick(event) {
             placeholder="Search a save file…"
           >
           <ul class="file-list scrollable">
-            <li
-              v-for="save in filteredTournaments"
-              :key="save.filename"
-            >
+            <li v-for="save in filteredTournaments" :key="save.filename" class="file-row">
               <button
                 type="button"
-                class="file-item"
+                class="file-item file-item-load"
                 :class="{ current: save.filename === currentFile }"
                 :disabled="loading"
                 @click="loadFile(save.filename)"
               >
-                <span class="file-name">{{ save.filename }}</span>
-                <span class="muted">{{ save.nb_teams }} teams · {{ save.nb_rounds }} rounds</span>
+                <div class="file-info"> <!-- NOUVEAU : Conteneur pour nom + infos -->
+                  <span class="file-name">{{ save.filename }}</span>
+                  <span class="muted">{{ save.nb_teams }} teams · {{ save.nb_rounds }} rounds</span>
+                </div>
+                <button
+                  type="button"
+                  class="danger-outline file-delete-btn"
+                  :disabled="loading"
+                  :aria-label="`Delete save file ${save.filename}`"
+                  @click.stop="deleteSavedFile(save.filename)"
+                >
+                  Delete
+                </button>
               </button>
             </li>
             <li
@@ -454,14 +451,12 @@ function onPick(event) {
 .no-match {
   padding: 0.5rem 0.25rem;
 }
-
 .file-item {
   width: 100%;
-  align-self: stretch;
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0.15rem;
+  flex-direction: row; /* Horizontal */
+  justify-content: space-between; /* Nom/infos à gauche, Delete à droite */
+  align-items: center; /* Centre verticalement */
   padding: 0.5rem 0.75rem;
   background: transparent;
   color: inherit;
@@ -470,6 +465,7 @@ function onPick(event) {
   text-align: left;
   cursor: pointer;
   transition: border-color 0.15s, background 0.15s;
+  gap: 0.5rem; /* Espace entre file-info et file-delete-btn */
 }
 
 .file-item:hover:not(:disabled) {
@@ -481,6 +477,29 @@ function onPick(event) {
 .file-item.current {
   border-color: var(--color-primary);
   background: color-mix(in srgb, var(--color-primary) 12%, transparent);
+}
+
+.file-info {
+  display: flex;
+  flex-direction: column; /* Vertical pour nom + infos */
+  align-items: flex-start; /* Aligné à gauche */
+  gap: 0.15rem; /* Espace entre nom et infos */
+}
+
+.file-delete-btn {
+  flex: 0 0 auto;
+  min-width: 5.8rem;
+  align-self: center; /* Centre verticalement */
+}
+
+.file-row {
+  display: flex;
+  align-items: stretch;
+  gap: 0.5rem;
+}
+
+.file-item-load {
+  flex: 1 1 auto;
 }
 
 .file-name {

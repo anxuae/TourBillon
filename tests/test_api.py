@@ -2,6 +2,7 @@
 
 """Integration tests for the FastAPI backend."""
 
+from pathlib import Path
 
 # --------------------------------------------------------------------------- #
 # Health & draws metadata
@@ -196,8 +197,6 @@ def test_load_tournament_by_filename(client):
     # Create, save, then reload by bare filename (resolved against save_dir).
     client.post("/api/tournament", json={"teams_by_match": 2, "players_by_team": 1})
     saved = client.post("/api/tournament/save").json()["filename"]
-    from pathlib import Path
-
     resp = client.post("/api/tournament/load", json={"filename": Path(saved).name})
     assert resp.status_code == 200
     assert resp.json()["status"] == "registration"
@@ -207,7 +206,6 @@ def test_upload_tournament_conflict_and_overwrite(client):
     # Produce a valid save file to reuse as the uploaded content.
     client.post("/api/tournament", json={"teams_by_match": 2, "players_by_team": 1})
     saved = client.post("/api/tournament/save").json()["filename"]
-    from pathlib import Path
 
     content = Path(saved).read_bytes()
 
@@ -241,24 +239,15 @@ def test_upload_tournament_rejects_non_yaml(client):
     assert resp.status_code == 400
 
 
-def test_delete_current_tournament_file(client):
+def test_delete_tournament_file(client):
     client.post("/api/tournament", json={"teams_by_match": 2, "players_by_team": 1})
     saved = client.post("/api/tournament/save").json()["filename"]
 
-    resp = client.delete("/api/tournament/file")
+    resp = client.delete(f"/api/tournament/files/{Path(saved).name}")
     assert resp.status_code == 204
-
-    from pathlib import Path
 
     assert not Path(saved).exists()
     assert client.get("/api/tournament").status_code == 404
-
-
-def test_delete_current_tournament_file_without_filename(client):
-    client.post("/api/tournament", json={"teams_by_match": 2, "players_by_team": 1})
-    resp = client.delete("/api/tournament/file")
-    assert resp.status_code == 400
-
 
 # --------------------------------------------------------------------------- #
 # Teams

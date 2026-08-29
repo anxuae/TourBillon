@@ -96,6 +96,24 @@ export const useTournamentStore = defineStore('tournament', {
       await this.refreshSavedTournaments()
       return null
     },
+    async deleteTournamentSave(filename) {
+      await this.wrap(api.deleteTournamentSave(filename))
+      await this.refreshTournament()
+      if (this.tournament) {
+        await Promise.all([
+          this.refreshTeams(),
+          this.refreshRounds(),
+          this.refreshRankings(),
+        ])
+      } else {
+        this.teams = []
+        this.rounds = []
+        this.rankings = []
+        this.drawPreviewReady = false
+      }
+      await this.refreshSavedTournaments()
+      return null
+    },
     async uploadTournament(file, overwrite = false) {
       // May throw an Error with ``status === 409`` when the file name already
       // exists and overwrite is false: the caller handles the confirmation.
