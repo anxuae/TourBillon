@@ -9,8 +9,8 @@ from ..state import get_state
 router = APIRouter(tags=["realtime"])
 
 
-@router.websocket("/ws/draw")
-async def ws_draw(websocket: WebSocket):
+@router.websocket("/ws/events")
+async def ws_events(websocket: WebSocket):
     """Stream draw progress and live update events to a client."""
     await websocket.accept()
     state = get_state()

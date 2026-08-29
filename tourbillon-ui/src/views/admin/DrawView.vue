@@ -2,7 +2,7 @@
 import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
-import { api, openDrawSocket, pushApiError } from '@/api/client'
+import { api, openEventsSocket, pushApiError } from '@/api/client'
 import { useTournamentStore } from '@/stores/tournament'
 import DrawBenchPanel from '@/components/DrawBenchPanel.vue'
 import DrawMatchCard from '@/components/DrawMatchCard.vue'
@@ -63,7 +63,7 @@ function connectSocket() {
   if (socket) {
     socket.close()
   }
-  socket = openDrawSocket()
+  socket = openEventsSocket()
   socket.onmessage = (event) => {
     try {
       const payload = JSON.parse(event.data)

@@ -1,4 +1,4 @@
-import { openDrawSocket } from '@/api/client'
+import { openEventsSocket } from '@/api/client'
 
 export function useDrawSocket({ onMessage, onOpen } = {}) {
   let socket = null
@@ -29,7 +29,7 @@ export function useDrawSocket({ onMessage, onOpen } = {}) {
       socket.close()
     }
 
-    socket = openDrawSocket()
+    socket = openEventsSocket()
 
     socket.addEventListener('open', () => {
       if (onOpen) {

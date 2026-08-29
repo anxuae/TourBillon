@@ -4,7 +4,7 @@ import { RouterLink, RouterView } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useTournamentStore } from '@/stores/tournament'
 import SettingsModal from '@/components/SettingsModal.vue'
-import { api, openDrawSocket } from '@/api/client'
+import { api, openEventsSocket } from '@/api/client'
 
 const store = useTournamentStore()
 const { tournament } = storeToRefs(store)
@@ -92,7 +92,7 @@ function connectDisplaySocket() {
   if (displaySocket) {
     displaySocket.close()
   }
-  displaySocket = openDrawSocket()
+  displaySocket = openEventsSocket()
   displaySocket.onmessage = (event) => {
     try {
       const payload = JSON.parse(event.data)

@@ -2,7 +2,7 @@
 import { onBeforeUnmount, onMounted, provide, ref } from 'vue'
 import { RouterView, useRoute, useRouter } from 'vue-router'
 import { useTournamentStore } from '@/stores/tournament'
-import { api, openDrawSocket } from '@/api/client'
+import { api, openEventsSocket } from '@/api/client'
 
 const store = useTournamentStore()
 const router = useRouter()
@@ -34,7 +34,7 @@ function connectSocket() {
   if (socket) {
     socket.close()
   }
-  socket = openDrawSocket()
+  socket = openEventsSocket()
   socket.onmessage = (event) => {
     try {
       const payload = JSON.parse(event.data)
