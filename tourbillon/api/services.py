@@ -220,11 +220,13 @@ def round_dto(trn, rnd):
             )
         )
     byes = [team.id for team in rnd.byes()]
+    forfeits = [team.id for team in rnd.forfeits()]
     return schemas.RoundDTO(
         number=rnd.number,
         status=rnd.status,
         matches=matches,
         byes=byes,
+        forfeits=forfeits,
     )
 
 

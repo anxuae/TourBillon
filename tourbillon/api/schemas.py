@@ -38,6 +38,7 @@ class RoundDTO(BaseModel):
     status: str
     matches: list[MatchDTO]
     byes: list[int]
+    forfeits: list[int] = []
 
 
 class RankEntryDTO(BaseModel):

@@ -43,6 +43,18 @@ export function useAutoDisplayPaging(itemsRef, intervalSecondsRef, computePageSi
     }, seconds * 1000)
   }
 
+  function nextPage() {
+    // Manual advance: move forward and restart the countdown from now
+    pageIndex.value = (pageIndex.value + 1) % totalPages.value
+    startTimer()
+  }
+
+  function previousPage() {
+    // Manual rewind: move backward and restart the countdown from now
+    pageIndex.value = (pageIndex.value - 1 + totalPages.value) % totalPages.value
+    startTimer()
+  }
+
   watch(itemsRef, () => {
     if (pageIndex.value >= totalPages.value) {
       pageIndex.value = 0
@@ -78,5 +90,7 @@ export function useAutoDisplayPaging(itemsRef, intervalSecondsRef, computePageSi
     totalPages,
     pageItems,
     recalculatePageSize,
+    nextPage,
+    previousPage,
   }
 }
