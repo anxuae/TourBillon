@@ -2,10 +2,11 @@
 import { computed, onMounted, ref } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useTournamentStore } from '@/stores/tournament'
-import { useRankingColumns } from '@/composables/useRankingColumns'
+import { useRankingCriteria } from '@/composables/useRankingCriteria'
+import { useRankingTeams } from '@/composables/useRankingTeams'
 
 const store = useTournamentStore()
-const { rounds, rankings } = storeToRefs(store)
+const { rounds, rankings, teams } = storeToRefs(store)
 
 const selectedRound = ref('')
 
@@ -23,10 +24,12 @@ const {
   showBuchholz,
   showGoalAvg,
   refreshRankingOptions,
-} = useRankingColumns(rankings)
+} = useRankingCriteria(rankings)
+
+const { teamPlayers } = useRankingTeams(teams)
 
 onMounted(async () => {
-  await Promise.all([store.refreshRounds(), store.refreshRankings(), refreshRankingOptions()])
+  await Promise.all([store.refreshRounds(), store.refreshTeams(), store.refreshRankings(), refreshRankingOptions()])
 })
 
 async function refreshRankings() {
@@ -60,19 +63,32 @@ async function refreshRankings() {
     <table v-if="rankings.length">
       <thead>
         <tr>
-          <th>Rank</th>
-          <th>Team</th>
-          <th v-if="showWins">
+          <th class="centered-cell">Rank</th>
+          <th class="centered-cell">Team</th>
+          <th>Players</th>
+          <th
+            v-if="showWins"
+            class="centered-cell"
+          >
             Wins
           </th>
-          <th>Points</th>
-          <th v-if="showJoker">
+          <th class="centered-cell">Points</th>
+          <th
+            v-if="showJoker"
+            class="centered-cell"
+          >
             Joker
           </th>
-          <th v-if="showBuchholz">
+          <th
+            v-if="showBuchholz"
+            class="centered-cell"
+          >
             Buchholz
           </th>
-          <th v-if="showGoalAvg">
+          <th
+            v-if="showGoalAvg"
+            class="centered-cell"
+          >
             Goal Avg
           </th>
         </tr>
@@ -82,7 +98,7 @@ async function refreshRankings() {
           v-for="row in rankings"
           :key="row.team"
         >
-          <td>
+          <td class="centered-cell">
             <span>{{ row.rank }}</span>
             <span
               v-if="isTieRank(row.rank)"
@@ -91,18 +107,40 @@ async function refreshRankings() {
               title="Tied rank"
             >⇄</span>
           </td>
-          <td>{{ row.team }}</td>
-          <td v-if="showWins">
+          <td class="centered-cell">{{ row.team }}</td>
+          <td>
+            <span
+              v-for="player in teamPlayers(row.team)"
+              :key="`${row.team}-${player}`"
+              class="player-name"
+            >
+              {{ player }}
+            </span>
+            <span v-if="!teamPlayers(row.team).length">—</span>
+          </td>
+          <td
+            v-if="showWins"
+            class="centered-cell"
+          >
             {{ row.wins }}
           </td>
-          <td>{{ row.points }}</td>
-          <td v-if="showJoker">
+          <td class="centered-cell">{{ row.points }}</td>
+          <td
+            v-if="showJoker"
+            class="centered-cell"
+          >
             {{ row.joker }}
           </td>
-          <td v-if="showBuchholz">
+          <td
+            v-if="showBuchholz"
+            class="centered-cell"
+          >
             {{ row.buchholz }}
           </td>
-          <td v-if="showGoalAvg">
+          <td
+            v-if="showGoalAvg"
+            class="centered-cell"
+          >
             {{ row.goal_average }}
           </td>
         </tr>
@@ -132,6 +170,15 @@ async function refreshRankings() {
 .row {
   display: flex;
   gap: 0.5rem;
+}
+
+.centered-cell {
+  text-align: center;
+}
+
+.player-name {
+  display: block;
+  line-height: 1.15;
 }
 
 .tie-indicator {

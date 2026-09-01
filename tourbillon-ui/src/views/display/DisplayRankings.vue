@@ -3,9 +3,12 @@ import { computed, inject, nextTick, onMounted, ref, watch } from 'vue'
 import { api } from '@/api/client'
 import { useAutoDisplayPaging } from '@/composables/useAutoDisplayPaging'
 import { useEvents } from '@/events/eventsClient'
-import { useRankingColumns } from '@/composables/useRankingColumns'
+import { useRankingCriteria } from '@/composables/useRankingCriteria'
+import { useRankingTeams } from '@/composables/useRankingTeams'
 
 const rankings = ref([])
+const teams = ref([])
+const showRankingExtras = ref(false)
 const rotationSeconds = inject('displayRotationSeconds', ref(12))
 const containerRef = ref(null)
 const tableRef = ref(null)
@@ -18,31 +21,50 @@ async function refreshRankings() {
   }
 }
 
-async function refreshRankingOptions() {
-  await rankingColumns.refreshRankingOptions()
+async function refreshTeams() {
+  try {
+    teams.value = await api.listTeams()
+  } catch {
+    teams.value = []
+  }
+}
+
+async function refreshSettings() {
+  try {
+    const settings = await api.getSettings()
+    rankingColumns.applyOptionsFromSettings(settings)
+    showRankingExtras.value = settings?.display?.show_ranking_criteria === true
+  } catch {
+    await rankingColumns.refreshRankingOptions()
+    showRankingExtras.value = false
+  }
 }
 
 const { subscribe } = useEvents()
 
-for (const type of ['score_updated', 'round_created', 'round_deleted', 'teams_updated']) {
+for (const type of ['score_updated', 'round_created', 'round_deleted']) {
   subscribe(type, () => refreshRankings().catch(() => {}))
 }
+subscribe('teams_updated', () => {
+  Promise.all([refreshTeams(), refreshRankings()]).catch(() => {})
+})
 subscribe('settings_updated', () => {
-  Promise.all([refreshRankings(), refreshRankingOptions()]).catch(() => {})
+  Promise.all([refreshRankings(), refreshSettings()]).catch(() => {})
 })
 subscribe('tournament_changed', () => {
-  Promise.all([refreshRankings(), refreshRankingOptions()]).catch(() => {})
+  Promise.all([refreshRankings(), refreshTeams(), refreshSettings()]).catch(() => {})
 })
 
 
 onMounted(async () => {
-  await Promise.all([refreshRankings(), refreshRankingOptions()])
+  await Promise.all([refreshRankings(), refreshTeams(), refreshSettings()])
 })
 
 
 const allRankings = computed(() => rankings.value)
-const rankingColumns = useRankingColumns(rankings)
+const rankingColumns = useRankingCriteria(rankings)
 const { isTieRank, showWins, showJoker, showBuchholz, showGoalAvg } = rankingColumns
+const { teamPlayers } = useRankingTeams(teams)
 
 function rankingsPageSize() {
   const containerHeight = containerRef.value?.clientHeight || window.innerHeight
@@ -75,21 +97,56 @@ watch(rankings, async () => {
       ref="tableRef"
       class="display-table"
     >
+      <colgroup>
+        <col class="col-rank">
+        <col class="col-team">
+        <col class="col-players">
+        <col
+          v-if="showWins"
+          class="col-criteria"
+        >
+        <col class="col-points">
+        <col
+          v-if="showRankingExtras && showJoker"
+          class="col-criteria"
+        >
+        <col
+          v-if="showRankingExtras && showBuchholz"
+          class="col-criteria"
+        >
+        <col
+          v-if="showRankingExtras && showGoalAvg"
+          class="col-criteria"
+        >
+      </colgroup>
       <thead>
         <tr>
-          <th>Rank</th>
-          <th>Team</th>
-          <th v-if="showWins">
+          <th class="centered-cell">Rank</th>
+          <th class="centered-cell">Team</th>
+          <th>Players</th>
+          <th
+            v-if="showWins"
+            class="centered-cell criteria-cell"
+          >
             Wins
           </th>
-          <th>Points</th>
-          <th v-if="showJoker">
+          <th class="centered-cell criteria-cell">Points</th>
+          <th
+            v-if="showRankingExtras && showJoker"
+            class="centered-cell criteria-cell"
+          >
             Joker
           </th>
-          <th v-if="showBuchholz">
+          <th
+            v-if="showRankingExtras && showBuchholz"
+            class="centered-cell criteria-cell"
+          >
             Buchholz
           </th>
-          <th v-if="showGoalAvg">
+          <th
+            v-if="showRankingExtras && showGoalAvg"
+            class="centered-cell criteria-cell goal-avg-cell"
+          >
             Goal Avg
           </th>
         </tr>
@@ -99,27 +156,53 @@ watch(rankings, async () => {
           v-for="row in visibleRankings"
           :key="row.team"
         >
-          <td>
+          <td class="centered-cell">
             <span>{{ row.rank }}</span>
             <span
               v-if="isTieRank(row.rank)"
               class="tie-indicator"
               aria-label="Tied rank"
-              title="Tied rank"
             >⇄</span>
           </td>
-          <td>{{ row.team }}</td>
-          <td v-if="showWins">
+          <td class="centered-cell">{{ row.team }}</td>
+          <td class="players-cell">
+            <span
+              v-for="player in teamPlayers(row.team)"
+              :key="`${row.team}-${player}`"
+              class="player-name"
+            >
+              {{ player }}
+            </span>
+            <span
+              v-if="!teamPlayers(row.team).length"
+              class="player-name"
+            >
+              —
+            </span>
+          </td>
+          <td
+            v-if="showWins"
+            class="centered-cell criteria-cell"
+          >
             {{ row.wins }}
           </td>
-          <td>{{ row.points }}</td>
-          <td v-if="showJoker">
+          <td class="centered-cell criteria-cell">{{ row.points }}</td>
+          <td
+            v-if="showRankingExtras && showJoker"
+            class="centered-cell criteria-cell"
+          >
             {{ row.joker }}
           </td>
-          <td v-if="showBuchholz">
+          <td
+            v-if="showRankingExtras && showBuchholz"
+            class="centered-cell criteria-cell"
+          >
             {{ row.buchholz }}
           </td>
-          <td v-if="showGoalAvg">
+          <td
+            v-if="showRankingExtras && showGoalAvg"
+            class="centered-cell criteria-cell goal-avg-cell"
+          >
             {{ row.goal_average }}
           </td>
         </tr>
@@ -156,6 +239,50 @@ watch(rankings, async () => {
 .display-table td {
   font-size: clamp(1rem, 1.8vw, 1.9rem);
   font-weight: 600;
+}
+
+.col-rank {
+  width: 7%;
+}
+
+.col-team {
+  width: 8%;
+}
+
+.col-players {
+  width: 36%;
+}
+
+.col-points {
+  width: 8%;
+}
+
+.col-criteria {
+  width: 8%;
+}
+
+.centered-cell {
+  text-align: center;
+}
+
+.players-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.criteria-cell {
+  white-space: nowrap;
+}
+
+.goal-avg-cell {
+  white-space: nowrap;
+}
+
+.player-name {
+  line-height: 1.15;
 }
 
 .tie-indicator {

@@ -79,7 +79,7 @@ SECTIONS = {
     "tournament": (
         "rank_by_wins", "rank_by_joker", "rank_by_buchholz", "rank_by_goal_avg", "default_draw",
     ),
-    "display": ("rotation_seconds",),
+    "display": ("rotation_seconds", "show_ranking_criteria"),
 }
 
 # Default settings (primitive types only).
@@ -100,6 +100,7 @@ DEFAULTS = {
     "default_draw": draws.DEFAULT_DRAW,
     # Display domain: automatic carousel delay on giant screens.
     "rotation_seconds": 12,
+    "show_ranking_criteria": False,
     # Draw options domain: the effective options of every algorithm, seeded
     # from each algorithm's built-in ``DEFAULT``. Shape: ``{draw_name: {...}}``.
     "draws": {name: draws.default_config(name) for name in draws.DRAWS},

@@ -16,6 +16,7 @@ def test_defaults(tmp_path):
     assert settings.rank_by_goal_avg == DEFAULTS["rank_by_goal_avg"]
     assert settings.default_draw == "deterministic"
     assert settings.rotation_seconds == DEFAULTS["rotation_seconds"]
+    assert settings.show_ranking_criteria == DEFAULTS["show_ranking_criteria"]
 
 
 def test_attribute_read_write(tmp_path):
@@ -115,9 +116,16 @@ def test_as_dict_contains_display_section(tmp_path):
     data = settings.as_dict()
     assert "display" in data
     assert data["display"]["rotation_seconds"] == settings.rotation_seconds
+    assert data["display"]["show_ranking_criteria"] == settings.show_ranking_criteria
 
 
 def test_rotation_seconds_accepts_small_value(tmp_path):
     settings = Settings({"save_dir": str(tmp_path)})
     settings.update({"display": {"rotation_seconds": 1}})
     assert settings.rotation_seconds == 1
+
+
+def test_show_ranking_criteria_accepts_boolean(tmp_path):
+    settings = Settings({"save_dir": str(tmp_path)})
+    settings.update({"display": {"show_ranking_criteria": True}})
+    assert settings.show_ranking_criteria is True
