@@ -12,17 +12,52 @@ const route = useRoute()
 const rotationSeconds = ref(12)
 provide('displayRotationSeconds', rotationSeconds)
 
+const autoSwitchEnabled = ref(true)
+
 const { subscribe } = useEvents()
 
-function syncView(view) {
+async function syncView(view, notifyApi = false) {
   if (!view || route.name === view) return
   router.replace({ name: view })
+  if (notifyApi) {
+    try {
+      await api.setDisplayView(view)
+    } catch {
+      // Silently ignore API errors during auto-sync
+    }
+  }
+}
+
+function resolveAutoView() {
+  if (!store.tournament) {
+    return 'display-teams'
+  }
+
+  if (!store.rounds.length) {
+    return 'display-teams'
+  }
+
+  const lastRound = store.rounds[store.rounds.length - 1]
+  if (['complete', 'finished'].includes(lastRound.status)) {
+    return 'display-rankings'
+  }
+
+  return 'display-round'
+}
+
+async function applyAutoView() {
+  if (!autoSwitchEnabled.value) {
+    return
+  }
+  await syncView(resolveAutoView(), true)
 }
 
 async function refreshRotationSettings() {
   try {
     const settings = await api.getSettings()
     const raw = Number(settings?.display?.rotation_seconds)
+    const shouldAutoSwitch = settings?.display?.auto_switch !== false
+    autoSwitchEnabled.value = shouldAutoSwitch
     if (Number.isFinite(raw) && raw > 0) {
       rotationSeconds.value = raw
     }
@@ -31,23 +66,48 @@ async function refreshRotationSettings() {
   }
 }
 
-subscribe('display_view_changed', (payload) => {
-  if (payload.view) syncView(payload.view)
-})
+async function refreshStateAndAutoView() {
+  await store.refreshAll()
+  // Re-enable auto-switch on state changes (manual switch gets reset here)
+  const settings = await api.getSettings()
+  autoSwitchEnabled.value = settings?.display?.auto_switch !== false
+  applyAutoView()
+}
 
-subscribe('tournament_changed', () => {
-  store.refreshAll()
-})
-
-onMounted(async () => {
-  store.refreshAll()
+async function refreshSettingsAndView() {
   await refreshRotationSettings()
+  await store.refreshAll()
+  if (autoSwitchEnabled.value) {
+    applyAutoView()
+    return
+  }
   try {
     const payload = await api.getDisplayView()
     syncView(payload.view)
   } catch {
     // Keep current view if display endpoint is temporarily unavailable.
   }
+}
+
+subscribe('display_view_changed', (payload) => {
+  // Manual display view change from admin sidebar disables auto-switch
+  // Auto-switch will re-enable on next state change (tournament/round update)
+  autoSwitchEnabled.value = false
+  if (payload.view) syncView(payload.view)
+})
+
+for (const type of ['teams_updated', 'round_created', 'round_deleted', 'score_updated', 'tournament_changed']) {
+  subscribe(type, () => {
+    refreshStateAndAutoView().catch(() => {})
+  })
+}
+
+subscribe('settings_updated', () => {
+  refreshSettingsAndView().catch(() => {})
+})
+
+onMounted(async () => {
+  await refreshSettingsAndView()
 })
 
 </script>

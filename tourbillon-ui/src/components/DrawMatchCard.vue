@@ -157,20 +157,27 @@ function assignBench(teamId, index) {
               class="power-wrap has-tooltip"
               :aria-label="`Power ${props.teamPowerScore(teamId)} out of 5`"
             >
-              <span class="power-arms" role="img" aria-label="Team power level">
               <span
-                v-for="index in 5"
-                :key="`${props.match.id}-${teamId}-arm-${index}`"
-                class="power-arm"
+                class="power-arms"
+                role="img"
+                aria-label="Team power level"
               >
-                <span class="power-arm-base">⬢</span>
                 <span
-                  class="power-arm-fill"
-                  :style="{ width: `${props.teamPowerArmFill(teamId, index) * 100}%` }"
-                >⬢</span>
+                  v-for="index in 5"
+                  :key="`${props.match.id}-${teamId}-arm-${index}`"
+                  class="power-arm"
+                >
+                  <span class="power-arm-base">⬢</span>
+                  <span
+                    class="power-arm-fill"
+                    :style="{ width: `${props.teamPowerArmFill(teamId, index) * 100}%` }"
+                  >⬢</span>
+                </span>
               </span>
-              </span>
-              <span class="power-tooltip app-tooltip" role="tooltip">
+              <span
+                class="power-tooltip app-tooltip"
+                role="tooltip"
+              >
                 Power {{ props.teamPowerScore(teamId) }} / 5
               </span>
             </span>

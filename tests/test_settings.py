@@ -17,6 +17,7 @@ def test_defaults(tmp_path):
     assert settings.default_draw == "deterministic"
     assert settings.rotation_seconds == DEFAULTS["rotation_seconds"]
     assert settings.show_ranking_criteria == DEFAULTS["show_ranking_criteria"]
+    assert settings.auto_switch == DEFAULTS["auto_switch"]
 
 
 def test_attribute_read_write(tmp_path):
@@ -117,6 +118,7 @@ def test_as_dict_contains_display_section(tmp_path):
     assert "display" in data
     assert data["display"]["rotation_seconds"] == settings.rotation_seconds
     assert data["display"]["show_ranking_criteria"] == settings.show_ranking_criteria
+    assert data["display"]["auto_switch"] == settings.auto_switch
 
 
 def test_rotation_seconds_accepts_small_value(tmp_path):
@@ -129,3 +131,9 @@ def test_show_ranking_criteria_accepts_boolean(tmp_path):
     settings = Settings({"save_dir": str(tmp_path)})
     settings.update({"display": {"show_ranking_criteria": True}})
     assert settings.show_ranking_criteria is True
+
+
+def test_auto_switch_accepts_boolean(tmp_path):
+    settings = Settings({"save_dir": str(tmp_path)})
+    settings.update({"display": {"auto_switch": False}})
+    assert settings.auto_switch is False

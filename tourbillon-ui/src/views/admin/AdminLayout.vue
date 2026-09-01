@@ -11,7 +11,7 @@ const store = useTournamentStore()
 const { tournament } = storeToRefs(store)
 
 const settingsOpen = ref(false)
-const displayView = ref('display-rankings')
+const currentDisplayView = ref('display-rankings')
 const { subscribe } = useEvents()
 
 // The Tournament tab is always available (it creates/loads a tournament); the
@@ -90,7 +90,9 @@ function countFor(tabName) {
 }
 
 function handleDisplayViewChanged(payload) {
-  if (payload.view) displayView.value = payload.view
+  if (payload.view) {
+    currentDisplayView.value = payload.view
+  }
 }
 
 subscribe('display_view_changed', handleDisplayViewChanged)
@@ -98,14 +100,14 @@ subscribe('display_view_changed', handleDisplayViewChanged)
 async function refreshDisplayView() {
   try {
     const payload = await api.getDisplayView()
-    displayView.value = payload.view || displayView.value
+    currentDisplayView.value = payload.view || currentDisplayView.value
   } catch {
     // Keep current value when backend is temporarily unavailable.
   }
 }
 
 async function selectDisplayView(view) {
-  displayView.value = view
+  currentDisplayView.value = view
   try {
     await api.setDisplayView(view)
   } catch {
@@ -170,13 +172,13 @@ onMounted(() => {
           :key="tab.name"
           type="button"
           class="nav-link"
-          :aria-pressed="displayView === tab.name"
-          :class="{ active: displayView === tab.name }"
+          :aria-pressed="currentDisplayView === tab.name"
+          :class="{ active: currentDisplayView === tab.name }"
           @click="selectDisplayView(tab.name)"
         >
           <span>{{ tab.label }}</span>
           <span
-            v-if="displayView === tab.name"
+            v-if="currentDisplayView === tab.name"
             class="active-badge"
           >active</span>
         </button>

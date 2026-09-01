@@ -121,8 +121,12 @@ watch(rankings, async () => {
       </colgroup>
       <thead>
         <tr>
-          <th class="centered-cell">Rank</th>
-          <th class="centered-cell">Team</th>
+          <th class="centered-cell">
+            Rank
+          </th>
+          <th class="centered-cell">
+            Team
+          </th>
           <th>Players</th>
           <th
             v-if="showWins"
@@ -130,7 +134,9 @@ watch(rankings, async () => {
           >
             Wins
           </th>
-          <th class="centered-cell criteria-cell">Points</th>
+          <th class="centered-cell criteria-cell">
+            Points
+          </th>
           <th
             v-if="showRankingExtras && showJoker"
             class="centered-cell criteria-cell"
@@ -164,7 +170,9 @@ watch(rankings, async () => {
               aria-label="Tied rank"
             >⇄</span>
           </td>
-          <td class="centered-cell">{{ row.team }}</td>
+          <td class="centered-cell">
+            {{ row.team }}
+          </td>
           <td class="players-cell">
             <span
               v-for="player in teamPlayers(row.team)"
@@ -186,7 +194,9 @@ watch(rankings, async () => {
           >
             {{ row.wins }}
           </td>
-          <td class="centered-cell criteria-cell">{{ row.points }}</td>
+          <td class="centered-cell criteria-cell">
+            {{ row.points }}
+          </td>
           <td
             v-if="showRankingExtras && showJoker"
             class="centered-cell criteria-cell"

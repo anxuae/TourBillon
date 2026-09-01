@@ -642,7 +642,9 @@ function resetDrawState() {
       <div class="top-row">
         <div class="card form">
           <div class="algorithm-panel">
-            <h2 class="algorithm-title">Algorithm</h2>
+            <h2 class="algorithm-title">
+              Algorithm
+            </h2>
             <div class="draw-toolbar">
               <div class="algorithm-field">
                 <select v-model="selectedAlgorithm">
@@ -684,7 +686,9 @@ function resetDrawState() {
               <p class="muted progress-message">
                 {{ message }}
               </p>
-              <p class="progress-percent">{{ progress }}%</p>
+              <p class="progress-percent">
+                {{ progress }}%
+              </p>
             </div>
           </div>
         </div>

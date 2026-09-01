@@ -63,8 +63,12 @@ async function refreshRankings() {
     <table v-if="rankings.length">
       <thead>
         <tr>
-          <th class="centered-cell">Rank</th>
-          <th class="centered-cell">Team</th>
+          <th class="centered-cell">
+            Rank
+          </th>
+          <th class="centered-cell">
+            Team
+          </th>
           <th>Players</th>
           <th
             v-if="showWins"
@@ -72,7 +76,9 @@ async function refreshRankings() {
           >
             Wins
           </th>
-          <th class="centered-cell">Points</th>
+          <th class="centered-cell">
+            Points
+          </th>
           <th
             v-if="showJoker"
             class="centered-cell"
@@ -107,7 +113,9 @@ async function refreshRankings() {
               title="Tied rank"
             >⇄</span>
           </td>
-          <td class="centered-cell">{{ row.team }}</td>
+          <td class="centered-cell">
+            {{ row.team }}
+          </td>
           <td>
             <span
               v-for="player in teamPlayers(row.team)"
@@ -124,7 +132,9 @@ async function refreshRankings() {
           >
             {{ row.wins }}
           </td>
-          <td class="centered-cell">{{ row.points }}</td>
+          <td class="centered-cell">
+            {{ row.points }}
+          </td>
           <td
             v-if="showJoker"
             class="centered-cell"

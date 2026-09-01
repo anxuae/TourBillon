@@ -170,6 +170,12 @@ function hasMatchChanges(roundNumber, matchIndex, match) {
   return false
 }
 
+function getMatchResultStatus(teamPoints, allTeamsPoints) {
+  if (!allTeamsPoints || allTeamsPoints.length === 0) return null
+  const maxPoints = Math.max(...allTeamsPoints)
+  return teamPoints === maxPoints ? 'won' : 'lost'
+}
+
 async function saveMatch(roundNumber, index, match) {
   const key = matchPointsKey(roundNumber, index, match)
   const points = pointsByMatch.value[key] || initPoints(roundNumber, index, match)
@@ -364,6 +370,8 @@ async function deleteSelectedRound() {
                     v-model.number="initPoints(currentRound.number, index, match)[team]"
                     type="number"
                     min="0"
+                    class="points-input"
+                    :class="initPoints(currentRound.number, index, match)[team] ? `input-${getMatchResultStatus(initPoints(currentRound.number, index, match)[team], match.teams.map(t => initPoints(currentRound.number, index, match)[t]))}` : 'input-empty'"
                   >
                 </div>
               </div>
@@ -391,7 +399,6 @@ async function deleteSelectedRound() {
     >
       No round available yet.
     </p>
-
   </section>
 </template>
 
@@ -478,6 +485,7 @@ section {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  flex-wrap: wrap;
 }
 
 .team-chip {
@@ -495,8 +503,27 @@ section {
   text-align: right;
 }
 
-.result-line input {
-  width: 80px;
+.points-input {
+  width: 80px !important;
+  font-weight: 600 !important;
+}
+
+.points-input.input-won {
+  background: var(--status-won-bg) !important;
+  color: var(--status-won-fg) !important;
+  border-color: var(--status-won-border) !important;
+}
+
+.points-input.input-lost {
+  background: var(--status-lost-bg) !important;
+  color: var(--status-lost-fg) !important;
+  border-color: var(--status-lost-border) !important;
+}
+
+.points-input.input-empty {
+  background: var(--color-surface) !important;
+  color: var(--color-text) !important;
+  border-color: var(--color-border) !important;
 }
 
 .status-row {

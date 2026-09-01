@@ -89,6 +89,7 @@ def test_get_settings(client):
     assert "rank_by_goal_avg" in body["tournament"]
     assert "rotation_seconds" in body["display"]
     assert "show_ranking_criteria" in body["display"]
+    assert "auto_switch" in body["display"]
     assert "draws" in body
     assert "genetic" in body["draws"]
 
@@ -102,7 +103,11 @@ def test_update_settings_persisted(client):
                 "rank_by_buchholz": False,
                 "rank_by_goal_avg": False,
             },
-            "display": {"rotation_seconds": 9, "show_ranking_criteria": True},
+            "display": {
+                "rotation_seconds": 9,
+                "show_ranking_criteria": True,
+                "auto_switch": False,
+            },
             "draws": {"genetic": {"max_disparity": 5}},
         },
     )
@@ -113,6 +118,7 @@ def test_update_settings_persisted(client):
     assert body["tournament"]["rank_by_goal_avg"] is False
     assert body["display"]["rotation_seconds"] == 9
     assert body["display"]["show_ranking_criteria"] is True
+    assert body["display"]["auto_switch"] is False
     assert body["draws"]["genetic"]["max_disparity"] == 5
 
     # The change is reflected on the next read.
@@ -122,6 +128,7 @@ def test_update_settings_persisted(client):
     assert reread["tournament"]["rank_by_goal_avg"] is False
     assert reread["display"]["rotation_seconds"] == 9
     assert reread["display"]["show_ranking_criteria"] is True
+    assert reread["display"]["auto_switch"] is False
     assert reread["draws"]["genetic"]["max_disparity"] == 5
 
 
