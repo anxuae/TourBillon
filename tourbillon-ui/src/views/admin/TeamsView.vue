@@ -78,39 +78,88 @@ onMounted(() => {
   suggestTeamNumberIfEmpty()
 })
 
-// Unique known players (from previous editions), keyed by their full name.
+// Capitalize each word of a hand-typed name (keeps dashes and apostrophes).
+function capitalize(text) {
+  const cleaned = (text || '').trim().replace(/\s+/g, ' ')
+  if (!cleaned) return ''
+  let capitalizeNext = true
+  let result = ''
+  for (const char of cleaned) {
+    result += capitalizeNext ? char.toUpperCase() : char.toLowerCase()
+    capitalizeNext = char === ' ' || char === '-' || char === "'"
+  }
+  return result
+}
+
+// Strip diacritics so "Jose" and "José" match the same player
+function foldAccents(text) {
+  return (text || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+}
+
+function nameKey(text) {
+  return foldAccents(text).trim().replace(/\s+/g, ' ').toLowerCase()
+}
+
+// Accented spellings are assumed to be the correct ones
+function betterName(current, candidate) {
+  if (!current) return candidate
+  const currentAccents = current !== foldAccents(current)
+  const candidateAccents = candidate !== foldAccents(candidate)
+  if (candidateAccents && !currentAccents) return candidate
+  return current
+}
+
+// Unique known players (from previous editions), keyed by their full name
+// without case nor accents so hand-typed variants are merged into one entry.
 // Both inputs share the SAME suggestion list of full names so that starting to
 // type either a first or last name proposes complete players; picking one then
 // fills both fields at once.
 const knownPlayers = computed(() => {
   const map = new Map()
   for (const p of historyPlayers.value) {
-    const fullname = `${p.firstname} ${p.lastname}`.trim()
-    if (fullname && !map.has(fullname)) {
-      map.set(fullname, { firstname: p.firstname, lastname: p.lastname })
+    const firstname = capitalize(p.firstname)
+    const lastname = capitalize(p.lastname)
+    const fullname = `${firstname} ${lastname}`.trim()
+    const key = nameKey(fullname)
+    if (!fullname) continue
+    const existing = map.get(key)
+    if (existing) {
+      // Keep the nicest spelling seen across the editions
+      existing.firstname = betterName(existing.firstname, firstname)
+      existing.lastname = betterName(existing.lastname, lastname)
+      existing.fullname = `${existing.firstname} ${existing.lastname}`.trim()
+    } else {
+      map.set(key, { firstname, lastname, fullname })
     }
   }
   return map
 })
 
 const fullnameSuggestions = computed(() =>
-  [...knownPlayers.value.keys()].sort(),
+  [...knownPlayers.value.values()]
+    .map((player) => player.fullname)
+    .sort((left, right) => left.localeCompare(right)),
 )
 
 // When a field receives a value matching a known full name (typically after
 // selecting a datalist option), split it across the first/last name fields.
+// The lookup ignores casing and accents so "jose gomez" matches "José Gómez".
 function applyMatch(player) {
-  const match = knownPlayers.value.get(player.firstname.trim())
-    || knownPlayers.value.get(player.lastname.trim())
+  const match = knownPlayers.value.get(nameKey(player.firstname))
+    || knownPlayers.value.get(nameKey(player.lastname))
   if (match) {
     player.firstname = match.firstname
     player.lastname = match.lastname
+    return
   }
+  // Unknown player: still normalize the casing of what was typed
+  player.firstname = capitalize(player.firstname)
+  player.lastname = capitalize(player.lastname)
 }
 
 async function addTeam() {
   const players = playerInputs.value
-    .map((p) => ({ firstname: p.firstname.trim(), lastname: p.lastname.trim() }))
+    .map((p) => ({ firstname: capitalize(p.firstname), lastname: capitalize(p.lastname) }))
     .filter((p) => p.firstname || p.lastname)
   const requestedNumber = teamNumberInput.value === '' || teamNumberInput.value === null
     ? null

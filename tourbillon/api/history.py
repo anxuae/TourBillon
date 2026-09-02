@@ -12,6 +12,7 @@ reused by the streaming endpoint, the aggregation and the player detail.
 """
 
 import threading
+import unicodedata
 from pathlib import Path
 
 from ..core import tournament as core_tournament
@@ -104,13 +105,72 @@ def list_tournaments(save_dir):
     return result
 
 
+def _fold_accents(text):
+    """Return ``text`` without any diacritic (``é`` -> ``e``)."""
+    decomposed = unicodedata.normalize("NFD", text or "")
+    return "".join(char for char in decomposed if not unicodedata.combining(char))
+
+
+def _capitalize(text):
+    """Return ``text`` with each word starting with a capital letter.
+
+    Names are typed by hand, so casing is unreliable. ``str.title()`` is not
+    used because it lowercases letters after an apostrophe or a dash, which
+    would break names such as ``O'Brien`` or ``Jean-Luc``.
+    """
+    text = " ".join((text or "").split())
+    if not text:
+        return ""
+    result = []
+    capitalize_next = True
+    for char in text:
+        result.append(char.upper() if capitalize_next else char.lower())
+        capitalize_next = char in " -'"
+    return "".join(result)
+
+
+def _player_parts(player):
+    """Return the ``(firstname, lastname)`` of a player, nicely capitalized."""
+    return _capitalize(player.firstname), _capitalize(player.lastname)
+
+
 def _player_name(player):
-    """Return a stable display name for a player."""
-    return f"{player.firstname} {player.lastname}".strip()
+    """Return a stable display name for a player (capitalized, spaces folded)."""
+    firstname, lastname = _player_parts(player)
+    return f"{firstname} {lastname}".strip()
+
+
+def _player_key(player):
+    """Return the key used to merge duplicated entries.
+
+    Ignores both the case and the accents so hand-typed variants such as
+    ``Jose Gomez``, ``José Gómez`` and ``JOSE GOMEZ`` map to a single player.
+    """
+    return _fold_accents(_player_name(player)).casefold()
+
+
+def _better_name(current, candidate):
+    """Return the nicest of two spellings of the same name.
+
+    Accented spellings are assumed to be the correct ones, so they win over
+    their plain ASCII counterpart.
+    """
+    if not current:
+        return candidate
+    current_accents = current != _fold_accents(current)
+    candidate_accents = candidate != _fold_accents(candidate)
+    if candidate_accents and not current_accents:
+        return candidate
+    return current
 
 
 def aggregate_players(save_dir, with_wins=True, with_joker=True, with_buchholz=True, with_goal_avg=True):
-    """Return aggregated statistics per player across every edition."""
+    """Return aggregated statistics per player across every edition.
+
+    Entries are merged ignoring the case and the accents, so hand-typed
+    variants such as ``jean DUPONT``, ``Jean Dupont`` and ``Jean Dupont`` count
+    as a single player. The exposed name is the nicest spelling seen.
+    """
     players = {}
     for path, trn in _iter_tournaments(save_dir):
         year = _year_of(trn, path)
@@ -118,16 +178,23 @@ def aggregate_players(save_dir, with_wins=True, with_joker=True, with_buchholz=T
         for team in trn.teams():
             rank = ranking.get(team)
             for player in team.players():
-                name = _player_name(player)
+                key = _player_key(player)
+                if not key:
+                    continue
+                firstname, lastname = _player_parts(player)
                 entry = players.setdefault(
-                    name,
-                    {"name": name, "firstname": player.firstname,
-                     "lastname": player.lastname, "participations": 0,
+                    key,
+                    {"name": _player_name(player), "firstname": firstname,
+                     "lastname": lastname, "participations": 0,
                      "wins": 0, "points": 0, "best_rank": None, "years": []},
                 )
                 entry["participations"] += 1
                 entry["wins"] += team.wins()
                 entry["points"] += team.points()
+                # Keep the nicest spelling seen across the editions
+                entry["firstname"] = _better_name(entry["firstname"], firstname)
+                entry["lastname"] = _better_name(entry["lastname"], lastname)
+                entry["name"] = f"{entry['firstname']} {entry['lastname']}".strip()
                 if rank is not None:
                     if entry["best_rank"] is None or rank < entry["best_rank"]:
                         entry["best_rank"] = rank
@@ -140,7 +207,8 @@ def tournament_players(save_dir, filename, with_wins=True, with_joker=True,
     """Return the per-player statistics of a single save file.
 
     Used by the frontend to stream the history edition by edition instead of
-    waiting for every file to be parsed.
+    waiting for every file to be parsed. Names are capitalized so the frontend
+    can merge them case-insensitively.
     """
     path = Path(save_dir) / filename
     trn = load_tournament(path)
@@ -152,11 +220,12 @@ def tournament_players(save_dir, filename, with_wins=True, with_joker=True,
     for team in trn.teams():
         rank = ranking.get(team)
         for player in team.players():
+            firstname, lastname = _player_parts(player)
             players.append(
                 {
                     "name": _player_name(player),
-                    "firstname": player.firstname,
-                    "lastname": player.lastname,
+                    "firstname": firstname,
+                    "lastname": lastname,
                     "team": team.id,
                     "rank": rank,
                     "wins": team.wins(),
@@ -173,16 +242,25 @@ def tournament_players(save_dir, filename, with_wins=True, with_joker=True,
 
 
 def player_detail(save_dir, name, with_wins=True, with_joker=True, with_buchholz=True, with_goal_avg=True):
-    """Return the year-by-year detail of a single player, or ``None``."""
+    """Return the year-by-year detail of a single player, or ``None``.
+
+    The lookup ignores the case and the accents so a player typed differently
+    across the editions is still found as a single person. Each edition keeps
+    the ``raw_name`` exactly as stored in the save file, which makes wrong
+    merges visible to the operator.
+    """
     detail = None
+    wanted = _fold_accents(_capitalize(name)).casefold()
     for path, trn in _iter_tournaments(save_dir):
         year = _year_of(trn, path)
         ranking = _ranking_of(trn, with_wins, with_joker, with_buchholz, with_goal_avg)
         for team in trn.teams():
             for player in team.players():
-                if _player_name(player) == name:
+                if _player_key(player) == wanted:
                     if detail is None:
-                        detail = {"name": name, "editions": []}
+                        detail = {"name": _player_name(player), "editions": []}
+                    else:
+                        detail["name"] = _better_name(detail["name"], _player_name(player))
                     detail["editions"].append(
                         {
                             "year": year,
@@ -190,6 +268,10 @@ def player_detail(save_dir, name, with_wins=True, with_joker=True, with_buchholz
                             "rank": ranking.get(team),
                             "wins": team.wins(),
                             "points": team.points(),
+                            # Untouched spelling found in the save file
+                            "raw_name": f"{player.firstname} {player.lastname}".strip(),
+                            "raw_firstname": player.firstname,
+                            "raw_lastname": player.lastname,
                         }
                     )
     return detail

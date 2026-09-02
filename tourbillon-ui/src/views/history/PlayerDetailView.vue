@@ -16,6 +16,20 @@ const sortedEditions = computed(() => {
   return [...detail.value.editions].sort((left, right) => Number(left.year) - Number(right.year))
 })
 
+// Distinct spellings found in the save files: several of them means entries
+// were merged, which lets the operator spot a wrong merge.
+const spellings = computed(() => {
+  const names = new Set()
+  for (const row of sortedEditions.value) {
+    if (row.raw_name) names.add(row.raw_name)
+  }
+  return [...names]
+})
+
+function isDifferent(rawName) {
+  return Boolean(rawName) && rawName !== detail.value?.name
+}
+
 onMounted(async () => {
   loading.value = true
   error.value = null
@@ -46,34 +60,77 @@ onMounted(async () => {
       Unable to load player detail.
     </p>
 
-    <table v-else-if="sortedEditions.length">
-      <thead>
-        <tr>
-          <th>Year</th>
-          <th>Team</th>
-          <th>Rank</th>
-          <th>Wins</th>
-          <th>Points</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr
-          v-for="row in sortedEditions"
-          :key="`${row.year}-${row.team}`"
-        >
-          <td>{{ row.year }}</td>
-          <td>{{ row.team }}</td>
-          <td>{{ row.rank ?? '—' }}</td>
-          <td>{{ row.wins }}</td>
-          <td>{{ row.points }}</td>
-        </tr>
-      </tbody>
-    </table>
-    <p
-      v-else
-      class="muted"
-    >
-      No edition data available.
-    </p>
+    <template v-else>
+      <p
+        v-if="spellings.length > 1"
+        class="merge-note"
+      >
+        Merged from {{ spellings.length }} spellings:
+        <span
+          v-for="spelling in spellings"
+          :key="spelling"
+          class="spelling"
+        >{{ spelling }}</span>
+      </p>
+
+      <table v-if="sortedEditions.length">
+        <thead>
+          <tr>
+            <th>Year</th>
+            <th>Registered as</th>
+            <th>Team</th>
+            <th>Rank</th>
+            <th>Wins</th>
+            <th>Points</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            v-for="row in sortedEditions"
+            :key="`${row.year}-${row.team}`"
+          >
+            <td>{{ row.year }}</td>
+            <td :class="{ different: isDifferent(row.raw_name) }">
+              {{ row.raw_name || '—' }}
+            </td>
+            <td>{{ row.team }}</td>
+            <td>{{ row.rank ?? '—' }}</td>
+            <td>{{ row.wins }}</td>
+            <td>{{ row.points }}</td>
+          </tr>
+        </tbody>
+      </table>
+      <p
+        v-else
+        class="muted"
+      >
+        No edition data available.
+      </p>
+    </template>
   </section>
 </template>
+
+<style scoped>
+.merge-note {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 0.9rem;
+  font-size: 0.85rem;
+  color: var(--color-text);
+}
+
+.spelling {
+  background: color-mix(in srgb, var(--color-primary) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-primary) 35%, transparent);
+  border-radius: 999px;
+  padding: 0.1rem 0.55rem;
+}
+
+/* Highlight a spelling that differs from the retained name */
+.different {
+  font-style: italic;
+  opacity: 0.85;
+}
+</style>

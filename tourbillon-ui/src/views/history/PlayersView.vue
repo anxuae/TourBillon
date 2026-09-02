@@ -1,24 +1,25 @@
 <script setup>
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { RouterLink } from 'vue-router'
-import { api } from '@/api/client'
+import { playerKey, useHistoryPlayers } from '@/composables/useHistoryPlayers'
 
-const players = ref([])
-const tournaments = ref([])
-const editions = ref([])
+// State lives at module scope: coming back from a player detail does not reload
+const { players, tournaments, editions, loading, error, loadedCount, spellingCount, load } =
+  useHistoryPlayers()
+
 const query = ref('')
-const loading = ref(false)
-const error = ref(null)
-const loadedCount = ref(0)
 
-let cancelled = false
+// Duplicates folded together: distinct spellings minus the merged players
+const mergedCount = computed(() => Math.max(0, spellingCount.value - players.value.length))
 
 const filteredPlayers = computed(() => {
-  const text = query.value.trim().toLowerCase()
+  const text = query.value.trim()
   if (!text) {
     return players.value
   }
-  return players.value.filter((player) => player.name.toLowerCase().includes(text))
+  // Search ignores case and accents, like the merge does
+  const needle = playerKey(text)
+  return players.value.filter((player) => playerKey(player.name).includes(needle))
 })
 
 // Sorting: click a column to toggle ascending / descending
@@ -133,68 +134,9 @@ const chartArea = computed(() => {
   return `${firstX},100 ${chartPoints.value} ${lastX},100`
 })
 
-function mergeEdition(edition) {
-  // Merge one edition into the aggregated player list, keeping it sorted
-  const index = new Map(players.value.map((player) => [player.name, player]))
-  for (const row of edition.players) {
-    let entry = index.get(row.name)
-    if (!entry) {
-      entry = {
-        name: row.name,
-        firstname: row.firstname,
-        lastname: row.lastname,
-        participations: 0,
-        wins: 0,
-        points: 0,
-        best_rank: null,
-        years: [],
-      }
-      index.set(row.name, entry)
-    }
-    entry.participations += 1
-    entry.wins += row.wins
-    entry.points += row.points
-    if (row.rank !== null && row.rank !== undefined) {
-      if (entry.best_rank === null || row.rank < entry.best_rank) {
-        entry.best_rank = row.rank
-      }
-    }
-    entry.years.push(edition.year)
-  }
-  players.value = [...index.values()].sort((left, right) => left.name.localeCompare(right.name))
-}
-
-async function loadHistory() {
-  loading.value = true
-  error.value = null
-  try {
-    tournaments.value = await api.listHistoryTournaments()
-  } catch (err) {
-    error.value = err.message
-    loading.value = false
-    return
-  }
-  // Stream the editions one by one so results appear progressively
-  for (const tournament of tournaments.value) {
-    if (cancelled) return
-    try {
-      const edition = await api.getHistoryTournamentPlayers(tournament.filename)
-      editions.value = [...editions.value, edition]
-      mergeEdition(edition)
-    } catch {
-      // Ignore unreadable save files and keep streaming the others
-    }
-    loadedCount.value += 1
-  }
-  loading.value = false
-}
-
 onMounted(() => {
-  loadHistory()
-})
-
-onBeforeUnmount(() => {
-  cancelled = true
+  // No-op if the data is already loaded or a load is still in flight
+  load()
 })
 </script>
 
@@ -205,6 +147,8 @@ onBeforeUnmount(() => {
         <h1>Player History</h1>
         <p class="muted">
           {{ loadedCount }} / {{ tournaments.length }} tournaments aggregated
+          &middot; {{ players.length }} players
+          &middot; {{ mergedCount }} merged
         </p>
       </div>
       <input
