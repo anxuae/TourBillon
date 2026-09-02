@@ -145,6 +145,7 @@ onBeforeUnmount(() => {
         v-for="card in visibleCards"
         :key="card.key"
         class="team-card"
+        :class="card.type === 'special' ? 'team-card-special' : ''"
       >
         <div
           v-if="card.type === 'team'"
@@ -174,7 +175,10 @@ onBeforeUnmount(() => {
         </div>
 
         <div class="card-location">
-          <span class="location-label">{{ card.type === 'team' ? 'Location' : card.label }}</span>
+          <span
+            class="location-label"
+            :class="card.type === 'team' ? '' : 'location-label-special'"
+          >{{ card.type === 'team' ? 'Location' : card.label }}</span>
           <span
             v-if="card.type === 'team'"
             class="location-value"
@@ -283,6 +287,18 @@ onBeforeUnmount(() => {
   text-transform: uppercase;
   letter-spacing: 0.18em;
   color: #cbd5e1;
+}
+
+.location-label-special {
+  font-size: 2rem;
+  font-weight: 900;
+  color: #f1f5f9;
+  letter-spacing: 0.14em;
+}
+
+/* Keep special cards visually detached from the first team card */
+.team-card-special + .team-card:not(.team-card-special) {
+  margin-top: 2.4rem;
 }
 
 .location-value {

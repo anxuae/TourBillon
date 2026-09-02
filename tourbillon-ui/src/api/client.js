@@ -52,7 +52,9 @@ async function request(method, url, body, requestOptions = {}) {
 
 // Upload a file as multipart/form-data. On error, throws an Error whose
 // ``status`` property carries the HTTP status (e.g. 409 for a name conflict).
-async function upload(url, file) {
+async function upload(url, file, requestOptions = {}) {
+  const { suppressErrorStatuses = [] } = requestOptions
+
   const form = new FormData()
   form.append('file', file)
   const response = await fetch(url, { method: 'POST', body: form })
@@ -65,9 +67,12 @@ async function upload(url, file) {
       // Ignore body parsing errors.
     }
     const message = `${response.status}: ${detail}`
-    pushApiError(message, response.status)
+    if (!suppressErrorStatuses.includes(response.status)) {
+      pushApiError(message, response.status)
+    }
     const err = new Error(message)
     err.status = response.status
+    err.detail = detail
     throw err
   }
   return response.json()
@@ -90,7 +95,12 @@ export const api = {
   deleteTournamentSave: (filename) =>
     request('DELETE', `/api/tournament/files/${encodeURIComponent(filename)}`),
   uploadTournament: (file, overwrite = false) =>
-    upload(`/api/tournament/upload?overwrite=${overwrite ? 'true' : 'false'}`, file),
+    upload(
+      `/api/tournament/upload?overwrite=${overwrite ? 'true' : 'false'}`,
+      file,
+      // A 409 without overwrite is an expected conflict handled by the caller.
+      { suppressErrorStatuses: overwrite ? [] : [409] },
+    ),
 
   // Teams
   listTeams: () => request('GET', '/api/teams'),
@@ -127,7 +137,10 @@ export const api = {
 
   // History
   listHistoryTournaments: () => request('GET', '/api/history/tournaments'),
-  listHistoryPlayers: () => request('GET', '/api/history/players'),  getHistoryPlayer: (name) =>
+  listHistoryPlayers: () => request('GET', '/api/history/players'),
+  getHistoryTournamentPlayers: (filename) =>
+    request('GET', `/api/history/tournaments/${encodeURIComponent(filename)}/players`),
+  getHistoryPlayer: (name) =>
     request('GET', `/api/history/players/${encodeURIComponent(name)}`),
 
   // About

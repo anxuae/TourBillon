@@ -21,6 +21,22 @@ def list_history_tournaments(state=Depends(get_state)):
     return history_service.list_tournaments(state.settings.save_dir)
 
 
+@router.get("/tournaments/{filename}/players")
+def get_history_tournament_players(filename: str, state=Depends(get_state)):
+    """Return the per-player statistics of a single save file."""
+    data = history_service.tournament_players(
+        state.settings.save_dir,
+        filename,
+        with_wins=state.settings.rank_by_wins,
+        with_joker=state.settings.rank_by_joker,
+        with_buchholz=state.settings.rank_by_buchholz,
+        with_goal_avg=state.settings.rank_by_goal_avg,
+    )
+    if data is None:
+        raise HTTPException(status_code=404, detail=f"Unknown save file '{filename}'")
+    return data
+
+
 @router.get("/players")
 def list_history_players(state=Depends(get_state)):
     """Return aggregated per-player statistics across every save file."""
