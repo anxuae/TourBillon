@@ -5,6 +5,7 @@ import { useAutoDisplayPaging } from '@/composables/useAutoDisplayPaging'
 import { useEvents } from '@/events/eventsClient'
 import { useRankingCriteria } from '@/composables/useRankingCriteria'
 import { useRankingTeams } from '@/composables/useRankingTeams'
+import TeamBadge from '@/components/TeamBadge.vue'
 
 const rankings = ref([])
 const teams = ref([])
@@ -171,7 +172,10 @@ watch(rankings, async () => {
             >⇄</span>
           </td>
           <td class="centered-cell">
-            {{ row.team }}
+            <TeamBadge
+              :team="row.team"
+              size="md"
+            />
           </td>
           <td class="players-cell">
             <span

@@ -3,6 +3,7 @@ import { computed, inject, onBeforeUnmount, onMounted, ref } from 'vue'
 import { api } from '@/api/client'
 import { useAutoDisplayPaging } from '@/composables/useAutoDisplayPaging'
 import { useEvents } from '@/events/eventsClient'
+import TeamBadge from '@/components/TeamBadge.vue'
 
 const currentRound = ref(null)
 const rotationSeconds = inject('displayRotationSeconds', ref(12))
@@ -54,15 +55,26 @@ const teamCards = computed(() => {
   // Flatten all teams from all matches into individual cards, sorted by team number
   const cards = []
   for (const match of allMatches.value) {
+    const points = match.points || {}
+    const values = match.teams.map((id) => points[id])
+    // Check if any score has been entered (not all zero)
+    const hasScores = values.some((value) => value !== null && value !== undefined && value !== 0)
+
     for (const teamId of match.teams) {
+      const teamPoints = points[teamId]
       cards.push({
         type: 'team',
         key: `team-${teamId}`,
         teamId,
         location: match.location ?? '—',
+        points: hasScores && teamPoints !== null && teamPoints !== undefined ? teamPoints : null,
         opponents: match.teams
           .filter((t) => t !== teamId)
-          .map((oppId) => ({ id: oppId, status: matchResultStatus(match, oppId) })),
+          .map((oppId) => ({
+            id: oppId,
+            status: matchResultStatus(match, oppId),
+            points: hasScores && points[oppId] !== null && points[oppId] !== undefined ? points[oppId] : null,
+          })),
         status: matchResultStatus(match, teamId),
       })
     }
@@ -71,29 +83,26 @@ const teamCards = computed(() => {
 })
 
 const specialCards = computed(() => {
-  // One extra card per special status, gathering all concerned teams
-  const cards = []
+  // Merge all special status teams into a single card with labels
   const byes = currentRound.value?.byes ?? []
-  if (byes.length) {
-    cards.push({
-      type: 'special',
-      key: 'special-bye',
-      label: 'Bye',
-      status: 'bye',
-      teams: [...byes].sort((a, b) => a - b),
-    })
-  }
   const forfeits = currentRound.value?.forfeits ?? []
-  if (forfeits.length) {
-    cards.push({
-      type: 'special',
-      key: 'special-forfeit',
-      label: 'Forfeit',
-      status: 'forfeit',
-      teams: [...forfeits].sort((a, b) => a - b),
-    })
+
+  if (!byes.length && !forfeits.length) {
+    return []
   }
-  return cards
+
+  const allSpecialTeams = [
+    ...byes.map((id) => ({ id, label: 'bye' })),
+    ...forfeits.map((id) => ({ id, label: 'forfeit' })),
+  ]
+
+  return [
+    {
+      type: 'special',
+      key: 'special-combined',
+      teams: allSpecialTeams.sort((a, b) => a.id - b.id),
+    },
+  ]
 })
 
 // Special cards open the rotation cycle, ahead of the first team
@@ -151,34 +160,42 @@ onBeforeUnmount(() => {
           v-if="card.type === 'team'"
           class="card-numbers"
         >
-          <span
-            class="team-badge team-badge-main"
-            :class="card.status ? `team-${card.status}` : ''"
-          >{{ card.teamId }}</span>
-          <span
+          <TeamBadge
+            :team="card.teamId"
+            :status="card.status"
+            :show-crown="card.status === 'won'"
+            :points="card.points"
+            size="lg"
+          />
+          <TeamBadge
             v-for="opponent in card.opponents"
             :key="`opp-${opponent.id}`"
-            class="team-badge"
-            :class="opponent.status ? `team-${opponent.status}` : ''"
-          >{{ opponent.id }}</span>
+            :team="opponent.id"
+            :status="opponent.status"
+            :show-crown="opponent.status === 'won'"
+            :points="opponent.points"
+            size="md"
+          />
         </div>
         <div
           v-else
           class="card-numbers"
         >
-          <span
-            v-for="teamId in card.teams"
-            :key="`${card.key}-${teamId}`"
-            class="team-badge team-badge-main"
-            :class="`team-${card.status}`"
-          >{{ teamId }}</span>
+          <TeamBadge
+            v-for="team in card.teams"
+            :key="`${card.key}-${team.id}`"
+            :team="team.id"
+            :status="team.label"
+            :label="team.label"
+            size="lg"
+          />
         </div>
 
         <div class="card-location">
           <span
             class="location-label"
             :class="card.type === 'team' ? '' : 'location-label-special'"
-          >{{ card.type === 'team' ? 'Location' : card.label }}</span>
+          >{{ card.type === 'team' ? 'Location' : 'Special' }}</span>
           <span
             v-if="card.type === 'team'"
             class="location-value"
@@ -226,53 +243,6 @@ onBeforeUnmount(() => {
   gap: 0.9rem;
 }
 
-.team-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 5rem;
-  height: 5rem;
-  border-radius: 10px;
-  font-size: 2.3rem;
-  font-weight: 900;
-  font-family: 'Courier New', monospace;
-  background: var(--color-surface);
-  color: #1f2937;
-  border: 2px solid rgba(255, 255, 255, 0.35);
-}
-
-.team-badge-main {
-  width: 6.6rem;
-  height: 6.6rem;
-  border-radius: 12px;
-  font-size: 3.2rem;
-  margin-right: 0.6rem;
-}
-
-.team-badge.team-won {
-  background: var(--status-won-bg, #e8f8ef);
-  border-color: #34d399;
-  color: #14532d;
-}
-
-.team-badge.team-lost {
-  background: var(--status-lost-bg, #fdeaea);
-  border-color: #f87171;
-  color: #7f1d1d;
-}
-
-.team-badge.team-bye {
-  background: var(--status-bye-bg, #fef7d8);
-  border-color: #eab308;
-  color: #713f12;
-}
-
-.team-badge.team-forfeit {
-  background: var(--status-forfeit-bg, #d7dbe0);
-  border-color: #475569;
-  color: #1f2937;
-}
-
 .card-location {
   display: flex;
   flex-direction: column;
@@ -283,7 +253,7 @@ onBeforeUnmount(() => {
 }
 
 .location-label {
-  font-size: 0.95rem;
+  font-size: 1.2rem;
   text-transform: uppercase;
   letter-spacing: 0.18em;
   color: #cbd5e1;
@@ -302,7 +272,7 @@ onBeforeUnmount(() => {
 }
 
 .location-value {
-  font-size: 2.6rem;
+  font-size: 3.2rem;
   font-weight: 900;
   color: #f1f5f9;
   font-family: 'Courier New', monospace;

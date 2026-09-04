@@ -3,6 +3,7 @@ import { computed, inject, onMounted, ref } from 'vue'
 import { api } from '@/api/client'
 import { useAutoDisplayPaging } from '@/composables/useAutoDisplayPaging'
 import { useEvents } from '@/events/eventsClient'
+import TeamBadge from '@/components/TeamBadge.vue'
 
 const teams = ref([])
 const rotationSeconds = inject('displayRotationSeconds', ref(12))
@@ -76,7 +77,10 @@ function playerLabel(player) {
         class="team-card"
       >
         <div class="team-number">
-          {{ team.number }}
+          <TeamBadge
+            :team="team.number"
+            size="lg"
+          />
         </div>
 
         <div class="players-col">
@@ -131,7 +135,6 @@ function playerLabel(player) {
   align-items: center;
   justify-content: center;
   border-radius: 10px;
-  background: rgba(255, 255, 255, 0.12);
   font-size: clamp(2.3rem, 5vw, 3.4rem);
   font-weight: 800;
   line-height: 1;

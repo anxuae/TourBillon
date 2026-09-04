@@ -179,8 +179,16 @@ function getMatchResultStatus(teamPoints, allTeamsPoints) {
 async function saveMatch(roundNumber, index, match) {
   const key = matchPointsKey(roundNumber, index, match)
   const points = pointsByMatch.value[key] || initPoints(roundNumber, index, match)
+  
+  // Validate points: convert NaN and null to 0, ensure all values are integers
+  const validatedPoints = {}
+  for (const [teamId, value] of Object.entries(points)) {
+    const numValue = Number(value)
+    validatedPoints[parseInt(teamId)] = isNaN(numValue) ? 0 : Math.max(0, Math.floor(numValue))
+  }
+  
   try {
-    await api.setMatchResult(roundNumber, index + 1, points)
+    await api.setMatchResult(roundNumber, index + 1, validatedPoints)
     await store.refreshRounds()
     await store.refreshRankings(roundNumber)
   } catch {
