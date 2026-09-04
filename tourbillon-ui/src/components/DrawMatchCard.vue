@@ -1,4 +1,8 @@
 <script setup>
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
+
 const props = defineProps({
   match: {
     type: Object,
@@ -104,13 +108,13 @@ function assignBench(teamId, index) {
         v-if="!props.isMatchIncomplete(props.match)"
         class="quality-wrap"
         :class="{ 'has-tooltip': props.starLossReasons(props.match).length > 0 }"
-        :aria-label="`${props.matchStars(props.match) ?? 0} stars`"
+        :aria-label="t('draw.starsAria', { count: props.matchStars(props.match) ?? 0 })"
       >
-        <span class="quality-label">Quality</span>
+        <span class="quality-label">{{ t('common.quality') }}</span>
         <span
           class="star-meter"
           role="img"
-          aria-label="Star quality level"
+          :aria-label="t('draw.starQuality')"
         >
           <span
             v-for="index in 3"
@@ -155,12 +159,12 @@ function assignBench(teamId, index) {
             </small>
             <span
               class="power-wrap has-tooltip"
-              :aria-label="`Power ${props.teamPowerScore(teamId)} out of 5`"
+              :aria-label="t('draw.powerAria', { score: props.teamPowerScore(teamId) })"
             >
               <span
                 class="power-arms"
                 role="img"
-                aria-label="Team power level"
+                :aria-label="t('draw.teamPowerLevel')"
               >
                 <span
                   v-for="index in 5"
@@ -189,18 +193,18 @@ function assignBench(teamId, index) {
               :disabled="props.disableByeAction"
               @click.stop="moveTo(teamId, 'bye')"
             >
-              BYE
+              {{ t('draw.bye') }}
             </button>
             <button
               class="mini status-action status-forfeit"
               @click.stop="moveTo(teamId, 'forfeit')"
             >
-              FORFEIT
+              {{ t('draw.forfeit') }}
             </button>
           </div>
         </template>
         <template v-else>
-          <span>Empty slot</span>
+          <span>{{ t('draw.emptySlot') }}</span>
           <div class="bench-assign">
             <button
               v-for="benchTeam in props.benchTeams"

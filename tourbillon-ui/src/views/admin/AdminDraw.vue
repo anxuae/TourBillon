@@ -2,9 +2,11 @@
 import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
+import { useI18n } from 'vue-i18n'
 import { api, pushApiError } from '@/api/client'
 import { useEvents } from '@/events/eventsClient'
 import { useTournamentStore } from '@/stores/tournament'
+import { useStatusLabel } from '@/composables/useStatusLabel'
 import DrawBenchPanel from '@/components/DrawBenchPanel.vue'
 import DrawMatchCard from '@/components/DrawMatchCard.vue'
 
@@ -16,6 +18,8 @@ const props = defineProps({
 })
 const emit = defineEmits(['cancel', 'issues-change', 'created'])
 
+const { t } = useI18n()
+const { statusLabel } = useStatusLabel()
 const store = useTournamentStore()
 const { draws, tournament, teams } = storeToRefs(store)
 const router = useRouter()
@@ -23,7 +27,7 @@ const router = useRouter()
 const selectedAlgorithm = ref('')
 
 const progress = ref(0)
-const message = ref('Idle')
+const message = ref(t('draw.idle'))
 const running = ref(false)
 const stage = ref('config')
 const draft = ref(null)
@@ -64,22 +68,22 @@ watch(
 
 subscribe('draw_progress', (payload) => {
   progress.value = Math.round(payload.percent || 0)
-  message.value = payload.message || 'Running'
+  message.value = payload.message || t('draw.running')
 })
 
 subscribe('draw_error', (payload) => {
-  pushApiError(payload.message || 'Draw error')
+  pushApiError(payload.message || t('draw.error'))
   running.value = false
 })
 
 subscribe('draw_preview_ready', () => {
   progress.value = 100
-  message.value = 'Preview ready'
+  message.value = t('draw.previewReady')
 })
 
 subscribe('round_created', (payload) => {
   if (committing.value) {
-    message.value = `Round ${payload.round} created`
+    message.value = t('draw.roundCreated', { number: payload.round })
   }
 })
 
@@ -87,7 +91,7 @@ subscribe('round_created', (payload) => {
 async function runDraw() {
   store.setDrawPreviewReady(false)
   progress.value = 0
-  message.value = 'Generating preview...'
+  message.value = t('draw.generatingPreview')
   running.value = true
 
   try {
@@ -98,7 +102,7 @@ async function runDraw() {
     draft.value = JSON.parse(JSON.stringify(preview))
     stage.value = 'review'
     store.setDrawPreviewReady(true)
-    message.value = 'Preview generated'
+    message.value = t('draw.previewGenerated')
     progress.value = 100
   } catch {
     store.setDrawPreviewReady(false)
@@ -233,9 +237,9 @@ function matchLabel(matchId) {
   const text = String(matchId ?? '').trim()
   const compact = text.match(/^m(\d+)$/i)
   if (compact) {
-    return `Match ${compact[1]}`
+    return t('draw.matchLabel', { number: compact[1] })
   }
-  return `Match ${text}`
+  return t('draw.matchLabel', { number: text })
 }
 
 function liveMetricsForMatch(match) {
@@ -333,18 +337,22 @@ function starLossReasons(match) {
   const pairs = liveRematchPairs(match).map((pair) => pair.join('-')).join(', ')
 
   if (hasMixedWins(match)) {
-    reasons.push(`Different wins: ${winsSummary}`)
+    reasons.push(t('draw.reasonDifferentWins', { summary: winsSummary }))
   }
 
   if (hasRematch(match)) {
     if (pairs) {
-      reasons.push(`Already met pair(s): ${pairs}`)
+      reasons.push(t('draw.reasonAlreadyMetPairs', { pairs }))
     } else {
-      reasons.push(`Already met teams in match: ${(match?.teams || []).filter((team) => team != null).join(', ')}`)
+      reasons.push(t('draw.reasonAlreadyMetTeams', {
+        teams: (match?.teams || []).filter((team) => team != null).join(', '),
+      }))
     }
   }
   if (hasFullRematch(match)) {
-    reasons.push(`All teams already met each other: ${(match?.teams || []).filter((team) => team != null).join(', ')}`)
+    reasons.push(t('draw.reasonAllTeamsMet', {
+      teams: (match?.teams || []).filter((team) => team != null).join(', '),
+    }))
   }
   return reasons
 }
@@ -378,13 +386,13 @@ function liveViolations(match) {
   if (hasMixedWins(match)) {
     const wins = liveMetricsForMatch(match).map((metric) => Number(metric.wins || 0))
     const disparity = Math.max(...wins) - Math.min(...wins)
-    items.push({ code: `disparity ${disparity}`, tone: 'warning' })
+    items.push({ code: `disparity ${disparity}`, label: t('draw.violationDisparity', { value: disparity }), tone: 'warning' })
   }
 
   if (hasFullRematch(match)) {
-    items.push({ code: 'full rematch', tone: 'danger' })
+    items.push({ code: 'full rematch', label: t('draw.violationFullRematch'), tone: 'danger' })
   } else if (hasRematch(match)) {
-    items.push({ code: 'rematch', tone: 'danger' })
+    items.push({ code: 'rematch', label: t('draw.violationRematch'), tone: 'danger' })
   }
 
   return items
@@ -559,7 +567,7 @@ const draftIssues = computed(() => {
   const ids = []
 
   if (normalizedDraft.value.invalidPartialMatches.length) {
-    issues.push('Some matches are partially filled with multiple teams')
+    issues.push(t('draw.issuePartialMatches'))
   }
 
   for (const match of normalizedDraft.value.matches) {
@@ -570,21 +578,21 @@ const draftIssues = computed(() => {
   ids.push(...normalizedDraft.value.forfeits)
 
   if (teamsByMatch.value > 0 && normalizedDraft.value.byes.length >= teamsByMatch.value) {
-    issues.push(`BYE count must be lower than ${teamsByMatch.value}`)
+    issues.push(t('draw.issueByeCount', { count: teamsByMatch.value }))
   }
 
   if (ids.length !== new Set(ids).size) {
-    issues.push('A team is assigned multiple times')
+    issues.push(t('draw.issueDuplicateTeam'))
   }
 
   const known = new Set(teams.value.map((team) => team.number))
   const unknown = ids.filter((teamId) => !known.has(teamId))
   if (unknown.length) {
-    issues.push('Unknown team detected in draft')
+    issues.push(t('draw.issueUnknownTeam'))
   }
 
   if (known.size && ids.length !== known.size) {
-    issues.push('Some teams are missing from draft assignment')
+    issues.push(t('draw.issueMissingTeams'))
   }
 
   return [...new Set(issues)]
@@ -638,7 +646,7 @@ async function commitDraft() {
   if (!draft.value) return
   running.value = true
   committing.value = true
-  message.value = 'Creating round...'
+  message.value = t('draw.creatingRound')
   try {
     const prepared = normalizeDraftForCommit(draft.value)
     const createdRound = await api.createRound({
@@ -667,7 +675,7 @@ async function commitDraft() {
         : undefined,
     })
   } catch {
-    pushApiError('Unable to create round from draft')
+    pushApiError(t('draw.createRoundError'))
   } finally {
     committing.value = false
     running.value = false
@@ -682,7 +690,7 @@ function resetDrawState() {
   dragged.value = null
   focusedMatchId.value = null
   progress.value = 0
-  message.value = 'Idle'
+  message.value = t('draw.idle')
   hideFullMatches.value = false
   teamFilterInput.value = ''
   running.value = false
@@ -697,15 +705,15 @@ function resetDrawState() {
         v-if="props.showHeader"
         class="head"
       >
-        <h1>Draw</h1>
-        <span class="badge">{{ tournament?.status || 'no tournament' }}</span>
+        <h1>{{ t('draw.title') }}</h1>
+        <span class="badge">{{ tournament?.status ? statusLabel(tournament.status) : t('draw.noTournament') }}</span>
       </header>
 
       <div class="top-row">
         <div class="card form">
           <div class="algorithm-panel">
             <h2 class="algorithm-title">
-              Algorithm
+              {{ t('draw.algorithm') }}
             </h2>
             <div class="draw-toolbar">
               <div class="algorithm-field">
@@ -726,7 +734,7 @@ function resetDrawState() {
                   :disabled="running || !tournament"
                   @click="runDraw"
                 >
-                  Generate
+                  {{ t('draw.generate') }}
                 </button>
               </div>
             </div>
@@ -771,13 +779,13 @@ function resetDrawState() {
         class="card review-card"
       >
         <div class="review-head">
-          <h2>Review & adjust</h2>
+          <h2>{{ t('draw.reviewTitle') }}</h2>
           <div class="review-controls">
             <label
               class="team-search"
               for="draw-team-filter"
             >
-              <span>Team</span>
+              <span>{{ t('common.team') }}</span>
               <span class="team-search-control">
                 <input
                   id="draw-team-filter"
@@ -785,14 +793,14 @@ function resetDrawState() {
                   type="text"
                   inputmode="numeric"
                   pattern="[0-9]*"
-                  placeholder="e.g. 12"
+                  :placeholder="t('draw.filterPlaceholder')"
                 >
                 <button
                   v-if="teamFilterInput"
                   type="button"
                   class="team-search-clear"
-                  aria-label="Clear team filter"
-                  title="Clear"
+                  :aria-label="t('draw.clearFilter')"
+                  :title="t('common.clear')"
                   @click="clearTeamFilter"
                 >
                   ×
@@ -804,8 +812,8 @@ function resetDrawState() {
                 type="button"
                 class="view-toggle-btn"
                 :class="{ active: viewMode === 'mosaic' }"
-                aria-label="Mosaic view"
-                title="Mosaic view"
+                :aria-label="t('draw.mosaicView')"
+                :title="t('draw.mosaicView')"
                 @click="viewMode = 'mosaic'"
               >
                 ⊞
@@ -814,15 +822,15 @@ function resetDrawState() {
                 type="button"
                 class="view-toggle-btn"
                 :class="{ active: viewMode === 'list' }"
-                aria-label="List view"
-                title="List view"
+                :aria-label="t('draw.listView')"
+                :title="t('draw.listView')"
                 @click="viewMode = 'list'"
               >
                 ≡
               </button>
             </div>
             <label class="toggle-row">
-              <span>Hide full matches</span>
+              <span>{{ t('draw.hideFullMatches') }}</span>
               <span class="toggle-switch">
                 <input
                   v-model="hideFullMatches"
@@ -834,7 +842,7 @@ function resetDrawState() {
           </div>
         </div>
         <p class="muted">
-          Click two teams to swap them. Move teams to BYE/FORFEIT, then reassign from bench to empty slots.
+          {{ t('draw.hint') }}
         </p>
 
         <div
@@ -851,7 +859,7 @@ function resetDrawState() {
               <h3>
                 <span class="group-wins">{{ group.wins }}</span>
                 <span class="group-label-wrap">
-                  <span class="group-label">wins group</span>
+                  <span class="group-label">{{ t('draw.winsGroup') }}</span>
                 </span>
               </h3>
             </div>
@@ -894,14 +902,14 @@ function resetDrawState() {
           <table class="draw-list-table">
             <thead>
               <tr>
-                <th>Match</th>
-                <th>Wins</th>
+                <th>{{ t('common.match') }}</th>
+                <th>{{ t('common.wins') }}</th>
                 <th class="th-left">
-                  Teams
+                  {{ t('common.teams') }}
                 </th>
-                <th>Quality</th>
+                <th>{{ t('common.quality') }}</th>
                 <th class="th-left">
-                  Violations
+                  {{ t('draw.colViolations') }}
                 </th>
               </tr>
             </thead>
@@ -937,7 +945,7 @@ function resetDrawState() {
                     @dragover="allowDrop"
                     @drop="dropToSlot(match.id, teamIndex)"
                   >
-                    {{ teamId ? `Team ${teamId}` : '—' }}
+                    {{ teamId ? t('draw.teamLabel', { number: teamId }) : '—' }}
                     <span
                       v-if="teamId && teamMetricsLabel(teamId)"
                       class="team-pill-wins"
@@ -960,7 +968,7 @@ function resetDrawState() {
                     :key="`${match.id}-${violation.code}`"
                     class="violation-badge"
                     :class="`violation-${violation.tone}`"
-                  >{{ violation.code }}</span>
+                  >{{ violation.label }}</span>
                   <span
                     v-if="!liveViolations(match).length"
                     class="violation-none"
@@ -975,14 +983,14 @@ function resetDrawState() {
           v-if="viewMode === 'list' ? !listMatches.length : !displayedGroupedMatches.length"
           class="muted"
         >
-          {{ teamFilterInput ? 'No match for this team.' : 'No match with empty slot.' }}
+          {{ teamFilterInput ? t('draw.noMatchForTeam') : t('draw.noMatchWithEmptySlot') }}
         </p>
 
         <aside
           v-if="alertItems.length"
           class="alerts-panel"
         >
-          <h4>Alerts</h4>
+          <h4>{{ t('draw.alerts') }}</h4>
           <ul>
             <li
               v-for="(alert, index) in alertItems"
@@ -1006,7 +1014,7 @@ function resetDrawState() {
         :disabled="running || !canCommit"
         @click="commitDraft"
       >
-        Create round
+        {{ t('draw.createRound') }}
       </button>
     </div>
   </section>
@@ -1328,10 +1336,11 @@ label.check {
 
 .group-rail {
   display: flex;
-  align-items: flex-start;
+  align-items: stretch;
   justify-content: center;
   border-right: 1px solid color-mix(in srgb, var(--group-border, var(--color-border)) 60%, white);
   padding-right: 0.55rem;
+  min-height: 0;
 }
 
 .group-rail h3 {
@@ -1339,8 +1348,8 @@ label.check {
   display: flex;
   flex-direction: column;
   align-items: center;
-  min-height: clamp(6.4rem, 14vw, 7.4rem);
   width: 100%;
+  min-height: 0;
 }
 
 .group-wins {
@@ -1349,28 +1358,35 @@ label.check {
   font-weight: 700;
   line-height: 1;
   color: #334155;
+  flex: 0 0 auto;
 }
 
+/* The label flows in the remaining height so a longer translation never
+   overlaps the wins number: it is clipped with an ellipsis instead. */
 .group-label-wrap {
-  margin-top: clamp(0.55rem, 1.8vw, 1rem);
+  margin-top: clamp(0.4rem, 1.2vw, 0.7rem);
   width: 100%;
-  min-height: clamp(2.7rem, 6.8vw, 3.5rem);
+  flex: 1 1 auto;
+  min-height: 0;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
+  overflow: hidden;
 }
 
 .group-label {
   font-family: 'Avenir Next', 'Segoe UI', sans-serif;
-  display: inline-block;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  max-height: 100%;
   font-size: 0.72rem;
   line-height: 1;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   text-align: center;
-  transform-origin: center;
-  transform: rotate(-90deg);
   color: #64748b;
 }
 
@@ -1405,7 +1421,7 @@ label.check {
 }
 
 .matches-grid {
-  --match-card-width-base: clamp(172px, 28vw, 210px);
+  --match-card-width-base: clamp(190px, 30vw, 232px);
   --match-card-width: var(--match-card-width-base);
   display: grid;
   width: 100%;

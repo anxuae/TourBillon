@@ -1,4 +1,8 @@
 <script setup>
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
+
 const props = defineProps({
   byes: {
     type: Array,
@@ -37,7 +41,7 @@ function allow(event) {
         @dragover="allow"
         @drop="dropTo('bye')"
       >
-        <h2>Bye</h2>
+        <h2>{{ t('draw.benchBye') }}</h2>
 
         <div class="chips">
           <span
@@ -47,7 +51,7 @@ function allow(event) {
             draggable="true"
             @dragstart="dragStart(teamId, 'bye')"
           >
-            Team {{ teamId }}
+            {{ t('draw.teamLabel', { number: teamId }) }}
           </span>
         </div>
       </div>
@@ -57,7 +61,7 @@ function allow(event) {
         @dragover="allow"
         @drop="dropTo('forfeit')"
       >
-        <h2>Forfeit</h2>
+        <h2>{{ t('draw.benchForfeit') }}</h2>
         <div class="chips">
           <span
             v-for="teamId in props.forfeits"
@@ -66,7 +70,7 @@ function allow(event) {
             draggable="true"
             @dragstart="dragStart(teamId, 'forfeit')"
           >
-            Team {{ teamId }}
+            {{ t('draw.teamLabel', { number: teamId }) }}
           </span>
         </div>
       </div>

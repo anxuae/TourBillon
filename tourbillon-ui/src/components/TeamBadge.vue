@@ -2,6 +2,10 @@
 // Shared team card: a squared badge showing a team id, optionally colored by
 // the match result (won / lost / bye / forfeit). Used by both the admin and
 // the display spaces so every view keeps the same status color code.
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
+
 defineProps({
   team: {
     type: [Number, String],
@@ -43,7 +47,7 @@ defineProps({
       v-if="showCrown"
       class="crown"
       :class="`crown-${size}`"
-      aria-label="Champion"
+      :aria-label="t('common.champion')"
     >👑</span>
     <span
       v-if="points !== null"

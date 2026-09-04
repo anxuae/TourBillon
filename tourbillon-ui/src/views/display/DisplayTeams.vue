@@ -1,11 +1,13 @@
 <script setup>
 import { computed, inject, onMounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { api } from '@/api/client'
 import { useAutoDisplayPaging } from '@/composables/useAutoDisplayPaging'
 import { useEvents } from '@/events/eventsClient'
 import TeamBadge from '@/components/TeamBadge.vue'
 
 const teams = ref([])
+const { t } = useI18n()
 const rotationSeconds = inject('displayRotationSeconds', ref(12))
 const containerRef = ref(null)
 
@@ -102,7 +104,7 @@ function playerLabel(player) {
       </article>
     </div>
     <p v-else>
-      No teams available.
+      {{ t('display.noTeams') }}
     </p>
   </section>
 </template>

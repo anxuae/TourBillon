@@ -1,5 +1,6 @@
 <script setup>
 import { computed, inject, nextTick, onMounted, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { api } from '@/api/client'
 import { useAutoDisplayPaging } from '@/composables/useAutoDisplayPaging'
 import { useEvents } from '@/events/eventsClient'
@@ -9,6 +10,7 @@ import TeamBadge from '@/components/TeamBadge.vue'
 
 const rankings = ref([])
 const teams = ref([])
+const { t } = useI18n()
 const showRankingExtras = ref(false)
 const rotationSeconds = inject('displayRotationSeconds', ref(12))
 const containerRef = ref(null)
@@ -123,38 +125,38 @@ watch(rankings, async () => {
       <thead>
         <tr>
           <th class="centered-cell">
-            Rank
+            {{ t('common.rank') }}
           </th>
           <th class="centered-cell">
-            Team
+            {{ t('common.team') }}
           </th>
-          <th>Players</th>
+          <th>{{ t('common.players') }}</th>
           <th
             v-if="showWins"
             class="centered-cell criteria-cell"
           >
-            Wins
+            {{ t('common.wins') }}
           </th>
           <th class="centered-cell criteria-cell">
-            Points
+            {{ t('common.points') }}
           </th>
           <th
             v-if="showRankingExtras && showJoker"
             class="centered-cell criteria-cell"
           >
-            Joker
+            {{ t('common.joker') }}
           </th>
           <th
             v-if="showRankingExtras && showBuchholz"
             class="centered-cell criteria-cell"
           >
-            Buchholz
+            {{ t('rankings.buchholz') }}
           </th>
           <th
             v-if="showRankingExtras && showGoalAvg"
             class="centered-cell criteria-cell goal-avg-cell"
           >
-            Goal Avg
+            {{ t('rankings.goalAverage') }}
           </th>
         </tr>
       </thead>
@@ -168,7 +170,7 @@ watch(rankings, async () => {
             <span
               v-if="isTieRank(row.rank)"
               class="tie-indicator"
-              aria-label="Tied rank"
+              :aria-label="t('rankings.tiedRank')"
             >⇄</span>
           </td>
           <td class="centered-cell">
@@ -223,7 +225,7 @@ watch(rankings, async () => {
       </tbody>
     </table>
     <p v-else>
-      No ranking data.
+      {{ t('display.noRanking') }}
     </p>
   </section>
 </template>

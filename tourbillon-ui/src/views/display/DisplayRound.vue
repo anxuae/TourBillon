@@ -1,11 +1,15 @@
 <script setup>
 import { computed, inject, onBeforeUnmount, onMounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { api } from '@/api/client'
 import { useAutoDisplayPaging } from '@/composables/useAutoDisplayPaging'
 import { useEvents } from '@/events/eventsClient'
+import { useStatusLabel } from '@/composables/useStatusLabel'
 import TeamBadge from '@/components/TeamBadge.vue'
 
 const currentRound = ref(null)
+const { t } = useI18n()
+const { statusLabel } = useStatusLabel()
 const rotationSeconds = inject('displayRotationSeconds', ref(12))
 const containerRef = ref(null)
 
@@ -92,8 +96,8 @@ const specialCards = computed(() => {
   }
 
   const allSpecialTeams = [
-    ...byes.map((id) => ({ id, label: 'bye' })),
-    ...forfeits.map((id) => ({ id, label: 'forfeit' })),
+    ...byes.map((id) => ({ id, label: 'bye', caption: statusLabel('bye') })),
+    ...forfeits.map((id) => ({ id, label: 'forfeit', caption: statusLabel('forfeit') })),
   ]
 
   return [
@@ -186,7 +190,7 @@ onBeforeUnmount(() => {
             :key="`${card.key}-${team.id}`"
             :team="team.id"
             :status="team.label"
-            :label="team.label"
+            :label="team.caption"
             size="lg"
           />
         </div>
@@ -195,7 +199,7 @@ onBeforeUnmount(() => {
           <span
             class="location-label"
             :class="card.type === 'team' ? '' : 'location-label-special'"
-          >{{ card.type === 'team' ? 'Location' : 'Special' }}</span>
+          >{{ card.type === 'team' ? t('common.location') : t('display.special') }}</span>
           <span
             v-if="card.type === 'team'"
             class="location-value"
@@ -204,7 +208,7 @@ onBeforeUnmount(() => {
       </div>
     </div>
     <p v-if="!currentRound">
-      No round in progress.
+      {{ t('display.noRound') }}
     </p>
   </section>
 </template>

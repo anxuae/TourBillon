@@ -1,9 +1,13 @@
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
 import { storeToRefs } from 'pinia'
+import { useI18n } from 'vue-i18n'
 import { useTournamentStore } from '@/stores/tournament'
+import { useStatusLabel } from '@/composables/useStatusLabel'
 import { pushApiError } from '@/api/client'
 
+const { t } = useI18n()
+const { statusLabel } = useStatusLabel()
 const store = useTournamentStore()
 const { tournament, savedTournaments, loading } = storeToRefs(store)
 
@@ -27,7 +31,7 @@ const fileInput = ref(null)
 // Save button state derived from the tournament flags.
 const autoSave = computed(() => !!(tournament.value && tournament.value.auto_save))
 const hasChanges = computed(() => !!(tournament.value && tournament.value.changed))
-const saveLabel = computed(() => (autoSave.value ? 'Auto Save' : 'Save'))
+const saveLabel = computed(() => (autoSave.value ? t('tournament.autoSave') : t('common.save')))
 const saveDisabled = computed(() => loading.value || autoSave.value || !hasChanges.value)
 
 // Base name of the currently loaded save file, if any.
@@ -72,13 +76,11 @@ function cleanParams() {
 
 function confirmReplaceWithUnsaved(actionLabel) {
   if (!hasChanges.value) return true
-  return window.confirm(
-    `There are unsaved changes in the current tournament. Continue and ${actionLabel}?`,
-  )
+  return window.confirm(t('tournament.confirmUnsaved', { action: actionLabel }))
 }
 
 async function createTournament() {
-  if (!confirmReplaceWithUnsaved('create a new tournament')) return
+  if (!confirmReplaceWithUnsaved(t('tournament.actionCreate'))) return
   try {
     await store.createTournament(cleanParams())
   } catch {
@@ -97,8 +99,8 @@ async function saveTournament() {
 async function deleteSavedFile(filename) {
   if (!filename) return
   const isCurrent = filename === currentFile.value
-  if (isCurrent && !confirmReplaceWithUnsaved('delete the currently loaded save file')) return
-  const ok = window.confirm(`Delete save file "${filename}"? This cannot be undone.`)
+  if (isCurrent && !confirmReplaceWithUnsaved(t('tournament.actionDeleteCurrent'))) return
+  const ok = window.confirm(t('tournament.confirmDeleteSave', { name: filename }))
   if (!ok) return
   try {
     await store.deleteTournamentSave(filename)
@@ -108,7 +110,7 @@ async function deleteSavedFile(filename) {
 }
 
 async function loadFile(filename) {
-  if (!confirmReplaceWithUnsaved(`load "${filename}"`)) return
+  if (!confirmReplaceWithUnsaved(t('tournament.actionLoad', { name: filename }))) return
   try {
     await store.loadTournament(filename)
   } catch {
@@ -123,9 +125,9 @@ function isYaml(file) {
 
 async function handleFile(file) {
   if (!file) return
-  if (!confirmReplaceWithUnsaved(`load "${file.name}"`)) return
+  if (!confirmReplaceWithUnsaved(t('tournament.actionLoad', { name: file.name }))) return
   if (!isYaml(file)) {
-    pushApiError('Only .yml or .yaml save files are accepted.')
+    pushApiError(t('tournament.onlyYaml'))
     return
   }
   try {
@@ -133,9 +135,7 @@ async function handleFile(file) {
   } catch (err) {
     if (err.status === 409) {
       // A file with the same name already exists: ask before overwriting.
-      const ok = window.confirm(
-        `A save file named "${file.name}" already exists. Overwrite it?`,
-      )
+      const ok = window.confirm(t('tournament.confirmOverwrite', { name: file.name }))
       if (!ok) return
       try {
         await store.uploadTournament(file, true)
@@ -161,31 +161,32 @@ function onPick(event) {
 
 <template>
   <section class="tournament">
-    <h1>Tournament</h1>
+    <h1>{{ t('tournament.title') }}</h1>
 
     <div
       v-if="tournament"
       class="card current"
     >
-      <h2>Current tournament</h2>
+      <h2>{{ t('tournament.current') }}</h2>
       <p>
-        <span class="badge">{{ tournament.status }}</span>
-        {{ tournament.nb_teams }} teams · {{ tournament.nb_rounds }} rounds
+        <span class="badge">{{ statusLabel(tournament.status) }}</span>
+        {{ t('tournament.summary', { teams: tournament.nb_teams, rounds: tournament.nb_rounds }) }}
       </p>
       <p class="muted">
-        {{ tournament.teams_by_match }} teams/match ·
-        {{ tournament.points_by_match }} points/match ·
-        {{ tournament.players_by_team }} players/team
+        {{ t('tournament.config', {
+          teamsByMatch: tournament.teams_by_match,
+          pointsByMatch: tournament.points_by_match,
+          playersByTeam: tournament.players_by_team,
+        }) }}
       </p>
       <p
         v-if="tournament.filename"
         class="muted"
       >
-        File: {{ tournament.filename }}
+        {{ t('tournament.fileLabel', { name: tournament.filename }) }}
       </p>
       <p class="hint">
-        A tournament is loaded: the other tabs are now available. Creating or
-        loading another one will replace it.
+        {{ t('tournament.hint') }}
       </p>
       <div class="save-row">
         <button
@@ -204,16 +205,16 @@ function onPick(event) {
         class="card"
         @submit.prevent="createTournament"
       >
-        <h2>New tournament</h2>
+        <h2>{{ t('tournament.newTitle') }}</h2>
         <label class="field">
-          <span>Title</span>
+          <span>{{ t('tournament.fieldTitle') }}</span>
           <input
             v-model="params.title"
             type="text"
           >
         </label>
         <label class="field">
-          <span>Teams per match</span>
+          <span>{{ t('tournament.teamsPerMatch') }}</span>
           <input
             v-model.number="params.teams_by_match"
             type="number"
@@ -221,7 +222,7 @@ function onPick(event) {
           >
         </label>
         <label class="field">
-          <span>Points per match</span>
+          <span>{{ t('tournament.pointsPerMatch') }}</span>
           <input
             v-model.number="params.points_by_match"
             type="number"
@@ -229,7 +230,7 @@ function onPick(event) {
           >
         </label>
         <label class="field">
-          <span>Players per team</span>
+          <span>{{ t('tournament.playersPerTeam') }}</span>
           <input
             v-model.number="params.players_by_team"
             type="number"
@@ -241,7 +242,7 @@ function onPick(event) {
           class="action-btn create-btn"
           :disabled="loading"
         >
-          Create
+          {{ t('common.create') }}
         </button>
       </form>
 
@@ -249,7 +250,7 @@ function onPick(event) {
         class="card"
         @submit.prevent
       >
-        <h2>Load a tournament</h2>
+        <h2>{{ t('tournament.loadTitle') }}</h2>
 
         <div
           class="dropzone compact"
@@ -275,8 +276,8 @@ function onPick(event) {
             />
           </svg>
           <p class="drop-text">
-            Drop a <strong>.yml</strong> / <strong>.yaml</strong> save file here
-            <br><span class="muted">or click to browse</span>
+            {{ t('tournament.dropPrefix') }} <strong>.yml</strong> / <strong>.yaml</strong> {{ t('tournament.dropSuffix') }}
+            <br><span class="muted">{{ t('tournament.dropBrowse') }}</span>
           </p>
           <input
             ref="fileInput"
@@ -291,7 +292,7 @@ function onPick(event) {
           v-if="!savedTournaments.length"
           class="muted"
         >
-          No save file found in the save directory.
+          {{ t('tournament.noSaves') }}
         </p>
         <template v-else>
           <input
@@ -299,7 +300,7 @@ function onPick(event) {
             v-model="search"
             type="search"
             class="search-input"
-            placeholder="Search a save file…"
+            :placeholder="t('tournament.searchPlaceholder')"
           >
           <ul class="file-list scrollable">
             <li
@@ -316,7 +317,7 @@ function onPick(event) {
               >
                 <div class="file-info">
                   <span class="file-name">{{ save.filename }}</span>
-                  <span class="muted">{{ save.nb_teams }} teams · {{ save.nb_rounds }} rounds</span>
+                  <span class="muted">{{ t('tournament.saveSummary', { teams: save.nb_teams, rounds: save.nb_rounds }) }}</span>
                 </div>
               </button>
 
@@ -324,17 +325,17 @@ function onPick(event) {
                 type="button"
                 class="danger-outline file-delete-btn"
                 :disabled="loading"
-                :aria-label="`Delete save file ${save.filename}`"
+                :aria-label="t('tournament.deleteSaveAria', { name: save.filename })"
                 @click="deleteSavedFile(save.filename)"
               >
-                Delete
+                {{ t('common.delete') }}
               </button>
             </li>
             <li
               v-if="!filteredTournaments.length"
               class="muted no-match"
             >
-              No file matches “{{ search }}”.
+              {{ t('tournament.noFileMatch', { query: search }) }}
             </li>
           </ul>
         </template>

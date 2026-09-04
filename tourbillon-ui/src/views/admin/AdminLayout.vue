@@ -2,11 +2,13 @@
 import { computed, onMounted, ref } from 'vue'
 import { RouterLink, RouterView } from 'vue-router'
 import { storeToRefs } from 'pinia'
+import { useI18n } from 'vue-i18n'
 import { useTournamentStore } from '@/stores/tournament'
 import SettingsModal from '@/components/SettingsModal.vue'
 import { api } from '@/api/client'
 import { useEvents } from '@/events/eventsClient'
 
+const { t } = useI18n()
 const store = useTournamentStore()
 const { tournament } = storeToRefs(store)
 
@@ -16,19 +18,19 @@ const { subscribe } = useEvents()
 
 // The Tournament tab is always available (it creates/loads a tournament); the
 // other tabs require a loaded tournament and stay disabled until then.
-const tabs = [
-  { name: 'admin-tournament', label: 'Tournament', always: true },
-  { name: 'admin-teams', label: 'Teams' },
-  { name: 'admin-round', label: 'Rounds' },
-  { name: 'admin-draw', label: 'Draw' },
-  { name: 'admin-rankings', label: 'Rankings' },
-]
+const tabs = computed(() => [
+  { name: 'admin-tournament', label: t('nav.tournament'), always: true },
+  { name: 'admin-teams', label: t('nav.teams') },
+  { name: 'admin-round', label: t('nav.rounds') },
+  { name: 'admin-draw', label: t('nav.draw') },
+  { name: 'admin-rankings', label: t('nav.rankings') },
+])
 
-const displayTabs = [
-  { name: 'display-teams', label: 'Teams' },
-  { name: 'display-round', label: 'Round' },
-  { name: 'display-rankings', label: 'Rankings' },
-]
+const displayTabs = computed(() => [
+  { name: 'display-teams', label: t('nav.teams') },
+  { name: 'display-round', label: t('nav.round') },
+  { name: 'display-rankings', label: t('nav.rankings') },
+])
 
 const tabCounts = computed(() => {
   const counts = {
@@ -68,17 +70,17 @@ function isTabEnabled(tab) {
 }
 
 function disabledTitle(tab) {
-  if (!tournament.value) return 'Load or create a tournament first'
+  if (!tournament.value) return t('nav.disabledNoTournament')
   if (tab.name === 'admin-round' && !canOpenRound.value) {
-    return `Register at least ${tournament.value.teams_by_match} teams first`
+    return t('nav.disabledNeedTeams', { count: tournament.value.teams_by_match })
   }
   if (tab.name === 'admin-draw' && !canOpenDraw.value) {
-    return 'Finish the current round before creating a new one'
+    return t('nav.disabledFinishRound')
   }
   if (tab.name === 'admin-rankings' && !canOpenRankings.value) {
-    return 'Complete at least one round first'
+    return t('nav.disabledCompleteRound')
   }
-  return 'Unavailable'
+  return t('nav.disabledUnavailable')
 }
 
 function hasCount(tabName) {
@@ -131,7 +133,7 @@ onMounted(() => {
       >
         TourBillon
       </RouterLink>
-      <span class="role">Admin</span>
+      <span class="role">{{ t('nav.admin') }}</span>
       <nav>
         <template
           v-for="tab in tabs"
@@ -164,7 +166,7 @@ onMounted(() => {
       </nav>
       <hr class="separator">
       <div class="section-label">
-        Display
+        {{ t('nav.display') }}
       </div>
       <nav>
         <button
@@ -180,14 +182,14 @@ onMounted(() => {
           <span
             v-if="currentDisplayView === tab.name"
             class="active-badge"
-          >active</span>
+          >{{ t('nav.active') }}</span>
         </button>
       </nav>
       <button
         class="settings-btn"
         @click="settingsOpen = true"
       >
-        ⚙ Settings
+        ⚙ {{ t('nav.settings') }}
       </button>
     </aside>
     <main class="content">

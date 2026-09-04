@@ -2,9 +2,13 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
+import { useI18n } from 'vue-i18n'
 import { api } from '@/api/client'
 import { useTournamentStore } from '@/stores/tournament'
+import { useStatusLabel } from '@/composables/useStatusLabel'
 
+const { t } = useI18n()
+const { statusLabel } = useStatusLabel()
 const store = useTournamentStore()
 const { rounds, tournament } = storeToRefs(store)
 const router = useRouter()
@@ -219,7 +223,7 @@ function printRound() {
 async function deleteSelectedRound() {
   if (!currentRound.value) return
   const number = currentRound.value.number
-  const ok = window.confirm(`Delete round ${number}?`)
+  const ok = window.confirm(t('round.confirmDelete', { number }))
   if (!ok) return
 
   try {
@@ -243,7 +247,7 @@ async function deleteSelectedRound() {
 <template>
   <section>
     <header class="head">
-      <h1>Round</h1>
+      <h1>{{ t('round.title') }}</h1>
     </header>
 
     <div class="round-controls">
@@ -252,7 +256,7 @@ async function deleteSelectedRound() {
           v-if="canScrollLeft"
           type="button"
           class="timeline-arrow left"
-          aria-label="Scroll rounds left"
+          :aria-label="t('round.scrollLeft')"
           @click="scrollTimeline(-1)"
         >
           ‹
@@ -262,7 +266,7 @@ async function deleteSelectedRound() {
           ref="timelineRef"
           class="round-timeline"
           :class="{ 'has-left': canScrollLeft, 'has-right': canScrollRight }"
-          aria-label="Rounds timeline"
+          :aria-label="t('round.timeline')"
           @scroll="updateTimelineOverflow"
         >
           <button
@@ -273,7 +277,7 @@ async function deleteSelectedRound() {
             :class="{ active: currentRound && currentRound.number === round.number }"
             @click="selectedRound = round.number"
           >
-            Round {{ round.number }}
+            {{ t('round.roundNumber', { number: round.number }) }}
           </button>
           <button
             type="button"
@@ -281,7 +285,7 @@ async function deleteSelectedRound() {
             :disabled="!canCreateRound"
             @click="openDrawPopup"
           >
-            New
+            {{ t('round.new') }}
           </button>
         </div>
 
@@ -289,7 +293,7 @@ async function deleteSelectedRound() {
           v-if="canScrollRight"
           type="button"
           class="timeline-arrow right"
-          aria-label="Scroll rounds right"
+          :aria-label="t('round.scrollRight')"
           @click="scrollTimeline(1)"
         >
           ›
@@ -302,12 +306,12 @@ async function deleteSelectedRound() {
       class="card"
     >
       <h3 class="round-title">
-        <span class="round-title-main">Round {{ currentRound.number }} <span class="badge">{{ currentRound.status }}</span></span>
+        <span class="round-title-main">{{ t('common.round') }} {{ currentRound.number }} <span class="badge">{{ statusLabel(currentRound.status) }}</span></span>
         <label
           class="round-search"
           for="round-team-filter"
         >
-          <span>Team</span>
+          <span>{{ t('common.team') }}</span>
           <span class="round-search-control">
             <input
               id="round-team-filter"
@@ -315,14 +319,14 @@ async function deleteSelectedRound() {
               type="text"
               inputmode="numeric"
               pattern="[0-9]*"
-              placeholder="e.g. 12"
+              :placeholder="t('round.filterPlaceholder')"
             >
             <button
               v-if="teamFilterInput"
               type="button"
               class="round-search-clear"
-              aria-label="Clear team filter"
-              title="Clear"
+              :aria-label="t('round.clearFilter')"
+              :title="t('common.clear')"
               @click="clearTeamFilter"
             >
               ×
@@ -331,30 +335,30 @@ async function deleteSelectedRound() {
         </label>
         <button
           class="print-btn"
-          title="Print this round"
+          :title="t('round.printTitle')"
           @click="printRound"
         >
-          Print
+          {{ t('common.print') }}
         </button>
         <button
           class="danger-outline"
           @click="deleteSelectedRound"
         >
-          Delete
+          {{ t('common.delete') }}
         </button>
       </h3>
       <p
         v-if="currentRound.byes?.length"
         class="status-row"
       >
-        <span class="status-row-label">Byes:</span>
+        <span class="status-row-label">{{ t('round.byesLabel') }}</span>
         <span class="status-row-list">
           <span
             v-for="teamId in currentRound.byes"
             :key="`round-bye-${teamId}`"
             class="status-badge status-bye"
           >
-            Team {{ teamId }}
+            {{ t('round.teamNumber', { number: teamId }) }}
           </span>
         </span>
       </p>
@@ -362,9 +366,9 @@ async function deleteSelectedRound() {
       <table>
         <thead>
           <tr>
-            <th>Location</th>
-            <th>Results</th>
-            <th>Status</th>
+            <th>{{ t('common.location') }}</th>
+            <th>{{ t('round.results') }}</th>
+            <th>{{ t('common.status') }}</th>
             <th />
           </tr>
         </thead>
@@ -373,7 +377,7 @@ async function deleteSelectedRound() {
             v-for="{ match, index } in filteredRoundMatches"
             :key="`${currentRound.number}-${index}`"
           >
-            <td>{{ match.location ?? '—' }}</td>
+            <td>{{ match.location ?? t('common.none') }}</td>
             <td>
               <div class="results-lines">
                 <div
@@ -382,7 +386,7 @@ async function deleteSelectedRound() {
                   class="result-line"
                 >
                   <span class="team-chip">
-                    <span class="team-chip-label">Team</span>
+                    <span class="team-chip-label">{{ t('common.team') }}</span>
                     <span class="team-chip-number">{{ team }}</span>
                   </span>
                   <input
@@ -396,7 +400,7 @@ async function deleteSelectedRound() {
               </div>
             </td>
             <td>
-              <span class="badge">{{ match.finished ? 'finished' : 'in_progress' }}</span>
+              <span class="badge">{{ statusLabel(match.finished ? 'finished' : 'in_progress') }}</span>
             </td>
             <td>
               <button
@@ -404,7 +408,7 @@ async function deleteSelectedRound() {
                 :disabled="!hasMatchChanges(currentRound.number, index, match)"
                 @click="saveMatch(currentRound.number, index, match)"
               >
-                Save
+                {{ t('common.save') }}
               </button>
             </td>
           </tr>
@@ -416,7 +420,7 @@ async function deleteSelectedRound() {
       v-else
       class="muted"
     >
-      No round available yet.
+      {{ t('round.empty') }}
     </p>
   </section>
 </template>

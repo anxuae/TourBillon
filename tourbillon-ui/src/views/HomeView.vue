@@ -1,30 +1,32 @@
 <script setup>
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { RouterLink } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import AboutModal from '@/components/AboutModal.vue'
 
+const { t } = useI18n()
 const aboutOpen = ref(false)
 
-const interfaces = [
+const interfaces = computed(() => [
   {
     to: '/admin',
-    title: 'Administration',
-    text: 'Register teams, run draws and enter match results.',
+    title: t('home.adminTitle'),
+    text: t('home.adminText'),
     icon: '🛠️',
   },
   {
     to: '/display',
-    title: 'Display',
-    text: 'Full-screen live rankings and current round for the big screen.',
+    title: t('home.displayTitle'),
+    text: t('home.displayText'),
     icon: '📺',
   },
   {
     to: '/history',
-    title: 'History',
-    text: 'Year-over-year player statistics across all saved tournaments.',
+    title: t('home.historyTitle'),
+    text: t('home.historyText'),
     icon: '📚',
   },
-]
+])
 </script>
 
 <template>
@@ -32,7 +34,7 @@ const interfaces = [
     <header class="home-header">
       <h1>TourBillon</h1>
       <p class="muted">
-        Swiss-system tournament manager for the Billon game.
+        {{ t('home.tagline') }}
       </p>
     </header>
     <div class="grid">
@@ -54,7 +56,7 @@ const interfaces = [
         class="link"
         @click="aboutOpen = true"
       >
-        About
+        {{ t('home.about') }}
       </button>
     </footer>
     <AboutModal

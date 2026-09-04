@@ -1,8 +1,10 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { api } from '@/api/client'
 
+const { t } = useI18n()
 const route = useRoute()
 
 const detail = ref(null)
@@ -55,13 +57,13 @@ onMounted(async () => {
       v-if="loading"
       class="muted"
     >
-      Loading player detail...
+      {{ t('history.detailLoading') }}
     </p>
     <p
       v-else-if="error"
       class="muted"
     >
-      Unable to load player detail.
+      {{ t('history.detailError') }}
     </p>
 
     <template v-else>
@@ -69,7 +71,7 @@ onMounted(async () => {
         v-if="spellings.length > 1"
         class="merge-note"
       >
-        Merged from {{ spellings.length }} spellings:
+        {{ t('history.mergedFrom', { count: spellings.length }) }}
         <span
           v-for="spelling in spellings"
           :key="spelling"
@@ -80,12 +82,12 @@ onMounted(async () => {
       <table v-if="sortedEditions.length">
         <thead>
           <tr>
-            <th>Year</th>
-            <th>Registered as</th>
-            <th>Team</th>
-            <th>Rank</th>
-            <th>Wins</th>
-            <th>Points</th>
+            <th>{{ t('common.year') }}</th>
+            <th>{{ t('history.colRegisteredAs') }}</th>
+            <th>{{ t('common.team') }}</th>
+            <th>{{ t('common.rank') }}</th>
+            <th>{{ t('common.wins') }}</th>
+            <th>{{ t('common.points') }}</th>
           </tr>
         </thead>
         <tbody>
@@ -108,7 +110,7 @@ onMounted(async () => {
         v-else
         class="muted"
       >
-        No edition data available.
+        {{ t('history.noEditions') }}
       </p>
     </template>
   </section>

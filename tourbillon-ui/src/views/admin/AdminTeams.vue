@@ -1,9 +1,13 @@
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'
 import { storeToRefs } from 'pinia'
+import { useI18n } from 'vue-i18n'
 import { api } from '@/api/client'
 import { useTournamentStore } from '@/stores/tournament'
+import { useStatusLabel } from '@/composables/useStatusLabel'
 
+const { t } = useI18n()
+const { statusLabel } = useStatusLabel()
 const store = useTournamentStore()
 const { teams, tournament, historyPlayers } = storeToRefs(store)
 
@@ -192,7 +196,7 @@ async function removeTeam(number) {
 
 function playerNames(team) {
   if (!team.players.length) {
-    return '—'
+    return t('common.none')
   }
   return team.players.map((p) => `${p.firstname} ${p.lastname}`.trim()).join(', ')
 }
@@ -201,17 +205,17 @@ function playerNames(team) {
 <template>
   <section>
     <header class="head">
-      <h1>Teams</h1>
+      <h1>{{ t('common.teams') }}</h1>
     </header>
 
     <div class="card add-form">
-      <h3>Register a team</h3>
+      <h3>{{ t('teams.registerTitle') }}</h3>
       <div class="register-grid">
         <div class="team-number-panel">
           <label
             class="team-number-label"
             for="team-number-input"
-          >Team number</label>
+          >{{ t('teams.teamNumber') }}</label>
           <div class="team-number-row">
             <input
               id="team-number-input"
@@ -224,8 +228,8 @@ function playerNames(team) {
             <button
               type="button"
               class="secondary quick-action-btn"
-              aria-label="Auto fill team number"
-              title="Auto fill team number"
+              :aria-label="t('teams.autoFillNumber')"
+              :title="t('teams.autoFillNumber')"
               :disabled="!tournament"
               @click="teamNumberInput = nextAvailableTeamNumber()"
             >
@@ -247,14 +251,14 @@ function playerNames(team) {
               <input
                 v-model="player.firstname"
                 list="player-suggestions"
-                :placeholder="`Player ${index + 1} first name`"
+                :placeholder="t('teams.playerFirstName', { index: index + 1 })"
                 @change="applyMatch(player)"
                 @keyup.enter="addTeam"
               >
               <input
                 v-model="player.lastname"
                 list="player-suggestions"
-                :placeholder="`Player ${index + 1} last name`"
+                :placeholder="t('teams.playerLastName', { index: index + 1 })"
                 @change="applyMatch(player)"
                 @keyup.enter="addTeam"
               >
@@ -271,7 +275,7 @@ function playerNames(team) {
             v-if="!tournament"
             class="muted"
           >
-            Load or create a tournament first.
+            {{ t('teams.loadFirst') }}
           </p>
         </div>
 
@@ -279,7 +283,7 @@ function playerNames(team) {
           <label
             class="team-number-label"
             for="joker-input"
-          >Joker</label>
+          >{{ t('common.joker') }}</label>
           <div class="field-inline">
             <input
               id="joker-input"
@@ -291,8 +295,8 @@ function playerNames(team) {
             <button
               type="button"
               class="secondary quick-action-btn"
-              aria-label="Generate joker"
-              title="Generate joker"
+              :aria-label="t('teams.generateJoker')"
+              :title="t('teams.generateJoker')"
               :disabled="!tournament"
               @click="pickRandomJoker"
             >
@@ -306,7 +310,7 @@ function playerNames(team) {
             :disabled="!tournament"
             @click="addTeam"
           >
-            Add team
+            {{ t('teams.addTeam') }}
           </button>
         </div>
       </div>
@@ -315,9 +319,9 @@ function playerNames(team) {
     <table v-if="teams.length">
       <thead>
         <tr>
-          <th>Team</th>
-          <th>Players</th>
-          <th>Status</th>
+          <th>{{ t('common.team') }}</th>
+          <th>{{ t('common.players') }}</th>
+          <th>{{ t('common.status') }}</th>
           <th />
         </tr>
       </thead>
@@ -328,13 +332,13 @@ function playerNames(team) {
         >
           <td>{{ team.number }}</td>
           <td>{{ playerNames(team) }}</td>
-          <td><span class="badge">{{ team.status }}</span></td>
+          <td><span class="badge">{{ statusLabel(team.status) }}</span></td>
           <td class="right">
             <button
               class="danger-outline"
               @click="removeTeam(team.number)"
             >
-              Remove
+              {{ t('common.remove') }}
             </button>
           </td>
         </tr>
@@ -344,7 +348,7 @@ function playerNames(team) {
       v-else
       class="muted"
     >
-      No team registered yet.
+      {{ t('teams.empty') }}
     </p>
   </section>
 </template>

@@ -1,6 +1,9 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { API_ERROR_CLEAR_EVENT, API_ERROR_EVENT } from '@/api/client'
+
+const { t } = useI18n()
 
 const message = ref('')
 const queue = ref([])
@@ -13,10 +16,7 @@ const pendingLabel = computed(() => {
   if (pendingCount.value <= 0) {
     return ''
   }
-  if (pendingCount.value === 1) {
-    return '1 more error'
-  }
-  return `${pendingCount.value} more errors`
+  return t('errors.morePending', pendingCount.value)
 })
 
 function clearHideTimer() {
@@ -94,6 +94,8 @@ onBeforeUnmount(() => {
       <button
         type="button"
         class="close-btn"
+        :aria-label="t('errors.dismiss')"
+        :title="t('errors.dismiss')"
         @click="close"
       >
         ✕

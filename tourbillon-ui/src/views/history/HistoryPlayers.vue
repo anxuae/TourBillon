@@ -1,7 +1,10 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import { RouterLink } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { playerKey, useHistoryPlayers } from '@/composables/useHistoryPlayers'
+
+const { t } = useI18n()
 
 // State lives at module scope: coming back from a player detail does not reload
 const { players, tournaments, editions, loading, error, loadedCount, spellingCount, load } =
@@ -22,7 +25,7 @@ function isMerged(player) {
 }
 
 function mergedTooltip(player) {
-  return `Merged spellings: ${(player.spellings || []).join(', ')}`
+  return t('history.mergedTooltip', { list: (player.spellings || []).join(', ') })
 }
 
 const filteredPlayers = computed(() => {
@@ -157,24 +160,24 @@ onMounted(() => {
   <section>
     <header class="head">
       <div>
-        <h1>Player History</h1>
+        <h1>{{ t('history.title') }}</h1>
         <p class="muted">
-          {{ loadedCount }} / {{ tournaments.length }} tournaments aggregated
-          &middot; {{ players.length }} players
-          &middot; {{ mergedCount }} merged
+          {{ t('history.aggregated', { loaded: loadedCount, total: tournaments.length }) }}
+          &middot; {{ t('history.playersCount', { count: players.length }) }}
+          &middot; {{ t('history.mergedCount', { count: mergedCount }) }}
         </p>
       </div>
       <span class="player-search-control">
         <input
           v-model="query"
-          placeholder="Search player..."
+          :placeholder="t('history.searchPlaceholder')"
         >
         <button
           v-if="query"
           type="button"
           class="player-search-clear"
-          aria-label="Clear search"
-          title="Clear"
+          :aria-label="t('history.clearSearch')"
+          :title="t('common.clear')"
           @click="clearQuery"
         >
           ×
@@ -196,14 +199,14 @@ onMounted(() => {
       v-if="error"
       class="muted"
     >
-      Unable to load history data.
+      {{ t('history.loadError') }}
     </p>
 
     <div
       v-if="chartEditions.length"
       class="chart-card"
     >
-      <h2>Attendance over the years</h2>
+      <h2>{{ t('history.chartTitle') }}</h2>
       <div class="chart-body">
         <div class="chart-scale">
           <span
@@ -243,12 +246,12 @@ onMounted(() => {
             type="button"
             class="chart-dot has-tooltip"
             :style="{ left: `${dot.x}%`, top: `${dot.y}%` }"
-            :aria-label="`${dot.year}: ${dot.count} players`"
+            :aria-label="t('history.chartDotAria', { year: dot.year, count: dot.count })"
           >
             <span class="chart-tooltip app-tooltip">
               <strong>{{ dot.year }}</strong>
-              <span>{{ dot.count }} players</span>
-              <span>{{ dot.teams }} teams</span>
+              <span>{{ t('history.chartPlayers', { count: dot.count }) }}</span>
+              <span>{{ t('history.chartTeams', { count: dot.teams }) }}</span>
             </span>
           </button>
         </div>
@@ -271,31 +274,31 @@ onMounted(() => {
             class="sortable"
             @click="sortBy('name')"
           >
-            Player <span class="sort-icon">{{ sortIcon('name') }}</span>
+            {{ t('common.player') }} <span class="sort-icon">{{ sortIcon('name') }}</span>
           </th>
           <th
             class="num sortable"
             @click="sortBy('participations')"
           >
-            Participations <span class="sort-icon">{{ sortIcon('participations') }}</span>
+            {{ t('history.colParticipations') }} <span class="sort-icon">{{ sortIcon('participations') }}</span>
           </th>
           <th
             class="num sortable"
             @click="sortBy('wins')"
           >
-            Total wins <span class="sort-icon">{{ sortIcon('wins') }}</span>
+            {{ t('history.colTotalWins') }} <span class="sort-icon">{{ sortIcon('wins') }}</span>
           </th>
           <th
             class="num sortable"
             @click="sortBy('points')"
           >
-            Total points <span class="sort-icon">{{ sortIcon('points') }}</span>
+            {{ t('history.colTotalPoints') }} <span class="sort-icon">{{ sortIcon('points') }}</span>
           </th>
           <th
             class="num sortable"
             @click="sortBy('best_rank')"
           >
-            Best rank <span class="sort-icon">{{ sortIcon('best_rank') }}</span>
+            {{ t('history.colBestRank') }} <span class="sort-icon">{{ sortIcon('best_rank') }}</span>
           </th>
           <th />
         </tr>
@@ -312,7 +315,7 @@ onMounted(() => {
                 v-if="isMerged(player)"
                 class="badge merged-badge has-tooltip"
               >
-                merged
+                {{ t('history.merged') }}
                 <span class="app-tooltip">{{ mergedTooltip(player) }}</span>
               </span>
             </span>
@@ -332,7 +335,7 @@ onMounted(() => {
           <td>
             <RouterLink :to="`/history/players/${encodeURIComponent(player.name)}`">
               <button class="secondary">
-                Details
+                {{ t('common.details') }}
               </button>
             </RouterLink>
           </td>
@@ -343,7 +346,7 @@ onMounted(() => {
       v-else-if="!loading"
       class="muted"
     >
-      No player found.
+      {{ t('history.empty') }}
     </p>
   </section>
 </template>

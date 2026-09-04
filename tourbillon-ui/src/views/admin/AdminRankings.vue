@@ -1,10 +1,12 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import { storeToRefs } from 'pinia'
+import { useI18n } from 'vue-i18n'
 import { useTournamentStore } from '@/stores/tournament'
 import { useRankingCriteria } from '@/composables/useRankingCriteria'
 import { useRankingTeams } from '@/composables/useRankingTeams'
 
+const { t } = useI18n()
 const store = useTournamentStore()
 const { rounds, rankings, teams } = storeToRefs(store)
 
@@ -61,13 +63,13 @@ async function refreshRankings() {
 <template>
   <section>
     <header class="head">
-      <h1>Rankings</h1>
+      <h1>{{ t('rankings.title') }}</h1>
       <div class="row">
         <label
           class="team-search"
           for="rankings-team-filter"
         >
-          <span>Team</span>
+          <span>{{ t('common.team') }}</span>
           <span class="team-search-control">
             <input
               id="rankings-team-filter"
@@ -81,8 +83,8 @@ async function refreshRankings() {
               v-if="teamFilterInput"
               type="button"
               class="team-search-clear"
-              aria-label="Clear team filter"
-              title="Clear"
+              :aria-label="t('common.clear')"
+              :title="t('common.clear')"
               @click="clearTeamFilter"
             >
               ×
@@ -91,24 +93,24 @@ async function refreshRankings() {
         </label>
         <button
           class="print-btn"
-          title="Print the rankings"
+          :title="t('rankings.printTitle')"
           @click="printRankings"
         >
-          Print
+          {{ t('common.print') }}
         </button>
         <select
           v-model="selectedRound"
           @change="refreshRankings"
         >
           <option value="">
-            Current
+            {{ t('rankings.current') }}
           </option>
           <option
             v-for="round in rounds"
             :key="round.number"
             :value="round.number"
           >
-            After round {{ round.number }}
+            {{ t('rankings.afterRound', { number: round.number }) }}
           </option>
         </select>
       </div>
@@ -118,38 +120,38 @@ async function refreshRankings() {
       <thead>
         <tr>
           <th class="rank-cell">
-            Rank
+            {{ t('common.rank') }}
           </th>
           <th class="centered-cell">
-            Team
+            {{ t('common.team') }}
           </th>
-          <th>Players</th>
+          <th>{{ t('common.players') }}</th>
           <th
             v-if="showWins"
             class="centered-cell criteria-cell"
           >
-            Wins
+            {{ t('common.wins') }}
           </th>
           <th class="centered-cell criteria-cell">
-            Points
+            {{ t('common.points') }}
           </th>
           <th
             v-if="showJoker"
             class="centered-cell criteria-cell"
           >
-            Joker
+            {{ t('common.joker') }}
           </th>
           <th
             v-if="showBuchholz"
             class="centered-cell criteria-cell"
           >
-            Buchholz
+            {{ t('rankings.buchholz') }}
           </th>
           <th
             v-if="showGoalAvg"
             class="centered-cell criteria-cell"
           >
-            Goal Avg
+            {{ t('rankings.goalAverage') }}
           </th>
         </tr>
       </thead>
@@ -163,8 +165,8 @@ async function refreshRankings() {
             <span
               v-if="isTieRank(row.rank)"
               class="tie-indicator"
-              aria-label="Tied rank"
-              title="Tied rank"
+              :aria-label="t('rankings.tiedRank')"
+              :title="t('rankings.tiedRank')"
             >⇄</span>
           </td>
           <td class="centered-cell">
@@ -214,7 +216,7 @@ async function refreshRankings() {
       v-else
       class="muted"
     >
-      {{ teamFilterInput ? 'No team matches this filter.' : 'No ranking data available.' }}
+      {{ teamFilterInput ? t('rankings.noMatch') : t('rankings.empty') }}
     </p>
   </section>
 </template>

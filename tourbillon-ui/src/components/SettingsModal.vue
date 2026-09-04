@@ -1,6 +1,24 @@
 <script setup>
 import { ref, computed, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { api } from '@/api/client'
+import { useLocale } from '@/composables/useLocale'
+
+const { t, te } = useI18n()
+const { selectedLocale, locales } = useLocale()
+
+// Section and option names come from the backend as technical keys. They are
+// translated when a matching entry exists and shown raw otherwise, so a new
+// backend key stays readable instead of displaying a missing translation.
+function sectionLabel(name) {
+  const key = `settings.sections.${name}`
+  return te(key) ? t(key) : name
+}
+
+function fieldLabel(name) {
+  const key = `settings.fields.${name}`
+  return te(key) ? t(key) : name
+}
 
 const props = defineProps({
   open: { type: Boolean, default: false },
@@ -14,6 +32,9 @@ const saving = ref(false)
 // The ``draws`` section is nested one level deeper (per algorithm) and is
 // rendered separately; every other top-level key is a scalar section.
 const DRAWS_KEY = 'draws'
+
+// The language selector is a UI-only preference rendered on top of this section.
+const GENERAL_KEY = 'general'
 
 // Load the settings each time the modal is opened.
 watch(
@@ -30,10 +51,15 @@ watch(
 )
 
 // Scalar sections (everything but ``draws``), as [name, fields] entries. The
-// sections are defined by the backend, so nothing is redeclared here.
-const scalarSections = computed(() =>
-  form.value ? Object.entries(form.value).filter(([name]) => name !== DRAWS_KEY) : [],
-)
+// sections are defined by the backend, so nothing is redeclared here; only the
+// general one is pinned first because it hosts the language selector.
+const scalarSections = computed(() => {
+  if (!form.value) {
+    return []
+  }
+  const sections = Object.entries(form.value).filter(([name]) => name !== DRAWS_KEY)
+  return sections.sort(([a], [b]) => Number(b === GENERAL_KEY) - Number(a === GENERAL_KEY))
+})
 
 function inputType(value) {
   if (typeof value === 'boolean') return 'checkbox'
@@ -66,14 +92,14 @@ async function save() {
       class="modal card"
       role="dialog"
       aria-modal="true"
-      aria-label="Settings"
+      :aria-label="t('settings.title')"
     >
-      <h2>Settings</h2>
+      <h2>{{ t('settings.title') }}</h2>
       <p
         v-if="error"
         class="muted"
       >
-        Unable to load settings.
+        {{ t('settings.loadError') }}
       </p>
 
       <form
@@ -86,13 +112,29 @@ async function save() {
             v-for="[section, fields] in scalarSections"
             :key="section"
           >
-            <legend>{{ section }}</legend>
+            <legend>{{ sectionLabel(section) }}</legend>
+            <!-- UI-only preference: stored in the browser, never sent to the API -->
+            <label
+              v-if="section === GENERAL_KEY"
+              class="field"
+            >
+              <span class="label">{{ t('settings.language') }}</span>
+              <select v-model="selectedLocale">
+                <option
+                  v-for="locale in locales"
+                  :key="locale.code"
+                  :value="locale.code"
+                >
+                  {{ locale.label }}
+                </option>
+              </select>
+            </label>
             <label
               v-for="(value, key) in fields"
               :key="key"
               class="field"
             >
-              <span class="label">{{ key }}</span>
+              <span class="label">{{ fieldLabel(key) }}</span>
               <input
                 v-if="inputType(value) === 'checkbox'"
                 v-model="form[section][key]"
@@ -124,13 +166,13 @@ async function save() {
             v-for="(config, algo) in form.draws"
             :key="algo"
           >
-            <legend>Draw · {{ algo }}</legend>
+            <legend>{{ t('settings.drawSection', { algorithm: algo }) }}</legend>
             <label
               v-for="(value, option) in config"
               :key="option"
               class="field"
             >
-              <span class="label">{{ option }}</span>
+              <span class="label">{{ fieldLabel(option) }}</span>
               <input
                 v-if="typeof value === 'boolean'"
                 v-model="form.draws[algo][option]"
@@ -165,14 +207,14 @@ async function save() {
             class="secondary action-btn"
             @click="emit('close')"
           >
-            Cancel
+            {{ t('common.cancel') }}
           </button>
           <button
             type="submit"
             class="action-btn"
             :disabled="saving"
           >
-            {{ saving ? 'Saving…' : 'Save' }}
+            {{ saving ? t('common.saving') : t('common.save') }}
           </button>
         </div>
       </form>
@@ -180,7 +222,7 @@ async function save() {
         v-else-if="!error"
         class="muted"
       >
-        Loading…
+        {{ t('common.loading') }}
       </p>
     </div>
   </div>
@@ -233,7 +275,6 @@ fieldset {
 legend {
   font-weight: 600;
   padding: 0 0.5rem;
-  text-transform: capitalize;
 }
 
 .field {
@@ -249,7 +290,6 @@ legend {
 }
 
 .label {
-  font-family: monospace;
   opacity: 0.85;
 }
 
@@ -305,7 +345,8 @@ legend {
 }
 
 .field input[type='text'],
-.field input[type='number'] {
+.field input[type='number'],
+.field select {
   flex: 0 0 55%;
 }
 

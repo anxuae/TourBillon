@@ -291,6 +291,39 @@ servis par le routeur (`/admin`, `/display`, `/history`) :
 
 REST pour le CRUD, WebSocket pour le temps réel. Éviter jQuery.
 
+### Internationalisation (i18n)
+Le frontend est internationalisé avec **`vue-i18n` v9** (Composition API, `legacy: false`).
+- Infrastructure : `src/i18n/index.js` (instance, `SUPPORTED_LOCALES`, `setLocale()`,
+  détection navigateur, persistance `localStorage` sous `tourbillon.locale`),
+  catalogues `src/i18n/locales/{en,fr}.json`, composables `useLocale()` (langue
+  courante + liste) et `useStatusLabel()` (libellé traduit d'un statut métier, avec
+  repli sur la valeur brute si la clé est absente).
+- **Deux langues** : `en` (source) et `fr`. La sélection se fait dans la **modale
+  Settings**, section `interface` — c'est une **préférence UI**, donc stockée côté
+  frontend uniquement (**jamais** envoyée au backend ni persistée dans `settings.yml`).
+- Toute chaîne visible par l'utilisateur passe par `t('...')` (texte, `title`,
+  `aria-label`, `placeholder`). Clés organisées par domaine : `common`, `status`,
+  `settings`, `rankings`, `home`, `about`, `errors`, `nav`, `tournament`, `teams`,
+  `round`, `draw`, `display`, `history`. Réutiliser `common.*` avant de créer un doublon.
+- Les **deux catalogues doivent avoir exactement le même ensemble de clés**.
+- **Ne jamais traduire** : noms d'algorithmes de tirage (`deterministic`, `genetic`,
+  `random`), clés/valeurs techniques de l'API, classes CSS, identifiants HTML, routes.
+  Les statuts métier (`bye`, `won`, `lost`…) restent des **codes** en interne (pour le
+  code couleur et la logique) et ne sont traduits qu'à l'affichage.
+- Le **code reste en anglais** (variables, commentaires, docstrings) ; seules les
+  *valeurs* de `fr.json` sont en français.
+
+### Impression
+Les règles d'impression sont **centralisées** dans `src/assets/main.css`
+(`@page { size: A4 portrait }` + un bloc `@media print` global). Toutes les vues
+s'impriment donc sur des **feuilles A4 verticales** : sidebar et bandeau d'erreur
+masqués, grille `.admin` dégrafée en flux vertical, en-têtes de tableau répétés
+(`display: table-header-group`), lignes et cartes non coupées entre pages
+(`break-inside: avoid`), contrôles interactifs masqués. Les vues n'ajoutent qu'un
+`@media print` **local** pour leurs spécificités (barre de contrôles propre à la vue,
+neutralisation des fonds colorés de saisie).
+
+
 ### Charte UI (cohérence visuelle)
 - Les actions destructives de l'UI (suppression, suppression d'un round/équipe, etc.)
   utilisent **exclusivement** la classe globale `danger-outline` définie dans

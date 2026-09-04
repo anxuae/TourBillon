@@ -1,6 +1,9 @@
 <script setup>
 import { ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { api } from '@/api/client'
+
+const { t } = useI18n()
 
 const props = defineProps({
   open: { type: Boolean, default: false },
@@ -35,35 +38,35 @@ watch(
       class="modal card"
       role="dialog"
       aria-modal="true"
-      aria-label="About TourBillon"
+      :aria-label="t('about.ariaLabel')"
     >
-      <h2>About</h2>
+      <h2>{{ t('about.title') }}</h2>
       <p
         v-if="error"
         class="muted"
       >
-        Unable to load version information.
+        {{ t('about.loadError') }}
       </p>
       <template v-else-if="info">
         <p class="name">
           {{ info.name }}
         </p>
         <p class="version">
-          Version {{ info.version }}
+          {{ t('about.version', { version: info.version }) }}
         </p>
       </template>
       <p
         v-else
         class="muted"
       >
-        Loading…
+        {{ t('common.loading') }}
       </p>
       <p class="muted tagline">
-        Swiss-system tournament manager for the Billon game.
+        {{ t('home.tagline') }}
       </p>
       <div class="actions">
         <button @click="emit('close')">
-          Close
+          {{ t('common.close') }}
         </button>
       </div>
     </div>
