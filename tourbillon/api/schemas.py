@@ -127,9 +127,6 @@ class DrawPreviewDTO(BaseModel):
 
 
 class RoundCreateDTO(BaseModel):
-    algorithm: str | None = None
-    config: dict | None = None
-    bye_teams: list[int] = []
     matches: list[list[int | None]] = []
     byes: list[int] = []
     forfeits: list[int] = []

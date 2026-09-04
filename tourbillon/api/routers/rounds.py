@@ -5,7 +5,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 
 from .. import services, schemas
-from ...core.exception import DrawError, StatusError
+from ...core.exception import StatusError
 from ..state import get_state
 
 router = APIRouter(prefix="/api/rounds", tags=["rounds"])
@@ -33,19 +33,13 @@ def get_round(number: int, state=Depends(get_state)):
 
 @router.post("", response_model=schemas.RoundDTO)
 async def create_round(request: schemas.RoundCreateDTO, state=Depends(get_state)):
-    """Create a new round by running a draw (broadcasts progress on /ws/draw)."""
+    """Create a new round from a draft previously returned by ``/api/draws/run``."""
     async with state.lock:
-
-        async def on_progress(percent, message):
-            await state.progress.publish(
-                {"type": "draw_progress", "percent": percent, "message": message}
-            )
-
         try:
-            dto = await services.create_round(state, request, on_progress=on_progress)
+            dto = services.create_round(state, request)
         except LookupError as exc:
             raise HTTPException(status_code=404, detail="No tournament loaded") from exc
-        except (DrawError, StatusError, ValueError) as ex:
+        except (StatusError, ValueError) as ex:
             await state.progress.publish({"type": "draw_error", "message": str(ex)})
             raise HTTPException(status_code=409, detail=str(ex)) from ex
 

@@ -4,6 +4,22 @@
 
 from pathlib import Path
 
+
+def create_round(client, algorithm="deterministic"):
+    """Run a draw preview then commit it as a new round."""
+    preview = client.post("/api/draws/run", json={"algorithm": algorithm})
+    assert preview.status_code == 200, preview.text
+    draft = preview.json()
+    return client.post(
+        "/api/rounds",
+        json={
+            "matches": [match["teams"] for match in draft["matches"]],
+            "byes": draft["byes"],
+            "forfeits": draft["forfeits"],
+        },
+    )
+
+
 # --------------------------------------------------------------------------- #
 # Health & draws metadata
 # --------------------------------------------------------------------------- #
@@ -300,7 +316,7 @@ def test_delete_team(registered):
 
 
 def test_delete_team_rejected_when_linked_to_rounds(registered):
-    created = registered.post("/api/rounds", json={"algorithm": "deterministic"})
+    created = create_round(registered)
     assert created.status_code == 200
 
     resp = registered.delete("/api/teams/4")
@@ -312,7 +328,7 @@ def test_delete_team_rejected_when_linked_to_rounds(registered):
 # --------------------------------------------------------------------------- #
 
 def test_create_round_and_get(registered):
-    resp = registered.post("/api/rounds", json={"algorithm": "deterministic"})
+    resp = create_round(registered)
     assert resp.status_code == 200, resp.text
     rnd = resp.json()
     assert rnd["number"] == 1
@@ -326,7 +342,7 @@ def test_create_round_and_get(registered):
 
 
 def test_ranking_after_result(registered):
-    registered.post("/api/rounds", json={"algorithm": "deterministic"})
+    create_round(registered)
     rnd = registered.get("/api/rounds/1").json()
 
     # Feed a winning score to the first team of each match.
@@ -342,7 +358,7 @@ def test_ranking_after_result(registered):
 
 
 def test_rankings_round_query_uses_round_limit(registered):
-    first = registered.post("/api/rounds", json={"algorithm": "deterministic"})
+    first = create_round(registered)
     assert first.status_code == 200, first.text
     first_round = first.json()
 
@@ -357,7 +373,7 @@ def test_rankings_round_query_uses_round_limit(registered):
     wins_round_1 = sum(row["wins"] for row in ranking_round_1.json())
     assert wins_round_1 == 2
 
-    second = registered.post("/api/rounds", json={"algorithm": "deterministic"})
+    second = create_round(registered)
     assert second.status_code == 200, second.text
     second_round = second.json()
 
@@ -374,7 +390,7 @@ def test_rankings_round_query_uses_round_limit(registered):
 
 
 def test_delete_round(registered):
-    created = registered.post("/api/rounds", json={"algorithm": "deterministic"})
+    created = create_round(registered)
     assert created.status_code == 200
 
     deleted = registered.delete("/api/rounds/1")

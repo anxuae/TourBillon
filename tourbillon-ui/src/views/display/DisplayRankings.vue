@@ -178,19 +178,19 @@ watch(rankings, async () => {
             />
           </td>
           <td class="players-cell">
-            <span
+            <div
               v-for="player in teamPlayers(row.team)"
               :key="`${row.team}-${player}`"
               class="player-name"
             >
               {{ player }}
-            </span>
-            <span
+            </div>
+            <div
               v-if="!teamPlayers(row.team).length"
               class="player-name"
             >
               —
-            </span>
+            </div>
           </td>
           <td
             v-if="showWins"
@@ -238,12 +238,19 @@ watch(rankings, async () => {
   font-size: clamp(1rem, 1.9vw, 2rem);
   color: var(--color-text);
   table-layout: fixed;
+  border-collapse: collapse;
+}
+
+.display-table tbody tr {
+  height: auto;
+  min-height: clamp(3rem, 5vh, 6rem);
 }
 
 .display-table td,
 .display-table th {
   color: var(--color-text);
   padding: clamp(0.45rem, 1.2vh, 0.9rem) clamp(0.5rem, 1.3vw, 1.1rem);
+  vertical-align: center;
 }
 
 .display-table th {
@@ -280,9 +287,6 @@ watch(rankings, async () => {
 }
 
 .players-cell {
-  display: flex;
-  flex-direction: column;
-  gap: 0.15rem;
   white-space: normal;
   overflow-wrap: anywhere;
 }
@@ -296,7 +300,9 @@ watch(rankings, async () => {
 }
 
 .player-name {
-  line-height: 1.15;
+  line-height: 1.2;
+  margin: 0;
+  padding: 0;
 }
 
 .tie-indicator {

@@ -32,6 +32,7 @@ const dragged = ref(null)
 const focusedMatchId = ref(null)
 const committing = ref(false)
 const hideFullMatches = ref(false)
+const viewMode = ref('mosaic') // 'mosaic' or 'list'
 
 const { subscribe } = useEvents()
 
@@ -710,22 +711,49 @@ function resetDrawState() {
       >
         <div class="review-head">
           <h2>Review & adjust</h2>
-          <label class="toggle-row">
-            <span>Hide full matches</span>
-            <span class="toggle-switch">
-              <input
-                v-model="hideFullMatches"
-                type="checkbox"
+          <div class="review-controls">
+            <div class="view-toggle">
+              <button
+                type="button"
+                class="view-toggle-btn"
+                :class="{ active: viewMode === 'mosaic' }"
+                aria-label="Mosaic view"
+                title="Mosaic view"
+                @click="viewMode = 'mosaic'"
               >
-              <span class="toggle-slider" />
-            </span>
-          </label>
+                ⊞
+              </button>
+              <button
+                type="button"
+                class="view-toggle-btn"
+                :class="{ active: viewMode === 'list' }"
+                aria-label="List view"
+                title="List view"
+                @click="viewMode = 'list'"
+              >
+                ≡
+              </button>
+            </div>
+            <label class="toggle-row">
+              <span>Hide full matches</span>
+              <span class="toggle-switch">
+                <input
+                  v-model="hideFullMatches"
+                  type="checkbox"
+                >
+                <span class="toggle-slider" />
+              </span>
+            </label>
+          </div>
         </div>
         <p class="muted">
           Click two teams to swap them. Move teams to BYE/FORFEIT, then reassign from bench to empty slots.
         </p>
 
-        <div class="groups">
+        <div
+          v-if="viewMode === 'mosaic'"
+          class="groups"
+        >
           <section
             v-for="(group, groupIndex) in displayedGroupedMatches"
             :key="group.wins"
@@ -770,6 +798,50 @@ function resetDrawState() {
               />
             </div>
           </section>
+        </div>
+
+        <div
+          v-else-if="viewMode === 'list'"
+          class="list-view"
+        >
+          <table class="draw-list-table">
+            <thead>
+              <tr>
+                <th>Match</th>
+                <th>Teams</th>
+                <th>Quality</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                v-for="match in draft.matches"
+                :key="match.id"
+                :class="{ 'row-incomplete': isMatchIncomplete(match) }"
+              >
+                <td class="match-id-cell">{{ matchLabel(match.id) }}</td>
+                <td class="teams-list-cell">
+                  <div
+                    v-for="teamId in match.teams"
+                    :key="`${match.id}-${teamId}`"
+                    class="team-pill"
+                    :class="teamId ? '' : 'team-pill-empty'"
+                  >
+                    {{ teamId ? `Team ${teamId}` : '—' }}
+                  </div>
+                </td>
+                <td class="quality-cell">
+                  <div class="stars">
+                    <span
+                      v-for="i in 3"
+                      :key="i"
+                      class="star"
+                      :class="{ filled: i <= (matchStars(match) ?? 0) }"
+                    >★</span>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
 
         <p
@@ -971,6 +1043,47 @@ label.check {
   margin: 0;
 }
 
+.review-controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.view-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  padding: 0.2rem;
+  background: var(--color-surface);
+}
+
+.view-toggle-btn {
+  width: 2rem;
+  height: 2rem;
+  border: none;
+  background: transparent;
+  color: var(--color-muted);
+  font-size: 1.2rem;
+  cursor: pointer;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.view-toggle-btn:hover {
+  color: var(--color-text);
+  background: color-mix(in srgb, var(--color-primary) 10%, transparent);
+}
+
+.view-toggle-btn.active {
+  background: var(--color-primary);
+  color: white;
+}
+
 .toggle-row {
   display: inline-flex;
   flex-direction: row;
@@ -1160,6 +1273,121 @@ label.check {
   text-decoration: underline;
   cursor: pointer;
   padding: 0;
+}
+
+/* List View Styles */
+.list-view {
+  width: 100%;
+  margin-top: 1rem;
+}
+
+.draw-list-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.draw-list-table thead {
+  background: var(--color-surface);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.draw-list-table th,
+.draw-list-table td {
+  padding: 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.draw-list-table th {
+  font-weight: 600;
+  color: var(--color-muted);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  text-align: center;
+}
+
+.draw-list-table tbody tr.row-incomplete {
+  background: color-mix(in srgb, #fef7d8 20%, transparent);
+}
+
+.match-id-cell {
+  font-weight: 600;
+  min-width: 90px;
+}
+
+.teams-list-cell {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  flex: 1;
+}
+
+.team-pill {
+  display: inline-block;
+  padding: 0.3rem 0.6rem;
+  background: color-mix(in srgb, var(--color-primary) 15%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-primary) 40%, transparent);
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.team-pill-empty {
+  background: color-mix(in srgb, var(--color-border) 40%, transparent);
+  border-color: var(--color-border);
+  color: var(--color-muted);
+}
+
+.power-cell {
+  text-align: center;
+  min-width: 70px;
+}
+
+.power-badge {
+  display: inline-block;
+  padding: 0.3rem 0.6rem;
+  background: color-mix(in srgb, #2c6bed 15%, transparent);
+  border-radius: 4px;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.power-cell {
+  text-align: center;
+  min-width: 70px;
+}
+
+.power-badge {
+  display: inline-block;
+  padding: 0.3rem 0.6rem;
+  background: color-mix(in srgb, #2c6bed 15%, transparent);
+  border-radius: 4px;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.quality-cell {
+  text-align: center;
+  min-width: 80px;
+}
+
+.stars {
+  display: flex;
+  gap: 0.2rem;
+  justify-content: center;
+}
+
+.star {
+  font-size: 1rem;
+  color: #cbd5e1;
+}
+
+.star.filled {
+  color: #fbbf24;
 }
 
 .progress-row {

@@ -295,71 +295,49 @@ def get_round(state, number):
     return round_dto(trn, trn.round(number))
 
 
-async def create_round(state, request, on_progress=None):
-    """Create a new round either from a draft or by running a draw.
+def create_round(state, request):
+    """Create a new round from a validated draft.
+
+    The draft is produced by :func:`preview_draw` (``POST /api/draws/run``) and
+    possibly adjusted by the operator before being committed here.
 
     :param state: application state
     :param request: :class:`schemas.RoundCreateDTO`
-    :param on_progress: optional async callback ``async (percent, message)``
     :return: the created round as a DTO
     """
     trn = state.require_tournament()
 
-    if request.matches:
-        matches = []
-        used = []
-        for match in request.matches:
-            clean = [team_id for team_id in match if team_id is not None]
-            if clean and len(clean) != trn.teams_by_match:
-                raise ValueError(f"Each match must contain exactly {trn.teams_by_match} teams")
-            if clean:
-                matches.append(clean)
-                used.extend(clean)
+    if not request.matches:
+        raise ValueError("A draft with at least one match is required")
 
-        used.extend(request.byes)
-        used.extend(request.forfeits)
+    matches = []
+    used = []
+    for match in request.matches:
+        clean = [team_id for team_id in match if team_id is not None]
+        if clean and len(clean) != trn.teams_by_match:
+            raise ValueError(f"Each match must contain exactly {trn.teams_by_match} teams")
+        if clean:
+            matches.append(clean)
+            used.extend(clean)
 
-        if len(used) != len(set(used)):
-            raise ValueError("A team is assigned multiple times")
+    used.extend(request.byes)
+    used.extend(request.forfeits)
 
-        all_teams = set([team.id for team in trn.teams()])
-        used_set = set(used)
+    if len(used) != len(set(used)):
+        raise ValueError("A team is assigned multiple times")
 
-        missing = sorted(all_teams - used_set)
-        if missing:
-            raise ValueError(f"Some teams are unassigned: {missing}")
+    all_teams = set([team.id for team in trn.teams()])
+    used_set = set(used)
 
-        extras = sorted(used_set - all_teams)
-        if extras:
-            raise ValueError(f"Unknown teams in draft: {extras}")
+    missing = sorted(all_teams - used_set)
+    if missing:
+        raise ValueError(f"Some teams are unassigned: {missing}")
 
-        byes = request.byes
-    else:
-        algorithm = request.algorithm or state.settings.default_draw
+    extras = sorted(used_set - all_teams)
+    if extras:
+        raise ValueError(f"Unknown teams in draft: {extras}")
 
-        stats = trn.statistics()
-
-        # Effective options: algorithm defaults < saved user settings < request.
-        config = state.settings.draw_config(algorithm)
-        if request.config:
-            config.update(request.config)
-
-        byes = draws.select_bye_teams(
-            stats,
-            trn.teams_by_match,
-            forced=request.bye_teams,
-            algorithm=algorithm,
-            config=config,
-        )
-
-        matches = await draws.generate(
-            algorithm,
-            trn.teams_by_match,
-            stats,
-            bye_teams=byes,
-            config=config,
-            on_progress=on_progress,
-        )
+    byes = request.byes
 
     rnd = trn.add_round()
     locations = trn.locations()
