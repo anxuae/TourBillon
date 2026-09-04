@@ -231,3 +231,68 @@ button.status-action.status-lost:hover {
 button.status-action.status-forfeit:hover {
   background: color-mix(in srgb, var(--status-forfeit-bg) 86%, #2f3742);
 }
+
+/* ------------------------------------------------------------------ */
+/* Print: every view is laid out on vertical A4 portrait sheets.       */
+/* ------------------------------------------------------------------ */
+@page {
+  size: A4 portrait;
+  margin: 12mm;
+}
+
+@media print {
+  html,
+  body,
+  #app {
+    height: auto !important;
+    overflow: visible !important;
+    background: #fff !important;
+    color: #000 !important;
+  }
+
+  .api-error-banner,
+  .sidebar {
+    display: none !important;
+  }
+
+  .admin,
+  .history {
+    display: block !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  .content {
+    padding: 0 !important;
+    overflow: visible !important;
+  }
+
+  .card {
+    border: 1px solid #ccc;
+    box-shadow: none !important;
+    break-inside: avoid;
+  }
+
+  table {
+    width: 100% !important;
+    break-inside: auto;
+  }
+
+  thead {
+    display: table-header-group;
+  }
+
+  tr {
+    break-inside: avoid;
+  }
+
+  /* Interactive controls are meaningless on paper */
+  .print-btn,
+  .action-btn,
+  .settings-btn,
+  .close-btn,
+  .danger-outline,
+  button.secondary {
+    display: none !important;
+  }
+}

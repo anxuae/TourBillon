@@ -344,6 +344,22 @@ REST pour le CRUD, WebSocket pour le temps réel. Éviter jQuery.
 - Règle visuelle générale pour ces statuts : privilégier un **fond pastel**
   (lisible et non agressif) avec un **liseré/bordure légèrement plus foncé(e)**
   de la même teinte, pour mieux détacher les badges sur toutes les vues.
+- **Typographie des badges** : le texte d'un badge s'écrit **en minuscules**
+  (pas de `text-transform: uppercase`) et **sans gras** (pas de `font-weight`
+  renforcé). Ne pas ajouter non plus de `letter-spacing` sur un badge. Cette
+  règle vaut pour **tous** les badges/pills/tags de l'application (statuts,
+  compteurs, indicateurs), afin qu'ils partagent la même densité visuelle.
+- **Réutiliser la classe globale `badge`** (définie dans
+  `tourbillon-ui/src/assets/main.css`) plutôt que de recréer localement un
+  badge : les styles locaux doivent se limiter aux ajustements de layout
+  (largeur minimale, `position: relative` pour un tooltip, `font-variant-numeric`
+  pour des chiffres). Ne pas redéfinir `background`, `color`, `border`,
+  `border-radius`, `padding` ni `font-size` de base dans un `<style scoped>`.
+- **Couleurs des badges** : utiliser les **variables CSS de statut**
+  (`--status-bye-*`, `--status-won-*`, `--status-lost-*`, `--status-forfeit-*`,
+  `--status-generic-*`) au lieu de couleurs codées en dur ou de `color-mix()`
+  ad hoc. Tout badge sans sémantique propre utilise `--status-generic-*` (le
+  violet pastel), qui est déjà le style par défaut de la classe `badge`.
 
 ---
 

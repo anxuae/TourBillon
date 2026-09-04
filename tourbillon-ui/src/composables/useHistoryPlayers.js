@@ -22,16 +22,28 @@ function foldAccents(text) {
   return (text || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '')
 }
 
+// Compound names are typed inconsistently ("Jean-Paul", "Jean Paul", "JeanPaul"),
+// so every separator (space, hyphen, apostrophe, dot) is dropped from the key.
+// Must stay in sync with `_name_key()` in tourbillon/api/history.py, otherwise
+// the players list and the player detail would not merge the same entries.
 export function playerKey(name) {
-  return foldAccents(name).toLowerCase()
+  return foldAccents(name)
+    .toLowerCase()
+    .replace(/[\s\-'’.]+/g, '')
 }
 
-// Accented spellings are assumed to be the correct ones
+// Pick the nicest spelling: accents first, then the hyphenated form of
+// compound names ("Jean-Paul" is preferred over "Jean Paul")
 function betterName(current, candidate) {
   if (!current) return candidate
   const currentAccents = current !== foldAccents(current)
   const candidateAccents = candidate !== foldAccents(candidate)
-  if (candidateAccents && !currentAccents) return candidate
+  if (candidateAccents !== currentAccents) {
+    return candidateAccents ? candidate : current
+  }
+  const currentHyphen = current.includes('-')
+  const candidateHyphen = candidate.includes('-')
+  if (candidateHyphen && !currentHyphen) return candidate
   return current
 }
 
@@ -54,12 +66,17 @@ function mergeEdition(edition) {
         points: 0,
         best_rank: null,
         years: [],
+        // Distinct spellings folded into this player (used by the UI badge)
+        spellings: [],
       }
       index.set(key, entry)
     }
     entry.participations += 1
     entry.wins += row.wins
     entry.points += row.points
+    if (row.name && !entry.spellings.includes(row.name)) {
+      entry.spellings.push(row.name)
+    }
     // Keep the nicest spelling seen across the editions
     entry.firstname = betterName(entry.firstname, row.firstname)
     entry.lastname = betterName(entry.lastname, row.lastname)

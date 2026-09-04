@@ -212,6 +212,10 @@ function openDrawPopup() {
   router.push({ name: 'admin-draw' })
 }
 
+function printRound() {
+  window.print()
+}
+
 async function deleteSelectedRound() {
   if (!currentRound.value) return
   const number = currentRound.value.number
@@ -325,6 +329,13 @@ async function deleteSelectedRound() {
             </button>
           </span>
         </label>
+        <button
+          class="print-btn"
+          title="Print this round"
+          @click="printRound"
+        >
+          Print
+        </button>
         <button
           class="danger-outline"
           @click="deleteSelectedRound"
@@ -458,6 +469,34 @@ section {
 
 .round-title .danger-outline {
   width: var(--round-action-width);
+}
+
+.round-title .print-btn {
+  width: var(--round-action-width);
+}
+
+/* Printing keeps the round table only: controls and actions are dropped */
+@media print {
+  .head,
+  .round-controls,
+  .round-search,
+  .print-btn,
+  .danger-outline,
+  .action-btn {
+    display: none !important;
+  }
+
+  .card {
+    border: none;
+    box-shadow: none;
+    padding: 0;
+  }
+
+  .points-input {
+    border: 1px solid #000 !important;
+    background: transparent !important;
+    color: #000 !important;
+  }
 }
 
 .action-btn {

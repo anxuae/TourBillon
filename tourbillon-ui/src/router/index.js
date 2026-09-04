@@ -17,27 +17,27 @@ const routes = [
       {
         path: 'tournament',
         name: 'admin-tournament',
-        component: () => import('@/views/admin/TournamentView.vue'),
+        component: () => import('@/views/admin/AdminTournament.vue'),
       },
       {
         path: 'teams',
         name: 'admin-teams',
-        component: () => import('@/views/admin/TeamsView.vue'),
+        component: () => import('@/views/admin/AdminTeams.vue'),
       },
       {
         path: 'round',
         name: 'admin-round',
-        component: () => import('@/views/admin/RoundView.vue'),
+        component: () => import('@/views/admin/AdminRound.vue'),
       },
       {
         path: 'draw',
         name: 'admin-draw',
-        component: () => import('@/views/admin/DrawView.vue'),
+        component: () => import('@/views/admin/AdminDraw.vue'),
       },
       {
         path: 'rankings',
         name: 'admin-rankings',
-        component: () => import('@/views/admin/RankingsView.vue'),
+        component: () => import('@/views/admin/AdminRankings.vue'),
       },
     ],
   },
@@ -73,12 +73,12 @@ const routes = [
       {
         path: 'players',
         name: 'history-players',
-        component: () => import('@/views/history/PlayersView.vue'),
+        component: () => import('@/views/history/HistoryPlayers.vue'),
       },
       {
         path: 'players/:name',
         name: 'history-player',
-        component: () => import('@/views/history/PlayerDetailView.vue'),
+        component: () => import('@/views/history/HistoryPlayerDetail.vue'),
         props: true,
       },
     ],

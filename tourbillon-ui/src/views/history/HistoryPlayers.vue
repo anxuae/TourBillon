@@ -9,8 +9,21 @@ const { players, tournaments, editions, loading, error, loadedCount, spellingCou
 
 const query = ref('')
 
+function clearQuery() {
+  query.value = ''
+}
+
 // Duplicates folded together: distinct spellings minus the merged players
 const mergedCount = computed(() => Math.max(0, spellingCount.value - players.value.length))
+
+// A player is flagged as merged when several spellings were folded together
+function isMerged(player) {
+  return (player.spellings?.length ?? 0) > 1
+}
+
+function mergedTooltip(player) {
+  return `Merged spellings: ${(player.spellings || []).join(', ')}`
+}
 
 const filteredPlayers = computed(() => {
   const text = query.value.trim()
@@ -151,10 +164,22 @@ onMounted(() => {
           &middot; {{ mergedCount }} merged
         </p>
       </div>
-      <input
-        v-model="query"
-        placeholder="Search player..."
-      >
+      <span class="player-search-control">
+        <input
+          v-model="query"
+          placeholder="Search player..."
+        >
+        <button
+          v-if="query"
+          type="button"
+          class="player-search-clear"
+          aria-label="Clear search"
+          title="Clear"
+          @click="clearQuery"
+        >
+          ×
+        </button>
+      </span>
     </header>
 
     <div
@@ -280,7 +305,18 @@ onMounted(() => {
           v-for="player in sortedPlayers"
           :key="player.name"
         >
-          <td>{{ player.name }}</td>
+          <td>
+            <span class="player-cell">
+              <span>{{ player.name }}</span>
+              <span
+                v-if="isMerged(player)"
+                class="badge merged-badge has-tooltip"
+              >
+                merged
+                <span class="app-tooltip">{{ mergedTooltip(player) }}</span>
+              </span>
+            </span>
+          </td>
           <td class="num">
             {{ player.participations }}
           </td>
@@ -325,8 +361,62 @@ onMounted(() => {
   margin: 0;
 }
 
+.player-search-control {
+  position: relative;
+  display: inline-flex;
+  flex: 0 0 auto;
+}
+
+.player-search-control input {
+  width: 100%;
+  padding-right: 1.7rem;
+}
+
+.player-search-clear {
+  position: absolute;
+  right: 0.25rem;
+  top: 50%;
+  transform: translateY(-50%);
+  border: none;
+  background: transparent;
+  color: var(--color-muted);
+  width: 1.2rem;
+  height: 1.2rem;
+  line-height: 1;
+  padding: 0;
+  cursor: pointer;
+}
+
+.player-search-clear:hover {
+  color: var(--color-text);
+}
+
 .num {
   text-align: center;
+}
+
+.player-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.merged-badge {
+  position: relative;
+  font-size: 0.7rem;
+  cursor: help;
+}
+
+.merged-badge .app-tooltip {
+  white-space: nowrap;
+  text-align: left;
+}
+
+.merged-badge:hover .app-tooltip,
+.merged-badge:focus-within .app-tooltip {
+  opacity: 1;
+  visibility: visible;
+  transform: translate(-50%, 0);
 }
 
 .sortable {

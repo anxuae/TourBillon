@@ -33,6 +33,7 @@ const focusedMatchId = ref(null)
 const committing = ref(false)
 const hideFullMatches = ref(false)
 const viewMode = ref('mosaic') // 'mosaic' or 'list'
+const teamFilterInput = ref('')
 
 const { subscribe } = useEvents()
 
@@ -140,14 +141,13 @@ function hasEmptySlot(match) {
 }
 
 const displayedGroupedMatches = computed(() => {
-  if (!hideFullMatches.value) {
-    return groupedMatches.value
-  }
-
   return groupedMatches.value
     .map((group) => ({
       wins: group.wins,
-      matches: group.matches.filter((match) => hasEmptySlot(match)),
+      matches: group.matches.filter((match) => {
+        if (hideFullMatches.value && !hasEmptySlot(match)) return false
+        return matchHasFilteredTeam(match)
+      }),
     }))
     .filter((group) => group.matches.length > 0)
 })
@@ -155,6 +155,29 @@ const displayedGroupedMatches = computed(() => {
 function groupToneClass(index) {
   return `group-tone-${index % 6}`
 }
+
+/** Team number currently searched, or ``null`` when the filter is empty. */
+const teamFilter = computed(() => {
+  const raw = String(teamFilterInput.value ?? '').trim()
+  if (!raw) return null
+  const teamNumber = Number(raw)
+  return Number.isInteger(teamNumber) && teamNumber > 0 ? teamNumber : -1
+})
+
+function matchHasFilteredTeam(match) {
+  if (teamFilter.value === null) return true
+  return (match?.teams || []).includes(teamFilter.value)
+}
+
+function clearTeamFilter() {
+  teamFilterInput.value = ''
+}
+
+/** Matches of the list view, honouring the team filter. */
+const listMatches = computed(() => {
+  if (!draft.value) return []
+  return (draft.value.matches || []).filter((match) => matchHasFilteredTeam(match))
+})
 
 function slotKey(matchId, index) {
   return `${matchId}:${index}`
@@ -328,6 +351,43 @@ function starLossReasons(match) {
 
 function isMatchIncomplete(match) {
   return hasEmptySlot(match)
+}
+
+/** Wins group of a match, recomputed live so swaps are reflected. */
+function matchGroupWins(match) {
+  const metrics = liveMetricsForMatch(match)
+  if (!metrics.length) return null
+  return Math.max(...metrics.map((metric) => Number(metric.wins || 0)))
+}
+
+/** Compact metrics of a team, using the same notation as the mosaic cards. */
+function teamMetricsLabel(teamId) {
+  const metric = metricsByTeam.value?.[teamId]
+  if (!metric) return null
+  return `W${metric.wins ?? 0} · P${metric.points ?? 0}`
+}
+
+/** Swiss rule violations of a match, recomputed live. */
+function liveViolations(match) {
+  if (hasEmptySlot(match)) {
+    return []
+  }
+
+  const items = []
+
+  if (hasMixedWins(match)) {
+    const wins = liveMetricsForMatch(match).map((metric) => Number(metric.wins || 0))
+    const disparity = Math.max(...wins) - Math.min(...wins)
+    items.push({ code: `disparity ${disparity}`, tone: 'warning' })
+  }
+
+  if (hasFullRematch(match)) {
+    items.push({ code: 'full rematch', tone: 'danger' })
+  } else if (hasRematch(match)) {
+    items.push({ code: 'rematch', tone: 'danger' })
+  }
+
+  return items
 }
 
 function moveTeamTo(teamId, target) {
@@ -624,6 +684,7 @@ function resetDrawState() {
   progress.value = 0
   message.value = 'Idle'
   hideFullMatches.value = false
+  teamFilterInput.value = ''
   running.value = false
   committing.value = false
 }
@@ -712,6 +773,32 @@ function resetDrawState() {
         <div class="review-head">
           <h2>Review & adjust</h2>
           <div class="review-controls">
+            <label
+              class="team-search"
+              for="draw-team-filter"
+            >
+              <span>Team</span>
+              <span class="team-search-control">
+                <input
+                  id="draw-team-filter"
+                  v-model="teamFilterInput"
+                  type="text"
+                  inputmode="numeric"
+                  pattern="[0-9]*"
+                  placeholder="e.g. 12"
+                >
+                <button
+                  v-if="teamFilterInput"
+                  type="button"
+                  class="team-search-clear"
+                  aria-label="Clear team filter"
+                  title="Clear"
+                  @click="clearTeamFilter"
+                >
+                  ×
+                </button>
+              </span>
+            </label>
             <div class="view-toggle">
               <button
                 type="button"
@@ -808,26 +895,54 @@ function resetDrawState() {
             <thead>
               <tr>
                 <th>Match</th>
-                <th>Teams</th>
+                <th>Wins</th>
+                <th class="th-left">
+                  Teams
+                </th>
                 <th>Quality</th>
+                <th class="th-left">
+                  Violations
+                </th>
               </tr>
             </thead>
             <tbody>
               <tr
-                v-for="match in draft.matches"
+                v-for="match in listMatches"
                 :key="match.id"
                 :class="{ 'row-incomplete': isMatchIncomplete(match) }"
               >
-                <td class="match-id-cell">{{ matchLabel(match.id) }}</td>
+                <td class="match-id-cell">
+                  {{ matchLabel(match.id) }}
+                </td>
+                <td class="wins-cell">
+                  <span
+                    v-if="matchGroupWins(match) !== null"
+                    class="badge wins-badge"
+                  >{{ matchGroupWins(match) }}</span>
+                  <span v-else>—</span>
+                </td>
                 <td class="teams-list-cell">
-                  <div
-                    v-for="teamId in match.teams"
-                    :key="`${match.id}-${teamId}`"
+                  <button
+                    v-for="(teamId, teamIndex) in match.teams"
+                    :key="`${match.id}-${teamIndex}`"
+                    type="button"
                     class="team-pill"
-                    :class="teamId ? '' : 'team-pill-empty'"
+                    :class="{
+                      'team-pill-empty': !teamId,
+                      'team-pill-selected': swapSelection.includes(slotKey(match.id, teamIndex)),
+                    }"
+                    :draggable="Boolean(teamId)"
+                    @click="selectSlot(match.id, teamIndex)"
+                    @dragstart="onDragStartFromSlot(match.id, teamIndex, teamId)"
+                    @dragover="allowDrop"
+                    @drop="dropToSlot(match.id, teamIndex)"
                   >
                     {{ teamId ? `Team ${teamId}` : '—' }}
-                  </div>
+                    <span
+                      v-if="teamId && teamMetricsLabel(teamId)"
+                      class="team-pill-wins"
+                    >{{ teamMetricsLabel(teamId) }}</span>
+                  </button>
                 </td>
                 <td class="quality-cell">
                   <div class="stars">
@@ -839,16 +954,28 @@ function resetDrawState() {
                     >★</span>
                   </div>
                 </td>
+                <td class="violations-cell">
+                  <span
+                    v-for="violation in liveViolations(match)"
+                    :key="`${match.id}-${violation.code}`"
+                    class="violation-badge"
+                    :class="`violation-${violation.tone}`"
+                  >{{ violation.code }}</span>
+                  <span
+                    v-if="!liveViolations(match).length"
+                    class="violation-none"
+                  >—</span>
+                </td>
               </tr>
             </tbody>
           </table>
         </div>
 
         <p
-          v-if="hideFullMatches && !displayedGroupedMatches.length"
+          v-if="viewMode === 'list' ? !listMatches.length : !displayedGroupedMatches.length"
           class="muted"
         >
-          No match with empty slot.
+          {{ teamFilterInput ? 'No match for this team.' : 'No match with empty slot.' }}
         </p>
 
         <aside
@@ -1047,6 +1174,44 @@ label.check {
   display: flex;
   align-items: center;
   gap: 1rem;
+}
+
+.team-search {
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+}
+
+.team-search-control {
+  position: relative;
+  display: inline-flex;
+  width: 8rem;
+}
+
+.team-search input {
+  width: 100%;
+  padding-right: 1.7rem;
+}
+
+.team-search-clear {
+  position: absolute;
+  right: 0.25rem;
+  top: 50%;
+  transform: translateY(-50%);
+  border: none;
+  background: transparent;
+  color: var(--color-muted);
+  width: 1.2rem;
+  height: 1.2rem;
+  line-height: 1;
+  padding: 0;
+  cursor: pointer;
+}
+
+.team-search-clear:hover {
+  color: var(--color-text);
 }
 
 .view-toggle {
@@ -1314,63 +1479,105 @@ label.check {
   background: color-mix(in srgb, #fef7d8 20%, transparent);
 }
 
-.match-id-cell {
+.draw-list-table th.th-left {
+  text-align: left;
+}
+
+.draw-list-table td.match-id-cell {
   font-weight: 600;
-  min-width: 90px;
+  width: 110px;
+  min-width: 110px;
+  text-align: center;
 }
 
 .teams-list-cell {
   display: flex;
   flex-wrap: wrap;
+  justify-content: flex-start;
   gap: 0.4rem;
+  text-align: left;
   flex: 1;
 }
 
 .team-pill {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
   padding: 0.3rem 0.6rem;
   background: color-mix(in srgb, var(--color-primary) 15%, transparent);
   border: 1px solid color-mix(in srgb, var(--color-primary) 40%, transparent);
   border-radius: 12px;
   font-size: 0.8rem;
   font-weight: 600;
+  color: inherit;
+  cursor: pointer;
+  transition: box-shadow 0.15s ease, background 0.15s ease;
+}
+
+.team-pill:hover:not(.team-pill-empty) {
+  background: color-mix(in srgb, var(--color-primary) 25%, transparent);
 }
 
 .team-pill-empty {
   background: color-mix(in srgb, var(--color-border) 40%, transparent);
   border-color: var(--color-border);
   color: var(--color-muted);
+  cursor: default;
 }
 
-.power-cell {
+.team-pill-selected {
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary) 55%, transparent);
+}
+
+.team-pill-wins {
+  font-size: 0.7rem;
+  color: var(--color-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.draw-list-table td.wins-cell {
   text-align: center;
+  width: 70px;
   min-width: 70px;
 }
 
-.power-badge {
-  display: inline-block;
-  padding: 0.3rem 0.6rem;
-  background: color-mix(in srgb, #2c6bed 15%, transparent);
-  border-radius: 4px;
-  font-weight: 600;
-  font-size: 0.85rem;
+.wins-badge {
+  min-width: 1.6rem;
+  font-variant-numeric: tabular-nums;
 }
 
-.power-cell {
-  text-align: center;
-  min-width: 70px;
+.draw-list-table td.violations-cell {
+  text-align: left;
+  min-width: 150px;
 }
 
-.power-badge {
-  display: inline-block;
-  padding: 0.3rem 0.6rem;
-  background: color-mix(in srgb, #2c6bed 15%, transparent);
-  border-radius: 4px;
-  font-weight: 600;
-  font-size: 0.85rem;
+.violation-badge {
+  display: inline-flex;
+  align-items: center;
+  margin: 0 0.25rem 0.2rem 0;
+  padding: 0.15rem 0.6rem;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  font-size: 0.75rem;
 }
 
-.quality-cell {
+.violation-warning {
+  background: var(--status-bye-bg);
+  color: var(--status-bye-fg);
+  border-color: var(--status-bye-border);
+}
+
+.violation-danger {
+  background: var(--status-lost-bg);
+  color: var(--status-lost-fg);
+  border-color: var(--status-lost-border);
+}
+
+.violation-none {
+  color: var(--color-muted);
+}
+
+.draw-list-table td.quality-cell {
   text-align: center;
   min-width: 80px;
 }

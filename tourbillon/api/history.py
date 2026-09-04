@@ -143,23 +143,36 @@ def _player_name(player):
 def _player_key(player):
     """Return the key used to merge duplicated entries.
 
-    Ignores both the case and the accents so hand-typed variants such as
-    ``Jose Gomez``, ``José Gómez`` and ``JOSE GOMEZ`` map to a single player.
+    Ignores the case, the accents and every separator so hand-typed variants
+    such as ``Jose Gomez``, ``José Gómez``, ``JOSE GOMEZ`` map to a single
+    player, and so do compound names written ``Jean-Paul`` or ``Jean Paul``.
+
+    This must stay in sync with ``playerKey()`` in the frontend composable
+    ``useHistoryPlayers.js``, which merges the streamed editions the same way.
     """
-    return _fold_accents(_player_name(player)).casefold()
+    return _name_key(_player_name(player))
+
+
+def _name_key(name):
+    """Return the merge key of a display name."""
+    folded = _fold_accents(name or "").casefold()
+    return "".join(char for char in folded if char not in " -'\u2019.")
 
 
 def _better_name(current, candidate):
     """Return the nicest of two spellings of the same name.
 
     Accented spellings are assumed to be the correct ones, so they win over
-    their plain ASCII counterpart.
+    their plain ASCII counterpart. At equal accentuation the hyphenated form
+    of a compound name wins (``Jean-Paul`` over ``Jean Paul``).
     """
     if not current:
         return candidate
     current_accents = current != _fold_accents(current)
     candidate_accents = candidate != _fold_accents(candidate)
-    if candidate_accents and not current_accents:
+    if candidate_accents != current_accents:
+        return candidate if candidate_accents else current
+    if "-" in candidate and "-" not in current:
         return candidate
     return current
 
@@ -250,7 +263,7 @@ def player_detail(save_dir, name, with_wins=True, with_joker=True, with_buchholz
     merges visible to the operator.
     """
     detail = None
-    wanted = _fold_accents(_capitalize(name)).casefold()
+    wanted = _name_key(_capitalize(name))
     for path, trn in _iter_tournaments(save_dir):
         year = _year_of(trn, path)
         ranking = _ranking_of(trn, with_wins, with_joker, with_buchholz, with_goal_avg)
@@ -268,6 +281,9 @@ def player_detail(save_dir, name, with_wins=True, with_joker=True, with_buchholz
                             "rank": ranking.get(team),
                             "wins": team.wins(),
                             "points": team.points(),
+                            # Normalized display name, used to count the
+                            # spellings the same way the players list does
+                            "name": _player_name(player),
                             # Untouched spelling found in the save file
                             "raw_name": f"{player.firstname} {player.lastname}".strip(),
                             "raw_firstname": player.firstname,

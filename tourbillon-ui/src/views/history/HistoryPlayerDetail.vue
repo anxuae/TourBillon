@@ -17,17 +17,21 @@ const sortedEditions = computed(() => {
 })
 
 // Distinct spellings found in the save files: several of them means entries
-// were merged, which lets the operator spot a wrong merge.
+// were merged, which lets the operator spot a wrong merge. The normalized
+// display name is used (not the raw one) so a mere casing difference in the
+// save file is not reported as a distinct spelling.
 const spellings = computed(() => {
   const names = new Set()
   for (const row of sortedEditions.value) {
-    if (row.raw_name) names.add(row.raw_name)
+    const name = row.name || row.raw_name
+    if (name) names.add(name)
   }
   return [...names]
 })
 
-function isDifferent(rawName) {
-  return Boolean(rawName) && rawName !== detail.value?.name
+function isDifferent(row) {
+  const name = row?.name || row?.raw_name
+  return Boolean(name) && name !== detail.value?.name
 }
 
 onMounted(async () => {
@@ -90,7 +94,7 @@ onMounted(async () => {
             :key="`${row.year}-${row.team}`"
           >
             <td>{{ row.year }}</td>
-            <td :class="{ different: isDifferent(row.raw_name) }">
+            <td :class="{ different: isDifferent(row) }">
               {{ row.raw_name || '—' }}
             </td>
             <td>{{ row.team }}</td>
