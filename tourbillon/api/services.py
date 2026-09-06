@@ -280,6 +280,26 @@ def add_team(state, payload):
     return team_dto(team)
 
 
+def update_team(state, number, payload):
+    """Update the players and/or the joker of an existing team."""
+    trn = state.require_tournament()
+    try:
+        team = trn.team(number)
+    except ValueError as ex:
+        # Unknown team is a missing resource, not a malformed request.
+        raise LookupError(str(ex)) from ex
+    if payload.joker is not None:
+        team.joker = int(payload.joker)
+    if payload.players is not None:
+        # Players are replaced as a whole: the team composition is edited from a
+        # single form, so there is no partial update to reconcile.
+        team.remove_players()
+        for player in payload.players:
+            team.add_player(player.firstname, player.lastname)
+    auto_save(state)
+    return team_dto(team)
+
+
 def delete_team(state, number):
     """Remove a team from the current tournament."""
     trn = state.require_tournament()

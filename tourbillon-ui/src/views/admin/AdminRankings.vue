@@ -303,12 +303,6 @@ async function refreshRankings() {
   text-align: center;
 }
 
-/* The global table rule clips overflow for rounded corners, which would hide
-   the criteria header tooltips */
-table {
-  overflow: visible;
-}
-
 .rank-cell {
   width: 4.5rem;
   white-space: nowrap;

@@ -29,13 +29,19 @@ DEFAULT = {
 }
 
 
-def _build(order, stats, teams_by_match, max_disparity, allow_rematch):
+def _build(order, stats, teams_by_match, max_disparity, allow_rematch, tracker=None):
     """Backtracking search returning a list of valid matches or ``None``.
 
     ``order`` is the list of team numbers sorted from the weakest to the
     strongest so that the weakest teams are paired first (they have the fewest
     valid partners).
+
+    ``tracker`` is an optional callable invoked with the number of teams still
+    to pair, used to report progress.
     """
+    if tracker:
+        tracker(len(order))
+
     if not order:
         return []
 
@@ -49,7 +55,7 @@ def _build(order, stats, teams_by_match, max_disparity, allow_rematch):
         if not common.is_match_valid(stats, match, max_disparity, allow_rematch):
             continue
         remaining = [num for num in rest if num not in partners]
-        tail = _build(remaining, stats, teams_by_match, max_disparity, allow_rematch)
+        tail = _build(remaining, stats, teams_by_match, max_disparity, allow_rematch, tracker)
         if tail is not None:
             return [sorted(match)] + tail
 
@@ -76,19 +82,33 @@ async def generate_draw(teams_by_match, stats, bye_teams=(), config=None, on_pro
 
     playing = {num: stats[num] for num in stats if num not in set(bye_teams)}
 
-    if on_progress:
-        await on_progress(5.0, "Building strength vector")
+    report = common.progress_reporter(on_progress)
+    report(5.0, "Building strength vector", force=True)
 
     # Order teams by strength; the weakest are paired first because they have
     # the fewest valid partners under the disparity constraint.
     order_weakest = common.order_by_strength(playing, weakest_first=True)
 
-    if on_progress:
-        await on_progress(30.0, "Searching for a valid pairing")
+    report(30.0, "Searching for a valid pairing", force=True)
+
+    total = len(order_weakest)
+    # Backtracking has no monotonic counter, so report the deepest pairing ever
+    # reached: it never goes backwards when the search unwinds.
+    deepest = {'paired': 0}
+
+    def tracker(remaining):
+        paired = total - remaining
+        if total <= 0 or paired <= deepest['paired']:
+            return
+        deepest['paired'] = paired
+        report(
+            30.0 + 65.0 * paired / total,
+            f"Pairing teams ({paired}/{total})",
+        )
 
     # Run the CPU-bound backtracking off the event loop.
     matches = await asyncio.to_thread(
-        _build, order_weakest, playing, teams_by_match, max_disparity, allow_rematch
+        _build, order_weakest, playing, teams_by_match, max_disparity, allow_rematch, tracker
     )
 
     if matches is None:
@@ -98,6 +118,9 @@ async def generate_draw(teams_by_match, stats, bye_teams=(), config=None, on_pro
 
     matches.sort()
 
+    # Let the reports scheduled from the worker thread run before the final one,
+    # so progress is always delivered in increasing order.
+    await asyncio.sleep(0)
     if on_progress:
         await on_progress(100.0, "Draw completed")
 

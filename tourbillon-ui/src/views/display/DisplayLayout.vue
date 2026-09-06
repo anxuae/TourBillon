@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, provide, ref } from 'vue'
+import { onBeforeUnmount, onMounted, provide, ref } from 'vue'
 import { RouterView, useRoute, useRouter } from 'vue-router'
 import { useTournamentStore } from '@/stores/tournament'
 import { api } from '@/api/client'
@@ -106,8 +106,21 @@ subscribe('settings_updated', () => {
   refreshSettingsAndView().catch(() => {})
 })
 
+// Escape leaves the full screen display space and goes back to the home screen.
+function onKeydown(event) {
+  if (event.key === 'Escape') {
+    event.preventDefault()
+    router.push({ name: 'home' })
+  }
+}
+
 onMounted(async () => {
+  window.addEventListener('keydown', onKeydown)
   await refreshSettingsAndView()
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('keydown', onKeydown)
 })
 
 </script>

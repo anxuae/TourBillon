@@ -5,6 +5,7 @@ import { useI18n } from 'vue-i18n'
 import { api } from '@/api/client'
 import { useTournamentStore } from '@/stores/tournament'
 import { useStatusLabel } from '@/composables/useStatusLabel'
+import TrashIcon from '@/components/TrashIcon.vue'
 
 const { t } = useI18n()
 const { statusLabel } = useStatusLabel()
@@ -194,6 +195,43 @@ async function removeTeam(number) {
   }
 }
 
+// Team currently edited inline in the table (null when none)
+const editedTeam = ref(null)
+const editPlayers = ref([])
+const editJoker = ref(0)
+
+function startEdit(team) {
+  editedTeam.value = team.number
+  // Always show one row per expected player so a team can be completed.
+  const rows = emptyPlayers(playersByTeam.value)
+  team.players.forEach((player, index) => {
+    if (index < rows.length) {
+      rows[index] = { firstname: player.firstname, lastname: player.lastname }
+    }
+  })
+  editPlayers.value = rows
+  editJoker.value = team.joker ?? 0
+}
+
+function cancelEdit() {
+  editedTeam.value = null
+  editPlayers.value = []
+}
+
+async function saveEdit(number) {
+  const players = editPlayers.value
+    .map((p) => ({ firstname: capitalize(p.firstname), lastname: capitalize(p.lastname) }))
+    .filter((p) => p.firstname || p.lastname)
+  try {
+    await api.updateTeam(number, { joker: Number(editJoker.value || 0), players })
+    cancelEdit()
+    await store.refreshTeams()
+    await store.refreshTournament()
+  } catch {
+    // API errors are handled globally by ApiErrorBanner.
+  }
+}
+
 function playerNames(team) {
   if (!team.players.length) {
     return t('common.none')
@@ -321,6 +359,9 @@ function playerNames(team) {
         <tr>
           <th>{{ t('common.team') }}</th>
           <th>{{ t('common.players') }}</th>
+          <th class="joker-col">
+            {{ t('common.joker') }}
+          </th>
           <th>{{ t('common.status') }}</th>
           <th />
         </tr>
@@ -331,15 +372,77 @@ function playerNames(team) {
           :key="team.number"
         >
           <td>{{ team.number }}</td>
-          <td>{{ playerNames(team) }}</td>
+          <td>
+            <div
+              v-if="editedTeam === team.number"
+              class="edit-players"
+            >
+              <div
+                v-for="(player, index) in editPlayers"
+                :key="`edit-${team.number}-${index}`"
+                class="row player-row"
+              >
+                <input
+                  v-model="player.firstname"
+                  list="player-suggestions"
+                  :placeholder="t('teams.playerFirstName', { index: index + 1 })"
+                  @change="applyMatch(player)"
+                  @keyup.enter="saveEdit(team.number)"
+                >
+                <input
+                  v-model="player.lastname"
+                  list="player-suggestions"
+                  :placeholder="t('teams.playerLastName', { index: index + 1 })"
+                  @change="applyMatch(player)"
+                  @keyup.enter="saveEdit(team.number)"
+                >
+              </div>
+            </div>
+            <template v-else>
+              {{ playerNames(team) }}
+            </template>
+          </td>
+          <td class="joker-col">
+            <input
+              v-if="editedTeam === team.number"
+              v-model.number="editJoker"
+              class="joker-edit-input"
+              type="number"
+              min="0"
+            >
+            <span v-else>{{ team.joker ?? '—' }}</span>
+          </td>
           <td><span class="badge">{{ statusLabel(team.status) }}</span></td>
           <td class="right">
-            <button
-              class="danger-outline"
-              @click="removeTeam(team.number)"
-            >
-              {{ t('common.remove') }}
-            </button>
+            <div class="row-actions">
+              <template v-if="editedTeam === team.number">
+                <button
+                  class="secondary"
+                  @click="cancelEdit"
+                >
+                  {{ t('common.cancel') }}
+                </button>
+                <button @click="saveEdit(team.number)">
+                  {{ t('common.save') }}
+                </button>
+              </template>
+              <template v-else>
+                <button
+                  class="secondary edit-btn"
+                  :aria-label="t('teams.editTeam')"
+                  @click="startEdit(team)"
+                >
+                  <span aria-hidden="true">✎</span>
+                </button>
+                <button
+                  class="danger-outline icon-btn"
+                  :aria-label="t('common.remove')"
+                  @click="removeTeam(team.number)"
+                >
+                  <TrashIcon />
+                </button>
+              </template>
+            </div>
           </td>
         </tr>
       </tbody>
@@ -499,6 +602,48 @@ function playerNames(team) {
 
 .right {
   text-align: right;
+}
+
+.row-actions {
+  display: inline-flex;
+  gap: 0.4rem;
+  justify-content: flex-end;
+}
+
+.edit-btn {
+  padding-left: 0.7rem;
+  padding-right: 0.7rem;
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding-left: 0.7rem;
+  padding-right: 0.7rem;
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.edit-players {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.joker-col {
+  text-align: center;
+  width: 7rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.joker-edit-input {
+  width: 5rem;
+  text-align: center;
+  padding-top: 0.4rem;
+  padding-bottom: 0.4rem;
 }
 
 @media (max-width: 860px) {

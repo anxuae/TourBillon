@@ -26,6 +26,11 @@ class TeamCreateDTO(BaseModel):
     players: list[PlayerDTO] = []
 
 
+class TeamUpdateDTO(BaseModel):
+    joker: int | None = None
+    players: list[PlayerDTO] | None = None
+
+
 class MatchDTO(BaseModel):
     location: int | None
     teams: list[int]

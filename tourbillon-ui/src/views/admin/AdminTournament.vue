@@ -5,6 +5,7 @@ import { useI18n } from 'vue-i18n'
 import { useTournamentStore } from '@/stores/tournament'
 import { useStatusLabel } from '@/composables/useStatusLabel'
 import { pushApiError } from '@/api/client'
+import TrashIcon from '@/components/TrashIcon.vue'
 
 const { t } = useI18n()
 const { statusLabel } = useStatusLabel()
@@ -408,7 +409,7 @@ function onPick(event) {
                 :aria-label="t('tournament.deleteSaveAria', { name: save.filename })"
                 @click="deleteSavedFile(save.filename)"
               >
-                {{ t('common.delete') }}
+                <TrashIcon />
               </button>
             </li>
             <li
@@ -660,8 +661,14 @@ function onPick(event) {
 
 .file-delete-btn {
   flex: 0 0 auto;
-  min-width: 5.8rem;
   align-self: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding-left: 0.7rem;
+  padding-right: 0.7rem;
+  font-size: 1rem;
+  line-height: 1;
 }
 
 .file-name {

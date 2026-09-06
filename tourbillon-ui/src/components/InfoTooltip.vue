@@ -1,27 +1,87 @@
 <script setup>
-import { computed } from 'vue'
+import { computed, onBeforeUnmount, nextTick, ref } from 'vue'
 
 const props = defineProps({
   // Single line of help text
   text: { type: String, default: '' },
   // Multiple lines, rendered one per row
   lines: { type: Array, default: () => [] },
-  // Horizontal anchoring of the bubble against the trigger
+  // Preferred horizontal anchoring of the bubble against the trigger
   align: { type: String, default: 'center' },
   // Accessible description of the trigger, defaults to the tooltip content
   label: { type: String, default: '' },
 })
 
+// Distance kept between the bubble and the viewport edges
+const MARGIN = 8
+// Vertical gap between the trigger and the bubble
+const GAP = 7
+
 const entries = computed(() => (props.lines.length ? props.lines : [props.text].filter(Boolean)))
 const ariaLabel = computed(() => props.label || entries.value.join(' '))
+
+const triggerRef = ref(null)
+const bubbleRef = ref(null)
+const open = ref(false)
+const placed = ref(false)
+const style = ref({})
+
+function place() {
+  const trigger = triggerRef.value
+  const bubble = bubbleRef.value
+  if (!trigger || !bubble) return
+
+  const anchor = trigger.getBoundingClientRect()
+  const { width, height } = bubble.getBoundingClientRect()
+  const viewportWidth = document.documentElement.clientWidth
+  const viewportHeight = document.documentElement.clientHeight
+
+  // Preferred horizontal position, then clamped inside the viewport
+  let left = props.align === 'right' ? anchor.right - width : anchor.left + (anchor.width - width) / 2
+  left = Math.min(Math.max(left, MARGIN), Math.max(MARGIN, viewportWidth - width - MARGIN))
+
+  // Below the trigger, unless it would overflow and there is more room above
+  const belowTop = anchor.bottom + GAP
+  const aboveTop = anchor.top - height - GAP
+  const overflowsBelow = belowTop + height + MARGIN > viewportHeight
+  let top = overflowsBelow && aboveTop >= MARGIN ? aboveTop : belowTop
+  top = Math.min(Math.max(top, MARGIN), Math.max(MARGIN, viewportHeight - height - MARGIN))
+
+  style.value = { left: `${Math.round(left)}px`, top: `${Math.round(top)}px` }
+  placed.value = true
+}
+
+async function show() {
+  if (!entries.value.length) return
+  open.value = true
+  placed.value = false
+  await nextTick()
+  place()
+  // A fixed bubble would drift away from its trigger while the page moves
+  window.addEventListener('scroll', hide, true)
+  window.addEventListener('resize', hide)
+}
+
+function hide() {
+  open.value = false
+  placed.value = false
+  window.removeEventListener('scroll', hide, true)
+  window.removeEventListener('resize', hide)
+}
+
+onBeforeUnmount(hide)
 </script>
 
 <template>
   <span
+    ref="triggerRef"
     class="info-tooltip has-tooltip"
-    :class="`align-${align}`"
     tabindex="0"
     :aria-label="ariaLabel"
+    @mouseenter="show"
+    @mouseleave="hide"
+    @focusin="show"
+    @focusout="hide"
   >
     <slot>
       <span
@@ -29,16 +89,21 @@ const ariaLabel = computed(() => props.label || entries.value.join(' '))
         aria-hidden="true"
       >i</span>
     </slot>
-    <span
-      v-if="entries.length"
-      class="app-tooltip"
-      role="tooltip"
-    >
+    <Teleport to="body">
       <span
-        v-for="(entry, index) in entries"
-        :key="`tooltip-${index}`"
-      >{{ entry }}</span>
-    </span>
+        v-if="open"
+        ref="bubbleRef"
+        class="app-tooltip"
+        :class="{ placed }"
+        :style="style"
+        role="tooltip"
+      >
+        <span
+          v-for="(entry, index) in entries"
+          :key="`tooltip-${index}`"
+        >{{ entry }}</span>
+      </span>
+    </Teleport>
   </span>
 </template>
 
@@ -73,15 +138,16 @@ const ariaLabel = computed(() => props.label || entries.value.join(' '))
 .info-tooltip:focus-visible .info-icon {
   opacity: 1;
 }
+</style>
 
+<style>
+/* Teleported to the body, so it cannot be scoped nor clipped by an ancestor */
 .app-tooltip {
-  position: absolute;
-  top: calc(100% + 0.45rem);
+  position: fixed;
   width: max-content;
   max-width: 250px;
-  z-index: 30;
+  z-index: 3000;
   opacity: 0;
-  visibility: hidden;
   pointer-events: none;
   background: #1f2937;
   color: #f9fafb;
@@ -91,41 +157,19 @@ const ariaLabel = computed(() => props.label || entries.value.join(' '))
   font-size: 0.78rem;
   font-weight: 400;
   line-height: 1.3;
+  text-align: left;
   text-transform: none;
   white-space: normal;
-  transition: opacity 0.12s ease, transform 0.12s ease, visibility 0.12s ease;
+  transition: opacity 0.12s ease;
 }
 
 .app-tooltip span {
   display: block;
 }
 
-.align-center .app-tooltip {
-  left: 50%;
-  transform: translate(-50%, -2px);
-  text-align: center;
-}
-
-.align-right .app-tooltip {
-  right: 0;
-  transform: translateY(-2px);
-  text-align: left;
-}
-
-.info-tooltip:hover .app-tooltip,
-.info-tooltip:focus-within .app-tooltip {
+/* Revealed only once measured and positioned, to avoid a visible jump */
+.app-tooltip.placed {
   opacity: 1;
-  visibility: visible;
-}
-
-.align-center:hover .app-tooltip,
-.align-center:focus-within .app-tooltip {
-  transform: translate(-50%, 0);
-}
-
-.align-right:hover .app-tooltip,
-.align-right:focus-within .app-tooltip {
-  transform: translateY(0);
 }
 
 @media print {

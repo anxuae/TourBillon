@@ -6,6 +6,7 @@ import { useI18n } from 'vue-i18n'
 import { api } from '@/api/client'
 import { useTournamentStore } from '@/stores/tournament'
 import { useStatusLabel } from '@/composables/useStatusLabel'
+import TrashIcon from '@/components/TrashIcon.vue'
 
 const { t } = useI18n()
 const { statusLabel } = useStatusLabel()
@@ -354,10 +355,11 @@ async function deleteSelectedRound() {
           {{ t('common.print') }}
         </button>
         <button
-          class="danger-outline"
+          class="danger-outline icon-btn"
+          :aria-label="t('common.delete')"
           @click="deleteSelectedRound"
         >
-          {{ t('common.delete') }}
+          <TrashIcon />
         </button>
       </h3>
       <p
@@ -453,7 +455,7 @@ async function deleteSelectedRound() {
 <style scoped>
 section {
   --round-action-width: 9.2rem;
-  --round-pill-width: 6.8rem;
+  --round-pill-width: 4.6rem;
 }
 
 .duration-cell {
@@ -510,7 +512,12 @@ section {
 }
 
 .round-title .danger-outline {
-  width: var(--round-action-width);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding-left: 0.7rem;
+  padding-right: 0.7rem;
+  line-height: 1;
 }
 
 .round-title .print-btn {
@@ -542,7 +549,7 @@ section {
 }
 
 .action-btn {
-  width: var(--round-action-width);
+  width: 7.2rem;
 }
 
 .round-search-clear {
@@ -564,25 +571,32 @@ section {
   color: var(--color-text);
 }
 
+/* `min-content` keeps each column at least as wide as the label + spinbox, so
+   a longer translation of "Team" never overlaps the points input */
 .results-lines {
   display: grid;
-  grid-template-columns: repeat(2, minmax(140px, 1fr));
+  grid-template-columns: repeat(2, minmax(min-content, 1fr));
   gap: 0.4rem;
 }
 
+/* The team label must stay on the same line, left of its points spinbox */
 .result-line {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
 }
 
+/* Width follows the translated label ("Team", "Équipe", ...) instead of a
+   hard-coded value; `2ch` only reserves room for the team number */
 .team-chip {
-  min-width: 4.6rem;
+  flex: 0 0 auto;
+  width: max-content;
   display: inline-grid;
-  grid-template-columns: auto 2ch;
+  grid-template-columns: max-content 2ch;
   align-items: center;
   column-gap: 0.35rem;
+  white-space: nowrap;
   font-weight: 600;
   font-size: 0.85rem;
   font-variant-numeric: tabular-nums;
@@ -593,6 +607,7 @@ section {
 }
 
 .points-input {
+  flex: 0 0 auto;
   width: 80px !important;
   font-weight: 600 !important;
 }
@@ -643,11 +658,11 @@ section {
   position: relative;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.35rem;
   overflow-x: auto;
   overflow-y: hidden;
   white-space: nowrap;
-  padding: 0.25rem 0.1rem;
+  padding: 0.15rem 0.1rem;
   margin-bottom: 0;
   scrollbar-width: thin;
   flex: 1 1 auto;
@@ -674,8 +689,8 @@ section {
   position: static;
   transform: none;
   z-index: 0;
-  width: 1.9rem;
-  height: 1.9rem;
+  width: 1.5rem;
+  height: 1.5rem;
   border: 1px solid var(--color-border);
   border-radius: 999px;
   background: var(--color-surface);
@@ -703,12 +718,14 @@ section {
 .round-pill {
   flex: 0 0 var(--round-pill-width);
   width: var(--round-pill-width);
-  padding: 0.35rem 0.8rem;
+  padding: 0.22rem 0.45rem;
   border: 1px solid var(--color-border);
   border-radius: 999px;
   background: transparent;
   color: var(--color-muted);
   font: inherit;
+  font-size: 0.8rem;
+  line-height: 1.2;
   text-align: center;
   scroll-snap-align: start;
   cursor: pointer;

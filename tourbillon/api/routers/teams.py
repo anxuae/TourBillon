@@ -5,7 +5,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 
 from .. import services, schemas
-from ...core.exception import StatusError
+from ...core.exception import BoundError, StatusError
 from ..state import get_state
 
 router = APIRouter(prefix="/api/teams", tags=["teams"])
@@ -28,6 +28,22 @@ async def add_team(payload: schemas.TeamCreateDTO, state=Depends(get_state)):
             dto = services.add_team(state, payload)
         except LookupError as ex:
             raise HTTPException(status_code=404, detail="No tournament loaded") from ex
+        except ValueError as ex:
+            raise HTTPException(status_code=400, detail=str(ex)) from ex
+        await state.progress.publish({"type": "teams_updated"})
+        return dto
+
+
+@router.put("/{number}", response_model=schemas.TeamDTO)
+async def update_team(number: int, payload: schemas.TeamUpdateDTO, state=Depends(get_state)):
+    """Update the players and/or the joker of a team."""
+    async with state.lock:
+        try:
+            dto = services.update_team(state, number, payload)
+        except LookupError as ex:
+            raise HTTPException(status_code=404, detail=str(ex) or "Unknown team") from ex
+        except (StatusError, BoundError) as ex:
+            raise HTTPException(status_code=400, detail=str(ex)) from ex
         except ValueError as ex:
             raise HTTPException(status_code=400, detail=str(ex)) from ex
         await state.progress.publish({"type": "teams_updated"})

@@ -105,6 +105,7 @@ export const api = {
   // Teams
   listTeams: () => request('GET', '/api/teams'),
   createTeam: (payload) => request('POST', '/api/teams', payload),
+  updateTeam: (number, payload) => request('PUT', `/api/teams/${number}`, payload),
   deleteTeam: (number) => request('DELETE', `/api/teams/${number}`),
 
   // Rounds

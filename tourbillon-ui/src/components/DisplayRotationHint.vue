@@ -32,6 +32,11 @@ const countdown = computed(() => {
 <template>
   <p class="rotation-hint">
     <span class="rotation-keys">
+      <span class="rotation-key">Esc</span>
+    </span>
+    <span>{{ t('display.escapeHint') }}</span>
+    <span> - </span>
+    <span class="rotation-keys">
       <span class="rotation-key">↑</span>
       <span class="rotation-key">↓</span>
     </span>

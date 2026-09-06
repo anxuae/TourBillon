@@ -65,7 +65,7 @@ def _is_valid(draw, stats, max_disparity, allow_rematch):
     )
 
 
-def _search(stats, teams_by_match, max_disparity, allow_rematch, cfg):
+def _search(stats, teams_by_match, max_disparity, allow_rematch, cfg, report=None):
     """Run the genetic search (CPU-bound, executed in a worker thread)."""
     rng = random.Random(cfg["seed"])
     population_size = int(cfg["population"])
@@ -85,9 +85,16 @@ def _search(stats, teams_by_match, max_disparity, allow_rematch, cfg):
         return _fitness(_chunk(individual, teams_by_match), stats,
                         max_disparity, allow_rematch, cfg)
 
-    for _ in range(generations):
+    for generation in range(generations):
         population.sort(key=parametrized_fitness)
-        if parametrized_fitness(population[0]) == 0.0:
+        best_fitness = parametrized_fitness(population[0])
+        if report:
+            # Generations give an exact, linear measure of the work done.
+            report(
+                10.0 + 85.0 * generation / generations,
+                f"Generation {generation + 1}/{generations} (fitness {best_fitness:.1f})",
+            )
+        if best_fitness == 0.0:
             break
 
         # Elitism: keep the best half, breed the rest.
@@ -157,11 +164,11 @@ async def generate_draw(teams_by_match, stats, bye_teams=(), config=None, on_pro
 
     playing = {num: stats[num] for num in stats if num not in set(bye_teams)}
 
-    if on_progress:
-        await on_progress(10.0, "Evolving candidate draws")
+    report = common.progress_reporter(on_progress)
+    report(10.0, "Evolving candidate draws", force=True)
 
     draw = await asyncio.to_thread(
-        _search, playing, teams_by_match, max_disparity, allow_rematch, cfg
+        _search, playing, teams_by_match, max_disparity, allow_rematch, cfg, report
     )
 
     if not _is_valid(draw, playing, max_disparity, allow_rematch):
@@ -171,6 +178,9 @@ async def generate_draw(teams_by_match, stats, bye_teams=(), config=None, on_pro
 
     matches = sorted(sorted(match) for match in draw)
 
+    # Let the reports scheduled from the worker thread run before the final one,
+    # so progress is always delivered in increasing order.
+    await asyncio.sleep(0)
     if on_progress:
         await on_progress(100.0, "Draw completed")
 

@@ -146,8 +146,8 @@ function assignBench(teamId, index) {
         <template v-if="teamId != null">
           <div class="team-head-row">
             <small class="team-stats">
-              W{{ props.metricsByTeam[teamId]?.wins ?? 0 }} ·
-              P{{ props.metricsByTeam[teamId]?.points ?? 0 }}
+              {{ t('draw.winsInitial') }}{{ props.metricsByTeam[teamId]?.wins ?? 0 }} ·
+              {{ t('draw.pointsInitial') }}{{ props.metricsByTeam[teamId]?.points ?? 0 }}
             </small>
             <InfoTooltip
               class="power-wrap"
@@ -278,7 +278,7 @@ function assignBench(teamId, index) {
 
 .teams-grid {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: minmax(0, 1fr);
   gap: 0.45rem;
 }
 
@@ -291,6 +291,8 @@ function assignBench(teamId, index) {
   border-radius: 7px;
   padding: 0.45rem;
   min-height: 5.4rem;
+  min-width: 0;
+  overflow: hidden;
   cursor: pointer;
   display: flex;
   flex-direction: column;
@@ -312,6 +314,10 @@ function assignBench(teamId, index) {
 
 .team-stats {
   margin: 0;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .team-number {
@@ -328,6 +334,7 @@ function assignBench(teamId, index) {
   align-items: center;
   justify-content: space-between;
   gap: 0.4rem;
+  min-width: 0;
 }
 
 .power-arms {
@@ -340,6 +347,7 @@ function assignBench(teamId, index) {
   position: relative;
   display: inline-flex;
   align-items: center;
+  flex: 0 0 auto;
 }
 
 .power-arm {
@@ -375,6 +383,7 @@ function assignBench(teamId, index) {
   display: flex;
   gap: 0.35rem;
   margin-top: 0;
+  min-width: 0;
   justify-content: center;
 }
 
@@ -383,13 +392,19 @@ function assignBench(teamId, index) {
   padding: 0.2rem 0.45rem;
 }
 
+/* Buttons share the available width and shrink with the card instead of
+   forcing the chip to overflow the match card */
 .chip-actions .status-action {
-  width: 5.4rem;
-  min-width: 5.4rem;
+  flex: 1 1 0;
+  min-width: 0;
+  max-width: 5.4rem;
   justify-content: center;
   font-size: 0.75rem;
   font-weight: 500;
-  padding: 0.2rem 0.45rem;
+  padding: 0.2rem 0.3rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .bench-assign {

@@ -21,10 +21,46 @@ Only primitive Python types are used across this module.
 """
 
 from itertools import combinations
+import asyncio
 import random
+import time
 
 from .. import cst
 from ..exception import DrawError
+
+
+def progress_reporter(on_progress, min_period: float = 0.05):
+    """Return a thread-safe, throttled reporter for ``on_progress``.
+
+    The draw algorithms run their CPU-bound search in a worker thread and
+    therefore cannot ``await`` the async ``on_progress`` callback. The returned
+    function schedules it on the running event loop instead, without blocking
+    the caller.
+
+    Reports are throttled to ``min_period`` seconds so a fast inner loop cannot
+    flood the event loop (and the WebSocket) with thousands of messages. Pass
+    ``force=True`` for milestones that must never be dropped.
+
+    :param on_progress: optional async callback ``async (percent, message)``
+    :param min_period: minimum delay between two forwarded reports, in seconds
+    :return: function ``report(percent, message, force=False)``
+    """
+    if on_progress is None:
+        def noop(percent, message, force=False):
+            pass
+        return noop
+
+    loop = asyncio.get_running_loop()
+    state = {'last': 0.0}
+
+    def report(percent, message, force=False):
+        now = time.monotonic()
+        if not force and now - state['last'] < min_period:
+            return
+        state['last'] = now
+        asyncio.run_coroutine_threadsafe(on_progress(float(percent), message), loop)
+
+    return report
 
 
 def bye_count(nb_teams, teams_by_match):

@@ -31,11 +31,16 @@ async def generate_draw(teams_by_match, stats, bye_teams=(), config=None, on_pro
 
     rng = random.Random(cfg["seed"])
 
+    # No search happens here: shuffling is linear and returns instantly, so the
+    # phase milestones below are all the progress this draw can report.
     if on_progress:
         await on_progress(20.0, "Shuffling teams")
 
     teams = [num for num in stats if num not in set(bye_teams)]
     rng.shuffle(teams)
+
+    if on_progress:
+        await on_progress(60.0, "Pairing teams")
 
     matches = [
         sorted(teams[i:i + teams_by_match])

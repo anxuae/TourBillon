@@ -150,6 +150,45 @@ async def test_progress_callback_called(name, stats_even):
     assert all(0.0 <= p <= 100.0 for p, _ in events)
 
 
+@pytest.mark.parametrize("name", ["deterministic", "genetic"])
+async def test_progress_is_monotonic(name, stats_even):
+    """Search algorithms must report a never decreasing progress."""
+    events = []
+
+    async def on_progress(percent, message):
+        events.append((percent, message))
+
+    await draws.generate(name, 2, stats_even, on_progress=on_progress)
+    percents = [p for p, _ in events]
+    assert percents == sorted(percents)
+    assert percents[-1] == 100.0
+
+
+async def test_progress_reporter_is_throttled():
+    """A fast inner loop must not flood the event loop with reports."""
+    events = []
+
+    async def on_progress(percent, message):
+        events.append(percent)
+
+    report = common.progress_reporter(on_progress, min_period=10.0)
+    for index in range(100):
+        report(index, "tick")
+    report(100.0, "done", force=True)
+    # Let the scheduled coroutines run.
+    await asyncio.sleep(0.05)
+
+    # Only the first (no previous report yet) and the forced one get through.
+    assert events == [0.0, 100.0]
+
+
+async def test_progress_reporter_without_callback():
+    """The reporter stays usable when no callback is provided."""
+    report = common.progress_reporter(None)
+    report(50.0, "ignored")
+    report(100.0, "ignored", force=True)
+
+
 # --------------------------------------------------------------------------- #
 # Swiss rules (deterministic & genetic only)
 # --------------------------------------------------------------------------- #

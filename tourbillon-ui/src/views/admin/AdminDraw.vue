@@ -372,7 +372,8 @@ function matchGroupWins(match) {
 function teamMetricsLabel(teamId) {
   const metric = metricsByTeam.value?.[teamId]
   if (!metric) return null
-  return `W${metric.wins ?? 0} · P${metric.points ?? 0}`
+  // Initials are localized (wins/points) so the notation reads naturally
+  return `${t('draw.winsInitial')}${metric.wins ?? 0} · ${t('draw.pointsInitial')}${metric.points ?? 0}`
 }
 
 /** Swiss rule violations of a match, recomputed live. */
@@ -1421,7 +1422,7 @@ label.check {
 }
 
 .matches-grid {
-  --match-card-width-base: clamp(190px, 30vw, 232px);
+  --match-card-width-base: clamp(168px, 26vw, 204px);
   --match-card-width: var(--match-card-width-base);
   display: grid;
   width: 100%;
@@ -1658,7 +1659,9 @@ label.check {
 .fill {
   height: 100%;
   background: var(--color-primary);
-  transition: width 0.2s ease;
+  /* Reports now arrive at a steady pace, a short linear tween avoids the
+     stepping effect without lagging behind the real progress */
+  transition: width 0.15s linear;
 }
 
 .draw-modal-footer {
