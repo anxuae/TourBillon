@@ -3,6 +3,7 @@ import { computed, inject, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { api } from '@/api/client'
 import { useAutoDisplayPaging } from '@/composables/useAutoDisplayPaging'
+import DisplayRotationHint from '@/components/DisplayRotationHint.vue'
 import { useEvents } from '@/events/eventsClient'
 import TeamBadge from '@/components/TeamBadge.vue'
 
@@ -48,7 +49,12 @@ function teamsPageSize() {
   return columns * rows
 }
 
-const { pageItems: visibleTeams } = useAutoDisplayPaging(
+const {
+  pageItems: visibleTeams,
+  pageIndex,
+  totalPages,
+  secondsUntilRotation,
+} = useAutoDisplayPaging(
   allTeams,
   rotationSeconds,
   teamsPageSize,
@@ -106,6 +112,11 @@ function playerLabel(player) {
     <p v-else>
       {{ t('display.noTeams') }}
     </p>
+    <DisplayRotationHint
+      :page-index="pageIndex"
+      :total-pages="totalPages"
+      :seconds-until-rotation="secondsUntilRotation"
+    />
   </section>
 </template>
 

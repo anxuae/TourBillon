@@ -146,6 +146,19 @@ function matchPointsKey(roundNumber, matchIndex, match) {
   return `${roundNumber}:${matchIndex}:${match.location ?? match.teams.join('-')}`
 }
 
+function formatDuration(seconds) {
+  // Matches are short, a mm:ss reading stays the most readable
+  if (seconds === null || seconds === undefined || !Number.isFinite(seconds) || seconds <= 0) {
+    return null
+  }
+  const total = Math.round(seconds)
+  const hours = Math.floor(total / 3600)
+  const minutes = Math.floor((total % 3600) / 60)
+  const secs = total % 60
+  const pad = (value) => String(value).padStart(2, '0')
+  return hours > 0 ? `${hours}:${pad(minutes)}:${pad(secs)}` : `${minutes}:${pad(secs)}`
+}
+
 function initPoints(roundNumber, matchIndex, match) {
   const key = matchPointsKey(roundNumber, matchIndex, match)
   if (!pointsByMatch.value[key]) {
@@ -366,9 +379,16 @@ async function deleteSelectedRound() {
       <table>
         <thead>
           <tr>
-            <th>{{ t('common.location') }}</th>
+            <th class="location-cell">
+              {{ t('common.location') }}
+            </th>
             <th>{{ t('round.results') }}</th>
-            <th>{{ t('common.status') }}</th>
+            <th class="duration-cell">
+              {{ t('common.duration') }}
+            </th>
+            <th class="status-cell">
+              {{ t('common.status') }}
+            </th>
             <th />
           </tr>
         </thead>
@@ -377,7 +397,9 @@ async function deleteSelectedRound() {
             v-for="{ match, index } in filteredRoundMatches"
             :key="`${currentRound.number}-${index}`"
           >
-            <td>{{ match.location ?? t('common.none') }}</td>
+            <td class="location-cell">
+              {{ match.location ?? t('common.none') }}
+            </td>
             <td>
               <div class="results-lines">
                 <div
@@ -399,7 +421,10 @@ async function deleteSelectedRound() {
                 </div>
               </div>
             </td>
-            <td>
+            <td class="duration-cell">
+              {{ formatDuration(match.duration) ?? t('common.none') }}
+            </td>
+            <td class="status-cell">
               <span class="badge">{{ statusLabel(match.finished ? 'finished' : 'in_progress') }}</span>
             </td>
             <td>
@@ -429,6 +454,19 @@ async function deleteSelectedRound() {
 section {
   --round-action-width: 9.2rem;
   --round-pill-width: 6.8rem;
+}
+
+.duration-cell {
+  width: 6.5rem;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Short, atomic values read better centered than left-aligned */
+.location-cell,
+.duration-cell,
+.status-cell {
+  text-align: center;
 }
 
 .head {

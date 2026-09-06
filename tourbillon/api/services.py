@@ -204,6 +204,7 @@ def round_dto(trn, rnd):
         points = {}
         location = None
         finished = True
+        duration = None
         for num in match:
             result = trn.team(num).result(rnd.number)
             points[num] = result.points
@@ -211,12 +212,18 @@ def round_dto(trn, rnd):
                 location = result.location
             if result.status == cst.MATCH_IN_PROGRESS:
                 finished = False
+            # Teams of a same match share the timestamps, keep the longest one.
+            if result.duration is not None:
+                seconds = int(result.duration.total_seconds())
+                if duration is None or seconds > duration:
+                    duration = seconds
         matches.append(
             schemas.MatchDTO(
                 location=location,
                 teams=list(match),
                 points=points,
                 finished=finished,
+                duration=duration,
             )
         )
     byes = [team.id for team in rnd.byes()]

@@ -3,6 +3,7 @@ import { computed, inject, nextTick, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { api } from '@/api/client'
 import { useAutoDisplayPaging } from '@/composables/useAutoDisplayPaging'
+import DisplayRotationHint from '@/components/DisplayRotationHint.vue'
 import { useEvents } from '@/events/eventsClient'
 import { useRankingCriteria } from '@/composables/useRankingCriteria'
 import { useRankingTeams } from '@/composables/useRankingTeams'
@@ -78,7 +79,13 @@ function rankingsPageSize() {
   return Math.max(1, Math.floor(usable / rowHeight))
 }
 
-const { pageItems: visibleRankings, recalculatePageSize } = useAutoDisplayPaging(
+const {
+  pageItems: visibleRankings,
+  pageIndex,
+  totalPages,
+  secondsUntilRotation,
+  recalculatePageSize,
+} = useAutoDisplayPaging(
   allRankings,
   rotationSeconds,
   rankingsPageSize,
@@ -227,6 +234,11 @@ watch(rankings, async () => {
     <p v-else>
       {{ t('display.noRanking') }}
     </p>
+    <DisplayRotationHint
+      :page-index="pageIndex"
+      :total-pages="totalPages"
+      :seconds-until-rotation="secondsUntilRotation"
+    />
   </section>
 </template>
 
@@ -273,15 +285,15 @@ watch(rankings, async () => {
 }
 
 .col-players {
-  width: 36%;
+  width: 30%;
 }
 
 .col-points {
-  width: 8%;
+  width: 10%;
 }
 
 .col-criteria {
-  width: 8%;
+  width: 10%;
 }
 
 .centered-cell {

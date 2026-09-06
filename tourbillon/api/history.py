@@ -77,6 +77,14 @@ def _year_of(trn, path):
         return Path(path).stem
 
 
+def _start_date_of(trn):
+    """Return the tournament start date as an ISO string, or ``None``."""
+    try:
+        return trn.start_date.isoformat()
+    except Exception:  # pylint: disable=broad-except
+        return None
+
+
 def _ranking_of(trn, with_wins, with_joker, with_buchholz, with_goal_avg):
     """Return the ranking of ``trn`` as a ``team -> rank`` mapping."""
     return dict(
@@ -90,18 +98,22 @@ def _ranking_of(trn, with_wins, with_joker, with_buchholz, with_goal_avg):
 
 
 def list_tournaments(save_dir):
-    """Return metadata for every save file (sorted by year)."""
+    """Return metadata for every save file (most recent tournament first)."""
     result = []
     for path, trn in _iter_tournaments(save_dir):
         result.append(
             {
                 "filename": Path(path).name,
                 "year": _year_of(trn, path),
+                "start_date": _start_date_of(trn),
                 "nb_teams": trn.nb_teams(),
                 "nb_rounds": trn.nb_rounds(),
                 "modified": Path(path).stat().st_mtime,
             }
         )
+    # Sort on the tournament date; files without a readable date fall back to
+    # their modification time so they still land in a sensible position.
+    result.sort(key=lambda item: (item["start_date"] or "", item["modified"]), reverse=True)
     return result
 
 

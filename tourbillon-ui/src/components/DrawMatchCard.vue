@@ -1,5 +1,6 @@
 <script setup>
 import { useI18n } from 'vue-i18n'
+import InfoTooltip from '@/components/InfoTooltip.vue'
 
 const { t } = useI18n()
 
@@ -104,11 +105,12 @@ function assignBench(teamId, index) {
   >
     <header>
       <span class="match-title">{{ props.matchLabel(props.match.id) }}</span>
-      <span
+      <InfoTooltip
         v-if="!props.isMatchIncomplete(props.match)"
         class="quality-wrap"
-        :class="{ 'has-tooltip': props.starLossReasons(props.match).length > 0 }"
-        :aria-label="t('draw.starsAria', { count: props.matchStars(props.match) ?? 0 })"
+        align="right"
+        :lines="props.starLossReasons(props.match)"
+        :label="t('draw.starsAria', { count: props.matchStars(props.match) ?? 0 })"
       >
         <span class="quality-label">{{ t('common.quality') }}</span>
         <span
@@ -123,17 +125,7 @@ function assignBench(teamId, index) {
             :class="{ active: index <= (props.matchStars(props.match) ?? 0) }"
           >★</span>
         </span>
-        <span
-          v-if="props.starLossReasons(props.match).length > 0"
-          class="quality-tooltip app-tooltip"
-          role="tooltip"
-        >
-          <span
-            v-for="reason in props.starLossReasons(props.match)"
-            :key="`${props.match.id}-${reason}`"
-          >{{ reason }}</span>
-        </span>
-      </span>
+      </InfoTooltip>
     </header>
 
     <div
@@ -157,9 +149,11 @@ function assignBench(teamId, index) {
               W{{ props.metricsByTeam[teamId]?.wins ?? 0 }} ·
               P{{ props.metricsByTeam[teamId]?.points ?? 0 }}
             </small>
-            <span
-              class="power-wrap has-tooltip"
-              :aria-label="t('draw.powerAria', { score: props.teamPowerScore(teamId) })"
+            <InfoTooltip
+              class="power-wrap"
+              align="right"
+              :text="`Power ${props.teamPowerScore(teamId)} / 5`"
+              :label="t('draw.powerAria', { score: props.teamPowerScore(teamId) })"
             >
               <span
                 class="power-arms"
@@ -178,13 +172,7 @@ function assignBench(teamId, index) {
                   >⬢</span>
                 </span>
               </span>
-              <span
-                class="power-tooltip app-tooltip"
-                role="tooltip"
-              >
-                Power {{ props.teamPowerScore(teamId) }} / 5
-              </span>
-            </span>
+            </InfoTooltip>
           </div>
           <span class="team-number">{{ teamId }}</span>
           <div class="chip-actions">
@@ -288,46 +276,6 @@ function assignBench(teamId, index) {
   text-shadow: 0 0 1px rgba(0, 0, 0, 0.25);
 }
 
-.quality-wrap.has-tooltip {
-  cursor: help;
-}
-
-.app-tooltip {
-  position: absolute;
-  top: calc(100% + 0.35rem);
-  right: 0;
-  min-width: 250px;
-  max-width: 340px;
-  z-index: 20;
-  opacity: 0;
-  visibility: hidden;
-  transform: translateY(-2px);
-  pointer-events: none;
-  background: #1f2937;
-  color: #f9fafb;
-  border-radius: 8px;
-  padding: 0.5rem 0.65rem;
-  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.25);
-  font-size: 0.78rem;
-  line-height: 1.25;
-  transition: opacity 0.12s ease, transform 0.12s ease, visibility 0.12s ease;
-}
-
-.quality-tooltip {
-  min-width: 250px;
-}
-
-.quality-tooltip span {
-  display: block;
-}
-
-.quality-wrap.has-tooltip:hover .quality-tooltip,
-.quality-wrap.has-tooltip:focus-within .quality-tooltip {
-  opacity: 1;
-  visibility: visible;
-  transform: translateY(0);
-}
-
 .teams-grid {
   display: grid;
   grid-template-columns: 1fr;
@@ -392,22 +340,6 @@ function assignBench(teamId, index) {
   position: relative;
   display: inline-flex;
   align-items: center;
-}
-
-.power-wrap.has-tooltip {
-  cursor: help;
-}
-
-.power-tooltip {
-  min-width: max-content;
-  right: 0;
-}
-
-.power-wrap.has-tooltip:hover .power-tooltip,
-.power-wrap.has-tooltip:focus-within .power-tooltip {
-  opacity: 1;
-  visibility: visible;
-  transform: translateY(0);
 }
 
 .power-arm {

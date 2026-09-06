@@ -1,11 +1,12 @@
 <script setup>
-import { computed, inject, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, inject, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { api } from '@/api/client'
 import { useAutoDisplayPaging } from '@/composables/useAutoDisplayPaging'
 import { useEvents } from '@/events/eventsClient'
 import { useStatusLabel } from '@/composables/useStatusLabel'
 import TeamBadge from '@/components/TeamBadge.vue'
+import DisplayRotationHint from '@/components/DisplayRotationHint.vue'
 
 const currentRound = ref(null)
 const { t } = useI18n()
@@ -44,6 +45,19 @@ const allMatches = computed(() => {
   }))
 })
 
+function formatDuration(seconds) {
+  // Matches are short, a mm:ss reading stays the most readable on a big screen
+  if (seconds === null || seconds === undefined || !Number.isFinite(seconds) || seconds <= 0) {
+    return null
+  }
+  const total = Math.round(seconds)
+  const hours = Math.floor(total / 3600)
+  const minutes = Math.floor((total % 3600) / 60)
+  const secs = total % 60
+  const pad = (value) => String(value).padStart(2, '0')
+  return hours > 0 ? `${hours}:${pad(minutes)}:${pad(secs)}` : `${minutes}:${pad(secs)}`
+}
+
 function matchResultStatus(match, teamId) {
   // Neutral until every team of the match has a score entered
   const points = match.points || {}
@@ -71,6 +85,7 @@ const teamCards = computed(() => {
         key: `team-${teamId}`,
         teamId,
         location: match.location ?? '—',
+        duration: formatDuration(match.duration),
         points: hasScores && teamPoints !== null && teamPoints !== undefined ? teamPoints : null,
         opponents: match.teams
           .filter((t) => t !== teamId)
@@ -119,30 +134,16 @@ function cardsPageSize() {
   return Math.max(1, Math.floor(height / cardHeight))
 }
 
-const { pageItems: visibleCards, nextPage, previousPage } = useAutoDisplayPaging(
+const {
+  pageItems: visibleCards,
+  pageIndex,
+  totalPages,
+  secondsUntilRotation,
+} = useAutoDisplayPaging(
   allCards,
   rotationSeconds,
   cardsPageSize,
 )
-
-function onKeydown(event) {
-  // Arrow keys force the rotation to move on without waiting for the timer
-  if (event.key === 'ArrowDown') {
-    event.preventDefault()
-    nextPage()
-  } else if (event.key === 'ArrowUp') {
-    event.preventDefault()
-    previousPage()
-  }
-}
-
-onMounted(() => {
-  window.addEventListener('keydown', onKeydown)
-})
-
-onBeforeUnmount(() => {
-  window.removeEventListener('keydown', onKeydown)
-})
 </script>
 
 <template>
@@ -195,6 +196,14 @@ onBeforeUnmount(() => {
           />
         </div>
 
+        <div
+          v-if="card.type === 'team' && card.duration"
+          class="card-location card-duration"
+        >
+          <span class="location-label">{{ t('common.duration') }}</span>
+          <span class="location-value">{{ card.duration }}</span>
+        </div>
+
         <div class="card-location">
           <span
             class="location-label"
@@ -210,6 +219,11 @@ onBeforeUnmount(() => {
     <p v-if="!currentRound">
       {{ t('display.noRound') }}
     </p>
+    <DisplayRotationHint
+      :page-index="pageIndex"
+      :total-pages="totalPages"
+      :seconds-until-rotation="secondsUntilRotation"
+    />
   </section>
 </template>
 
@@ -230,7 +244,7 @@ onBeforeUnmount(() => {
 
 .team-card {
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: 1fr auto auto;
   gap: 1rem;
   align-items: center;
   padding: 0.6rem 1rem;
@@ -260,6 +274,22 @@ onBeforeUnmount(() => {
   font-size: 1.2rem;
   text-transform: uppercase;
   letter-spacing: 0.18em;
+  color: #cbd5e1;
+}
+
+/* Keep the location aligned on the same column when no duration is shown */
+.card-location:last-child {
+  grid-column: 3;
+}
+
+.card-duration {
+  border-right: 1px solid rgba(255, 255, 255, 0.12);
+  padding-right: 1.4rem;
+  min-width: 9.5rem;
+}
+
+/* Same font metrics as the location so both values sit on the same baseline */
+.card-duration .location-value {
   color: #cbd5e1;
 }
 

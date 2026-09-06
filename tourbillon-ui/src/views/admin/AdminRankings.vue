@@ -5,6 +5,7 @@ import { useI18n } from 'vue-i18n'
 import { useTournamentStore } from '@/stores/tournament'
 import { useRankingCriteria } from '@/composables/useRankingCriteria'
 import { useRankingTeams } from '@/composables/useRankingTeams'
+import InfoTooltip from '@/components/InfoTooltip.vue'
 
 const { t } = useI18n()
 const store = useTournamentStore()
@@ -30,6 +31,12 @@ const {
 } = useRankingCriteria(rankings)
 
 const { teamPlayers } = useRankingTeams(teams)
+
+const selectableRounds = computed(() => {
+  // The ranking after the last round is exactly what "Current" already shows
+  const sorted = [...rounds.value].sort((left, right) => right.number - left.number)
+  return sorted.slice(1)
+})
 
 const filteredRankings = computed(() => {
   const raw = String(teamFilterInput.value ?? '').trim()
@@ -106,7 +113,7 @@ async function refreshRankings() {
             {{ t('rankings.current') }}
           </option>
           <option
-            v-for="round in rounds"
+            v-for="round in selectableRounds"
             :key="round.number"
             :value="round.number"
           >
@@ -140,18 +147,21 @@ async function refreshRankings() {
             class="centered-cell criteria-cell"
           >
             {{ t('common.joker') }}
+            <InfoTooltip :text="t('rankings.jokerInfo')" />
           </th>
           <th
             v-if="showBuchholz"
             class="centered-cell criteria-cell"
           >
             {{ t('rankings.buchholz') }}
+            <InfoTooltip :text="t('rankings.buchholzInfo')" />
           </th>
           <th
             v-if="showGoalAvg"
             class="centered-cell criteria-cell"
           >
             {{ t('rankings.goalAverage') }}
+            <InfoTooltip :text="t('rankings.goalAverageInfo')" />
           </th>
         </tr>
       </thead>
@@ -293,6 +303,12 @@ async function refreshRankings() {
   text-align: center;
 }
 
+/* The global table rule clips overflow for rounded corners, which would hide
+   the criteria header tooltips */
+table {
+  overflow: visible;
+}
+
 .rank-cell {
   width: 4.5rem;
   white-space: nowrap;
@@ -300,7 +316,7 @@ async function refreshRankings() {
 
 /* Every ranking criteria shares the same column width */
 .criteria-cell {
-  width: 6.5rem;
+  width: 7.5rem;
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
 }

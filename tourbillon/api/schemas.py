@@ -31,6 +31,7 @@ class MatchDTO(BaseModel):
     teams: list[int]
     points: dict[int, int]
     finished: bool
+    duration: int | None = None
 
 
 class RoundDTO(BaseModel):

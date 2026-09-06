@@ -1,5 +1,5 @@
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useI18n } from 'vue-i18n'
 import { useTournamentStore } from '@/stores/tournament'
@@ -32,7 +32,12 @@ const fileInput = ref(null)
 const autoSave = computed(() => !!(tournament.value && tournament.value.auto_save))
 const hasChanges = computed(() => !!(tournament.value && tournament.value.changed))
 const saveLabel = computed(() => (autoSave.value ? t('tournament.autoSave') : t('common.save')))
-const saveDisabled = computed(() => loading.value || autoSave.value || !hasChanges.value)
+const saveDisabled = computed(() => {
+  if (loading.value) return true
+  // A pending rename must always be savable, even under auto-save.
+  if (fileNameChanged.value) return false
+  return autoSave.value || !hasChanges.value
+})
 
 // Base name of the currently loaded save file, if any.
 const currentFile = computed(() => {
@@ -40,14 +45,62 @@ const currentFile = computed(() => {
   return path ? path.split(/[\\/]/).pop() : null
 })
 
+// Directory holding the loaded save file, shown read-only before the name.
+const currentDir = computed(() => {
+  const path = (tournament.value && tournament.value.filename) || ''
+  const separator = path.includes('\\') ? '\\' : '/'
+  const parts = path.split(/[\\/]/)
+  parts.pop()
+  const dir = parts.join(separator)
+  return dir ? `${dir}${separator}` : ''
+})
+
+// Editable save file name, resynchronised whenever another file gets loaded.
+const fileNameInput = ref('')
+watch(currentFile, (name) => {
+  fileNameInput.value = name || ''
+}, { immediate: true })
+
+// Typed name with the YAML extension enforced, or an empty string when blank.
+const normalizedFileName = computed(() => {
+  const raw = String(fileNameInput.value ?? '').trim()
+  if (!raw) return ''
+  return /\.ya?ml$/i.test(raw) ? raw : `${raw}.yml`
+})
+
+const fileNameChanged = computed(
+  () => Boolean(currentFile.value && normalizedFileName.value && normalizedFileName.value !== currentFile.value),
+)
+
+function resetFileName() {
+  fileNameInput.value = currentFile.value || ''
+}
+
+// Rebuild the full save path by swapping the base name of the loaded file.
+function renamedFilePath() {
+  const path = (tournament.value && tournament.value.filename) || ''
+  const separator = path.includes('\\') ? '\\' : '/'
+  const parts = path.split(/[\\/]/)
+  parts[parts.length - 1] = normalizedFileName.value
+  return parts.join(separator)
+}
+
 // Search query, shown only when there are more than 5 save files.
 const search = ref('')
 const showSearch = computed(() => savedTournaments.value.length > 5)
 
-// Saved files sorted by last modification date (most recent first), then
-// filtered by the search query when it applies.
+// Saved files sorted by tournament date (most recent first), then filtered by
+// the search query when it applies. Files without a readable date fall back to
+// their modification time.
 const sortedTournaments = computed(() =>
-  [...savedTournaments.value].sort((a, b) => (b.modified || 0) - (a.modified || 0)),
+  [...savedTournaments.value].sort((a, b) => {
+    const left = a.start_date || ''
+    const right = b.start_date || ''
+    if (left !== right) {
+      return right.localeCompare(left)
+    }
+    return (b.modified || 0) - (a.modified || 0)
+  }),
 )
 
 const filteredTournaments = computed(() => {
@@ -89,10 +142,14 @@ async function createTournament() {
 }
 
 async function saveTournament() {
+  // Changing the name saves the tournament under the new file and keeps the
+  // previous one untouched: it behaves like a "save as", not a rename.
+  const renaming = fileNameChanged.value
   try {
-    await store.saveTournament()
+    await store.saveTournament(renaming ? renamedFilePath() : undefined)
   } catch {
     // API errors are handled globally by ApiErrorBanner.
+    resetFileName()
   }
 }
 
@@ -179,12 +236,35 @@ function onPick(event) {
           playersByTeam: tournament.players_by_team,
         }) }}
       </p>
-      <p
+      <label
         v-if="tournament.filename"
-        class="muted"
+        class="file-row"
+        for="tournament-file-name"
       >
-        {{ t('tournament.fileLabel', { name: tournament.filename }) }}
-      </p>
+        <span class="muted">{{ t('tournament.fileName') }}</span>
+        <span class="file-path">
+          <span class="file-dir muted">{{ currentDir }}</span>
+          <span class="file-control">
+            <input
+              id="tournament-file-name"
+              v-model="fileNameInput"
+              type="text"
+              spellcheck="false"
+              :placeholder="t('tournament.fileNamePlaceholder')"
+            >
+            <button
+              v-if="fileNameChanged"
+              type="button"
+              class="file-reset"
+              :aria-label="t('tournament.resetFileName')"
+              :title="t('tournament.resetFileName')"
+              @click="resetFileName"
+            >
+              ×
+            </button>
+          </span>
+        </span>
+      </label>
       <p class="hint">
         {{ t('tournament.hint') }}
       </p>
@@ -419,6 +499,75 @@ function onPick(event) {
 .hint {
   font-size: 0.85rem;
   color: var(--color-muted);
+}
+
+.file-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  margin: 0.35rem 0;
+}
+
+.file-path {
+  display: inline-flex;
+  align-items: center;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.file-dir {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 0 1 auto;
+}
+
+.file-control {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+/* Borderless field: the name reads as part of the surrounding path */
+.file-control input {
+  width: 100%;
+  padding: 0 1.5rem 0 0;
+  border: none;
+  border-bottom: 1px solid transparent;
+  border-radius: 0;
+  background: transparent;
+  font-size: 0.85rem;
+}
+
+.file-control input:hover {
+  border-bottom-color: var(--color-border);
+}
+
+.file-control input:focus {
+  outline: none;
+  border-bottom-color: var(--color-primary);
+}
+
+.file-reset {
+  position: absolute;
+  right: 0.25rem;
+  top: 50%;
+  transform: translateY(-50%);
+  border: none;
+  background: transparent;
+  color: var(--color-muted);
+  width: 1.2rem;
+  height: 1.2rem;
+  line-height: 1;
+  padding: 0;
+  cursor: pointer;
+}
+
+.file-reset:hover {
+  color: var(--color-text);
 }
 
 .save-row {
