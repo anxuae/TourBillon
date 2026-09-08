@@ -238,7 +238,7 @@ function assignBench(teamId, index) {
 
 .match-title {
   font-family: 'Avenir Next', 'Segoe UI', sans-serif;
-  font-size: 1.08rem;
+  font-size: 0.85rem;
   font-weight: 500;
   letter-spacing: 0.02em;
   line-height: 1.05;

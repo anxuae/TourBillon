@@ -146,16 +146,23 @@ const fullnameSuggestions = computed(() =>
     .sort((left, right) => left.localeCompare(right)),
 )
 
-// When a field receives a value matching a known full name (typically after
+// When a field receives a full name matching a known player (typically after
 // selecting a datalist option), split it across the first/last name fields.
 // The lookup ignores casing and accents so "jose gomez" matches "José Gómez".
+// A single word is never auto-completed: it would let a known first-name-only
+// player wipe out the last name the user has just typed.
 function applyMatch(player) {
-  const match = knownPlayers.value.get(nameKey(player.firstname))
-    || knownPlayers.value.get(nameKey(player.lastname))
-  if (match) {
-    player.firstname = match.firstname
-    player.lastname = match.lastname
-    return
+  const candidates = [player.firstname, player.lastname]
+    .map((value) => String(value || '').trim())
+    .filter((value) => value.includes(' '))
+
+  for (const candidate of candidates) {
+    const match = knownPlayers.value.get(nameKey(candidate))
+    if (match) {
+      player.firstname = match.firstname
+      player.lastname = match.lastname
+      return
+    }
   }
   // Unknown player: still normalize the casing of what was typed
   player.firstname = capitalize(player.firstname)
@@ -242,12 +249,8 @@ function playerNames(team) {
 
 <template>
   <section>
-    <header class="head">
-      <h1>{{ t('common.teams') }}</h1>
-    </header>
-
     <div class="card add-form">
-      <h3>{{ t('teams.registerTitle') }}</h3>
+      <h2>{{ t('teams.registerTitle') }}</h2>
       <div class="register-grid">
         <div class="team-number-panel">
           <label
@@ -357,7 +360,9 @@ function playerNames(team) {
     <table v-if="teams.length">
       <thead>
         <tr>
-          <th>{{ t('common.team') }}</th>
+          <th class="team-col">
+            {{ t('common.team') }}
+          </th>
           <th>{{ t('common.players') }}</th>
           <th class="joker-col">
             {{ t('common.joker') }}
@@ -371,7 +376,9 @@ function playerNames(team) {
           v-for="team in teams"
           :key="team.number"
         >
-          <td>{{ team.number }}</td>
+          <td class="team-col">
+            {{ team.number }}
+          </td>
           <td>
             <div
               v-if="editedTeam === team.number"
@@ -472,10 +479,11 @@ function playerNames(team) {
   margin-bottom: 1.5rem;
   display: flex;
   flex-direction: column;
-  gap: 0.8rem;
+  gap: 0.6rem;
 }
 
-.add-form h3 {
+/* The flex gap already spaces the title, its own margins would double it */
+.add-form h2 {
   margin-top: 0;
   margin-bottom: 0;
 }
@@ -631,6 +639,12 @@ function playerNames(team) {
   display: flex;
   flex-direction: column;
   gap: 0.4rem;
+}
+
+.team-col {
+  text-align: center;
+  width: 6rem;
+  font-variant-numeric: tabular-nums;
 }
 
 .joker-col {

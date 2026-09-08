@@ -23,6 +23,7 @@
     "status": "Statut",
     "location": "Piquet",
     "duration": "Durée",
+    "minutesUnit": "min",
     "quality": "Qualité",
     "year": "Année",
     "champion": "Vainqueur",
@@ -78,7 +79,6 @@
     "drawSection": "Tirage · {algorithm}"
   },
   "rankings": {
-    "title": "Classement",
     "current": "Actuel",
     "afterRound": "Après la partie {number}",
     "buchholz": "Buchholz",
@@ -130,14 +130,13 @@
     "disabledUnavailable": "Indisponible"
   },
   "tournament": {
-    "title": "Tournoi",
     "current": "Tournoi courant",
     "summary": "{teams} équipes · {rounds} parties",
     "config": "{teamsByMatch} équipes/manche · {pointsByMatch} points/manche · {playersByTeam} joueurs/équipe",
+    "hint": "Un tournoi est chargé : les autres onglets sont maintenant disponibles. En créer ou en charger un autre le remplacera.",
     "fileName": "Fichier",
     "fileNamePlaceholder": "tournoi.yml",
     "resetFileName": "Rétablir le nom du fichier",
-    "hint": "Un tournoi est chargé : les autres onglets sont maintenant disponibles. En créer ou en charger un autre le remplacera.",
     "autoSave": "Enregistrement auto",
     "newTitle": "Nouveau tournoi",
     "fieldTitle": "Titre",
@@ -174,7 +173,6 @@
     "empty": "Aucune équipe inscrite pour le moment."
   },
   "round": {
-    "title": "Partie",
     "roundNumber": "Partie {number}",
     "teamNumber": "Équipe {number}",
     "scrollLeft": "Faire défiler les parties vers la gauche",
@@ -190,8 +188,6 @@
     "empty": "Aucune partie disponible pour le moment."
   },
   "draw": {
-    "title": "Tirage",
-    "noTournament": "aucun tournoi",
     "algorithm": "Algorithme",
     "generate": "Générer",
     "winsInitial": "G",

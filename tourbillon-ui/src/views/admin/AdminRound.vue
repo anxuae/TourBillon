@@ -260,10 +260,6 @@ async function deleteSelectedRound() {
 
 <template>
   <section>
-    <header class="head">
-      <h1>{{ t('round.title') }}</h1>
-    </header>
-
     <div class="round-controls">
       <div class="round-timeline-wrap">
         <button
@@ -456,6 +452,15 @@ async function deleteSelectedRound() {
 section {
   --round-action-width: 9.2rem;
   --round-pill-width: 4.6rem;
+}
+
+/* Same top spacing as the tournament cards: the title carries no extra margin */
+.card {
+  padding-top: 1rem;
+}
+
+.card > .round-title {
+  margin-top: 0;
 }
 
 .duration-cell {

@@ -69,9 +69,23 @@ async function refreshRankings() {
 
 <template>
   <section>
-    <header class="head">
-      <h1>{{ t('rankings.title') }}</h1>
-      <div class="row">
+    <div class="row">
+      <select
+        v-model="selectedRound"
+        @change="refreshRankings"
+      >
+        <option value="">
+          {{ t('rankings.current') }}
+        </option>
+        <option
+          v-for="round in selectableRounds"
+          :key="round.number"
+          :value="round.number"
+        >
+          {{ t('rankings.afterRound', { number: round.number }) }}
+        </option>
+      </select>
+      <div class="row-right">
         <label
           class="team-search"
           for="rankings-team-filter"
@@ -105,23 +119,8 @@ async function refreshRankings() {
         >
           {{ t('common.print') }}
         </button>
-        <select
-          v-model="selectedRound"
-          @change="refreshRankings"
-        >
-          <option value="">
-            {{ t('rankings.current') }}
-          </option>
-          <option
-            v-for="round in selectableRounds"
-            :key="round.number"
-            :value="round.number"
-          >
-            {{ t('rankings.afterRound', { number: round.number }) }}
-          </option>
-        </select>
       </div>
-    </header>
+    </div>
 
     <table v-if="filteredRankings.length">
       <thead>
@@ -232,21 +231,19 @@ async function refreshRankings() {
 </template>
 
 <style scoped>
-.head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 1rem;
-}
-
-.head h1 {
-  margin: 0;
-}
-
 .row {
   display: flex;
   align-items: center;
+  justify-content: flex-start;
   gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.row-right {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-left: auto;
 }
 
 .team-search {
@@ -332,7 +329,7 @@ async function refreshRankings() {
 
 /* Printing keeps the ranking table only: controls are dropped */
 @media print {
-  .row {
+  .row-right {
     display: none !important;
   }
 }

@@ -6,20 +6,12 @@ import { useI18n } from 'vue-i18n'
 import { api, pushApiError } from '@/api/client'
 import { useEvents } from '@/events/eventsClient'
 import { useTournamentStore } from '@/stores/tournament'
-import { useStatusLabel } from '@/composables/useStatusLabel'
 import DrawBenchPanel from '@/components/DrawBenchPanel.vue'
 import DrawMatchCard from '@/components/DrawMatchCard.vue'
 
-const props = defineProps({
-  showHeader: {
-    type: Boolean,
-    default: true,
-  },
-})
 const emit = defineEmits(['cancel', 'issues-change', 'created'])
 
 const { t } = useI18n()
-const { statusLabel } = useStatusLabel()
 const store = useTournamentStore()
 const { draws, tournament, teams } = storeToRefs(store)
 const router = useRouter()
@@ -702,14 +694,6 @@ function resetDrawState() {
 <template>
   <section>
     <div class="draw-content-scroll">
-      <header
-        v-if="props.showHeader"
-        class="head"
-      >
-        <h1>{{ t('draw.title') }}</h1>
-        <span class="badge">{{ tournament?.status ? statusLabel(tournament.status) : t('draw.noTournament') }}</span>
-      </header>
-
       <div class="top-row">
         <div class="card form">
           <div class="algorithm-panel">
@@ -1032,6 +1016,17 @@ section {
   overflow: hidden;
 }
 
+/* Same top spacing as the tournament cards: the title carries no extra margin */
+.card {
+  padding-top: 1rem;
+}
+
+.card > h2,
+.card > .review-head,
+.card > .algorithm-panel {
+  margin-top: 0;
+}
+
 .draw-content-scroll {
   min-height: 0;
   overflow-y: auto;
@@ -1143,6 +1138,7 @@ section {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  min-width: 6.5rem;
   min-height: var(--toolbar-control-height);
   height: var(--toolbar-control-height);
 }

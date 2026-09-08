@@ -23,6 +23,7 @@
     "status": "Status",
     "location": "Location",
     "duration": "Duration",
+    "minutesUnit": "min",
     "quality": "Quality",
     "year": "Year",
     "champion": "Champion",
@@ -78,7 +79,6 @@
     "drawSection": "Draw · {algorithm}"
   },
   "rankings": {
-    "title": "Rankings",
     "current": "Current",
     "afterRound": "After round {number}",
     "buchholz": "Buchholz",
@@ -130,14 +130,13 @@
     "disabledUnavailable": "Unavailable"
   },
   "tournament": {
-    "title": "Tournament",
     "current": "Current tournament",
     "summary": "{teams} teams · {rounds} rounds",
     "config": "{teamsByMatch} teams/match · {pointsByMatch} points/match · {playersByTeam} players/team",
+    "hint": "A tournament is loaded: the other tabs are now available. Creating or loading another one will replace it.",
     "fileName": "File",
     "fileNamePlaceholder": "tournament.yml",
     "resetFileName": "Revert the file name",
-    "hint": "A tournament is loaded: the other tabs are now available. Creating or loading another one will replace it.",
     "autoSave": "Auto Save",
     "newTitle": "New tournament",
     "fieldTitle": "Title",
@@ -174,7 +173,6 @@
     "empty": "No team registered yet."
   },
   "round": {
-    "title": "Round",
     "roundNumber": "Round {number}",
     "teamNumber": "Team {number}",
     "scrollLeft": "Scroll rounds left",
@@ -190,8 +188,6 @@
     "empty": "No round available yet."
   },
   "draw": {
-    "title": "Draw",
-    "noTournament": "no tournament",
     "algorithm": "Algorithm",
     "generate": "Generate",
     "winsInitial": "W",

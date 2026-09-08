@@ -6,6 +6,7 @@ import { useTournamentStore } from '@/stores/tournament'
 import { useStatusLabel } from '@/composables/useStatusLabel'
 import { pushApiError } from '@/api/client'
 import TrashIcon from '@/components/TrashIcon.vue'
+import InfoTooltip from '@/components/InfoTooltip.vue'
 
 const { t } = useI18n()
 const { statusLabel } = useStatusLabel()
@@ -219,13 +220,14 @@ function onPick(event) {
 
 <template>
   <section class="tournament">
-    <h1>{{ t('tournament.title') }}</h1>
-
     <div
       v-if="tournament"
       class="card current"
     >
-      <h2>{{ t('tournament.current') }}</h2>
+      <h2 class="current-title">
+        {{ t('tournament.current') }}
+        <InfoTooltip :text="t('tournament.hint')" />
+      </h2>
       <p>
         <span class="badge">{{ statusLabel(tournament.status) }}</span>
         {{ t('tournament.summary', { teams: tournament.nb_teams, rounds: tournament.nb_rounds }) }}
@@ -237,39 +239,36 @@ function onPick(event) {
           playersByTeam: tournament.players_by_team,
         }) }}
       </p>
-      <label
-        v-if="tournament.filename"
-        class="file-row"
-        for="tournament-file-name"
-      >
-        <span class="muted">{{ t('tournament.fileName') }}</span>
-        <span class="file-path">
-          <span class="file-dir muted">{{ currentDir }}</span>
-          <span class="file-control">
-            <input
-              id="tournament-file-name"
-              v-model="fileNameInput"
-              type="text"
-              spellcheck="false"
-              :placeholder="t('tournament.fileNamePlaceholder')"
-            >
-            <button
-              v-if="fileNameChanged"
-              type="button"
-              class="file-reset"
-              :aria-label="t('tournament.resetFileName')"
-              :title="t('tournament.resetFileName')"
-              @click="resetFileName"
-            >
-              ×
-            </button>
+      <div class="file-line">
+        <label
+          v-if="tournament.filename"
+          class="file-row"
+          for="tournament-file-name"
+        >
+          <span class="muted">{{ t('tournament.fileName') }}</span>
+          <span class="file-path">
+            <span class="file-dir muted">{{ currentDir }}</span>
+            <span class="file-control">
+              <input
+                id="tournament-file-name"
+                v-model="fileNameInput"
+                type="text"
+                spellcheck="false"
+                :placeholder="t('tournament.fileNamePlaceholder')"
+              >
+              <button
+                v-if="fileNameChanged"
+                type="button"
+                class="file-reset"
+                :aria-label="t('tournament.resetFileName')"
+                :title="t('tournament.resetFileName')"
+                @click="resetFileName"
+              >
+                ×
+              </button>
+            </span>
           </span>
-        </span>
-      </label>
-      <p class="hint">
-        {{ t('tournament.hint') }}
-      </p>
-      <div class="save-row">
+        </label>
         <button
           type="button"
           class="action-btn"
@@ -446,10 +445,15 @@ function onPick(event) {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius);
-  padding: 1.5rem;
+  padding: 1rem 1.5rem 1.5rem;
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+}
+
+/* The flex gap already spaces the title, its own margin would add to it */
+.card > h2 {
+  margin-top: 0;
 }
 
 .current .badge {
@@ -497,9 +501,11 @@ function onPick(event) {
   align-self: center;
 }
 
-.hint {
-  font-size: 0.85rem;
-  color: var(--color-muted);
+/* The info tooltip sits right after the title text */
+.current-title {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
 }
 
 .file-row {
@@ -537,19 +543,13 @@ function onPick(event) {
   width: 100%;
   padding: 0 1.5rem 0 0;
   border: none;
-  border-bottom: 1px solid transparent;
   border-radius: 0;
   background: transparent;
   font-size: 0.85rem;
 }
 
-.file-control input:hover {
-  border-bottom-color: var(--color-border);
-}
-
 .file-control input:focus {
   outline: none;
-  border-bottom-color: var(--color-primary);
 }
 
 .file-reset {
@@ -571,14 +571,23 @@ function onPick(event) {
   color: var(--color-text);
 }
 
-.save-row {
-  margin-top: 0.35rem;
-  padding-top: 0.5rem;
-  border-top: 1px solid var(--color-border);
+/* The save action sits right of the file name, on the same line */
+.file-line {
   display: flex;
   align-items: center;
-  justify-content: flex-end;
-  gap: 0.5rem;
+  gap: 0.75rem;
+  margin-top: 0.35rem;
+}
+
+.file-line .file-row {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+}
+
+.file-line .action-btn {
+  flex: 0 0 auto;
+  margin-left: auto;
 }
 
 .file-list {

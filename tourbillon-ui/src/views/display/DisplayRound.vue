@@ -46,16 +46,11 @@ const allMatches = computed(() => {
 })
 
 function formatDuration(seconds) {
-  // Matches are short, a mm:ss reading stays the most readable on a big screen
+  // A big screen only needs a coarse reading: minutes, rounded to the nearest one
   if (seconds === null || seconds === undefined || !Number.isFinite(seconds) || seconds <= 0) {
     return null
   }
-  const total = Math.round(seconds)
-  const hours = Math.floor(total / 3600)
-  const minutes = Math.floor((total % 3600) / 60)
-  const secs = total % 60
-  const pad = (value) => String(value).padStart(2, '0')
-  return hours > 0 ? `${hours}:${pad(minutes)}:${pad(secs)}` : `${minutes}:${pad(secs)}`
+  return Math.round(seconds / 60)
 }
 
 function matchResultStatus(match, teamId) {
@@ -201,7 +196,9 @@ const {
           class="card-location card-duration"
         >
           <span class="location-label">{{ t('common.duration') }}</span>
-          <span class="location-value">{{ card.duration }}</span>
+          <span class="location-value">
+            {{ card.duration }}<span class="duration-unit">{{ t('common.minutesUnit') }}</span>
+          </span>
         </div>
 
         <div class="card-location">
@@ -291,6 +288,13 @@ const {
 /* Same font metrics as the location so both values sit on the same baseline */
 .card-duration .location-value {
   color: #cbd5e1;
+}
+
+/* The unit is secondary information, it stays discreet next to the value */
+.duration-unit {
+  margin-left: 0.25em;
+  font-size: 0.4em;
+  letter-spacing: 0.05em;
 }
 
 .location-label-special {
