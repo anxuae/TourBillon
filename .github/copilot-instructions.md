@@ -436,6 +436,14 @@ Interfaces : `/admin`, `/display`, `/history`.
 > tronquée/brouillée. En cas de doute sur le résultat d'une commande, rediriger vers
 > un fichier du workspace puis le lire.
 
+> **Ne jamais lancer l'application sans autorisation explicite** : ne pas exécuter
+> `poetry run tourbillon` (ni tout équivalent qui démarre le serveur, avec ou sans
+> `--port`) de sa propre initiative, y compris pour "vérifier" un changement.
+> Toujours **demander confirmation à l'utilisateur** avant de démarrer le serveur.
+> Les commandes non interactives et sans effet de bord durable (tests `pytest`,
+> `poetry build`, `poetry install`, lint, etc.) restent autorisées sans demander.
+
+
 ---
 
 ## 8. Références rapides

@@ -3,7 +3,7 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
-name = "tourbillon"
+name = "tour-billon"
 version = "6.0.0"
 description = "TourBillon - by La Billionnière"
 authors = ["La Billonnière"]
@@ -16,9 +16,13 @@ packages = [
     { include = "tourbillon" }
 ]
 include = [
+    { path = "tourbillon/static/dist/**/*", format = ["sdist", "wheel"] },
     { path = "tests", format = "sdist"},
     { path = "LICENSE", format = "sdist"}
 ]
+
+[tool.poetry.build]
+script = "scripts/build-ui.py"
 
 [tool.poetry.dependencies]
 python = "^3.10"

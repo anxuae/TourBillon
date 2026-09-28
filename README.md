@@ -1,6 +1,6 @@
 [![Python](https://img.shields.io/badge/python-3.10+-red.svg)](https://www.python.org/downloads)
-[![PyPi package](https://badge.fury.io/py/tourbillon.svg)](https://pypi.org/project/tourbillon)
-[![Downloads](https://img.shields.io/pypi/dm/tourbillon?color=purple)](https://pypi.org/project/tourbillon)
+[![PyPi package](https://badge.fury.io/py/tour-billon.svg)](https://pypi.org/project/tour-billon)
+[![Downloads](https://img.shields.io/pypi/dm/tour-billon?color=purple)](https://pypi.org/project/tour-billon)
 [![Tests](https://github.com/anxuae/TourBillon/actions/workflows/tests.yml/badge.svg)](https://github.com/anxuae/TourBillon/actions/workflows/tests.yml)
 [![Codecov](https://codecov.io/gh/anxuae/TourBillon/branch/master/graph/badge.svg)](https://codecov.io/gh/anxuae/TourBillon)
 
@@ -31,8 +31,10 @@
 # TourBillon
 
 TourBillon is free software (distributed under the LPG license) that helps you
-organize [Billon tournaments](https://www.facebook.com/labillonniere).
-It is a **Swiss-system tournament manager** for teams of one or more player(s).
+organize tournaments using the **Swiss system**, for teams of one or more
+player(s). It was originally built for the game of
+[Billon](https://www.facebook.com/labillonniere), but can be used for any
+Swiss-system tournament.
 
 With TourBillon you can:
 
@@ -54,10 +56,27 @@ For 32 to 64 teams, it is recommended to play between 5 and 6 rounds.
 
 ## Installation
 
-TourBillon needs two things: **Python** (to run the application) and
-**Node.js** (to build the web interface).
+### Official use
 
-### 1. Install Python
+TourBillon is published on PyPI under the name `tour-billon`. If you only
+want to run the application, install it with `pip`:
+
+```bash
+pip install tour-billon
+```
+
+Then start the application:
+
+```bash
+tourbillon
+```
+
+### Developer mode
+
+Developer mode needs **Python**, **Poetry**, **Node.js**, and **npm**. On macOS,
+you can install them step by step as follows.
+
+#### 1. Install Python
 
 TourBillon requires **Python 3.10 or higher**. Check whether it is already
 installed:
@@ -74,13 +93,24 @@ brew install python
 
 or download it from [python.org](https://www.python.org/downloads/).
 
-### 2. Install Node.js and npm (macOS)
+#### 2. Install Poetry
+
+Poetry is used to install the Python dependencies and run the project from the
+source tree:
+
+```bash
+pip install poetry
+poetry --version
+```
+
+#### 3. Install Node.js and npm
 
 Node.js (which bundles `npm`) is needed to build the web interface. Check if it
 is installed:
 
 ```bash
 node --version
+npm --version
 ```
 
 If the command is not found, or reports a version below 18, install it using one
@@ -108,34 +138,32 @@ both `node` and `npm`.
 
 > After installation, make sure `node --version` reports **18 or higher**.
 
-### 3. Install TourBillon
+#### 4. Install TourBillon from source
 
-Install [Poetry](https://python-poetry.org/) (used to install TourBillon), then
-install the application and build the web interface:
+From the TourBillon folder, install the backend dependencies with Poetry:
 
 ```bash
-# Install Poetry (once)
-pip install poetry
-
-# From the TourBillon folder
 poetry install
+```
 
-# Build the web interface
+Then build the web interface:
+
+```bash
 cd tourbillon-ui
 npm install
 npm run build
 cd ..
 ```
 
-## Getting started
-
-Start TourBillon:
+#### 5. Start the application
 
 ```bash
 poetry run tourbillon
 ```
 
-Then open your web browser. Three interfaces are available:
+## Getting started
+
+Open your web browser. Three interfaces are available:
 
 | Interface   | Address                          | What it is for                                             |
 |-------------|----------------------------------|------------------------------------------------------------|
@@ -156,3 +184,18 @@ Then open your web browser. Three interfaces are available:
 
 Your tournaments are saved automatically and remain compatible with the files
 from previous editions.
+
+## Build the PyPI package
+
+To create the distributable package for PyPI, run Poetry from the project root:
+
+```bash
+poetry build
+```
+
+This generates the source archive and wheel in the `dist/` folder. To inspect
+the build artifacts before publishing, list that directory:
+
+```bash
+ls dist/
+```

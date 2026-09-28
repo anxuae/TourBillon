@@ -10,13 +10,18 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
 import tourbillon
+from .. import logger
 from .routers import ROUTERS
 from ..settings import Settings, SETTINGS_PATH_ENV
 from .state import init_state
 
-# Location of the built web frontend (served in production if present).
-# The Vue SPA lives in the sibling ``tourbillon-ui`` folder at the repo root.
-WEB_DIR = Path(__file__).resolve().parents[2] / "tourbillon-ui" / "dist"
+# Location of the built web frontend. Prefer the bundled package assets so the
+# wheel/sdist works when installed from PyPI; keep a local repo fallback for dev.
+# Assets are copied into ``tourbillon/static/dist`` by ``scripts/build-ui.py``
+# (the Poetry build hook), so this must match ``pyproject.toml``'s ``include``.
+PACKAGE_WEB_DIR = Path(__file__).resolve().parents[1] / "static" / "dist"
+DEV_WEB_DIR = Path(__file__).resolve().parents[2] / "tourbillon-ui" / "dist"
+WEB_DIR = PACKAGE_WEB_DIR if PACKAGE_WEB_DIR.is_dir() else DEV_WEB_DIR
 
 
 def create_app(settings=None):
@@ -62,7 +67,13 @@ def create_app(settings=None):
     # Serve the built Vue SPA if it exists. The client router handles the
     # /admin, /display and /history routes (history mode).
     if WEB_DIR.is_dir():
+        if WEB_DIR == PACKAGE_WEB_DIR:
+            logger.info("Serving frontend from bundled package assets: %s", WEB_DIR)
+        else:
+            logger.info("Serving frontend from local dev build: %s", WEB_DIR)
         app.mount("/", StaticFiles(directory=WEB_DIR, html=True), name="ui")
+    else:
+        logger.warning("No built frontend found (looked in %s and %s)", PACKAGE_WEB_DIR, DEV_WEB_DIR)
 
     return app
 

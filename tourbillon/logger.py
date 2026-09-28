@@ -7,6 +7,8 @@ import logging
 from pathlib import Path
 from logging import handlers
 
+from uvicorn.logging import DefaultFormatter
+
 import tourbillon
 
 _logger = logging.getLogger(tourbillon.__long_name__)
@@ -62,12 +64,13 @@ class CounterHandler(logging.Handler):
             LoggerHandler.counters['infos'] += 1
 
 
-def add_handler(handler, level: int = logging.INFO, pattern: str = "(%(levelname)s) %(asctime)s - %(message)s"):
+def add_handler(handler, level: int = logging.INFO, pattern: str = "(%(levelname)s) %(asctime)s - %(message)s",
+                 formatter_cls: type = logging.Formatter):
     """
     Add a new handler with given config
     """
     handler.setLevel(level)
-    formatter = logging.Formatter(pattern, "%Y/%m/%d %H:%M:%S")
+    formatter = formatter_cls(pattern, "%Y/%m/%d %H:%M:%S")
     handler.setFormatter(formatter)
     _logger.addHandler(handler)
     return handler
@@ -83,7 +86,9 @@ def init_logger(level: int = logging.INFO, logdir: str = None):
     _logger.setLevel(logging.DEBUG)  # Let the possibility to have higher levels set on handlers
 
     console_handler = LoggerHandler()
-    add_handler(console_handler, level)
+    # Reuse uvicorn's own formatter so tourbillon logs (Settings file, frontend
+    # source, ...) render identically to uvicorn's ("INFO:     message").
+    add_handler(console_handler, level, pattern="%(levelprefix)s %(message)s", formatter_cls=DefaultFormatter)
     atexit.register(console_handler.bilan)
 
     # Include every other logger (third-party libraries, uvicorn / FastAPI, ...)
