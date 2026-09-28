@@ -12,24 +12,45 @@ const props = defineProps({
     type: Array,
     default: () => [],
   },
+  disableByeAction: {
+    type: Boolean,
+    default: false,
+  },
 })
 
 const emit = defineEmits([
   'drop-to-bench',
   'drag-start-from-bench',
-  'allow-drop',
 ])
 
-function dropTo(target) {
+function dropTo(target, event) {
+  event?.preventDefault()
+  if (target === 'bye' && props.disableByeAction) return
   emit('drop-to-bench', target)
 }
 
-function dragStart(teamId, source) {
+function dragStart(teamId, source, event) {
+  if (event?.dataTransfer) {
+    // Required by Firefox to actually start the drag operation. 'copyMove'
+    // also lets dragover handlers pick 'copy' to show the native green-plus
+    // cursor on valid drop targets.
+    event.dataTransfer.effectAllowed = 'copyMove'
+    event.dataTransfer.setData('text/plain', String(teamId))
+  }
   emit('drag-start-from-bench', teamId, source)
 }
 
-function allow(event) {
-  emit('allow-drop', event)
+function allow(event, target) {
+  // Fully handled here (preventDefault + dropEffect): this dropzone must not
+  // forward the event to a parent handler that could unconditionally reset
+  // dropEffect back to 'move', which would erase the not-allowed cursor.
+  event.preventDefault()
+  if (event.dataTransfer) {
+    // 'none' renders a not-allowed cursor while hovering a full Bye zone;
+    // 'copy' renders the native green-plus cursor (same as the file
+    // dropzone) to signal that the drop is possible.
+    event.dataTransfer.dropEffect = target === 'bye' && props.disableByeAction ? 'none' : 'copy'
+  }
 }
 </script>
 
@@ -38,8 +59,8 @@ function allow(event) {
     <div class="bench-row">
       <div
         class="card bench-subcard"
-        @dragover="allow"
-        @drop="dropTo('bye')"
+        @dragover="allow($event, 'bye')"
+        @drop="dropTo('bye', $event)"
       >
         <h2>{{ t('draw.benchBye') }}</h2>
 
@@ -49,7 +70,7 @@ function allow(event) {
             :key="`bye-${teamId}`"
             class="pill status-badge status-bye"
             draggable="true"
-            @dragstart="dragStart(teamId, 'bye')"
+            @dragstart="dragStart(teamId, 'bye', $event)"
           >
             {{ t('draw.teamLabel', { number: teamId }) }}
           </span>
@@ -58,8 +79,8 @@ function allow(event) {
 
       <div
         class="card bench-subcard"
-        @dragover="allow"
-        @drop="dropTo('forfeit')"
+        @dragover="allow($event, 'forfeit')"
+        @drop="dropTo('forfeit', $event)"
       >
         <h2>{{ t('draw.benchForfeit') }}</h2>
         <div class="chips">
@@ -68,7 +89,7 @@ function allow(event) {
             :key="`forfeit-${teamId}`"
             class="pill status-badge status-forfeit"
             draggable="true"
-            @dragstart="dragStart(teamId, 'forfeit')"
+            @dragstart="dragStart(teamId, 'forfeit', $event)"
           >
             {{ t('draw.teamLabel', { number: teamId }) }}
           </span>

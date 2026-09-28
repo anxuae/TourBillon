@@ -80,11 +80,20 @@ function allowDrop(event) {
   emit('allow-drop', event)
 }
 
-function dropToSlot(index) {
+function dropToSlot(index, event) {
+  event?.preventDefault()
   emit('drop-to-slot', props.match.id, index)
 }
 
-function dragStart(index, teamId) {
+function dragStart(index, teamId, event) {
+  if (event?.dataTransfer) {
+    // Required by Firefox to actually start the drag operation, and lets the
+    // bench dropzones (Bye/Forfeit) accept the payload consistently.
+    // 'copyMove' also lets dragover handlers pick 'copy' to show the native
+    // green-plus cursor on valid drop targets.
+    event.dataTransfer.effectAllowed = 'copyMove'
+    event.dataTransfer.setData('text/plain', String(teamId))
+  }
   emit('drag-start-from-slot', props.match.id, index, teamId)
 }
 
@@ -140,8 +149,8 @@ function assignBench(teamId, index) {
         :draggable="teamId != null"
         @click="selectSlot(teamIndex)"
         @dragover="allowDrop"
-        @drop="dropToSlot(teamIndex)"
-        @dragstart="dragStart(teamIndex, teamId)"
+        @drop="dropToSlot(teamIndex, $event)"
+        @dragstart="dragStart(teamIndex, teamId, $event)"
       >
         <template v-if="teamId != null">
           <div class="team-head-row">

@@ -41,6 +41,7 @@ const countdown = computed(() => {
       <span class="rotation-key">↓</span>
     </span>
     <span>{{ t('display.rotationHint') }}</span>
+    <span> - </span>
     <span
       v-if="paginated"
       class="rotation-page"

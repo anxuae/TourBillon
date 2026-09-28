@@ -169,10 +169,14 @@ function clearTeamFilter() {
   teamFilterInput.value = ''
 }
 
-/** Matches of the list view, honouring the team filter. */
+/** Matches of the list view, honouring both the team filter and the
+ * "hide full matches" toggle (same filtering as the mosaic view). */
 const listMatches = computed(() => {
   if (!draft.value) return []
-  return (draft.value.matches || []).filter((match) => matchHasFilteredTeam(match))
+  return (draft.value.matches || []).filter((match) => {
+    if (hideFullMatches.value && !hasEmptySlot(match)) return false
+    return matchHasFilteredTeam(match)
+  })
 })
 
 function slotKey(matchId, index) {
@@ -417,8 +421,15 @@ function moveTeamTo(teamId, target) {
   }
 }
 
-function onDragStartFromSlot(matchId, index, teamId) {
+function onDragStartFromSlot(matchId, index, teamId, event) {
   if (teamId == null) return
+  if (event?.dataTransfer) {
+    // 'copyMove' lets dragover handlers pick 'copy' to show the native
+    // green-plus cursor (same feedback as the file dropzone) on valid
+    // targets, while still allowing 'move'/'none' where needed.
+    event.dataTransfer.effectAllowed = 'copyMove'
+    event.dataTransfer.setData('text/plain', String(teamId))
+  }
   dragged.value = {
     type: 'slot',
     matchId,
@@ -427,7 +438,11 @@ function onDragStartFromSlot(matchId, index, teamId) {
   }
 }
 
-function onDragStartFromBench(teamId, source) {
+function onDragStartFromBench(teamId, source, event) {
+  if (event?.dataTransfer) {
+    event.dataTransfer.effectAllowed = 'copyMove'
+    event.dataTransfer.setData('text/plain', String(teamId))
+  }
   dragged.value = {
     type: 'bench',
     source,
@@ -437,9 +452,15 @@ function onDragStartFromBench(teamId, source) {
 
 function allowDrop(event) {
   event.preventDefault()
+  if (event.dataTransfer) {
+    // 'copy' renders the native green-plus cursor (same as the file
+    // dropzone), giving a clear "drop possible here" feedback.
+    event.dataTransfer.dropEffect = 'copy'
+  }
 }
 
-function dropToSlot(matchId, index) {
+function dropToSlot(matchId, index, event) {
+  event?.preventDefault()
   if (!dragged.value || !draft.value) return
 
   const target = findSlot(matchId, index)
@@ -752,9 +773,9 @@ function resetDrawState() {
           <DrawBenchPanel
             :byes="draft?.byes ?? []"
             :forfeits="draft?.forfeits ?? []"
+            :disable-bye-action="disableByeAction"
             @drop-to-bench="dropToBench"
             @drag-start-from-bench="onDragStartFromBench"
-            @allow-drop="allowDrop"
           />
         </div>
       </div>
@@ -926,9 +947,9 @@ function resetDrawState() {
                     }"
                     :draggable="Boolean(teamId)"
                     @click="selectSlot(match.id, teamIndex)"
-                    @dragstart="onDragStartFromSlot(match.id, teamIndex, teamId)"
+                    @dragstart="onDragStartFromSlot(match.id, teamIndex, teamId, $event)"
                     @dragover="allowDrop"
-                    @drop="dropToSlot(match.id, teamIndex)"
+                    @drop="dropToSlot(match.id, teamIndex, $event)"
                   >
                     {{ teamId ? t('draw.teamLabel', { number: teamId }) : '—' }}
                     <span
@@ -1524,6 +1545,10 @@ label.check {
   font-weight: 600;
   color: inherit;
   cursor: pointer;
+  /* Safari/WebKit disable native drag on form controls (button, input, ...)
+     by default: opt back in so drag-and-drop into Bye/Forfeit works here. */
+  -webkit-user-drag: element;
+  user-select: none;
   transition: box-shadow 0.15s ease, background 0.15s ease;
 }
 

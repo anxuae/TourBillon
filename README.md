@@ -44,19 +44,7 @@ With TourBillon you can:
 - follow the live ranking, including on a big screen in the room,
 - browse the history of past editions, player by player.
 
-### How the ranking works
-
-Teams are paired with opponents who have a similar score, never play the same
-opponent twice, and are never eliminated. Teams are ranked **first by the number
-of games won**; in case of a tie, the **total number of points** decides. The
-winner is the team with the most games won (then the most points) across all
-rounds.
-
-For 32 to 64 teams, it is recommended to play between 5 and 6 rounds.
-
 ## Installation
-
-### Official use
 
 TourBillon is published on PyPI under the name `tour-billon`. If you only
 want to run the application, install it with `pip`:
@@ -71,12 +59,48 @@ Then start the application:
 tourbillon
 ```
 
-### Developer mode
+## Getting started
+
+Open your web browser. Three interfaces are available:
+
+| Interface   | Address                          | What it is for                                             |
+|-------------|----------------------------------|------------------------------------------------------------|
+| **Admin**   | <http://localhost:8000/admin>    | Register teams, run the draws, enter scores, view rankings.|
+| **Display** | <http://localhost:8000/display>  | Read-only live rankings and current round for the big screen (projector). |
+| **History** | <http://localhost:8000/history>  | Player statistics year after year, across every saved tournament. |
+
+## A typical tournament
+
+1. Open the **Admin** interface and register every team and its players.
+2. Launch the first **draw** to pair the teams for round 1.
+3. Play the matches, then **enter each score** in the Admin interface.
+4. Launch the next draw, and repeat for every round (usually 5 to 6).
+5. Show the **Display** interface on the big screen so everyone can follow the
+   live ranking and see who plays where.
+6. After the event, use the **History** interface to review player performances
+   across the years.
+
+Your tournaments are saved automatically and remain compatible with the files
+from previous editions.
+
+## How the ranking works
+
+Teams are paired with opponents who have a similar score, never play the same
+opponent twice, and are never eliminated. Teams are ranked **first by the number
+of games won**; in case of a tie, the **total number of points** decides. The
+winner is the team with the most games won (then the most points) across all
+rounds.
+
+For 32 to 64 teams, it is recommended to play between 5 and 6 rounds.
+
+# Developer mode
 
 Developer mode needs **Python**, **Poetry**, **Node.js**, and **npm**. On macOS,
 you can install them step by step as follows.
 
-#### 1. Install Python
+## Installation
+
+### 1. Install Python
 
 TourBillon requires **Python 3.10 or higher**. Check whether it is already
 installed:
@@ -93,7 +117,7 @@ brew install python
 
 or download it from [python.org](https://www.python.org/downloads/).
 
-#### 2. Install Poetry
+### 2. Install Poetry
 
 Poetry is used to install the Python dependencies and run the project from the
 source tree:
@@ -103,7 +127,7 @@ pip install poetry
 poetry --version
 ```
 
-#### 3. Install Node.js and npm
+### 3. Install Node.js and npm
 
 Node.js (which bundles `npm`) is needed to build the web interface. Check if it
 is installed:
@@ -138,7 +162,7 @@ both `node` and `npm`.
 
 > After installation, make sure `node --version` reports **18 or higher**.
 
-#### 4. Install TourBillon from source
+### 4. Install TourBillon from source
 
 From the TourBillon folder, install the backend dependencies with Poetry:
 
@@ -155,35 +179,11 @@ npm run build
 cd ..
 ```
 
-#### 5. Start the application
+### 5. Start the application
 
 ```bash
 poetry run tourbillon
 ```
-
-## Getting started
-
-Open your web browser. Three interfaces are available:
-
-| Interface   | Address                          | What it is for                                             |
-|-------------|----------------------------------|------------------------------------------------------------|
-| **Admin**   | <http://localhost:8000/admin>    | Register teams, run the draws, enter scores, view rankings.|
-| **Display** | <http://localhost:8000/display>  | Read-only live rankings and current round for the big screen (projector). |
-| **History** | <http://localhost:8000/history>  | Player statistics year after year, across every saved tournament. |
-
-### A typical tournament
-
-1. Open the **Admin** interface and register every team and its players.
-2. Launch the first **draw** to pair the teams for round 1.
-3. Play the matches, then **enter each score** in the Admin interface.
-4. Launch the next draw, and repeat for every round (usually 5 to 6).
-5. Show the **Display** interface on the big screen so everyone can follow the
-   live ranking and see who plays where.
-6. After the event, use the **History** interface to review player performances
-   across the years.
-
-Your tournaments are saved automatically and remain compatible with the files
-from previous editions.
 
 ## Build the PyPI package
 
