@@ -3,7 +3,7 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
-name = "tour-billon"
+name = "tourbillon-app"
 version = "6.0.0"
 description = "TourBillon - by La Billionnière"
 authors = ["La Billonnière"]

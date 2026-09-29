@@ -1,6 +1,6 @@
 [![Python](https://img.shields.io/badge/python-3.10+-red.svg)](https://www.python.org/downloads)
-[![PyPi package](https://badge.fury.io/py/tour-billon.svg)](https://pypi.org/project/tour-billon)
-[![Downloads](https://img.shields.io/pypi/dm/tour-billon?color=purple)](https://pypi.org/project/tour-billon)
+[![PyPi package](https://badge.fury.io/py/tourbillon-app.svg)](https://pypi.org/project/tourbillon-app)
+[![Downloads](https://img.shields.io/pypi/dm/tourbillon-app?color=purple)](https://pypi.org/project/tourbillon-app)
 [![Tests](https://github.com/anxuae/TourBillon/actions/workflows/tests.yml/badge.svg)](https://github.com/anxuae/TourBillon/actions/workflows/tests.yml)
 [![Codecov](https://codecov.io/gh/anxuae/TourBillon/branch/py3/graph/badge.svg)](https://codecov.io/gh/anxuae/TourBillon)
 
@@ -22,11 +22,11 @@ With TourBillon you can:
 
 ## 📦 Installation
 
-TourBillon is published on PyPI under the name `tour-billon`. If you only
+TourBillon is published on PyPI under the name `tourbillon-app`. If you only
 want to run the application, install it with `pip`:
 
 ```bash
-pip install tour-billon
+pip install tourbillon-app
 ```
 
 Then start the application:
