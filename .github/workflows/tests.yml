@@ -28,4 +28,11 @@ jobs:
         poetry install --with tests
     - name: Test with pytest
       run: |
-        poetry run pytest tests -s -vvv
+        poetry run pytest tests -s -vvv --cov=tourbillon --cov-report=xml --cov-report=term-missing --cov-fail-under=50
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v5
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        files: ./coverage.xml
+        flags: python-${{ matrix.python-version }}
+        fail_ci_if_error: false

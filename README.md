@@ -4,31 +4,7 @@
 [![Tests](https://github.com/anxuae/TourBillon/actions/workflows/tests.yml/badge.svg)](https://github.com/anxuae/TourBillon/actions/workflows/tests.yml)
 [![Codecov](https://codecov.io/gh/anxuae/TourBillon/branch/master/graph/badge.svg)](https://codecov.io/gh/anxuae/TourBillon)
 
-```text
-    oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
-    o ---------------------------------------------------------------------------- o
-    o |                                                                          | o
-    o |    oTTTo                                                                 | o
-    o    oTTTo                                                                   | o
-       oTTTo#&  ////                                                             | o
-     oTTTo& #&//////                     BBBBBBB                                 | o
-   oTTTo #& //////                       BB     BB       LL  LL                  | o
-      #& #&/////                         BB      BB      LL  LL                  | o
-      #&/#&//&                           BB      BB      LL  LL                  | o
-     /#&/#& #&                           BB     BB   OO  LL  LL                  | o
-   ///#& #& #&                           BBBBBBBB        LL  LL                  | o
- ///  #& #& #&   OOOO   UU  UU  RR RRR   BB     BB   II  LL  LL   OOOO   N NNNN  | o
-//     #& #& #&  OO  OO  UU  UU  RRR  RR  BB      BB  II  LL  LL  OO  OO  NNN NN | o
-       #& #& #&  OO  OO  UU  UU  RR       BB      BB  II  LL  LL  OO  OO  NN  NN | o
-       #& #& #&  OO  OO  UU  UU  RR       BB     BB   II  LL  LL  OO  OO  NN  NN | o
-       #& #& #&   OOOO    UUUU   RR       BBBBBBB     II  LL  LL   OOOO   NN  NN | o
-       #& #&                                                                     | o
-       #& #&    ------------------------------------------------------------------ o
-       #&     ooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
-       #&                                              Version 6.0.0 © La Billonnière
-```
-
-# TourBillon
+# <img src="https://raw.githubusercontent.com/anxuae/TourBillon/py3/tourbillon-ui/src/assets/icon.png" alt="" width="32" valign="middle"> TourBillon
 
 TourBillon is free software (distributed under the LPG license) that helps you
 organize tournaments using the **Swiss system**, for teams of one or more
@@ -44,7 +20,7 @@ With TourBillon you can:
 - follow the live ranking, including on a big screen in the room,
 - browse the history of past editions, player by player.
 
-## Installation
+## 📦 Installation
 
 TourBillon is published on PyPI under the name `tour-billon`. If you only
 want to run the application, install it with `pip`:
@@ -59,7 +35,7 @@ Then start the application:
 tourbillon
 ```
 
-## Getting started
+## 🚀 Getting started
 
 Open your web browser. Three interfaces are available:
 
@@ -69,7 +45,7 @@ Open your web browser. Three interfaces are available:
 | **Display** | <http://localhost:8000/display>  | Read-only live rankings and current round for the big screen (projector). |
 | **History** | <http://localhost:8000/history>  | Player statistics year after year, across every saved tournament. |
 
-## A typical tournament
+## 🏆 A typical tournament
 
 1. Open the **Admin** interface and register every team and its players.
 2. Launch the first **draw** to pair the teams for round 1.
@@ -83,7 +59,7 @@ Open your web browser. Three interfaces are available:
 Your tournaments are saved automatically and remain compatible with the files
 from previous editions.
 
-## How the ranking works
+## 📊 How the ranking works
 
 Teams are paired with opponents who have a similar score, never play the same
 opponent twice, and are never eliminated. Teams are ranked **first by the number
@@ -93,12 +69,12 @@ rounds.
 
 For 32 to 64 teams, it is recommended to play between 5 and 6 rounds.
 
-# Developer mode
+# 🛠️ Developer mode
 
 Developer mode needs **Python**, **Poetry**, **Node.js**, and **npm**. On macOS,
 you can install them step by step as follows.
 
-## Installation
+## 📦 Installation
 
 ### 1. Install Python
 
@@ -185,11 +161,14 @@ cd ..
 poetry run tourbillon
 ```
 
-## Build the PyPI package
+## 🏗️ Build the PyPI package
 
-To create the distributable package for PyPI, run Poetry from the project root:
+The frontend must be built once beforehand, then bundled into the Python
+package via a dedicated script, before running Poetry's build. This keeps
+the resulting wheel a portable `py3-none-any` package:
 
 ```bash
+poetry run python scripts/build-ui.py
 poetry build
 ```
 
@@ -199,3 +178,22 @@ the build artifacts before publishing, list that directory:
 ```bash
 ls dist/
 ```
+
+### Publishing a new release
+
+Publishing to PyPI is automated: pushing a Git tag `vX.Y.Z` triggers the
+[`publish.yml`](.github/workflows/publish.yml) workflow, which builds the
+frontend, builds the package, and uploads it to PyPI using
+[Trusted Publishing](https://docs.pypi.org/trusted-publishers/) (OIDC, no
+token to manage), then creates the matching GitHub release.
+
+```bash
+poetry version <X.Y.Z>
+git add pyproject.toml
+git commit -m "Bump version to $(poetry version -s)"
+git tag "v$(poetry version -s)"
+git push && git push --tags
+```
+
+The workflow refuses to publish if the tag does not match the version in
+`pyproject.toml`.

@@ -1,13 +1,16 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
 
-"""Poetry build hook: bundle the built Vue frontend into the Python package.
+"""Pre-build step: bundle the built Vue frontend into the Python package.
 
-Poetry calls :func:`build` (see ``[tool.poetry.build]`` in ``pyproject.toml``)
-before collecting the files listed in ``include``. This script builds the
-``tourbillon-ui`` frontend (if needed) and copies the resulting static assets
-into ``tourbillon/static/dist`` so they get bundled inside the sdist/wheel and
-served in production by :mod:`tourbillon.api.app` (see ``PACKAGE_WEB_DIR``).
+Run this script manually *before* ``poetry build`` (it is **not** wired as a
+``[tool.poetry.build]`` hook on purpose: Poetry always tags the wheel as
+platform-specific when a build script is configured, even if it produces no
+native extension. Running it beforehand keeps the resulting wheel a portable
+``py3-none-any`` package). It builds the ``tourbillon-ui`` frontend (if
+needed) and copies the resulting static assets into ``tourbillon/static/dist``
+so they get bundled inside the sdist/wheel and served in production by
+:mod:`tourbillon.api.app` (see ``PACKAGE_WEB_DIR``).
 """
 
 import shutil
@@ -45,7 +48,12 @@ def copy_frontend():
 
 
 def build(setup_kwargs=None):
-    """Entry point called by Poetry before packaging (sdist and wheel)."""
+    """Build the frontend (if needed) and copy it into the package static folder.
+
+    Kept as a callable with a ``setup_kwargs`` parameter for backward
+    compatibility, but it is meant to be run as a standalone script, not as a
+    Poetry build hook (see module docstring).
+    """
     if FRONTEND_DIR.is_dir() and not FRONTEND_BUILD_DIR.is_dir():
         build_frontend()
     copy_frontend()
