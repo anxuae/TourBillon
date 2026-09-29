@@ -2,7 +2,7 @@
 [![PyPi package](https://badge.fury.io/py/tour-billon.svg)](https://pypi.org/project/tour-billon)
 [![Downloads](https://img.shields.io/pypi/dm/tour-billon?color=purple)](https://pypi.org/project/tour-billon)
 [![Tests](https://github.com/anxuae/TourBillon/actions/workflows/tests.yml/badge.svg)](https://github.com/anxuae/TourBillon/actions/workflows/tests.yml)
-[![Codecov](https://codecov.io/gh/anxuae/TourBillon/branch/master/graph/badge.svg)](https://codecov.io/gh/anxuae/TourBillon)
+[![Codecov](https://codecov.io/gh/anxuae/TourBillon/branch/py3/graph/badge.svg)](https://codecov.io/gh/anxuae/TourBillon)
 
 # <img src="https://raw.githubusercontent.com/anxuae/TourBillon/py3/tourbillon-ui/src/assets/icon.png" alt="" width="32" valign="middle"> TourBillon
 
