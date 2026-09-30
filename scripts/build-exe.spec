@@ -15,7 +15,7 @@ from pathlib import Path
 
 from PyInstaller.utils.hooks import collect_all
 
-ROOT_DIR = Path(__file__).resolve().parent.parent
+ROOT_DIR = Path(SPECPATH).resolve().parent
 ICON_PATH = ROOT_DIR / "tourbillon-ui" / "src" / "assets" / "icon.ico"
 
 datas = [
@@ -35,7 +35,7 @@ for package in ("uvicorn", "fastapi", "pydantic"):
     hiddenimports += pkg_hiddenimports
 
 a = Analysis(
-    [str(ROOT_DIR / "tourbillon" / "__main__.py")],
+    [str(ROOT_DIR / "scripts" / "exe_entrypoint.py")],
     pathex=[str(ROOT_DIR)],
     binaries=binaries,
     datas=datas,
