@@ -161,7 +161,7 @@ cd ..
 poetry run tourbillon
 ```
 
-## 🏗️ Build the PyPI package
+## 🏗️ Build the packages
 
 The frontend must be built once beforehand, then bundled into the Python
 package via a dedicated script, before running Poetry's build. This keeps
@@ -172,7 +172,16 @@ poetry run python scripts/build-ui.py
 poetry build
 ```
 
-This generates the source archive and wheel in the `dist/` folder. To inspect
+To build the Windows executable locally (on Windows, with the `build`
+dependency group installed):
+
+```bash
+poetry install --with build
+poetry run python scripts/build-ui.py
+poetry run pyinstaller scripts/build-exe.spec --noconfirm
+```
+
+All packages are generated in the `dist/` folder. To inspect
 the build artifacts before publishing, list that directory:
 
 ```bash
@@ -181,17 +190,21 @@ ls dist/
 
 ### Publishing a new release
 
-Publishing to PyPI is automated: pushing a Git tag `vX.Y.Z` triggers the
+Publishing is automated: pushing a Git tag `X.Y.Z` triggers the
 [`publish.yml`](.github/workflows/publish.yml) workflow, which builds the
 frontend, builds the package, and uploads it to PyPI using
 [Trusted Publishing](https://docs.pypi.org/trusted-publishers/) (OIDC, no
-token to manage), then creates the matching GitHub release.
+token to manage). In parallel, it also builds a standalone **Windows
+executable** with [PyInstaller](https://pyinstaller.org/) (no Python
+installation required on the target machine). Both the PyPI artifacts
+(sdist + wheel) and the Windows executable are then attached to the matching
+GitHub release.
 
 ```bash
 poetry version <X.Y.Z>
 git add pyproject.toml
 git commit -m "Bump version to $(poetry version -s)"
-git tag "v$(poetry version -s)"
+git tag "$(poetry version -s)"
 git push && git push --tags
 ```
 

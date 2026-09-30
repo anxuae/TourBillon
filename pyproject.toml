@@ -37,6 +37,12 @@ pytest = "^8.0"
 pytest-asyncio = "^0.24"
 pytest-cov = "^5.0"
 
+[tool.poetry.group.build]
+optional = true
+
+[tool.poetry.group.build.dependencies]
+pyinstaller = "^6.10"
+
 [tool.poetry.scripts]
 tourbillon = 'tourbillon.__main__:run'
 
