@@ -97,20 +97,28 @@ def _ranking_of(trn, with_wins, with_joker, with_buchholz, with_goal_avg):
     )
 
 
+def iter_tournament_metadata(save_dir):
+    """Yield metadata for every save file, one at a time (unsorted).
+
+    Used to stream the response progressively instead of waiting for every
+    save file to be parsed before returning anything (see the ``/tournaments``
+    endpoint). Callers that need a stable order should sort the collected
+    result themselves (this is what the frontend already does).
+    """
+    for path, trn in _iter_tournaments(save_dir):
+        yield {
+            "filename": Path(path).name,
+            "year": _year_of(trn, path),
+            "start_date": _start_date_of(trn),
+            "nb_teams": trn.nb_teams(),
+            "nb_rounds": trn.nb_rounds(),
+            "modified": Path(path).stat().st_mtime,
+        }
+
+
 def list_tournaments(save_dir):
     """Return metadata for every save file (most recent tournament first)."""
-    result = []
-    for path, trn in _iter_tournaments(save_dir):
-        result.append(
-            {
-                "filename": Path(path).name,
-                "year": _year_of(trn, path),
-                "start_date": _start_date_of(trn),
-                "nb_teams": trn.nb_teams(),
-                "nb_rounds": trn.nb_rounds(),
-                "modified": Path(path).stat().st_mtime,
-            }
-        )
+    result = list(iter_tournament_metadata(save_dir))
     # Sort on the tournament date; files without a readable date fall back to
     # their modification time so they still land in a sensible position.
     result.sort(key=lambda item: (item["start_date"] or "", item["modified"]), reverse=True)

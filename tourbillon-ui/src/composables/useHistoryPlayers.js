@@ -97,28 +97,39 @@ async function runLoad() {
   error.value = null
   players.value = []
   editions.value = []
+  tournaments.value = []
   loadedCount.value = 0
   spellings = new Set()
   spellingCount.value = 0
+  // Fetch each edition's player detail as soon as its metadata streams in,
+  // instead of waiting for the full tournament list: both requests are now
+  // slow to complete individually (dozens of YAML archives), so overlapping
+  // them keeps the view responsive.
+  const detailPromises = []
   try {
-    tournaments.value = await api.listHistoryTournaments()
+    await api.streamHistoryTournaments((tournament) => {
+      tournaments.value = [...tournaments.value, tournament]
+      const promise = api
+        .getHistoryTournamentPlayers(tournament.filename)
+        .then((edition) => {
+          editions.value = [...editions.value, edition]
+          mergeEdition(edition)
+        })
+        .catch(() => {
+          // Ignore unreadable save files and keep streaming the others
+        })
+        .finally(() => {
+          loadedCount.value += 1
+        })
+      detailPromises.push(promise)
+    })
   } catch (err) {
     error.value = err.message
     loading.value = false
     loadPromise = null
     return
   }
-  // Stream the editions one by one so results appear progressively
-  for (const tournament of tournaments.value) {
-    try {
-      const edition = await api.getHistoryTournamentPlayers(tournament.filename)
-      editions.value = [...editions.value, edition]
-      mergeEdition(edition)
-    } catch {
-      // Ignore unreadable save files and keep streaming the others
-    }
-    loadedCount.value += 1
-  }
+  await Promise.all(detailPromises)
   loading.value = false
   loaded = true
   loadPromise = null

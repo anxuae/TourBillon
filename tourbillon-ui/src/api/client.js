@@ -78,6 +78,46 @@ async function upload(url, file, requestOptions = {}) {
   return response.json()
 }
 
+// Read a newline-delimited JSON (NDJSON) streaming response, calling
+// ``onItem`` for each parsed line as soon as it arrives. Used by endpoints
+// that stream slow-to-compute results progressively (see
+// ``/api/history/tournaments``) instead of waiting for the whole payload.
+async function streamNdjson(url, onItem) {
+  const response = await fetch(url)
+  if (!response.ok) {
+    let detail = response.statusText
+    try {
+      const data = await response.json()
+      detail = data.detail || detail
+    } catch {
+      // Ignore body parsing errors.
+    }
+    const message = `${response.status}: ${detail}`
+    const err = new Error(message)
+    err.status = response.status
+    err.detail = detail
+    pushApiError(message, response.status)
+    throw err
+  }
+  const reader = response.body.getReader()
+  const decoder = new TextDecoder()
+  let buffer = ''
+  for (;;) {
+    const { done, value } = await reader.read()
+    if (done) break
+    buffer += decoder.decode(value, { stream: true })
+    let newlineIndex = buffer.indexOf('\n')
+    while (newlineIndex >= 0) {
+      const line = buffer.slice(0, newlineIndex).trim()
+      buffer = buffer.slice(newlineIndex + 1)
+      if (line) onItem(JSON.parse(line))
+      newlineIndex = buffer.indexOf('\n')
+    }
+  }
+  const rest = buffer.trim()
+  if (rest) onItem(JSON.parse(rest))
+}
+
 export const api = {
   // Tournament
   getTournament: () =>
@@ -137,7 +177,15 @@ export const api = {
   setDisplayView: (view) => request('PUT', '/api/display/view', { view }),
 
   // History
-  listHistoryTournaments: () => request('GET', '/api/history/tournaments'),
+  // Progressive variant: calls onItem(tournament) as soon as each save file's
+  // metadata has been parsed by the backend, instead of waiting for all of
+  // them (some histories hold dozens of YAML archives).
+  streamHistoryTournaments: (onItem) => streamNdjson('/api/history/tournaments', onItem),
+  listHistoryTournaments: async () => {
+    const items = []
+    await streamNdjson('/api/history/tournaments', (item) => items.push(item))
+    return items
+  },
   listHistoryPlayers: () => request('GET', '/api/history/players'),
   getHistoryTournamentPlayers: (filename) =>
     request('GET', `/api/history/tournaments/${encodeURIComponent(filename)}/players`),

@@ -60,8 +60,14 @@ export const useTournamentStore = defineStore('tournament', {
       }
     },
     async refreshSavedTournaments() {
+      // Streamed progressively: the Load card in AdminTournament.vue shows
+      // each save file as soon as its metadata is parsed, instead of staying
+      // empty until every file in the history has been read.
+      this.savedTournaments = []
       try {
-        this.savedTournaments = await api.listHistoryTournaments()
+        await api.streamHistoryTournaments((item) => {
+          this.savedTournaments = [...this.savedTournaments, item]
+        })
       } catch {
         this.savedTournaments = []
       }

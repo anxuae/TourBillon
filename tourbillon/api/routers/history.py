@@ -7,7 +7,10 @@ per-player statistics across the years. Reading stays retro-compatible with the
 legacy YAML files.
 """
 
+import json
+
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import StreamingResponse
 
 from .. import history as history_service
 from ..state import get_state
@@ -17,8 +20,21 @@ router = APIRouter(prefix="/api/history", tags=["history"])
 
 @router.get("/tournaments")
 def list_history_tournaments(state=Depends(get_state)):
-    """Return the list of save files found in the save directory."""
-    return history_service.list_tournaments(state.settings.save_dir)
+    """Stream the metadata of every save file found in the save directory.
+
+    Parsing every save file can be slow (dozens of YAML archives), so the
+    response is streamed as newline-delimited JSON (NDJSON): the frontend
+    displays each entry as soon as it arrives instead of waiting for the whole
+    history to be parsed. Starlette runs the underlying sync generator in a
+    threadpool (see ``starlette.concurrency.iterate_in_threadpool``), so this
+    does not block the event loop between items.
+    """
+
+    def generate():
+        for item in history_service.iter_tournament_metadata(state.settings.save_dir):
+            yield json.dumps(item, default=str) + "\n"
+
+    return StreamingResponse(generate(), media_type="application/x-ndjson")
 
 
 @router.get("/tournaments/{filename}/players")
