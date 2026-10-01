@@ -140,3 +140,27 @@ def registered(client):
             json={"number": n, "players": [{"firstname": f"P{n}", "lastname": "X"}]},
         )
     return client
+
+
+@pytest.fixture
+def create_round():
+    """Return a helper that runs a draw preview then commits it as a round.
+
+    Shared by every ``tests/api`` module (round creation is a common
+    prerequisite for several endpoints: results, rankings, team deletion...).
+    """
+
+    def _create_round(client, algorithm="deterministic"):
+        preview = client.post("/api/draws/run", json={"algorithm": algorithm})
+        assert preview.status_code == 200, preview.text
+        draft = preview.json()
+        return client.post(
+            "/api/rounds",
+            json={
+                "matches": [match["teams"] for match in draft["matches"]],
+                "byes": draft["byes"],
+                "forfeits": draft["forfeits"],
+            },
+        )
+
+    return _create_round
