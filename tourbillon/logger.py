@@ -101,6 +101,20 @@ def init_logger(level: int = logging.INFO, logdir: str = None):
     counter_handler.setLevel(level)
     logging.getLogger().addHandler(counter_handler)
 
+    # uvicorn's own loggers ("uvicorn", "uvicorn.error", "uvicorn.access") each
+    # keep ``propagate=False`` with their own console handler (so requests are
+    # only ever printed once, with uvicorn's own formatting). Attaching the
+    # silent counter directly to each of them (instead of enabling
+    # propagation) still includes their records in the end-of-run summary
+    # without re-emitting them through a parent logger's handler, which would
+    # otherwise print every access log line twice (once via "uvicorn.access"'s
+    # formatter with the status reason, once more via "uvicorn"'s own handler
+    # without it).
+    for uvicorn_logger_name in ("uvicorn", "uvicorn.error", "uvicorn.access"):
+        uvicorn_counter_handler = CounterHandler()
+        uvicorn_counter_handler.setLevel(level)
+        logging.getLogger(uvicorn_logger_name).addHandler(uvicorn_counter_handler)
+
     # Logger les messages dans un fichier
     if logdir:
         logdir = Path(logdir)

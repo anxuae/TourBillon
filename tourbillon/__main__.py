@@ -71,12 +71,13 @@ def run():
 
     logger.info("Settings file: %s", settings.path)
 
-    # Let uvicorn keep displaying its own logs, but re-enable propagation so its
-    # records also bubble up to the root logger where the execution-summary
-    # counter tallies them (see tourbillon.logger).
+    # Keep uvicorn's default logging config: its loggers already have their
+    # own console handlers (each request is printed exactly once, with
+    # uvicorn's own formatting). ``logger.init_logger`` separately attaches a
+    # silent counter directly to uvicorn's loggers so their records are
+    # included in the end-of-run summary without being re-emitted (forcing
+    # ``propagate=True`` here used to print every access log line twice).
     log_config = copy.deepcopy(uvicorn.config.LOGGING_CONFIG)
-    for cfg in log_config.get("loggers", {}).values():
-        cfg["propagate"] = True
 
     if options.reload:
         # ``--reload`` needs an import string: uvicorn re-imports the app in a
