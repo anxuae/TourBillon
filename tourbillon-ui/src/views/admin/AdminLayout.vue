@@ -5,6 +5,7 @@ import { storeToRefs } from 'pinia'
 import { useI18n } from 'vue-i18n'
 import { useTournamentStore } from '@/stores/tournament'
 import SettingsModal from '@/components/SettingsModal.vue'
+import InfoTooltip from '@/components/InfoTooltip.vue'
 import { api } from '@/api/client'
 import { useEvents } from '@/events/eventsClient'
 
@@ -58,6 +59,13 @@ const canOpenDraw = computed(() => {
 const canOpenRankings = computed(() => {
   if (!tournament.value) return false
   return store.rounds.some((round) => ['complete', 'finished'].includes(round.status))
+})
+
+// Lightweight visual cue: auto-save is off and the tournament has pending
+// changes that only live in memory until an explicit save.
+const hasUnsavedChanges = computed(() => {
+  if (!tournament.value) return false
+  return !tournament.value.auto_save && Boolean(tournament.value.changed)
 })
 
 function isTabEnabled(tab) {
@@ -127,12 +135,21 @@ onMounted(() => {
 <template>
   <div class="admin">
     <aside class="sidebar">
-      <RouterLink
-        to="/"
-        class="brand"
-      >
-        TourBillon
-      </RouterLink>
+      <div class="brand-row">
+        <RouterLink
+          to="/"
+          class="brand"
+        >
+          TourBillon
+        </RouterLink>
+        <InfoTooltip
+          v-if="hasUnsavedChanges"
+          :text="t('nav.unsavedChanges')"
+          class="unsaved-dot"
+        >
+          <span class="unsaved-dot-mark" />
+        </InfoTooltip>
+      </div>
       <span class="role">{{ t('nav.admin') }}</span>
       <nav>
         <template
@@ -235,6 +252,25 @@ onMounted(() => {
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--color-muted);
+}
+
+.brand-row {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.unsaved-dot {
+  display: inline-flex;
+}
+
+.unsaved-dot-mark {
+  display: inline-block;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: var(--status-bye-fg, #b45309);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--status-bye-fg, #b45309) 25%, transparent);
 }
 
 .separator {

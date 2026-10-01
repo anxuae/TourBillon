@@ -13,7 +13,7 @@ const emit = defineEmits(['cancel', 'issues-change', 'created'])
 
 const { t } = useI18n()
 const store = useTournamentStore()
-const { draws, tournament, teams } = storeToRefs(store)
+const { draws, tournament, teams, rounds } = storeToRefs(store)
 const router = useRouter()
 
 const selectedAlgorithm = ref('')
@@ -41,11 +41,17 @@ onMounted(async () => {
   if (!teams.value.length) {
     tasks.push(store.refreshTeams())
   }
+  if (!rounds.value.length) {
+    tasks.push(store.refreshRounds())
+  }
   if (tasks.length) {
     await Promise.all(tasks)
   }
   if (draws.value.length && !selectedAlgorithm.value) {
-    selectedAlgorithm.value = draws.value[0].name
+    const defaultAlgorithm = !rounds.value.length && draws.value.some((draw) => draw.name === 'random')
+      ? 'random'
+      : draws.value[0].name
+    selectedAlgorithm.value = defaultAlgorithm
   }
 })
 

@@ -127,7 +127,8 @@
     "disabledNeedTeams": "Register at least {count} teams first",
     "disabledFinishRound": "Finish the current round before creating a new one",
     "disabledCompleteRound": "Complete at least one round first",
-    "disabledUnavailable": "Unavailable"
+    "disabledUnavailable": "Unavailable",
+    "unsavedChanges": "Unsaved changes (auto-save is off)"
   },
   "tournament": {
     "current": "Current tournament",

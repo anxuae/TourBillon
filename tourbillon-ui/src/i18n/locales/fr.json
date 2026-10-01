@@ -127,7 +127,8 @@
     "disabledNeedTeams": "Inscrivez d'abord au moins {count} équipes",
     "disabledFinishRound": "Terminez la partie en cours avant d'en créer une nouvelle",
     "disabledCompleteRound": "Terminez d'abord au moins une partie",
-    "disabledUnavailable": "Indisponible"
+    "disabledUnavailable": "Indisponible",
+    "unsavedChanges": "Modifications non enregistrées (sauvegarde auto désactivée)"
   },
   "tournament": {
     "current": "Tournoi courant",
