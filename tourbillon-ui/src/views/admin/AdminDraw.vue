@@ -1,5 +1,5 @@
 <script setup>
-import { computed, nextTick, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onActivated, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useI18n } from 'vue-i18n'
@@ -17,6 +17,10 @@ const { draws, tournament, teams, rounds } = storeToRefs(store)
 const router = useRouter()
 
 const selectedAlgorithm = ref('')
+// Tracks whether the operator picked an algorithm by hand, so the automatic
+// default (random with no round, else the settings default) only applies
+// until the user makes their own choice.
+const algorithmManuallySelected = ref(false)
 
 const progress = ref(0)
 const message = ref(t('draw.idle'))
@@ -33,6 +37,33 @@ const teamFilterInput = ref('')
 
 const { subscribe } = useEvents()
 
+/** Pick the sensible default algorithm for the current state.
+ *
+ * No round yet: nothing to pair against, so a plain random draw is the
+ * sensible starting point. Once at least one round exists, honor the
+ * operator's configured default algorithm (settings > tournament).
+ */
+async function applyDefaultAlgorithm() {
+  if (!draws.value.length) return
+
+  if (!rounds.value.length && draws.value.some((draw) => draw.name === 'random')) {
+    selectedAlgorithm.value = 'random'
+    return
+  }
+
+  let defaultAlgorithm = draws.value[0].name
+  try {
+    const settings = await api.getSettings()
+    const configured = settings?.tournament?.default_draw
+    if (configured && draws.value.some((draw) => draw.name === configured)) {
+      defaultAlgorithm = configured
+    }
+  } catch {
+    // Keep the fallback (first available algorithm) if settings cannot be read.
+  }
+  selectedAlgorithm.value = defaultAlgorithm
+}
+
 onMounted(async () => {
   const tasks = []
   if (!draws.value.length) {
@@ -47,12 +78,19 @@ onMounted(async () => {
   if (tasks.length) {
     await Promise.all(tasks)
   }
-  if (draws.value.length && !selectedAlgorithm.value) {
-    const defaultAlgorithm = !rounds.value.length && draws.value.some((draw) => draw.name === 'random')
-      ? 'random'
-      : draws.value[0].name
-    selectedAlgorithm.value = defaultAlgorithm
-  }
+  await applyDefaultAlgorithm()
+})
+
+// The admin RouterView is wrapped in <KeepAlive>: navigating away from Draw
+// and back does not re-run onMounted, so the automatic default (random vs
+// settings default) would otherwise stay stuck on whatever it was computed
+// to on the very first visit (e.g. still 'genetic' after the only round got
+// deleted). Recompute it on every activation, unless the operator already
+// made their own pick or a draft is being reviewed.
+onActivated(async () => {
+  if (stage.value !== 'config' || algorithmManuallySelected.value) return
+  await store.refreshRounds()
+  await applyDefaultAlgorithm()
 })
 
 watch(
@@ -715,6 +753,7 @@ function resetDrawState() {
   teamFilterInput.value = ''
   running.value = false
   committing.value = false
+  algorithmManuallySelected.value = false
 }
 </script>
 
@@ -729,7 +768,10 @@ function resetDrawState() {
             </h2>
             <div class="draw-toolbar">
               <div class="algorithm-field">
-                <select v-model="selectedAlgorithm">
+                <select
+                  v-model="selectedAlgorithm"
+                  @change="algorithmManuallySelected = true"
+                >
                   <option
                     v-for="draw in draws"
                     :key="draw.name"
