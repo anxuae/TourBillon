@@ -530,10 +530,17 @@ async def preview_draw(state, request, on_progress=None):
 
 
 def set_match_result(state, round_number, result):
-    """Register the score of a match in a round."""
+    """Register the score of a match in a round.
+
+    The match is identified by the team ids listed in ``result.points``
+    (there is no standalone match id in the domain model): ``Round.add_result``
+    already validates that these teams actually form one of the round's
+    matches.
+    """
     trn = state.require_tournament()
     rnd = trn.round(round_number)
-    rnd.add_result({int(k): int(v) for k, v in result.points.items()}, datetime.now())
+    points = {int(k): int(v) for k, v in result.points.items()}
+    rnd.add_result(points, datetime.now())
     auto_save(state)
     return round_dto(trn, rnd)
 

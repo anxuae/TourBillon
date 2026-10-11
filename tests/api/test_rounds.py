@@ -25,7 +25,7 @@ def test_ranking_after_result(registered, create_round):
     for match in rnd["matches"]:
         teams = match["teams"]
         points = {str(teams[0]): 12, str(teams[1]): 6}
-        resp = registered.put("/api/rounds/1/matches/1", json={"points": points})
+        resp = registered.put("/api/rounds/1/matches", json={"points": points})
         assert resp.status_code == 200, resp.text
 
     ranking = registered.get("/api/rankings").json()
@@ -41,7 +41,7 @@ def test_rankings_round_query_uses_round_limit(registered, create_round):
     for match in first_round["matches"]:
         teams = match["teams"]
         points = {str(teams[0]): 12, str(teams[1]): 6}
-        resp = registered.put("/api/rounds/1/matches/1", json={"points": points})
+        resp = registered.put("/api/rounds/1/matches", json={"points": points})
         assert resp.status_code == 200, resp.text
 
     ranking_round_1 = registered.get("/api/rankings?round=1")
@@ -56,7 +56,7 @@ def test_rankings_round_query_uses_round_limit(registered, create_round):
     for match in second_round["matches"]:
         teams = match["teams"]
         points = {str(teams[0]): 6, str(teams[1]): 12}
-        resp = registered.put("/api/rounds/2/matches/1", json={"points": points})
+        resp = registered.put("/api/rounds/2/matches", json={"points": points})
         assert resp.status_code == 200, resp.text
 
     ranking_current = registered.get("/api/rankings")

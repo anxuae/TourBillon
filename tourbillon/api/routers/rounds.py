@@ -5,7 +5,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 
 from .. import services, schemas
-from ...core.exception import StatusError
+from ...core.exception import ResultError, StatusError
 from ..state import get_state
 
 router = APIRouter(prefix="/api/rounds", tags=["rounds"])
@@ -47,16 +47,19 @@ async def create_round(request: schemas.RoundCreateDTO, state=Depends(get_state)
         return dto
 
 
-@router.put("/{number}/matches/{match}", response_model=schemas.RoundDTO)
-async def set_result(number: int, match: int, result: schemas.MatchResultDTO, state=Depends(get_state)):
-    """Register the score of a match (``match`` is kept for REST symmetry)."""
+@router.put("/{number}/matches", response_model=schemas.RoundDTO)
+async def set_result(number: int, result: schemas.MatchResultDTO, state=Depends(get_state)):
+    """Register the score of a match.
+
+    There is no standalone match id in the domain model: the match is
+    identified by the team ids carried in ``result.points``.
+    """
     async with state.lock:
         try:
-            _ = match
             dto = services.set_match_result(state, number, result)
         except LookupError as exc:
             raise HTTPException(status_code=404, detail="No tournament loaded") from exc
-        except Exception as ex:
+        except (ValueError, StatusError, ResultError) as ex:
             raise HTTPException(status_code=400, detail=str(ex)) from ex
         await state.progress.publish({"type": "score_updated", "round": number})
         return dto

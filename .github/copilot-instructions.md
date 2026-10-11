@@ -240,7 +240,7 @@ appariement valide n'existe, lever une exception métier de `core/exception.py`
 | GET     | `/api/rounds`                 | Liste des rounds                    |
 | POST    | `/api/rounds`                 | Créer un round (déclenche un tirage)|
 | GET     | `/api/rounds/{n}`             | Détail d'un round + matchs          |
-| PUT     | `/api/rounds/{n}/matches/{m}` | Saisir un résultat                  |
+| PUT     | `/api/rounds/{n}/matches`     | Saisir un résultat (match identifié par les équipes du corps de requête) |
 | GET     | `/api/rankings?round=n`       | Classement                          |
 | GET     | `/api/draws`                  | Algorithmes disponibles + options   |
 | GET/PUT | `/api/settings`               | Lire / modifier les settings (modale UI)|

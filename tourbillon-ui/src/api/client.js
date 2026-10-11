@@ -153,8 +153,8 @@ export const api = {
   getRound: (number) => request('GET', `/api/rounds/${number}`),
   createRound: (payload) => request('POST', '/api/rounds', payload),
   deleteRound: (number) => request('DELETE', `/api/rounds/${number}`),
-  setMatchResult: (round, match, points) =>
-    request('PUT', `/api/rounds/${round}/matches/${match}`, { points }),
+  setMatchResult: (round, points) =>
+    request('PUT', `/api/rounds/${round}/matches`, { points }),
 
   // Rankings
   getRankings: (round) =>

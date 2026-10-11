@@ -206,7 +206,7 @@ async function saveMatch(roundNumber, index, match) {
   }
   
   try {
-    await api.setMatchResult(roundNumber, index + 1, validatedPoints)
+    await api.setMatchResult(roundNumber, validatedPoints)
     await store.refreshRounds()
     await store.refreshRankings(roundNumber)
   } catch {

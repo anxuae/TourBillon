@@ -18,6 +18,7 @@ import asyncio
 from itertools import combinations
 
 from . import common
+from .. import cst
 from ..exception import DrawImpossibleError
 
 NAME = "deterministic"
@@ -27,6 +28,31 @@ DEFAULT = {
     "allow_rematch": False,
     "win_weight": 100,
 }
+
+
+def _partners_cost(stats, anchor, partners):
+    """Return a sortable "distance in strength" cost for a candidate match.
+
+    Lower is better. The cost mirrors the tie-break order of
+    ``common.order_by_strength`` (wins, then points, then Buchholz, then goal
+    average) so combinations are tried closest-in-strength first on every
+    criterion, not just the first two. This increases the odds of satisfying
+    ``max_disparity`` on the first attempts, so a valid solution is found
+    sooner and dead branches are pruned earlier.
+    """
+    anchor_wins = common.wins(stats[anchor])
+    anchor_points = stats[anchor][cst.STAT_POINTS]
+    anchor_buchholz = stats[anchor].get(cst.STAT_BUCHHOLZ, 0)
+    anchor_goal_average = stats[anchor].get(cst.STAT_GOAL_AVERAGE, 0)
+    wins_gap = sum(abs(common.wins(stats[num]) - anchor_wins) for num in partners)
+    points_gap = sum(abs(stats[num][cst.STAT_POINTS] - anchor_points) for num in partners)
+    buchholz_gap = sum(
+        abs(stats[num].get(cst.STAT_BUCHHOLZ, 0) - anchor_buchholz) for num in partners
+    )
+    goal_average_gap = sum(
+        abs(stats[num].get(cst.STAT_GOAL_AVERAGE, 0) - anchor_goal_average) for num in partners
+    )
+    return (wins_gap, points_gap, buchholz_gap, goal_average_gap)
 
 
 def _build(order, stats, teams_by_match, max_disparity, allow_rematch, tracker=None):
@@ -49,8 +75,15 @@ def _build(order, stats, teams_by_match, max_disparity, allow_rematch, tracker=N
     rest = order[1:]
 
     # Try every combination of partners for the anchor team, closest in
-    # strength first (i.e. following the ``order`` sequence).
-    for partners in combinations(rest, teams_by_match - 1):
+    # strength first: sorting by ``_partners_cost`` (instead of the raw
+    # combinatorial order of ``rest``) finds a valid pairing earlier and lets
+    # invalid, far-apart combinations be skipped without exploring their
+    # (likely dead-end) sub-trees.
+    candidates = sorted(
+        combinations(rest, teams_by_match - 1),
+        key=lambda partners: _partners_cost(stats, anchor, partners),
+    )
+    for partners in candidates:
         match = [anchor] + list(partners)
         if not common.is_match_valid(stats, match, max_disparity, allow_rematch):
             continue

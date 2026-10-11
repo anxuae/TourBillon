@@ -5,6 +5,7 @@
 from fastapi import APIRouter, Depends, File, HTTPException, Response, UploadFile
 
 from .. import services, schemas
+from ...core.exception import InconsistencyError
 from ..state import get_state
 
 router = APIRouter(prefix="/api/tournament", tags=["tournament"])
@@ -35,7 +36,7 @@ async def load_tournament(payload: schemas.TournamentLoadDTO, state=Depends(get_
     async with state.lock:
         try:
             services.load_tournament(state, payload.filename)
-        except Exception as ex:
+        except (InconsistencyError, OSError) as ex:
             raise HTTPException(status_code=400, detail=str(ex)) from ex
         await state.progress.publish({"type": "tournament_changed", "action": "loaded"})
         await state.progress.publish({"type": "teams_updated"})
@@ -59,7 +60,7 @@ async def upload_tournament(
             services.upload_tournament(state, file.filename, content, overwrite)
         except FileExistsError as ex:
             raise HTTPException(status_code=409, detail=str(ex)) from ex
-        except Exception as ex:
+        except (ValueError, InconsistencyError, OSError) as ex:
             raise HTTPException(status_code=400, detail=str(ex)) from ex
         await state.progress.publish({"type": "tournament_changed", "action": "uploaded"})
         await state.progress.publish({"type": "teams_updated"})

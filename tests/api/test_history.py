@@ -77,13 +77,12 @@ def _build_tournament(client, teams, filepath):
 
     rnd = _create_round(client)
     # Give a clear winner/loser on every match so rankings are deterministic.
-    # The ``match`` path segment is only kept for REST symmetry by the backend
-    # (the match is actually identified by the team ids in the payload), so
-    # any value works here.
-    for index, match in enumerate(rnd["matches"], start=1):
+    # The match is identified by the team ids in the payload (there is no
+    # standalone match id in the domain model).
+    for match in rnd["matches"]:
         match_teams = match["teams"]
         points = {str(match_teams[0]): 12, str(match_teams[1]): 6}
-        resp = client.put(f"/api/rounds/1/matches/{index}", json={"points": points})
+        resp = client.put("/api/rounds/1/matches", json={"points": points})
         assert resp.status_code == 200, resp.text
 
     saved = client.post("/api/tournament/save", params={"filename": str(filepath)}).json()["filename"]
