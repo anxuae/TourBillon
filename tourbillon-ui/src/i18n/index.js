@@ -1,6 +1,8 @@
 import { createI18n } from 'vue-i18n'
 import en from './locales/en.json'
 import fr from './locales/fr.json'
+import es from './locales/es.json'
+import de from './locales/de.json'
 
 // Frontend-only preference (the backend settings never carry UI preferences).
 export const LOCALE_STORAGE_KEY = 'tourbillon.locale'
@@ -8,6 +10,8 @@ export const LOCALE_STORAGE_KEY = 'tourbillon.locale'
 export const SUPPORTED_LOCALES = [
   { code: 'en', label: 'English' },
   { code: 'fr', label: 'Français' },
+  { code: 'es', label: 'Español' },
+  { code: 'de', label: 'Deutsch' },
 ]
 
 const FALLBACK_LOCALE = 'en'
@@ -36,7 +40,7 @@ export const i18n = createI18n({
   globalInjection: true,
   locale: detectLocale(),
   fallbackLocale: FALLBACK_LOCALE,
-  messages: { en, fr },
+  messages: { en, fr, es, de },
 })
 
 /** Change the active locale and persist it for the next visits. */

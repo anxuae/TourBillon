@@ -7,6 +7,8 @@
 - Simplify the match result endpoint (`PUT /api/rounds/{number}/matches`): the match is identified by the team ids in the request body, there is no standalone match id anymore
 - Deterministic draw: candidate pairings are now tried closest-in-strength first (wins, points, Buchholz, goal average) instead of raw combinatorial order, finding a valid solution sooner and pruning dead branches earlier
 - Add a CI job building and linting the frontend (`tourbillon-ui`)
+- Remove the player history progress bar, no longer meaningful with the streamed loading
+- Add Spanish and German translations
 
 # v6.0.0
 

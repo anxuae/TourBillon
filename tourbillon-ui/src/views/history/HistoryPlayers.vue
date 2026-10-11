@@ -77,11 +77,6 @@ const sortedPlayers = computed(() => {
   })
 })
 
-const progressPercent = computed(() => {
-  if (!tournaments.value.length) return 0
-  return Math.round((loadedCount.value / tournaments.value.length) * 100)
-})
-
 // Chart data: attendance (players / teams) per edition, ordered by year
 const chartEditions = computed(() =>
   [...editions.value].sort((left, right) => String(left.year).localeCompare(String(right.year))),
@@ -184,16 +179,6 @@ onMounted(() => {
         </button>
       </span>
     </header>
-
-    <div
-      v-if="loading"
-      class="progress"
-    >
-      <div
-        class="progress-bar"
-        :style="{ width: `${progressPercent}%` }"
-      />
-    </div>
 
     <p
       v-if="error"
@@ -435,20 +420,6 @@ onMounted(() => {
 .sort-icon {
   font-size: 0.7em;
   opacity: 0.8;
-}
-
-.progress {
-  height: 6px;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--color-primary) 14%, transparent);
-  overflow: hidden;
-  margin-bottom: 1rem;
-}
-
-.progress-bar {
-  height: 100%;
-  background: var(--color-primary);
-  transition: width 0.25s ease;
 }
 
 .chart-card {
