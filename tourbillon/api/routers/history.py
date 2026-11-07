@@ -11,11 +11,27 @@ import json
 
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
+from pydantic import BaseModel
 
 from .. import history as history_service
 from ..state import get_state
 
 router = APIRouter(prefix="/api/history", tags=["history"])
+
+
+class PlayerRenameDTO(BaseModel):
+    """One player to rename within a save file (bulk edit payload item)."""
+
+    team: int
+    index: int
+    firstname: str | None = None
+    lastname: str | None = None
+
+
+class PlayersRenameRequestDTO(BaseModel):
+    """Bulk edit payload: rewrite the spelling of several players at once."""
+
+    edits: list[PlayerRenameDTO]
 
 
 @router.get("/tournaments")
@@ -48,6 +64,27 @@ def get_history_tournament_players(filename: str, state=Depends(get_state)):
         with_buchholz=state.settings.rank_by_buchholz,
         with_goal_avg=state.settings.rank_by_goal_avg,
     )
+    if data is None:
+        raise HTTPException(status_code=404, detail=f"Unknown save file '{filename}'")
+    return data
+
+
+@router.put("/tournaments/{filename}/players")
+def rename_history_tournament_players(filename: str, request: PlayersRenameRequestDTO,
+                                       state=Depends(get_state)):
+    """Bulk-edit the spelling of one or several players of a save file.
+
+    This rewrites the YAML archive in place (deliberate exception to the
+    usual read-only treatment of save files, see ``history.rename_players``).
+    """
+    try:
+        data = history_service.rename_players(
+            state.settings.save_dir,
+            filename,
+            [edit.model_dump() for edit in request.edits],
+        )
+    except ValueError as ex:
+        raise HTTPException(status_code=400, detail=str(ex)) from ex
     if data is None:
         raise HTTPException(status_code=404, detail=f"Unknown save file '{filename}'")
     return data

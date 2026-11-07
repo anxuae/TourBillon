@@ -174,7 +174,7 @@ export const api = {
 
   // Display
   getDisplayView: () => request('GET', '/api/display/view'),
-  setDisplayView: (view) => request('PUT', '/api/display/view', { view }),
+  setDisplayView: (view, manual = true) => request('PUT', '/api/display/view', { view, manual }),
 
   // History
   // Progressive variant: calls onItem(tournament) as soon as each save file's
@@ -191,6 +191,10 @@ export const api = {
     request('GET', `/api/history/tournaments/${encodeURIComponent(filename)}/players`),
   getHistoryPlayer: (name) =>
     request('GET', `/api/history/players/${encodeURIComponent(name)}`),
+  // Bulk edit: rewrite the spelling of one or several players directly in a
+  // save file (deliberate exception to the read-only history, see backend).
+  renameHistoryPlayers: (filename, edits) =>
+    request('PUT', `/api/history/tournaments/${encodeURIComponent(filename)}/players`, { edits }),
 
   // About
   getVersion: () => request('GET', '/api/version'),

@@ -9,6 +9,8 @@
 - Add a CI job building and linting the frontend (`tourbillon-ui`)
 - Remove the player history progress bar, no longer meaningful with the streamed loading
 - Add Spanish and German translations
+- History: allow bulk-editing a player's firstname/lastname spelling across one or several past editions directly from the player detail view (rewrites the save file(s) in place)
+- Fix a freshly opened Display tab ignoring a view manually picked from the admin sidebar when "Automatic switching" is enabled: the server now remembers whether the current view was a manual pick or auto-computed, so a new tab honors it instead of recomputing the auto view
 
 # v6.0.0
 

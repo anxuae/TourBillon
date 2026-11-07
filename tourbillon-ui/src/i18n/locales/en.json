@@ -273,6 +273,15 @@
     "detailError": "Unable to load player detail.",
     "mergedFrom": "Merged from {count} spellings:",
     "colRegisteredAs": "Registered as",
-    "noEditions": "No edition data available."
+    "noEditions": "No edition data available.",
+    "selectAll": "Select all",
+    "editSelected": "Edit {count} selected",
+    "bulkEditTitle": "Rename selected editions",
+    "bulkEditHint": "This rewrites the spelling directly in the save file(s).",
+    "firstname": "First name",
+    "lastname": "Last name",
+    "apply": "Apply",
+    "renameSuccess": "{count} edition(s) updated.",
+    "renameError": "Unable to update the save file."
   }
 }

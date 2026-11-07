@@ -252,7 +252,7 @@ def tournament_players(save_dir, filename, with_wins=True, with_joker=True,
     players = []
     for team in trn.teams():
         rank = ranking.get(team)
-        for player in team.players():
+        for index, player in enumerate(team.players()):
             firstname, lastname = _player_parts(player)
             players.append(
                 {
@@ -260,6 +260,10 @@ def tournament_players(save_dir, filename, with_wins=True, with_joker=True,
                     "firstname": firstname,
                     "lastname": lastname,
                     "team": team.id,
+                    # Position of the player within the team, used to target
+                    # the exact player when editing the save file in place
+                    # (two teammates can share the very same spelling).
+                    "index": index,
                     "rank": rank,
                     "wins": team.wins(),
                     "points": team.points(),
@@ -297,7 +301,11 @@ def player_detail(save_dir, name, with_wins=True, with_joker=True, with_buchholz
                     detail["editions"].append(
                         {
                             "year": year,
+                            "filename": Path(path).name,
                             "team": team.id,
+                            # Position of the player within the team, needed
+                            # to target the exact player when bulk-editing.
+                            "index": team.players().index(player),
                             "rank": ranking.get(team),
                             "wins": team.wins(),
                             "points": team.points(),
@@ -311,3 +319,55 @@ def player_detail(save_dir, name, with_wins=True, with_joker=True, with_buchholz
                         }
                     )
     return detail
+
+
+def rename_players(save_dir, filename, edits):
+    """Rewrite the spelling of one or several players of a save file.
+
+    This is a deliberate exception to the "save files are read-only" rule:
+    hand-typed names are sometimes misspelled, and the history view is the
+    only place where every edition of a player can be seen side by side, so
+    it is also the most convenient place to fix a spelling once and for all.
+    The fix is applied directly to the YAML archive (not to a side-channel),
+    which keeps a single source of truth and lets the regular merge-by-key
+    logic keep working unchanged.
+
+    ``edits`` is a list of ``{"team": id, "index": i, "firstname": ..,
+    "lastname": ..}`` dicts. ``index`` is the position of the player within
+    the team (see ``tournament_players``/``player_detail``), needed because
+    two teammates can share the exact same spelling.
+
+    Returns the fresh per-player statistics of the edited file (see
+    ``tournament_players``), or ``None`` if the file does not exist.
+    """
+    path = Path(save_dir) / filename
+    if not path.is_file():
+        return None
+
+    # Load a dedicated copy (not the shared cached instance) so a failed
+    # edit never corrupts the object currently served to other requests.
+    trn = core_tournament.load(str(path))
+
+    for edit in edits:
+        team = trn.team(edit["team"])
+        players = team.players()
+        index = edit["index"]
+        if not 0 <= index < len(players):
+            raise ValueError(f"Team n°{team.id} has no player at index {index}.")
+        player = players[index]
+        firstname = edit.get("firstname")
+        lastname = edit.get("lastname")
+        if firstname is not None:
+            player.firstname = firstname
+        if lastname is not None:
+            player.lastname = lastname
+
+    core_tournament.dump(trn, str(path))
+
+    # The dump changed the file's mtime, so the next read will reload it
+    # anyway; drop the entry right away to avoid any mtime-resolution race.
+    with _CACHE_LOCK:
+        _CACHE.pop(str(path), None)
+
+    return tournament_players(save_dir, filename, with_wins=True, with_joker=True,
+                               with_buchholz=True, with_goal_avg=True)

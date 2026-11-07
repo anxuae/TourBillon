@@ -144,16 +144,22 @@ def delete_tournament_file(state, filename):
 
 def get_display_view(state):
     """Return the currently selected display view."""
-    return {"view": state.display_view}
+    return {"view": state.display_view, "manual": state.display_view_manual}
 
 
-def set_display_view(state, view):
-    """Update the shared display view and broadcast it to connected clients."""
+def set_display_view(state, view, manual=True):
+    """Update the shared display view and broadcast it to connected clients.
+
+    ``manual`` tracks whether this was an explicit admin choice (sidebar) or
+    a recomputation by the frontend auto-switch logic, so a freshly opened
+    Display tab can tell the two apart (see ``AppState.display_view_manual``).
+    """
     allowed = {"display-teams", "display-rankings", "display-round"}
     if view not in allowed:
         raise ValueError(f"Unknown display view '{view}'")
     state.display_view = view
-    return {"view": state.display_view}
+    state.display_view_manual = manual
+    return {"view": state.display_view, "manual": state.display_view_manual}
 
 
 def auto_save(state):

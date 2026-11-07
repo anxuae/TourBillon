@@ -144,6 +144,11 @@ class MatchResultDTO(BaseModel):
 
 class DisplayViewDTO(BaseModel):
     view: str
+    # True when `view` was explicitly picked by an admin rather than computed
+    # by the frontend auto-switch logic. Optional on write: defaults to a
+    # manual choice, since the admin sidebar is the main caller; the
+    # auto-switch logic explicitly passes `False` to clear the override.
+    manual: bool = True
 
 
 class SettingsDTO(BaseModel):

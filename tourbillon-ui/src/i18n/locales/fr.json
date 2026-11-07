@@ -273,6 +273,15 @@
     "detailError": "Impossible de charger la fiche joueur.",
     "mergedFrom": "Fusionné à partir de {count} orthographes :",
     "colRegisteredAs": "Inscrit sous",
-    "noEditions": "Aucune donnée d'édition disponible."
+    "noEditions": "Aucune donnée d'édition disponible.",
+    "selectAll": "Tout sélectionner",
+    "editSelected": "Modifier {count} sélection(s)",
+    "bulkEditTitle": "Renommer les éditions sélectionnées",
+    "bulkEditHint": "Ceci réécrit l'orthographe directement dans le(s) fichier(s) de sauvegarde.",
+    "firstname": "Prénom",
+    "lastname": "Nom",
+    "apply": "Appliquer",
+    "renameSuccess": "{count} édition(s) mise(s) à jour.",
+    "renameError": "Impossible de mettre à jour le fichier de sauvegarde."
   }
 }

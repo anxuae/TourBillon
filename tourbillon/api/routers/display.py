@@ -21,9 +21,13 @@ async def set_display_view(payload: schemas.DisplayViewDTO, state=Depends(get_st
     """Update the shared display view and notify display clients."""
     async with state.lock:
         try:
-            result = services.set_display_view(state, payload.view)
+            result = services.set_display_view(state, payload.view, manual=payload.manual)
         except ValueError as ex:
             raise HTTPException(status_code=400, detail=str(ex)) from ex
 
-        await state.progress.publish({"type": "display_view_changed", "view": result["view"]})
+        await state.progress.publish({
+            "type": "display_view_changed",
+            "view": result["view"],
+            "manual": result["manual"],
+        })
         return result

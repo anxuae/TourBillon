@@ -273,6 +273,15 @@
     "detailError": "Spielerdetails konnten nicht geladen werden.",
     "mergedFrom": "Zusammengeführt aus {count} Schreibweisen:",
     "colRegisteredAs": "Registriert als",
-    "noEditions": "Keine Ausgabendaten verfügbar."
+    "noEditions": "Keine Ausgabendaten verfügbar.",
+    "selectAll": "Alle auswählen",
+    "editSelected": "{count} Auswahl(en) bearbeiten",
+    "bulkEditTitle": "Ausgewählte Ausgaben umbenennen",
+    "bulkEditHint": "Dies schreibt die Schreibweise direkt in die Speicherdatei(en).",
+    "firstname": "Vorname",
+    "lastname": "Nachname",
+    "apply": "Anwenden",
+    "renameSuccess": "{count} Ausgabe(n) aktualisiert.",
+    "renameError": "Die Speicherdatei konnte nicht aktualisiert werden."
   }
 }

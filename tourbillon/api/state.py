@@ -40,6 +40,11 @@ class AppState:
         self.tournament = None
         self.filename = None
         self.display_view = 'display-rankings'
+        # Whether `display_view` was explicitly picked by an admin (sidebar)
+        # rather than computed by the auto-switch logic. A freshly opened
+        # Display tab reads this flag to honor a manual choice instead of
+        # recomputing the auto view from the tournament state.
+        self.display_view_manual = False
         self.lock = asyncio.Lock()
         self.progress = ProgressHub()
 

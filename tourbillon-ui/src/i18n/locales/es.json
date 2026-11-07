@@ -273,6 +273,15 @@
     "detailError": "No se pudo cargar el detalle del jugador.",
     "mergedFrom": "Fusionado a partir de {count} grafías:",
     "colRegisteredAs": "Inscrito como",
-    "noEditions": "No hay datos de ediciones disponibles."
+    "noEditions": "No hay datos de ediciones disponibles.",
+    "selectAll": "Seleccionar todo",
+    "editSelected": "Editar {count} seleccionado(s)",
+    "bulkEditTitle": "Renombrar las ediciones seleccionadas",
+    "bulkEditHint": "Esto reescribe la grafía directamente en el/los archivo(s) de guardado.",
+    "firstname": "Nombre",
+    "lastname": "Apellido",
+    "apply": "Aplicar",
+    "renameSuccess": "{count} edición(es) actualizada(s).",
+    "renameError": "No se pudo actualizar el archivo de guardado."
   }
 }
