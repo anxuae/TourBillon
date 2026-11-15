@@ -1,3 +1,5 @@
+`````instructions
+````instructions
 # TourBillon — Instructions Copilot & documentation technique
 
 > Ce fichier sert de **contexte permanent** pour tout développement sur TourBillon.
@@ -324,132 +326,67 @@ masqués, grille `.admin` dégrafée en flux vertical, en-têtes de tableau rép
 neutralisation des fonds colorés de saisie).
 
 
-### Charte UI (cohérence visuelle)
-- Les actions destructives de l'UI (suppression, suppression d'un round/équipe, etc.)
-  utilisent **exclusivement** la classe globale `danger-outline` définie dans
-  `tourbillon-ui/src/assets/main.css`.
-- Éviter de redéfinir localement (dans les `<style scoped>`) des variantes
-  concurrentes de bouton de suppression ; préférer la réutilisation de la classe
-  globale pour conserver la même charte graphique sur toutes les vues.
-- Ne pas définir de règle locale générique `button { ... }` qui redéfinit les
-  propriétés visuelles globales (notamment `background`, `color`, `border`,
-  `hover`, `disabled`) : cela casse la classe `danger-outline`. Les styles locaux
-  de bouton doivent se limiter au layout (ex. largeur, alignement, hauteur).
-- Les actions positives (`create`, `add`, `new`, `save`) utilisent la couleur
-  primaire globale (style par défaut des `button` dans `main.css`) ; éviter les
-  variantes locales ad hoc (ex. vert spécifique dans une seule vue), sauf besoin
-  métier explicitement validé.
-- Pour toute action destructive, conserver la classe `danger-outline` sans
-  surcharge locale concurrente ; seules les contraintes de layout sont autorisées
-  (ex. largeur fixe dans une toolbar).
-- Sur le **popup de tirage** (Round → Draw), le bouton final de validation doit
-  rester une action positive primaire (libellé recommandé : **`Create round`**).
-  L'action de prévisualisation peut être en style secondaire.
-- Sur le **popup de tirage** (Round → Draw), la **progression** doit rester
-  **visible en haut** (intégrée dans l'en-tête de modale ou en carte sticky)
-  pendant le scroll.
-- La fermeture des modales/popup privilégie un contrôle **simple et élégant**
-  de type **croix** (`×`) en en-tête (avec `aria-label` explicite), plutôt
-  qu'un gros bouton d'action textuel.
-- Dans les barres d'actions de modales (ex. `Cancel` / `Save`, `Preview` /
-  `Create`), garder des boutons de **taille homogène** (même largeur/hauteur)
-  pour une cohérence visuelle inter-vues.
-- Les options booléennes visibles (ex. filtres d'affichage, toggles de réglages)
-  utilisent de préférence un contrôle **switch glissant (slider)** plutôt qu'une
-  simple case à cocher, pour améliorer la lisibilité et l'état ON/OFF.
-- Les **tooltips d'information** (icônes d'aide, indicateurs de qualité/power, etc.)
-  suivent un style cohérent sur toutes les vues : **fond sombre**, **coins arrondis**,
-  apparition/disparition **rapide** (hover/focus), et curseur **`help`** sur l'élément
-  déclencheur.
-- Pour les tooltips, **ne pas** s'appuyer sur l'attribut natif `title` : utiliser un
-  rendu CSS dédié avec classes partagées (p. ex. `has-tooltip` + `app-tooltip`) afin
-  de garantir un positionnement et une animation homogènes dans toute l'application.
-- Règle de curseur globale : `cursor: help` pour les aides/indicateurs informatifs,
-  `cursor: pointer` pour les actions cliquables, et éviter les variantes locales
-  incohérentes pour un même type d'interaction.
-- Un **code couleur des statuts** doit être respecté sur tout le frontend pour
-  les éléments graphiques (badges, pills, tags, boutons d'action de statut,
-  etc.) : **`BYE` jaune**, **`WON/WIN` vert**, **`LOST` rouge**,
-  **`FORFEIT` gris foncé**.
-- Tous les **autres statuts** du frontend (hors `BYE/WON/LOST/FORFEIT`) utilisent
-  un **violet** avec **fond pastel** et **liseré plus foncé** (même logique
-  visuelle que les badges de résultat).
-- Règle visuelle générale pour ces statuts : privilégier un **fond pastel**
-  (lisible et non agressif) avec un **liseré/bordure légèrement plus foncé(e)**
-  de la même teinte, pour mieux détacher les badges sur toutes les vues.
-- **Typographie des badges** : le texte d'un badge s'écrit **en minuscules**
-  (pas de `text-transform: uppercase`) et **sans gras** (pas de `font-weight`
-  renforcé). Ne pas ajouter non plus de `letter-spacing` sur un badge. Cette
-  règle vaut pour **tous** les badges/pills/tags de l'application (statuts,
-  compteurs, indicateurs), afin qu'ils partagent la même densité visuelle.
-- **Réutiliser la classe globale `badge`** (définie dans
-  `tourbillon-ui/src/assets/main.css`) plutôt que de recréer localement un
-  badge : les styles locaux doivent se limiter aux ajustements de layout
-  (largeur minimale, `position: relative` pour un tooltip, `font-variant-numeric`
-  pour des chiffres). Ne pas redéfinir `background`, `color`, `border`,
-  `border-radius`, `padding` ni `font-size` de base dans un `<style scoped>`.
-- **Couleurs des badges** : utiliser les **variables CSS de statut**
-  (`--status-bye-*`, `--status-won-*`, `--status-lost-*`, `--status-forfeit-*`,
-  `--status-generic-*`) au lieu de couleurs codées en dur ou de `color-mix()`
-  ad hoc. Tout badge sans sémantique propre utilise `--status-generic-*` (le
-  violet pastel), qui est déjà le style par défaut de la classe `badge`.
-
----
-
-## 7. Conventions de développement
-
-- **Dépendances & venv** : **Poetry** exclusivement (`pyproject.toml`, `poetry.lock`).
-  Ne pas utiliser pip/venv/pipenv/conda directement. Toute dépendance **importée
-  directement** dans le code doit être **déclarée explicitement** (p. ex. `pydantic`).
-  Réciproquement, **ne déclarer QUE les dépendances importées directement** : ne pas
-  lister dans le `pyproject.toml` celles qui ne sont que tirées transitivement
-  (p. ex. `httpx` ou `websockets`, fournies via `fastapi.testclient`/`uvicorn[standard]`).
-- **Python 3.10+**, annotations de type dans le nouveau code, mais **typage simple
-  uniquement** : n'utiliser que les **primitives** (`int`, `str`, `float`, `bool`,
-  `list`, `dict`, `tuple`, `set`, `None`). **Pas** d'`import` depuis `typing`. Syntaxe
-  native (`list`, `dict`, `str | None`).
-- **Langue : anglais obligatoire pour TOUT le code** — noms, commentaires, docstrings,
-  messages de log/exception, doc technique. (Ce fichier d'instructions peut rester en
-  français.) **Seule exception** : les clés/valeurs YAML persistées (format legacy
-  français), produites uniquement au moment de la (dé)sérialisation.
-- **Tests** : `pytest` (dossier `tests/`, `asyncio_mode = "auto"`). Toute nouvelle
-  logique métier ou de tirage doit être testée ; les tirages doivent être
-  **déterministes et testables**.
-- **Async** : privilégier `asyncio` ; isoler le CPU-bound via un executor.
-- **Ne jamais casser** la lecture des anciens fichiers YAML.
-- Garder `core/` **indépendant** de l'API et du framework web.
-- **Exceptions** : importer directement depuis `core/exception.py` là où on en a
-  besoin (p. ex. `from ...core.exception import DrawError`). Pas de module
-  d'indirection/ré-export. Attraper `DrawError` couvre `DrawImpossibleError` et
-  `DrawStopError`.
-
-### Exécuter localement
-```bash
-poetry install                      # backend
-cd tourbillon-ui && npm install && npm run build && cd ..   # frontend
-poetry run tourbillon               # démarre le serveur (http://localhost:8000)
-poetry run pytest                   # suite de tests
+### Charte UI globale (homogénéité visuelle)
+- L’interface doit suivre une **charte visuelle unique** sur toutes les vues : admin,
+  display, history, modales, panneaux d’édition et formulaires.
+- Les styles locaux doivent rester **minimaux** et ne doivent pas réécrire les
+  conventions globales ; la priorité est toujours la **classe globale** déclarée
+  dans `tourbillon-ui/src/assets/main.css`.
+- Les actions de navigation, validation, édition et fermeture doivent partager la
+  même hiérarchie visuelle sur toutes les vues :
+  - primaire = action positive / de confirmation / de création
+  - secondaire = retour / fermeture / annulation
+  - warning = action prudente / bulk edit / sélection groupée
+  - danger-outline = suppression réelle uniquement
+- Les boutons de même fonction doivent avoir la même **hauteur**, la même
+  **largeur visuelle** et le même **espacement** dans toutes les barres d’action.
+- Les boutons d’une barre d’actions ne doivent pas remplir toute la largeur du
+  conteneur, sauf cas très spécifique et justifié ; les actions de confirmation
+  ou d’annulation restent **alignées à droite** et compactes.
+- Les barres d’actions de modales doivent rester cohérentes entre elles :
+  `Cancel` / `Back` en secondaire, `Apply` / `Create` / `Save` en primaire,
+  boutons de taille identique, alignement à droite.
+- Toute action de type bulk edit, mass update, rename groupé ou sélection multiple
+  doit être signalée comme une **opération prudente** : fond pastel orange,
+  bordure plus marquée, atténuation visuelle si rien n’est sélectionné.
+- Les actions destructives de l’UI utilisent exclusivement `danger-outline` et
+  jamais une variante locale concurrente / rouge agressif.
+- Les modales et panneaux d’édition utilisent une **structure visuelle standard** :
+  en-tête avec croix de fermeture simple (`×`), contenu propre, zone d’action en
+  bas alignée à droite, boutons de taille homogène.
+- Les cartes de mise à jour groupée doivent être facilement distinguables des
+  cartes de contenu standard : fond pastel warning, bordure plus visible,
+  opacité réduite lorsqu’elles sont désactivées ou vides.
+- Les contrôles booléens préférés sont les **switchs glissants** quand l’élément est
+  visible dans l’UI : lisibilité plus nette, meilleur état ON/OFF.
+- Les tooltips doivent être **uniformes sur toutes les vues** : fond sombre,
+  coins arrondis, animation rapide, curseur `help`, déclenchement au hover/focus,
+  sans dépendre de l’attribut natif `title`.
+- Les aides contextuelles ne doivent pas afficher un `?` visible dans le UI ;
+  le signal de “aide” est le **curseur help** et le **tooltip au survol**.
+- Les badges, pills, tags, labels de statut et indicateurs doivent tous suivre le
+  même système visuel :
+  - fond pastel + bordure légèrement plus foncée
+  - texte en minuscules, sans uppercase, sans gras, sans `letter-spacing`
+  - réutiliser `badge` globale quand c’est possible
+  - couleurs selon le statut : BYE jaune, WON/WIN vert, LOST rouge,
+    FORFEIT gris foncé, autres statuts violet pastel
+- Les statuts ne doivent pas être codés en dur dans les vues : utiliser les
+  variables CSS de statut globales (`--status-*`) et les classes globales.
+- Les éléments graphiques du dashboard doivent partager la même logique visuelle :
+  même bleu de référence pour les tendances comparables, points contrastés avec
+  contour blanc ou liseré clair, espace vertical homogène entre cartes, pas de
+  décalage visuel d’un graphique à l’autre.
+- Les cartes d’un même écran doivent avoir le même **rythme visuel** : espacement,
+  marge, padding et hauteur d’éléments cohérents sur toute l’interface.
+- Les styles visuels doivent être **sobres et lisibles**, jamais trop chargés ni
+  trop colorés : privilégier l’équilibre, la neutralité et la hiérarchie.
+- Les couleurs de fond, texte et bordure doivent rester cohérentes avec la palette
+  globale de `main.css` ; les variantes locales doivent être l’exception et
+  justifiées par une vraie règle métier.
+- Ne pas redéfinir localement les propriétés du bouton globales (background,
+  color, border, hover, disabled) dans `<style scoped>` : seules les contraintes
+  de layout sont autorisées.
+- Les règles CSS locales doivent se limiter au placement et à la proportion du
+  composant, sans casser la charte globale ou la classe `danger-outline`.
 ```
-Interfaces : `/admin`, `/display`, `/history`.
-
-> **Note environnement** : dans certains shells la sortie du terminal peut être
-> tronquée/brouillée. En cas de doute sur le résultat d'une commande, rediriger vers
-> un fichier du workspace puis le lire.
-
-> **Ne jamais lancer l'application sans autorisation explicite** : ne pas exécuter
-> `poetry run tourbillon` (ni tout équivalent qui démarre le serveur, avec ou sans
-> `--port`) de sa propre initiative, y compris pour "vérifier" un changement.
-> Toujours **demander confirmation à l'utilisateur** avant de démarrer le serveur.
-> Les commandes non interactives et sans effet de bord durable (tests `pytest`,
-> `poetry build`, `poetry install`, lint, etc.) restent autorisées sans demander.
-
-
----
-
-## 8. Références rapides
-
-- Fichiers de sauvegarde d'exemple : `../Sauvegardes Tournois/*.yml` / `*.trb`
-  (données historiques 2005→aujourd'hui, à garder lisibles).
-- Prototype web historique (obsolète, jQuery) : `../billon-web/` — source d'inspiration
-  pour l'affichage écran géant uniquement, **ne pas** en réutiliser le code.
-- Entête ASCII des dumps YAML : `tourbillon/assets/banner.txt` via `assets.banner()`.
