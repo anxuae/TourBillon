@@ -144,10 +144,6 @@ const chartTicks = computed(() => {
 const CHART_TOP = 8
 const CHART_BOTTOM = 92
 
-function pointX(index, total) {
-  return total > 1 ? (index * 100) / (total - 1) : 50
-}
-
 function pointY(count) {
   const ratio = count / chartMax.value
   return CHART_BOTTOM - ratio * (CHART_BOTTOM - CHART_TOP)
@@ -298,13 +294,22 @@ onMounted(() => {
       <div class="chart-card">
         <div class="chart-header">
           <h2>{{ t('history.chartTitle') }}</h2>
-          <div class="chart-legend" aria-label="History player segments">
-            <span class="chart-legend-item has-tooltip" tabindex="0">
+          <div
+            class="chart-legend"
+            aria-label="History player segments"
+          >
+            <span
+              class="chart-legend-item has-tooltip"
+              tabindex="0"
+            >
               <span class="legend-swatch legend-experienced" />
               <span>{{ t('history.legendExperienced') }}</span>
               <span class="app-tooltip">{{ t('history.legendExperiencedHelp') }}</span>
             </span>
-            <span class="chart-legend-item has-tooltip" tabindex="0">
+            <span
+              class="chart-legend-item has-tooltip"
+              tabindex="0"
+            >
               <span class="legend-swatch legend-beginners" />
               <span>{{ t('history.legendBeginners') }}</span>
               <span class="app-tooltip">{{ t('history.legendBeginnersHelp') }}</span>
@@ -335,7 +340,10 @@ onMounted(() => {
                 x2="100"
                 :y2="tick.y"
               />
-              <g v-for="bar in chartBars" :key="bar.key">
+              <g
+                v-for="bar in chartBars"
+                :key="bar.key"
+              >
                 <rect
                   class="chart-bar chart-bar-beginners"
                   :x="bar.x"
