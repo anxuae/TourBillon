@@ -142,6 +142,14 @@ async function applyBulkEdit() {
   }
 }
 
+const bulkEditDisabled = computed(() => selectedRows.value.length === 0)
+
+const bulkEditCardClass = computed(() => ({
+  'edit-panel': true,
+  'edit-panel-warning': !bulkEditDisabled.value,
+  'edit-panel-disabled': bulkEditDisabled.value,
+}))
+
 onMounted(loadDetail)
 </script>
 
@@ -195,7 +203,7 @@ onMounted(loadDetail)
         </button>
         <button
           type="button"
-          :disabled="!selectedRows.length"
+          :disabled="bulkEditDisabled"
           @click="openEditPanel"
         >
           {{ t('history.editSelected', { count: selectedRows.length }) }}
@@ -204,7 +212,7 @@ onMounted(loadDetail)
 
       <div
         v-if="editing"
-        class="edit-panel"
+        :class="bulkEditCardClass"
       >
         <header>
           <h2>{{ t('history.bulkEditTitle') }}</h2>
@@ -331,9 +339,15 @@ onMounted(loadDetail)
 }
 
 .toolbar {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.6rem;
   margin-bottom: 0.8rem;
+}
+
+.toolbar button {
+  width: 100%;
+  min-height: 2.5rem;
 }
 
 .save-note {
@@ -355,6 +369,17 @@ onMounted(loadDetail)
   padding: 0.9rem 1rem;
   margin-bottom: 1rem;
   background: var(--color-background-soft);
+}
+
+.edit-panel-warning {
+  background: linear-gradient(180deg, rgba(245, 158, 11, 0.08), rgba(245, 158, 11, 0.02));
+  border-color: rgba(217, 119, 6, 0.5);
+  box-shadow: inset 0 0 0 1px rgba(217, 119, 6, 0.12);
+}
+
+.edit-panel-disabled {
+  opacity: 0.6;
+  filter: grayscale(0.12);
 }
 
 .edit-panel header {
@@ -398,6 +423,12 @@ onMounted(loadDetail)
 .edit-actions {
   display: flex;
   justify-content: flex-end;
+  align-items: center;
   gap: 0.6rem;
+}
+
+.edit-actions button {
+  min-width: 8rem;
+  min-height: 2.5rem;
 }
 </style>

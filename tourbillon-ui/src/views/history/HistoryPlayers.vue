@@ -82,6 +82,38 @@ const chartEditions = computed(() =>
   [...editions.value].sort((left, right) => String(left.year).localeCompare(String(right.year))),
 )
 
+const chartMix = computed(() => {
+  const seen = new Set()
+  return chartEditions.value.map((edition) => {
+    let experienced = 0
+    let beginners = 0
+    const keys = new Set()
+
+    for (const row of edition.players) {
+      const key = playerKey(row.name)
+      if (!key) continue
+      keys.add(key)
+      if (seen.has(key)) {
+        experienced += 1
+      } else {
+        beginners += 1
+      }
+    }
+
+    for (const key of keys) {
+      seen.add(key)
+    }
+
+    return {
+      key: edition.filename,
+      year: edition.year,
+      experienced,
+      beginners,
+      total: edition.players.length,
+    }
+  })
+})
+
 const chartPeak = computed(() => {
   const values = chartEditions.value.map((edition) => edition.players.length)
   return Math.max(1, ...values)
@@ -121,6 +153,11 @@ function pointY(count) {
   return CHART_BOTTOM - ratio * (CHART_BOTTOM - CHART_TOP)
 }
 
+function centerX(index, total) {
+  const step = 100 / total
+  return (index + 0.5) * step
+}
+
 const chartDots = computed(() => {
   const rows = chartEditions.value
   return rows.map((edition, index) => ({
@@ -128,22 +165,89 @@ const chartDots = computed(() => {
     year: edition.year,
     count: edition.players.length,
     teams: edition.nb_teams,
-    x: pointX(index, rows.length),
+    experienced: chartMix.value[index]?.experienced ?? 0,
+    beginners: chartMix.value[index]?.beginners ?? 0,
+    x: centerX(index, rows.length || 1),
     y: pointY(edition.players.length),
   }))
 })
 
-const chartPoints = computed(() =>
-  chartDots.value.map((dot) => `${dot.x.toFixed(2)},${dot.y.toFixed(2)}`).join(' '),
-)
+const chartBars = computed(() => {
+  const rows = chartEditions.value
+  const visibleYears = Math.max(rows.length, 1)
+  const width = Math.max(2.2, Math.min(5.5, 15 / visibleYears))
 
-const chartArea = computed(() => {
-  const dots = chartDots.value
-  if (!dots.length) return ''
-  const firstX = dots[0].x.toFixed(2)
-  const lastX = dots[dots.length - 1].x.toFixed(2)
-  return `${firstX},100 ${chartPoints.value} ${lastX},100`
+  return rows.map((edition, index) => {
+    const mix = chartMix.value[index] ?? { experienced: 0, beginners: 0, total: 0 }
+    const total = Math.max(Number(edition.players.length || 0), 1)
+    const x = centerX(index, visibleYears) - width / 2
+    const baseY = CHART_BOTTOM
+    const totalTopY = pointY(total)
+    const totalHeight = Math.max(0, baseY - totalTopY)
+
+    const greenHeight = total > 0 && mix.beginners ? (mix.beginners / total) * totalHeight : 0
+    const blueHeight = total > 0 && mix.experienced ? (mix.experienced / total) * totalHeight : 0
+    const greenY = baseY - greenHeight
+    const blueY = greenY - blueHeight
+
+    return {
+      key: `${edition.filename}-bar`,
+      x,
+      width,
+      total,
+      experienced: mix.experienced,
+      beginners: mix.beginners,
+      blueHeight,
+      greenHeight,
+      blueY,
+      greenY,
+    }
+  })
 })
+
+const roundChartPeak = computed(() => {
+  const values = chartEditions.value.map((edition) => Number(edition.nb_rounds ?? 0))
+  return Math.max(1, ...values)
+})
+
+const roundChartStep = computed(() => {
+  const target = roundChartPeak.value / 5
+  const steps = [1, 2, 3, 4, 5, 10, 20, 25, 50, 100, 200]
+  return steps.find((value) => value >= target) ?? 200
+})
+
+const roundChartMax = computed(() => {
+  const step = roundChartStep.value
+  return Math.max(step, Math.ceil(roundChartPeak.value / step) * step)
+})
+
+const roundChartTicks = computed(() => {
+  const ticks = []
+  for (let value = 0; value <= roundChartMax.value; value += roundChartStep.value) {
+    ticks.push({ value, y: pointYFor(value, roundChartMax.value) })
+  }
+  return ticks.reverse()
+})
+
+function pointYFor(count, maxValue) {
+  const ratio = maxValue > 0 ? count / maxValue : 0
+  return CHART_BOTTOM - ratio * (CHART_BOTTOM - CHART_TOP)
+}
+
+const roundChartDots = computed(() => {
+  const rows = chartEditions.value
+  return rows.map((edition, index) => ({
+    key: `${edition.filename}-rounds`,
+    year: edition.year,
+    count: Number(edition.nb_rounds ?? 0),
+    x: centerX(index, rows.length || 1),
+    y: pointYFor(Number(edition.nb_rounds ?? 0), roundChartMax.value),
+  }))
+})
+
+const roundChartPoints = computed(() =>
+  roundChartDots.value.map((dot) => `${dot.x.toFixed(2)},${dot.y.toFixed(2)}`).join(' '),
+)
 
 onMounted(() => {
   // No-op if the data is already loaded or a load is still in flight
@@ -189,66 +293,150 @@ onMounted(() => {
 
     <div
       v-if="chartEditions.length"
-      class="chart-card"
+      class="charts-stack"
     >
-      <h2>{{ t('history.chartTitle') }}</h2>
-      <div class="chart-body">
-        <div class="chart-scale">
-          <span
-            v-for="tick in chartTicks"
-            :key="`tick-${tick.value}`"
-            class="chart-scale-item"
-            :style="{ top: `${tick.y}%` }"
-          >{{ tick.value }}</span>
-        </div>
-        <div class="chart-plot">
-          <svg
-            class="chart"
-            viewBox="0 0 100 100"
-            preserveAspectRatio="none"
-          >
-            <line
-              v-for="tick in chartTicks"
-              :key="`grid-${tick.value}`"
-              class="chart-grid"
-              x1="0"
-              :y1="tick.y"
-              x2="100"
-              :y2="tick.y"
-            />
-            <polygon
-              class="chart-area"
-              :points="chartArea"
-            />
-            <polyline
-              class="chart-line"
-              :points="chartPoints"
-            />
-          </svg>
-          <button
-            v-for="dot in chartDots"
-            :key="dot.key"
-            type="button"
-            class="chart-dot has-tooltip"
-            :style="{ left: `${dot.x}%`, top: `${dot.y}%` }"
-            :aria-label="t('history.chartDotAria', { year: dot.year, count: dot.count })"
-          >
-            <span class="chart-tooltip app-tooltip">
-              <strong>{{ dot.year }}</strong>
-              <span>{{ t('history.chartPlayers', { count: dot.count }) }}</span>
-              <span>{{ t('history.chartTeams', { count: dot.teams }) }}</span>
+      <div class="chart-card">
+        <div class="chart-header">
+          <h2>{{ t('history.chartTitle') }}</h2>
+          <div class="chart-legend" aria-label="History player segments">
+            <span class="chart-legend-item has-tooltip" tabindex="0">
+              <span class="legend-swatch legend-experienced" />
+              <span>{{ t('history.legendExperienced') }}</span>
+              <span class="app-tooltip">{{ t('history.legendExperiencedHelp') }}</span>
             </span>
-          </button>
+            <span class="chart-legend-item has-tooltip" tabindex="0">
+              <span class="legend-swatch legend-beginners" />
+              <span>{{ t('history.legendBeginners') }}</span>
+              <span class="app-tooltip">{{ t('history.legendBeginnersHelp') }}</span>
+            </span>
+          </div>
+        </div>
+        <div class="chart-body">
+          <div class="chart-scale">
+            <span
+              v-for="tick in chartTicks"
+              :key="`tick-${tick.value}`"
+              class="chart-scale-item"
+              :style="{ top: `${tick.y}%` }"
+            >{{ tick.value }}</span>
+          </div>
+          <div class="chart-plot">
+            <svg
+              class="chart"
+              viewBox="0 0 100 100"
+              preserveAspectRatio="none"
+            >
+              <line
+                v-for="tick in chartTicks"
+                :key="`grid-${tick.value}`"
+                class="chart-grid"
+                x1="0"
+                :y1="tick.y"
+                x2="100"
+                :y2="tick.y"
+              />
+              <g v-for="bar in chartBars" :key="bar.key">
+                <rect
+                  class="chart-bar chart-bar-beginners"
+                  :x="bar.x"
+                  :y="bar.greenY"
+                  :width="bar.width"
+                  :height="bar.greenHeight"
+                />
+                <rect
+                  class="chart-bar chart-bar-experienced"
+                  :x="bar.x"
+                  :y="bar.blueY"
+                  :width="bar.width"
+                  :height="bar.blueHeight"
+                />
+              </g>
+            </svg>
+            <button
+              v-for="dot in chartDots"
+              :key="dot.key"
+              type="button"
+              class="chart-dot has-tooltip"
+              :style="{ left: `${dot.x}%`, top: `${dot.y}%` }"
+              :aria-label="t('history.chartDotAria', { year: dot.year, count: dot.count })"
+            >
+              <span class="chart-tooltip app-tooltip">
+                <strong>{{ dot.year }}</strong>
+                <span>{{ t('history.chartPlayers', { count: dot.count }) }}</span>
+                <span>{{ t('history.chartTeams', { count: dot.teams }) }}</span>
+                <span>{{ t('history.chartMixTooltip', { experienced: dot.experienced, beginners: dot.beginners }) }}</span>
+              </span>
+            </button>
+          </div>
+        </div>
+        <div class="chart-axis">
+          <span
+            v-for="dot in chartDots"
+            :key="`label-${dot.key}`"
+            class="chart-axis-item rotated-label"
+          >
+            <small>{{ dot.year }}</small>
+          </span>
         </div>
       </div>
-      <div class="chart-axis">
-        <span
-          v-for="dot in chartDots"
-          :key="`label-${dot.key}`"
-          class="chart-axis-item"
-        >
-          <small>{{ dot.year }}</small>
-        </span>
+
+      <div class="chart-card rounds-card">
+        <div class="chart-header">
+          <h2>{{ t('history.roundsChartTitle') }}</h2>
+        </div>
+        <div class="chart-body">
+          <div class="chart-scale">
+            <span
+              v-for="tick in roundChartTicks"
+              :key="`round-tick-${tick.value}`"
+              class="chart-scale-item"
+              :style="{ top: `${tick.y}%` }"
+            >{{ tick.value }}</span>
+          </div>
+          <div class="chart-plot">
+            <svg
+              class="chart"
+              viewBox="0 0 100 100"
+              preserveAspectRatio="none"
+            >
+              <line
+                v-for="tick in roundChartTicks"
+                :key="`round-grid-${tick.value}`"
+                class="chart-grid"
+                x1="0"
+                :y1="tick.y"
+                x2="100"
+                :y2="tick.y"
+              />
+              <polyline
+                class="chart-line chart-line-rounds"
+                :points="roundChartPoints"
+              />
+            </svg>
+            <button
+              v-for="dot in roundChartDots"
+              :key="dot.key"
+              type="button"
+              class="chart-dot chart-dot-rounds has-tooltip"
+              :style="{ left: `${dot.x}%`, top: `${dot.y}%` }"
+              :aria-label="t('history.roundsChartDotAria', { year: dot.year, count: dot.count })"
+            >
+              <span class="chart-tooltip app-tooltip">
+                <strong>{{ dot.year }}</strong>
+                <span>{{ t('history.roundsChartHint', { count: dot.count }) }}</span>
+              </span>
+            </button>
+          </div>
+        </div>
+        <div class="chart-axis">
+          <span
+            v-for="dot in roundChartDots"
+            :key="`round-label-${dot.key}`"
+            class="chart-axis-item rotated-label"
+          >
+            <small>{{ dot.year }}</small>
+          </span>
+        </div>
       </div>
     </div>
 
@@ -422,17 +610,80 @@ onMounted(() => {
   opacity: 0.8;
 }
 
+.charts-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
 .chart-card {
   background: var(--color-surface);
   border-radius: 12px;
   padding: 1rem 1.2rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: 0;
   box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
 }
 
 .chart-card h2 {
-  margin: 0 0 0.8rem;
+  margin: 0;
   font-size: 1rem;
+}
+
+.chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.8rem;
+}
+
+.chart-legend {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  font-size: 0.75rem;
+  color: var(--color-text);
+}
+
+.chart-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  position: relative;
+  cursor: help;
+}
+
+.chart-legend-item .app-tooltip {
+  white-space: normal;
+  width: 13rem;
+  text-align: left;
+  bottom: calc(100% + 0.55rem);
+  left: 50%;
+}
+
+.chart-legend-item:hover .app-tooltip,
+.chart-legend-item:focus .app-tooltip,
+.chart-legend-item:focus-within .app-tooltip {
+  opacity: 1;
+  visibility: visible;
+  transform: translate(-50%, 0);
+}
+
+.legend-swatch {
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 0.2rem;
+  display: inline-block;
+}
+
+.legend-experienced {
+  background: rgba(124, 58, 237, 0.7);
+}
+
+.legend-beginners {
+  background: rgba(22, 163, 74, 0.7);
 }
 
 .chart-body {
@@ -475,8 +726,20 @@ onMounted(() => {
   display: block;
 }
 
-.chart-area {
-  fill: color-mix(in srgb, var(--color-primary) 14%, transparent);
+.chart-bar {
+  opacity: 0.9;
+}
+
+.chart-bar-experienced {
+  fill: rgba(124, 58, 237, 0.8);
+}
+
+.chart-bar-beginners {
+  fill: rgba(22, 163, 74, 0.8);
+}
+
+.chart-bar-rounds {
+  fill: rgba(96, 165, 250, 0.8);
 }
 
 .chart-line {
@@ -486,7 +749,10 @@ onMounted(() => {
   vector-effect: non-scaling-stroke;
 }
 
-/* Dots live outside the SVG so they stay perfectly round */
+.chart-line-rounds {
+  stroke: var(--color-primary);
+}
+
 .chart-dot {
   position: absolute;
   width: 12px;
@@ -499,6 +765,11 @@ onMounted(() => {
   border: 2px solid var(--color-surface);
   cursor: help;
   transition: transform 0.12s ease;
+}
+
+.chart-dot-rounds {
+  background: var(--color-primary);
+  border: 2px solid var(--color-surface);
 }
 
 .chart-dot:hover,
@@ -553,6 +824,12 @@ onMounted(() => {
   align-items: center;
   font-size: 0.75rem;
   color: var(--color-text);
+}
+
+.rotated-label {
+  transform: rotate(-25deg);
+  transform-origin: center;
+  white-space: nowrap;
 }
 
 .chart-axis-item small {

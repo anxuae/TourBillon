@@ -282,6 +282,11 @@
     "lastname": "Apellido",
     "apply": "Aplicar",
     "renameSuccess": "{count} edición(es) actualizada(s).",
-    "renameError": "No se pudo actualizar el archivo de guardado."
+    "renameError": "No se pudo actualizar el archivo de guardado.",
+    "chartMixTooltip": "Experimentados: {experienced} · Principiantes: {beginners}",
+    "legendExperienced": "Experimentados",
+    "legendBeginners": "Principiantes",
+    "legendExperiencedHelp": "Jugadores ya presentes en una edición anterior.",
+    "legendBeginnersHelp": "Jugadores que aparecen por primera vez en este torneo."
   }
 }

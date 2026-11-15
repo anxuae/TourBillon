@@ -262,6 +262,11 @@
     "chartPlayers": "{count} players",
     "chartTeams": "{count} teams",
     "chartDotAria": "{year}: {count} players",
+    "chartMixTooltip": "Experienced: {experienced} · Beginners: {beginners}",
+    "legendExperienced": "Experienced",
+    "legendBeginners": "Beginners",
+    "legendExperiencedHelp": "Players already present in a previous edition.",
+    "legendBeginnersHelp": "Players appearing for the first time in this tournament.",
     "colParticipations": "Participations",
     "colTotalWins": "Total wins",
     "colTotalPoints": "Total points",
@@ -282,6 +287,9 @@
     "lastname": "Last name",
     "apply": "Apply",
     "renameSuccess": "{count} edition(s) updated.",
-    "renameError": "Unable to update the save file."
+    "renameError": "Unable to update the save file.",
+    "roundsChartTitle": "Rounds played over the years",
+    "roundsChartHint": "{count} rounds played",
+    "roundsChartDotAria": "{year}: {count} rounds played"
   }
 }

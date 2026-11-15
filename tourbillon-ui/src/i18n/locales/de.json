@@ -282,6 +282,11 @@
     "lastname": "Nachname",
     "apply": "Anwenden",
     "renameSuccess": "{count} Ausgabe(n) aktualisiert.",
-    "renameError": "Die Speicherdatei konnte nicht aktualisiert werden."
+    "renameError": "Die Speicherdatei konnte nicht aktualisiert werden.",
+    "chartMixTooltip": "Erfahren: {experienced} · Anfänger: {beginners}",
+    "legendExperienced": "Erfahren",
+    "legendBeginners": "Anfänger",
+    "legendExperiencedHelp": "Spieler, die bereits in einer früheren Ausgabe anwesend waren.",
+    "legendBeginnersHelp": "Spieler, die in diesem Turnier zum ersten Mal auftauchen."
   }
 }

@@ -262,6 +262,11 @@
     "chartPlayers": "{count} joueurs",
     "chartTeams": "{count} équipes",
     "chartDotAria": "{year} : {count} joueurs",
+    "chartMixTooltip": "Expérimentés : {experienced} · Débutants : {beginners}",
+    "legendExperienced": "Expérimentés",
+    "legendBeginners": "Débutants",
+    "legendExperiencedHelp": "Joueurs déjà présents dans une édition précédente.",
+    "legendBeginnersHelp": "Joueurs qui apparaissent pour la première fois dans ce tournoi.",
     "colParticipations": "Participations",
     "colTotalWins": "Total victoires",
     "colTotalPoints": "Total points",
@@ -282,6 +287,9 @@
     "lastname": "Nom",
     "apply": "Appliquer",
     "renameSuccess": "{count} édition(s) mise(s) à jour.",
-    "renameError": "Impossible de mettre à jour le fichier de sauvegarde."
+    "renameError": "Impossible de mettre à jour le fichier de sauvegarde.",
+    "roundsChartTitle": "Parties jouées au fil des années",
+    "roundsChartHint": "{count} parties jouées",
+    "roundsChartDotAria": "{year} : {count} parties jouées"
   }
 }
